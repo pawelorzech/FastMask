@@ -188,6 +188,11 @@ Contributions are welcome! Here's how you can help:
 
 ## Changelog
 
+### v1.2 (January 2026)
+- **Fixed**: Login crash caused by `ParameterizedType` casting error at runtime
+- **Improved**: TokenStorage now uses lazy initialization for EncryptedSharedPreferences
+- **Stability**: Deferred crypto initialization prevents reflection errors during Hilt injection
+
 ### v1.1 (January 2026)
 - **Fixed**: ProGuard/R8 minification crash with `ParameterizedType` casting error
 - **Improved**: Added proper ProGuard rules for Google Tink (security-crypto dependency)
