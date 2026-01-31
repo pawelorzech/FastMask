@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Fastmail Gemaskeerde E-mail Beheerder</string>
+    <string name="login_api_token_label">API-token</string>
+    <string name="login_api_token_placeholder">Voer uw Fastmail API-token in</string>
+    <string name="login_button">Inloggen</string>
+    <string name="login_show_token">Token tonen</string>
+    <string name="login_hide_token">Token verbergen</string>
+    <string name="login_instructions_title">Hoe u uw API-token krijgt:</string>
+    <string name="login_instructions_step1">1. Log in op de Fastmail web-app</string>
+    <string name="login_instructions_step2">2. Ga naar Instellingen > Privacy en Beveiliging</string>
+    <string name="login_instructions_step3">3. Klik op Integraties > API-tokens</string>
+    <string name="login_instructions_step4">4. Maak een nieuw token met \"Masked Email\" scope</string>
+    <string name="login_instructions_step5">5. Kopieer het token en plak het hierboven</string>
+    <string name="login_instructions_full">1. Log in op de Fastmail web-app\n2. Ga naar Instellingen > Privacy en Beveiliging\n3. Klik op Integraties > API-tokens\n4. Maak een nieuw token met \"Masked Email\" scope\n5. Kopieer het token en plak het hierboven</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Gemaskeerde e-mails</string>
+    <string name="email_list_search_placeholder">E-mails zoeken…</string>
+    <string name="email_list_clear_search">Zoekopdracht wissen</string>
+    <string name="email_list_filter_emails">E-mails filteren</string>
+    <string name="email_list_create_fab">Aanmaken</string>
+    <string name="email_list_create_description">Nieuwe gemaskeerde e-mail aanmaken</string>
+    <string name="email_list_empty">Geen gemaskeerde e-mails gevonden</string>
+    <string name="email_list_logout">Uitloggen</string>
+    <string name="email_list_settings">Instellingen</string>
+    <string name="filter_all">Alle</string>
+    <string name="filter_enabled">Ingeschakeld</string>
+    <string name="filter_disabled">Uitgeschakeld</string>
+    <string name="filter_deleted">Verwijderd</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Gemaskeerde e-mail aanmaken</string>
+    <string name="create_email_prefix_label">E-mail prefix (optioneel)</string>
+    <string name="create_email_prefix_placeholder">bijv. mijnsite_winkelen</string>
+    <string name="create_email_prefix_hint">Max 64 tekens: kleine letters, cijfers, underscores</string>
+    <string name="create_email_domain_label">Gekoppeld domein (optioneel)</string>
+    <string name="create_email_domain_placeholder">bijv. voorbeeld.nl</string>
+    <string name="create_email_description_label">Beschrijving (optioneel)</string>
+    <string name="create_email_description_placeholder">bijv. Winkelaccount</string>
+    <string name="create_email_url_label">URL (optioneel)</string>
+    <string name="create_email_url_placeholder">bijv. https://voorbeeld.nl</string>
+    <string name="create_email_initial_state">Beginstatus</string>
+    <string name="create_email_button">Gemaskeerde e-mail aanmaken</string>
+    <string name="create_email_created">Aangemaakt: %s</string>
+    <string name="create_email_copy_action">Kopiëren</string>
+    <string name="navigate_back">Terug</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">E-maildetails</string>
+    <string name="email_detail_copy_email">E-mailadres kopiëren</string>
+    <string name="email_detail_delete">E-mail verwijderen</string>
+    <string name="email_detail_status">Status:</string>
+    <string name="email_detail_created_by">Aangemaakt door: %s</string>
+    <string name="email_detail_created">Aangemaakt: %s</string>
+    <string name="email_detail_last_message">Laatste bericht: %s</string>
+    <string name="email_detail_enable">Inschakelen</string>
+    <string name="email_detail_disable">Uitschakelen</string>
+    <string name="email_detail_edit_title">Details bewerken</string>
+    <string name="email_detail_description_label">Beschrijving</string>
+    <string name="email_detail_domain_label">Gekoppeld domein</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Wijzigingen opslaan</string>
+    <string name="email_detail_updated">Succesvol bijgewerkt</string>
+    <string name="email_detail_deleted">Succesvol verwijderd</string>
+    <string name="email_detail_copied">Gekopieerd naar klembord</string>
+    <string name="email_detail_delete_dialog_title">Gemaskeerde e-mail verwijderen</string>
+    <string name="email_detail_delete_dialog_message">Weet u zeker dat u deze gemaskeerde e-mail wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</string>
+    <string name="email_detail_delete_confirm">Verwijderen</string>
+    <string name="email_detail_delete_cancel">Annuleren</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Ingeschakeld</string>
+    <string name="state_disabled">Uitgeschakeld</string>
+    <string name="state_deleted">Verwijderd</string>
+    <string name="state_pending">In afwachting</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Kon e-mails niet laden</string>
+    <string name="error_retry">Opnieuw proberen</string>
+    <string name="error_generic">Er is een fout opgetreden</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_language">Taal</string>
+    <string name="settings_language_description">App-taal selecteren</string>
+    <string name="settings_system_default">Systeemstandaard</string>
+    <string name="settings_contact">Contact en feedback</string>
+    <string name="settings_contact_description">Stuur ons uw feedback</string>
+    <string name="settings_logout">Uitloggen</string>
+    <string name="settings_logout_description">Afmelden bij uw account</string>
+    <string name="settings_version">Versie %s</string>
+    <string name="settings_select_language">Taal selecteren</string>
+    <string name="settings_feedback_subject">FastMask Feedback</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

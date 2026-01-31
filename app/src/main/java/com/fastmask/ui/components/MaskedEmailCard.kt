@@ -30,11 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.theme.FastMaskStatusColors
@@ -52,10 +53,10 @@ fun MaskedEmailCard(
     val haptic = LocalHapticFeedback.current
 
     val stateDescription = when (maskedEmail.state) {
-        EmailState.ENABLED -> "Enabled"
-        EmailState.DISABLED -> "Disabled"
-        EmailState.DELETED -> "Deleted"
-        EmailState.PENDING -> "Pending"
+        EmailState.ENABLED -> stringResource(R.string.state_enabled)
+        EmailState.DISABLED -> stringResource(R.string.state_disabled)
+        EmailState.DELETED -> stringResource(R.string.state_deleted)
+        EmailState.PENDING -> stringResource(R.string.state_pending)
     }
 
     with(sharedTransitionScope) {

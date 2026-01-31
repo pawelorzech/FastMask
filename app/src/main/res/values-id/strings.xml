@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Pengelola Email Tersamar Fastmail</string>
+    <string name="login_api_token_label">Token API</string>
+    <string name="login_api_token_placeholder">Masukkan token API Fastmail Anda</string>
+    <string name="login_button">Masuk</string>
+    <string name="login_show_token">Tampilkan token</string>
+    <string name="login_hide_token">Sembunyikan token</string>
+    <string name="login_instructions_title">Cara mendapatkan token API:</string>
+    <string name="login_instructions_step1">1. Masuk ke aplikasi web Fastmail</string>
+    <string name="login_instructions_step2">2. Buka Pengaturan > Privasi &amp; Keamanan</string>
+    <string name="login_instructions_step3">3. Klik Integrasi > Token API</string>
+    <string name="login_instructions_step4">4. Buat token baru dengan cakupan \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Salin token dan tempel di atas</string>
+    <string name="login_instructions_full">1. Masuk ke aplikasi web Fastmail\n2. Buka Pengaturan > Privasi &amp; Keamanan\n3. Klik Integrasi > Token API\n4. Buat token baru dengan cakupan \"Masked Email\"\n5. Salin token dan tempel di atas</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Email Tersamar</string>
+    <string name="email_list_search_placeholder">Cari email…</string>
+    <string name="email_list_clear_search">Hapus pencarian</string>
+    <string name="email_list_filter_emails">Filter email</string>
+    <string name="email_list_create_fab">Buat</string>
+    <string name="email_list_create_description">Buat email tersamar baru</string>
+    <string name="email_list_empty">Tidak ada email tersamar ditemukan</string>
+    <string name="email_list_logout">Keluar</string>
+    <string name="email_list_settings">Pengaturan</string>
+    <string name="filter_all">Semua</string>
+    <string name="filter_enabled">Aktif</string>
+    <string name="filter_disabled">Nonaktif</string>
+    <string name="filter_deleted">Dihapus</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Buat Email Tersamar</string>
+    <string name="create_email_prefix_label">Awalan email (opsional)</string>
+    <string name="create_email_prefix_placeholder">mis., situsku_belanja</string>
+    <string name="create_email_prefix_hint">Maks 64 karakter: huruf kecil, angka, garis bawah</string>
+    <string name="create_email_domain_label">Domain terkait (opsional)</string>
+    <string name="create_email_domain_placeholder">mis., contoh.com</string>
+    <string name="create_email_description_label">Deskripsi (opsional)</string>
+    <string name="create_email_description_placeholder">mis., Akun belanja</string>
+    <string name="create_email_url_label">URL (opsional)</string>
+    <string name="create_email_url_placeholder">mis., https://contoh.com</string>
+    <string name="create_email_initial_state">Status awal</string>
+    <string name="create_email_button">Buat Email Tersamar</string>
+    <string name="create_email_created">Dibuat: %s</string>
+    <string name="create_email_copy_action">Salin</string>
+    <string name="navigate_back">Kembali</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Detail Email</string>
+    <string name="email_detail_copy_email">Salin alamat email</string>
+    <string name="email_detail_delete">Hapus email</string>
+    <string name="email_detail_status">Status:</string>
+    <string name="email_detail_created_by">Dibuat oleh: %s</string>
+    <string name="email_detail_created">Dibuat: %s</string>
+    <string name="email_detail_last_message">Pesan terakhir: %s</string>
+    <string name="email_detail_enable">Aktifkan</string>
+    <string name="email_detail_disable">Nonaktifkan</string>
+    <string name="email_detail_edit_title">Edit Detail</string>
+    <string name="email_detail_description_label">Deskripsi</string>
+    <string name="email_detail_domain_label">Domain terkait</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Simpan Perubahan</string>
+    <string name="email_detail_updated">Berhasil diperbarui</string>
+    <string name="email_detail_deleted">Berhasil dihapus</string>
+    <string name="email_detail_copied">Disalin ke papan klip</string>
+    <string name="email_detail_delete_dialog_title">Hapus Email Tersamar</string>
+    <string name="email_detail_delete_dialog_message">Apakah Anda yakin ingin menghapus email tersamar ini? Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="email_detail_delete_confirm">Hapus</string>
+    <string name="email_detail_delete_cancel">Batal</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Aktif</string>
+    <string name="state_disabled">Nonaktif</string>
+    <string name="state_deleted">Dihapus</string>
+    <string name="state_pending">Tertunda</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Gagal memuat email</string>
+    <string name="error_retry">Coba Lagi</string>
+    <string name="error_generic">Terjadi kesalahan</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_language">Bahasa</string>
+    <string name="settings_language_description">Pilih bahasa aplikasi</string>
+    <string name="settings_system_default">Default Sistem</string>
+    <string name="settings_contact">Kontak &amp; Masukan</string>
+    <string name="settings_contact_description">Kirimkan masukan Anda</string>
+    <string name="settings_logout">Keluar</string>
+    <string name="settings_logout_description">Keluar dari akun Anda</string>
+    <string name="settings_version">Versi %s</string>
+    <string name="settings_select_language">Pilih Bahasa</string>
+    <string name="settings_feedback_subject">Masukan FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

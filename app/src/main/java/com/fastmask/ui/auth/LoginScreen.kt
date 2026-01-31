@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fastmask.R
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -80,13 +82,13 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "FastMask",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary
             )
 
             Text(
-                text = "Fastmail Masked Email Manager",
+                text = stringResource(R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -96,8 +98,8 @@ fun LoginScreen(
             OutlinedTextField(
                 value = uiState.token,
                 onValueChange = viewModel::onTokenChange,
-                label = { Text("API Token") },
-                placeholder = { Text("Enter your Fastmail API token") },
+                label = { Text(stringResource(R.string.login_api_token_label)) },
+                placeholder = { Text(stringResource(R.string.login_api_token_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
@@ -112,7 +114,11 @@ fun LoginScreen(
                     IconButton(onClick = { showToken = !showToken }) {
                         Icon(
                             imageVector = if (showToken) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (showToken) "Hide token" else "Show token"
+                            contentDescription = if (showToken) {
+                                stringResource(R.string.login_hide_token)
+                            } else {
+                                stringResource(R.string.login_show_token)
+                            }
                         )
                     }
                 },
@@ -143,7 +149,7 @@ fun LoginScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Login")
+                    Text(stringResource(R.string.login_button))
                 }
             }
 
@@ -159,17 +165,13 @@ fun LoginScreen(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "How to get your API token:",
+                        text = stringResource(R.string.login_instructions_title),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "1. Log in to Fastmail web app\n" +
-                                "2. Go to Settings > Privacy & Security\n" +
-                                "3. Click on Integrations > API tokens\n" +
-                                "4. Create a new token with \"Masked Email\" scope\n" +
-                                "5. Copy the token and paste it above",
+                        text = stringResource(R.string.login_instructions_full),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Start
