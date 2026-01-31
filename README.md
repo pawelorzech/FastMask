@@ -51,6 +51,8 @@ FastMask is a native Android application that lets you manage your [Fastmail](ht
 | **Delete** | Remove masks you no longer need |
 | **Search & Filter** | Find specific masks instantly |
 | **Material You** | Dynamic theming that adapts to your wallpaper |
+| **20 Languages** | Full localization with in-app language picker |
+| **Settings** | Language selection, contact/feedback, and logout |
 
 ## Screenshots
 
@@ -151,6 +153,7 @@ app/
     ├── list/                # Masked email list
     ├── create/              # Create new mask
     ├── detail/              # View/edit mask details
+    ├── settings/            # Settings screen
     ├── components/          # Reusable UI components
     ├── navigation/          # Navigation setup
     └── theme/               # Material 3 theming
@@ -188,6 +191,12 @@ Contributions are welcome! Here's how you can help:
 
 ## Changelog
 
+### v1.3 (January 2026)
+- **New**: Settings screen with language picker, contact button, and logout
+- **New**: Localization support for 20 languages (English, Chinese, Spanish, Hindi, Arabic, Portuguese, Bengali, Russian, Japanese, French, German, Korean, Italian, Turkish, Vietnamese, Polish, Ukrainian, Dutch, Thai, Indonesian)
+- **New**: In-app language override using AppCompatDelegate
+- **Improved**: All UI strings now use centralized string resources
+
 ### v1.2 (January 2026)
 - **Fixed**: Login crash caused by `ParameterizedType` casting error at runtime
 - **Improved**: TokenStorage now uses lazy initialization for EncryptedSharedPreferences
@@ -207,11 +216,10 @@ Contributions are welcome! Here's how you can help:
 ## Roadmap
 
 - [ ] Add screenshots to README
-- [ ] Biometric authentication option
 - [ ] Widget for quick mask creation
-- [ ] Export/import functionality
 - [ ] Dark/light mode toggle
-- [ ] Localization support
+- [x] Localization support (20 languages)
+- [x] Settings screen with language picker
 
 ## License
 

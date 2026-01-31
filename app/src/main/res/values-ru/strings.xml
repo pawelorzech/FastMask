@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Менеджер масок email для Fastmail</string>
+    <string name="login_api_token_label">API токен</string>
+    <string name="login_api_token_placeholder">Введите ваш API токен Fastmail</string>
+    <string name="login_button">Войти</string>
+    <string name="login_show_token">Показать токен</string>
+    <string name="login_hide_token">Скрыть токен</string>
+    <string name="login_instructions_title">Как получить API токен:</string>
+    <string name="login_instructions_step1">1. Войдите в веб-приложение Fastmail</string>
+    <string name="login_instructions_step2">2. Перейдите в Настройки > Конфиденциальность и безопасность</string>
+    <string name="login_instructions_step3">3. Нажмите Интеграции > API токены</string>
+    <string name="login_instructions_step4">4. Создайте новый токен с правами \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Скопируйте токен и вставьте выше</string>
+    <string name="login_instructions_full">1. Войдите в веб-приложение Fastmail\n2. Перейдите в Настройки > Конфиденциальность и безопасность\n3. Нажмите Интеграции > API токены\n4. Создайте новый токен с правами \"Masked Email\"\n5. Скопируйте токен и вставьте выше</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Маски email</string>
+    <string name="email_list_search_placeholder">Поиск email…</string>
+    <string name="email_list_clear_search">Очистить поиск</string>
+    <string name="email_list_filter_emails">Фильтровать email</string>
+    <string name="email_list_create_fab">Создать</string>
+    <string name="email_list_create_description">Создать новую маску email</string>
+    <string name="email_list_empty">Маски email не найдены</string>
+    <string name="email_list_logout">Выйти</string>
+    <string name="email_list_settings">Настройки</string>
+    <string name="filter_all">Все</string>
+    <string name="filter_enabled">Активные</string>
+    <string name="filter_disabled">Отключённые</string>
+    <string name="filter_deleted">Удалённые</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Создать маску email</string>
+    <string name="create_email_prefix_label">Префикс email (необязательно)</string>
+    <string name="create_email_prefix_placeholder">напр., mysite_shopping</string>
+    <string name="create_email_prefix_hint">Макс. 64 символа: строчные буквы, цифры, подчёркивания</string>
+    <string name="create_email_domain_label">Связанный домен (необязательно)</string>
+    <string name="create_email_domain_placeholder">напр., example.com</string>
+    <string name="create_email_description_label">Описание (необязательно)</string>
+    <string name="create_email_description_placeholder">напр., Аккаунт для покупок</string>
+    <string name="create_email_url_label">URL (необязательно)</string>
+    <string name="create_email_url_placeholder">напр., https://example.com</string>
+    <string name="create_email_initial_state">Начальное состояние</string>
+    <string name="create_email_button">Создать маску email</string>
+    <string name="create_email_created">Создано: %s</string>
+    <string name="create_email_copy_action">Копировать</string>
+    <string name="navigate_back">Назад</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Детали email</string>
+    <string name="email_detail_copy_email">Копировать адрес email</string>
+    <string name="email_detail_delete">Удалить email</string>
+    <string name="email_detail_status">Статус:</string>
+    <string name="email_detail_created_by">Создано: %s</string>
+    <string name="email_detail_created">Создано: %s</string>
+    <string name="email_detail_last_message">Последнее сообщение: %s</string>
+    <string name="email_detail_enable">Включить</string>
+    <string name="email_detail_disable">Отключить</string>
+    <string name="email_detail_edit_title">Редактировать</string>
+    <string name="email_detail_description_label">Описание</string>
+    <string name="email_detail_domain_label">Связанный домен</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Сохранить изменения</string>
+    <string name="email_detail_updated">Успешно обновлено</string>
+    <string name="email_detail_deleted">Успешно удалено</string>
+    <string name="email_detail_copied">Скопировано в буфер обмена</string>
+    <string name="email_detail_delete_dialog_title">Удалить маску email</string>
+    <string name="email_detail_delete_dialog_message">Вы уверены, что хотите удалить эту маску email? Это действие нельзя отменить.</string>
+    <string name="email_detail_delete_confirm">Удалить</string>
+    <string name="email_detail_delete_cancel">Отмена</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Активна</string>
+    <string name="state_disabled">Отключена</string>
+    <string name="state_deleted">Удалена</string>
+    <string name="state_pending">Ожидание</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Не удалось загрузить email</string>
+    <string name="error_retry">Повторить</string>
+    <string name="error_generic">Произошла ошибка</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_description">Выбрать язык приложения</string>
+    <string name="settings_system_default">Системный по умолчанию</string>
+    <string name="settings_contact">Связаться и оставить отзыв</string>
+    <string name="settings_contact_description">Отправьте нам отзыв</string>
+    <string name="settings_logout">Выйти</string>
+    <string name="settings_logout_description">Выйти из аккаунта</string>
+    <string name="settings_version">Версия %s</string>
+    <string name="settings_select_language">Выбрать язык</string>
+    <string name="settings_feedback_subject">Отзыв о FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

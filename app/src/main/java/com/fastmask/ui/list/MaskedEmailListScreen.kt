@@ -21,8 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,27 +46,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fastmask.R
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.components.ErrorMessage
 import com.fastmask.ui.components.MaskedEmailCard
 import com.fastmask.ui.components.ShimmerEmailList
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    onLogout: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     viewModel: MaskedEmailListViewModel = hiltViewModel()
@@ -77,28 +80,32 @@ fun MaskedEmailListScreen(
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
 
-    val isScrolling by remember {
-        derivedStateOf { listState.isScrollInProgress }
-    }
-
     val expandedFab by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
-            when (event) {
-                is MaskedEmailListEvent.LoggedOut -> onLogout()
-            }
+    val isScrolling by remember {
+        derivedStateOf { listState.isScrollInProgress }
+    }
+
+    val filterEmailsDesc = stringResource(R.string.email_list_filter_emails)
+    val settingsDesc = stringResource(R.string.email_list_settings)
+    val createDesc = stringResource(R.string.email_list_create_description)
+
+    // Refresh the list when the screen resumes (e.g., after creating a new email)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.loadMaskedEmails()
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Masked Emails") },
+                title = { Text(stringResource(R.string.email_list_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -111,7 +118,7 @@ fun MaskedEmailListScreen(
                                 showFilterMenu = true
                             },
                             modifier = Modifier.semantics {
-                                contentDescription = "Filter emails"
+                                contentDescription = filterEmailsDesc
                             }
                         ) {
                             Icon(
@@ -125,7 +132,16 @@ fun MaskedEmailListScreen(
                         ) {
                             EmailFilter.entries.forEach { filter ->
                                 DropdownMenuItem(
-                                    text = { Text(filter.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                                    text = {
+                                        Text(
+                                            when (filter) {
+                                                EmailFilter.ALL -> stringResource(R.string.filter_all)
+                                                EmailFilter.ENABLED -> stringResource(R.string.filter_enabled)
+                                                EmailFilter.DISABLED -> stringResource(R.string.filter_disabled)
+                                                EmailFilter.DELETED -> stringResource(R.string.filter_deleted)
+                                            }
+                                        )
+                                    },
                                     onClick = {
                                         viewModel.onFilterChange(filter)
                                         showFilterMenu = false
@@ -137,14 +153,14 @@ fun MaskedEmailListScreen(
                     IconButton(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.logout()
+                            onNavigateToSettings()
                         },
                         modifier = Modifier.semantics {
-                            contentDescription = "Logout"
+                            contentDescription = settingsDesc
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            imageVector = Icons.Default.Settings,
                             contentDescription = null
                         )
                     }
@@ -164,11 +180,11 @@ fun MaskedEmailListScreen(
                         contentDescription = null
                     )
                 },
-                text = { Text("Create") },
+                text = { Text(stringResource(R.string.email_list_create_fab)) },
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 modifier = Modifier.semantics {
-                    contentDescription = "Create new masked email"
+                    contentDescription = createDesc
                 }
             )
         }
@@ -237,6 +253,7 @@ private fun M3SearchBar(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
+    val clearSearchDesc = stringResource(R.string.email_list_clear_search)
 
     SearchBar(
         inputField = {
@@ -246,7 +263,7 @@ private fun M3SearchBar(
                 onSearch = { onActiveChange(false) },
                 expanded = active,
                 onExpandedChange = onActiveChange,
-                placeholder = { Text("Search emails...") },
+                placeholder = { Text(stringResource(R.string.email_list_search_placeholder)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -263,7 +280,7 @@ private fun M3SearchBar(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Clear search"
+                                contentDescription = clearSearchDesc
                             )
                         }
                     }
@@ -300,7 +317,16 @@ private fun FilterChips(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onFilterSelected(filter)
                 },
-                label = { Text(filter.name.lowercase().replaceFirstChar { it.uppercase() }) }
+                label = {
+                    Text(
+                        when (filter) {
+                            EmailFilter.ALL -> stringResource(R.string.filter_all)
+                            EmailFilter.ENABLED -> stringResource(R.string.filter_enabled)
+                            EmailFilter.DISABLED -> stringResource(R.string.filter_disabled)
+                            EmailFilter.DELETED -> stringResource(R.string.filter_deleted)
+                        }
+                    )
+                }
             )
         }
     }
@@ -329,7 +355,7 @@ private fun EmailList(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No masked emails found",
+                    text = stringResource(R.string.email_list_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

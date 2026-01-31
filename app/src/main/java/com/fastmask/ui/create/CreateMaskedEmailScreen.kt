@@ -41,10 +41,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import kotlinx.coroutines.flow.collectLatest
 
@@ -59,13 +61,17 @@ fun CreateMaskedEmailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val haptic = LocalHapticFeedback.current
 
+    val createdMessage = stringResource(R.string.create_email_created, "%s")
+    val copyAction = stringResource(R.string.create_email_copy_action)
+    val navigateBackDesc = stringResource(R.string.navigate_back)
+
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is CreateMaskedEmailEvent.Created -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = "Created: ${event.email}",
-                        actionLabel = "Copy",
+                        message = createdMessage.replace("%s", event.email),
+                        actionLabel = copyAction,
                         duration = SnackbarDuration.Long
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -82,7 +88,7 @@ fun CreateMaskedEmailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Masked Email") },
+                title = { Text(stringResource(R.string.create_email_title)) },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -90,7 +96,7 @@ fun CreateMaskedEmailScreen(
                             onNavigateBack()
                         },
                         modifier = Modifier.semantics {
-                            contentDescription = "Navigate back"
+                            contentDescription = navigateBackDesc
                         }
                     ) {
                         Icon(
@@ -119,12 +125,12 @@ fun CreateMaskedEmailScreen(
             OutlinedTextField(
                 value = uiState.emailPrefix,
                 onValueChange = viewModel::onPrefixChange,
-                label = { Text("Email Prefix (optional)") },
-                placeholder = { Text("e.g., mysite_shopping") },
+                label = { Text(stringResource(R.string.create_email_prefix_label)) },
+                placeholder = { Text(stringResource(R.string.create_email_prefix_placeholder)) },
                 supportingText = {
                     Text(
                         text = uiState.prefixError
-                            ?: "Max 64 chars: lowercase letters, numbers, underscores"
+                            ?: stringResource(R.string.create_email_prefix_hint)
                     )
                 },
                 isError = uiState.prefixError != null,
@@ -138,8 +144,8 @@ fun CreateMaskedEmailScreen(
             OutlinedTextField(
                 value = uiState.forDomain,
                 onValueChange = viewModel::onDomainChange,
-                label = { Text("Associated Domain (optional)") },
-                placeholder = { Text("e.g., example.com") },
+                label = { Text(stringResource(R.string.create_email_domain_label)) },
+                placeholder = { Text(stringResource(R.string.create_email_domain_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading
@@ -150,8 +156,8 @@ fun CreateMaskedEmailScreen(
             OutlinedTextField(
                 value = uiState.description,
                 onValueChange = viewModel::onDescriptionChange,
-                label = { Text("Description (optional)") },
-                placeholder = { Text("e.g., Shopping account") },
+                label = { Text(stringResource(R.string.create_email_description_label)) },
+                placeholder = { Text(stringResource(R.string.create_email_description_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading
@@ -162,8 +168,8 @@ fun CreateMaskedEmailScreen(
             OutlinedTextField(
                 value = uiState.url,
                 onValueChange = viewModel::onUrlChange,
-                label = { Text("URL (optional)") },
-                placeholder = { Text("e.g., https://example.com") },
+                label = { Text(stringResource(R.string.create_email_url_label)) },
+                placeholder = { Text(stringResource(R.string.create_email_url_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading
@@ -172,7 +178,7 @@ fun CreateMaskedEmailScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Initial State",
+                text = stringResource(R.string.create_email_initial_state),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -192,7 +198,11 @@ fun CreateMaskedEmailScreen(
                         enabled = !uiState.isLoading
                     )
                     Text(
-                        text = state.name.lowercase().replaceFirstChar { it.uppercase() },
+                        text = when (state) {
+                            EmailState.ENABLED -> stringResource(R.string.state_enabled)
+                            EmailState.DISABLED -> stringResource(R.string.state_disabled)
+                            else -> state.name.lowercase().replaceFirstChar { it.uppercase() }
+                        },
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -224,7 +234,7 @@ fun CreateMaskedEmailScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Create Masked Email")
+                    Text(stringResource(R.string.create_email_button))
                 }
             }
         }

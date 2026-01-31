@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Quản lý Email ẩn danh Fastmail</string>
+    <string name="login_api_token_label">Mã API</string>
+    <string name="login_api_token_placeholder">Nhập mã API Fastmail của bạn</string>
+    <string name="login_button">Đăng nhập</string>
+    <string name="login_show_token">Hiện mã</string>
+    <string name="login_hide_token">Ẩn mã</string>
+    <string name="login_instructions_title">Cách lấy mã API:</string>
+    <string name="login_instructions_step1">1. Đăng nhập vào ứng dụng web Fastmail</string>
+    <string name="login_instructions_step2">2. Vào Cài đặt > Quyền riêng tư &amp; Bảo mật</string>
+    <string name="login_instructions_step3">3. Nhấp vào Tích hợp > Mã API</string>
+    <string name="login_instructions_step4">4. Tạo mã mới với phạm vi \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Sao chép mã và dán ở trên</string>
+    <string name="login_instructions_full">1. Đăng nhập vào ứng dụng web Fastmail\n2. Vào Cài đặt > Quyền riêng tư &amp; Bảo mật\n3. Nhấp vào Tích hợp > Mã API\n4. Tạo mã mới với phạm vi \"Masked Email\"\n5. Sao chép mã và dán ở trên</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Email ẩn danh</string>
+    <string name="email_list_search_placeholder">Tìm kiếm email…</string>
+    <string name="email_list_clear_search">Xóa tìm kiếm</string>
+    <string name="email_list_filter_emails">Lọc email</string>
+    <string name="email_list_create_fab">Tạo mới</string>
+    <string name="email_list_create_description">Tạo email ẩn danh mới</string>
+    <string name="email_list_empty">Không tìm thấy email ẩn danh</string>
+    <string name="email_list_logout">Đăng xuất</string>
+    <string name="email_list_settings">Cài đặt</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_enabled">Đang hoạt động</string>
+    <string name="filter_disabled">Đã tắt</string>
+    <string name="filter_deleted">Đã xóa</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Tạo email ẩn danh</string>
+    <string name="create_email_prefix_label">Tiền tố email (tùy chọn)</string>
+    <string name="create_email_prefix_placeholder">vd: trangweb_muasam</string>
+    <string name="create_email_prefix_hint">Tối đa 64 ký tự: chữ thường, số, gạch dưới</string>
+    <string name="create_email_domain_label">Tên miền liên kết (tùy chọn)</string>
+    <string name="create_email_domain_placeholder">vd: example.com</string>
+    <string name="create_email_description_label">Mô tả (tùy chọn)</string>
+    <string name="create_email_description_placeholder">vd: Tài khoản mua sắm</string>
+    <string name="create_email_url_label">URL (tùy chọn)</string>
+    <string name="create_email_url_placeholder">vd: https://example.com</string>
+    <string name="create_email_initial_state">Trạng thái ban đầu</string>
+    <string name="create_email_button">Tạo email ẩn danh</string>
+    <string name="create_email_created">Đã tạo: %s</string>
+    <string name="create_email_copy_action">Sao chép</string>
+    <string name="navigate_back">Quay lại</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Chi tiết email</string>
+    <string name="email_detail_copy_email">Sao chép địa chỉ email</string>
+    <string name="email_detail_delete">Xóa email</string>
+    <string name="email_detail_status">Trạng thái:</string>
+    <string name="email_detail_created_by">Tạo bởi: %s</string>
+    <string name="email_detail_created">Ngày tạo: %s</string>
+    <string name="email_detail_last_message">Tin nhắn cuối: %s</string>
+    <string name="email_detail_enable">Bật</string>
+    <string name="email_detail_disable">Tắt</string>
+    <string name="email_detail_edit_title">Chỉnh sửa chi tiết</string>
+    <string name="email_detail_description_label">Mô tả</string>
+    <string name="email_detail_domain_label">Tên miền liên kết</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Lưu thay đổi</string>
+    <string name="email_detail_updated">Cập nhật thành công</string>
+    <string name="email_detail_deleted">Xóa thành công</string>
+    <string name="email_detail_copied">Đã sao chép vào clipboard</string>
+    <string name="email_detail_delete_dialog_title">Xóa email ẩn danh</string>
+    <string name="email_detail_delete_dialog_message">Bạn có chắc muốn xóa email ẩn danh này? Hành động này không thể hoàn tác.</string>
+    <string name="email_detail_delete_confirm">Xóa</string>
+    <string name="email_detail_delete_cancel">Hủy</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Đang hoạt động</string>
+    <string name="state_disabled">Đã tắt</string>
+    <string name="state_deleted">Đã xóa</string>
+    <string name="state_pending">Đang chờ</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Không thể tải email</string>
+    <string name="error_retry">Thử lại</string>
+    <string name="error_generic">Đã xảy ra lỗi</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_language">Ngôn ngữ</string>
+    <string name="settings_language_description">Chọn ngôn ngữ ứng dụng</string>
+    <string name="settings_system_default">Mặc định hệ thống</string>
+    <string name="settings_contact">Liên hệ &amp; Phản hồi</string>
+    <string name="settings_contact_description">Gửi phản hồi cho chúng tôi</string>
+    <string name="settings_logout">Đăng xuất</string>
+    <string name="settings_logout_description">Đăng xuất khỏi tài khoản</string>
+    <string name="settings_version">Phiên bản %s</string>
+    <string name="settings_select_language">Chọn ngôn ngữ</string>
+    <string name="settings_feedback_subject">Phản hồi FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

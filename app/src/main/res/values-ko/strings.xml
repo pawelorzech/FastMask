@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Fastmail 마스크 이메일 관리자</string>
+    <string name="login_api_token_label">API 토큰</string>
+    <string name="login_api_token_placeholder">Fastmail API 토큰을 입력하세요</string>
+    <string name="login_button">로그인</string>
+    <string name="login_show_token">토큰 표시</string>
+    <string name="login_hide_token">토큰 숨기기</string>
+    <string name="login_instructions_title">API 토큰 얻는 방법:</string>
+    <string name="login_instructions_step1">1. Fastmail 웹 앱에 로그인</string>
+    <string name="login_instructions_step2">2. 설정 > 개인정보 및 보안으로 이동</string>
+    <string name="login_instructions_step3">3. 통합 > API 토큰 클릭</string>
+    <string name="login_instructions_step4">4. \"Masked Email\" 범위로 새 토큰 생성</string>
+    <string name="login_instructions_step5">5. 토큰을 복사하여 위에 붙여넣기</string>
+    <string name="login_instructions_full">1. Fastmail 웹 앱에 로그인\n2. 설정 > 개인정보 및 보안으로 이동\n3. 통합 > API 토큰 클릭\n4. \"Masked Email\" 범위로 새 토큰 생성\n5. 토큰을 복사하여 위에 붙여넣기</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">마스크 이메일</string>
+    <string name="email_list_search_placeholder">이메일 검색…</string>
+    <string name="email_list_clear_search">검색 지우기</string>
+    <string name="email_list_filter_emails">이메일 필터</string>
+    <string name="email_list_create_fab">생성</string>
+    <string name="email_list_create_description">새 마스크 이메일 생성</string>
+    <string name="email_list_empty">마스크 이메일을 찾을 수 없습니다</string>
+    <string name="email_list_logout">로그아웃</string>
+    <string name="email_list_settings">설정</string>
+    <string name="filter_all">전체</string>
+    <string name="filter_enabled">활성화됨</string>
+    <string name="filter_disabled">비활성화됨</string>
+    <string name="filter_deleted">삭제됨</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">마스크 이메일 생성</string>
+    <string name="create_email_prefix_label">이메일 접두사 (선택)</string>
+    <string name="create_email_prefix_placeholder">예: mysite_shopping</string>
+    <string name="create_email_prefix_hint">최대 64자: 소문자, 숫자, 밑줄</string>
+    <string name="create_email_domain_label">연결된 도메인 (선택)</string>
+    <string name="create_email_domain_placeholder">예: example.com</string>
+    <string name="create_email_description_label">설명 (선택)</string>
+    <string name="create_email_description_placeholder">예: 쇼핑 계정</string>
+    <string name="create_email_url_label">URL (선택)</string>
+    <string name="create_email_url_placeholder">예: https://example.com</string>
+    <string name="create_email_initial_state">초기 상태</string>
+    <string name="create_email_button">마스크 이메일 생성</string>
+    <string name="create_email_created">생성됨: %s</string>
+    <string name="create_email_copy_action">복사</string>
+    <string name="navigate_back">뒤로</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">이메일 상세</string>
+    <string name="email_detail_copy_email">이메일 주소 복사</string>
+    <string name="email_detail_delete">이메일 삭제</string>
+    <string name="email_detail_status">상태:</string>
+    <string name="email_detail_created_by">생성자: %s</string>
+    <string name="email_detail_created">생성일: %s</string>
+    <string name="email_detail_last_message">마지막 메시지: %s</string>
+    <string name="email_detail_enable">활성화</string>
+    <string name="email_detail_disable">비활성화</string>
+    <string name="email_detail_edit_title">상세 정보 편집</string>
+    <string name="email_detail_description_label">설명</string>
+    <string name="email_detail_domain_label">연결된 도메인</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">변경 사항 저장</string>
+    <string name="email_detail_updated">업데이트 완료</string>
+    <string name="email_detail_deleted">삭제 완료</string>
+    <string name="email_detail_copied">클립보드에 복사됨</string>
+    <string name="email_detail_delete_dialog_title">마스크 이메일 삭제</string>
+    <string name="email_detail_delete_dialog_message">이 마스크 이메일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="email_detail_delete_confirm">삭제</string>
+    <string name="email_detail_delete_cancel">취소</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">활성화됨</string>
+    <string name="state_disabled">비활성화됨</string>
+    <string name="state_deleted">삭제됨</string>
+    <string name="state_pending">대기 중</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">이메일 로드 실패</string>
+    <string name="error_retry">다시 시도</string>
+    <string name="error_generic">오류가 발생했습니다</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">설정</string>
+    <string name="settings_language">언어</string>
+    <string name="settings_language_description">앱 언어 선택</string>
+    <string name="settings_system_default">시스템 기본값</string>
+    <string name="settings_contact">연락처 및 피드백</string>
+    <string name="settings_contact_description">피드백을 보내주세요</string>
+    <string name="settings_logout">로그아웃</string>
+    <string name="settings_logout_description">계정에서 로그아웃</string>
+    <string name="settings_version">버전 %s</string>
+    <string name="settings_select_language">언어 선택</string>
+    <string name="settings_feedback_subject">FastMask 피드백</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

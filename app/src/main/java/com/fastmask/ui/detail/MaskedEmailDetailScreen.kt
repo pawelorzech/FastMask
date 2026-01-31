@@ -48,7 +48,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -67,11 +66,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.components.ErrorMessage
 import com.fastmask.ui.components.LoadingIndicator
@@ -94,18 +95,25 @@ fun MaskedEmailDetailScreen(
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
 
+    val updatedMessage = stringResource(R.string.email_detail_updated)
+    val deletedMessage = stringResource(R.string.email_detail_deleted)
+    val copiedMessage = stringResource(R.string.email_detail_copied)
+    val navigateBackDesc = stringResource(R.string.navigate_back)
+    val deleteEmailDesc = stringResource(R.string.email_detail_delete)
+    val copyEmailDesc = stringResource(R.string.email_detail_copy_email)
+
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
                 is MaskedEmailDetailEvent.Updated -> {
                     snackbarHostState.showSnackbar(
-                        message = "Updated successfully",
+                        message = updatedMessage,
                         duration = SnackbarDuration.Short
                     )
                 }
                 is MaskedEmailDetailEvent.Deleted -> {
                     snackbarHostState.showSnackbar(
-                        message = "Deleted successfully",
+                        message = deletedMessage,
                         duration = SnackbarDuration.Short
                     )
                     onNavigateBack()
@@ -117,8 +125,8 @@ fun MaskedEmailDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Masked Email") },
-            text = { Text("Are you sure you want to delete this masked email? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.email_detail_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.email_detail_delete_dialog_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -129,12 +137,12 @@ fun MaskedEmailDetailScreen(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.email_detail_delete_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.email_detail_delete_cancel))
                 }
             }
         )
@@ -143,7 +151,7 @@ fun MaskedEmailDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Email Details") },
+                title = { Text(stringResource(R.string.email_detail_title)) },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -151,7 +159,7 @@ fun MaskedEmailDetailScreen(
                             onNavigateBack()
                         },
                         modifier = Modifier.semantics {
-                            contentDescription = "Navigate back"
+                            contentDescription = navigateBackDesc
                         }
                     ) {
                         Icon(
@@ -168,7 +176,7 @@ fun MaskedEmailDetailScreen(
                                 showDeleteDialog = true
                             },
                             modifier = Modifier.semantics {
-                                contentDescription = "Delete email"
+                                contentDescription = deleteEmailDesc
                             }
                         ) {
                             Icon(
@@ -225,11 +233,12 @@ fun MaskedEmailDetailScreen(
                             clipboard.setPrimaryClip(clip)
                             scope.launch {
                                 snackbarHostState.showSnackbar(
-                                    message = "Copied to clipboard",
+                                    message = copiedMessage,
                                     duration = SnackbarDuration.Short
                                 )
                             }
                         },
+                        copyEmailDesc = copyEmailDesc,
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
                         modifier = Modifier.padding(paddingValues)
@@ -250,6 +259,7 @@ private fun EmailDetailContent(
     onToggleState: () -> Unit,
     onSaveChanges: () -> Unit,
     onCopyEmail: (String) -> Unit,
+    copyEmailDesc: String,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     modifier: Modifier = Modifier
@@ -323,7 +333,7 @@ private fun EmailDetailContent(
                                 onCopyEmail(email.email)
                             },
                             modifier = Modifier.semantics {
-                                contentDescription = "Copy email address"
+                                contentDescription = copyEmailDesc
                             }
                         ) {
                             Icon(
@@ -339,14 +349,18 @@ private fun EmailDetailContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Status: ",
+                            text = stringResource(R.string.email_detail_status),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = " ",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         val statusText = when (email.state) {
-                            EmailState.ENABLED -> "Enabled"
-                            EmailState.DISABLED -> "Disabled"
-                            EmailState.DELETED -> "Deleted"
-                            EmailState.PENDING -> "Pending"
+                            EmailState.ENABLED -> stringResource(R.string.state_enabled)
+                            EmailState.DISABLED -> stringResource(R.string.state_disabled)
+                            EmailState.DELETED -> stringResource(R.string.state_deleted)
+                            EmailState.PENDING -> stringResource(R.string.state_pending)
                         }
                         Text(
                             text = statusText,
@@ -359,7 +373,7 @@ private fun EmailDetailContent(
                     email.createdBy?.let { createdBy ->
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Created by: $createdBy",
+                            text = stringResource(R.string.email_detail_created_by, createdBy),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -368,7 +382,7 @@ private fun EmailDetailContent(
                     email.formattedCreatedAt?.let { createdAt ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Created: $createdAt",
+                            text = stringResource(R.string.email_detail_created, createdAt),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -377,7 +391,7 @@ private fun EmailDetailContent(
                     email.formattedLastMessageAt?.let { lastMessage ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Last message: $lastMessage",
+                            text = stringResource(R.string.email_detail_last_message, lastMessage),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -410,7 +424,7 @@ private fun EmailDetailContent(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Enable")
+                            Text(stringResource(R.string.email_detail_enable))
                         }
                     }
                 }
@@ -429,7 +443,7 @@ private fun EmailDetailContent(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Disable")
+                            Text(stringResource(R.string.email_detail_disable))
                         }
                     }
                 }
@@ -438,7 +452,7 @@ private fun EmailDetailContent(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Edit Details",
+                text = stringResource(R.string.email_detail_edit_title),
                 style = MaterialTheme.typography.titleMedium
             )
 
@@ -447,7 +461,7 @@ private fun EmailDetailContent(
             OutlinedTextField(
                 value = uiState.editedDescription,
                 onValueChange = onDescriptionChange,
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.email_detail_description_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isUpdating
@@ -458,7 +472,7 @@ private fun EmailDetailContent(
             OutlinedTextField(
                 value = uiState.editedForDomain,
                 onValueChange = onForDomainChange,
-                label = { Text("Associated Domain") },
+                label = { Text(stringResource(R.string.email_detail_domain_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isUpdating
@@ -469,7 +483,7 @@ private fun EmailDetailContent(
             OutlinedTextField(
                 value = uiState.editedUrl,
                 onValueChange = onUrlChange,
-                label = { Text("URL") },
+                label = { Text(stringResource(R.string.email_detail_url_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isUpdating
@@ -501,7 +515,7 @@ private fun EmailDetailContent(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Save Changes")
+                    Text(stringResource(R.string.email_detail_save))
                 }
             }
         }

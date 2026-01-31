@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Fastmail मास्क्ड ईमेल प्रबंधक</string>
+    <string name="login_api_token_label">API टोकन</string>
+    <string name="login_api_token_placeholder">अपना Fastmail API टोकन दर्ज करें</string>
+    <string name="login_button">लॉग इन करें</string>
+    <string name="login_show_token">टोकन दिखाएं</string>
+    <string name="login_hide_token">टोकन छुपाएं</string>
+    <string name="login_instructions_title">अपना API टोकन कैसे प्राप्त करें:</string>
+    <string name="login_instructions_step1">1. Fastmail वेब ऐप में लॉग इन करें</string>
+    <string name="login_instructions_step2">2. सेटिंग्स > गोपनीयता और सुरक्षा पर जाएं</string>
+    <string name="login_instructions_step3">3. इंटीग्रेशन > API टोकन पर क्लिक करें</string>
+    <string name="login_instructions_step4">4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं</string>
+    <string name="login_instructions_step5">5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
+    <string name="login_instructions_full">1. Fastmail वेब ऐप में लॉग इन करें\n2. सेटिंग्स > गोपनीयता और सुरक्षा पर जाएं\n3. इंटीग्रेशन > API टोकन पर क्लिक करें\n4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं\n5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">मास्क्ड ईमेल</string>
+    <string name="email_list_search_placeholder">ईमेल खोजें…</string>
+    <string name="email_list_clear_search">खोज साफ़ करें</string>
+    <string name="email_list_filter_emails">ईमेल फ़िल्टर करें</string>
+    <string name="email_list_create_fab">बनाएं</string>
+    <string name="email_list_create_description">नया मास्क्ड ईमेल बनाएं</string>
+    <string name="email_list_empty">कोई मास्क्ड ईमेल नहीं मिला</string>
+    <string name="email_list_logout">लॉग आउट</string>
+    <string name="email_list_settings">सेटिंग्स</string>
+    <string name="filter_all">सभी</string>
+    <string name="filter_enabled">सक्षम</string>
+    <string name="filter_disabled">अक्षम</string>
+    <string name="filter_deleted">हटाए गए</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">मास्क्ड ईमेल बनाएं</string>
+    <string name="create_email_prefix_label">ईमेल प्रीफ़िक्स (वैकल्पिक)</string>
+    <string name="create_email_prefix_placeholder">जैसे, mysite_shopping</string>
+    <string name="create_email_prefix_hint">अधिकतम 64 अक्षर: छोटे अक्षर, संख्याएं, अंडरस्कोर</string>
+    <string name="create_email_domain_label">संबंधित डोमेन (वैकल्पिक)</string>
+    <string name="create_email_domain_placeholder">जैसे, example.com</string>
+    <string name="create_email_description_label">विवरण (वैकल्पिक)</string>
+    <string name="create_email_description_placeholder">जैसे, शॉपिंग अकाउंट</string>
+    <string name="create_email_url_label">URL (वैकल्पिक)</string>
+    <string name="create_email_url_placeholder">जैसे, https://example.com</string>
+    <string name="create_email_initial_state">प्रारंभिक स्थिति</string>
+    <string name="create_email_button">मास्क्ड ईमेल बनाएं</string>
+    <string name="create_email_created">बनाया गया: %s</string>
+    <string name="create_email_copy_action">कॉपी करें</string>
+    <string name="navigate_back">वापस जाएं</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">ईमेल विवरण</string>
+    <string name="email_detail_copy_email">ईमेल पता कॉपी करें</string>
+    <string name="email_detail_delete">ईमेल हटाएं</string>
+    <string name="email_detail_status">स्थिति:</string>
+    <string name="email_detail_created_by">बनाने वाला: %s</string>
+    <string name="email_detail_created">बनाया गया: %s</string>
+    <string name="email_detail_last_message">अंतिम संदेश: %s</string>
+    <string name="email_detail_enable">सक्षम करें</string>
+    <string name="email_detail_disable">अक्षम करें</string>
+    <string name="email_detail_edit_title">विवरण संपादित करें</string>
+    <string name="email_detail_description_label">विवरण</string>
+    <string name="email_detail_domain_label">संबंधित डोमेन</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">परिवर्तन सहेजें</string>
+    <string name="email_detail_updated">सफलतापूर्वक अपडेट किया गया</string>
+    <string name="email_detail_deleted">सफलतापूर्वक हटाया गया</string>
+    <string name="email_detail_copied">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="email_detail_delete_dialog_title">मास्क्ड ईमेल हटाएं</string>
+    <string name="email_detail_delete_dialog_message">क्या आप वाकई इस मास्क्ड ईमेल को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।</string>
+    <string name="email_detail_delete_confirm">हटाएं</string>
+    <string name="email_detail_delete_cancel">रद्द करें</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">सक्षम</string>
+    <string name="state_disabled">अक्षम</string>
+    <string name="state_deleted">हटाया गया</string>
+    <string name="state_pending">लंबित</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">ईमेल लोड करने में विफल</string>
+    <string name="error_retry">पुनः प्रयास करें</string>
+    <string name="error_generic">एक त्रुटि हुई</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_description">ऐप की भाषा चुनें</string>
+    <string name="settings_system_default">सिस्टम डिफ़ॉल्ट</string>
+    <string name="settings_contact">संपर्क और फ़ीडबैक</string>
+    <string name="settings_contact_description">हमें अपना फ़ीडबैक भेजें</string>
+    <string name="settings_logout">लॉग आउट</string>
+    <string name="settings_logout_description">अपने खाते से साइन आउट करें</string>
+    <string name="settings_version">संस्करण %s</string>
+    <string name="settings_select_language">भाषा चुनें</string>
+    <string name="settings_feedback_subject">FastMask फ़ीडबैक</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

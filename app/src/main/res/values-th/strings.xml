@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">ตัวจัดการอีเมลซ่อน Fastmail</string>
+    <string name="login_api_token_label">โทเค็น API</string>
+    <string name="login_api_token_placeholder">ใส่โทเค็น API ของ Fastmail</string>
+    <string name="login_button">เข้าสู่ระบบ</string>
+    <string name="login_show_token">แสดงโทเค็น</string>
+    <string name="login_hide_token">ซ่อนโทเค็น</string>
+    <string name="login_instructions_title">วิธีรับโทเค็น API:</string>
+    <string name="login_instructions_step1">1. เข้าสู่ระบบแอป Fastmail บนเว็บ</string>
+    <string name="login_instructions_step2">2. ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย</string>
+    <string name="login_instructions_step3">3. คลิก การเชื่อมต่อ > โทเค็น API</string>
+    <string name="login_instructions_step4">4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. คัดลอกโทเค็นและวางด้านบน</string>
+    <string name="login_instructions_full">1. เข้าสู่ระบบแอป Fastmail บนเว็บ\n2. ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย\n3. คลิก การเชื่อมต่อ > โทเค็น API\n4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"\n5. คัดลอกโทเค็นและวางด้านบน</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">อีเมลซ่อน</string>
+    <string name="email_list_search_placeholder">ค้นหาอีเมล…</string>
+    <string name="email_list_clear_search">ล้างการค้นหา</string>
+    <string name="email_list_filter_emails">กรองอีเมล</string>
+    <string name="email_list_create_fab">สร้าง</string>
+    <string name="email_list_create_description">สร้างอีเมลซ่อนใหม่</string>
+    <string name="email_list_empty">ไม่พบอีเมลซ่อน</string>
+    <string name="email_list_logout">ออกจากระบบ</string>
+    <string name="email_list_settings">การตั้งค่า</string>
+    <string name="filter_all">ทั้งหมด</string>
+    <string name="filter_enabled">เปิดใช้งาน</string>
+    <string name="filter_disabled">ปิดใช้งาน</string>
+    <string name="filter_deleted">ลบแล้ว</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">สร้างอีเมลซ่อน</string>
+    <string name="create_email_prefix_label">คำนำหน้าอีเมล (ไม่บังคับ)</string>
+    <string name="create_email_prefix_placeholder">เช่น mysite_shopping</string>
+    <string name="create_email_prefix_hint">สูงสุด 64 ตัวอักษร: ตัวพิมพ์เล็ก, ตัวเลข, ขีดล่าง</string>
+    <string name="create_email_domain_label">โดเมนที่เกี่ยวข้อง (ไม่บังคับ)</string>
+    <string name="create_email_domain_placeholder">เช่น example.com</string>
+    <string name="create_email_description_label">คำอธิบาย (ไม่บังคับ)</string>
+    <string name="create_email_description_placeholder">เช่น บัญชีช้อปปิ้ง</string>
+    <string name="create_email_url_label">URL (ไม่บังคับ)</string>
+    <string name="create_email_url_placeholder">เช่น https://example.com</string>
+    <string name="create_email_initial_state">สถานะเริ่มต้น</string>
+    <string name="create_email_button">สร้างอีเมลซ่อน</string>
+    <string name="create_email_created">สร้างแล้ว: %s</string>
+    <string name="create_email_copy_action">คัดลอก</string>
+    <string name="navigate_back">กลับ</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">รายละเอียดอีเมล</string>
+    <string name="email_detail_copy_email">คัดลอกที่อยู่อีเมล</string>
+    <string name="email_detail_delete">ลบอีเมล</string>
+    <string name="email_detail_status">สถานะ:</string>
+    <string name="email_detail_created_by">สร้างโดย: %s</string>
+    <string name="email_detail_created">สร้างเมื่อ: %s</string>
+    <string name="email_detail_last_message">ข้อความล่าสุด: %s</string>
+    <string name="email_detail_enable">เปิดใช้งาน</string>
+    <string name="email_detail_disable">ปิดใช้งาน</string>
+    <string name="email_detail_edit_title">แก้ไขรายละเอียด</string>
+    <string name="email_detail_description_label">คำอธิบาย</string>
+    <string name="email_detail_domain_label">โดเมนที่เกี่ยวข้อง</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">บันทึกการเปลี่ยนแปลง</string>
+    <string name="email_detail_updated">อัปเดตสำเร็จ</string>
+    <string name="email_detail_deleted">ลบสำเร็จ</string>
+    <string name="email_detail_copied">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
+    <string name="email_detail_delete_dialog_title">ลบอีเมลซ่อน</string>
+    <string name="email_detail_delete_dialog_message">คุณแน่ใจหรือไม่ว่าต้องการลบอีเมลซ่อนนี้? การกระทำนี้ไม่สามารถย้อนกลับได้</string>
+    <string name="email_detail_delete_confirm">ลบ</string>
+    <string name="email_detail_delete_cancel">ยกเลิก</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">เปิดใช้งาน</string>
+    <string name="state_disabled">ปิดใช้งาน</string>
+    <string name="state_deleted">ลบแล้ว</string>
+    <string name="state_pending">รอดำเนินการ</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">ไม่สามารถโหลดอีเมลได้</string>
+    <string name="error_retry">ลองอีกครั้ง</string>
+    <string name="error_generic">เกิดข้อผิดพลาด</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">การตั้งค่า</string>
+    <string name="settings_language">ภาษา</string>
+    <string name="settings_language_description">เลือกภาษาแอป</string>
+    <string name="settings_system_default">ค่าเริ่มต้นของระบบ</string>
+    <string name="settings_contact">ติดต่อและความคิดเห็น</string>
+    <string name="settings_contact_description">ส่งความคิดเห็นให้เรา</string>
+    <string name="settings_logout">ออกจากระบบ</string>
+    <string name="settings_logout_description">ออกจากบัญชีของคุณ</string>
+    <string name="settings_version">เวอร์ชัน %s</string>
+    <string name="settings_select_language">เลือกภาษา</string>
+    <string name="settings_feedback_subject">ความคิดเห็น FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

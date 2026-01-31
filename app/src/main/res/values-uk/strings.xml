@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Менеджер масок email для Fastmail</string>
+    <string name="login_api_token_label">API токен</string>
+    <string name="login_api_token_placeholder">Введіть ваш API токен Fastmail</string>
+    <string name="login_button">Увійти</string>
+    <string name="login_show_token">Показати токен</string>
+    <string name="login_hide_token">Приховати токен</string>
+    <string name="login_instructions_title">Як отримати API токен:</string>
+    <string name="login_instructions_step1">1. Увійдіть у веб-застосунок Fastmail</string>
+    <string name="login_instructions_step2">2. Перейдіть до Налаштування > Конфіденційність і безпека</string>
+    <string name="login_instructions_step3">3. Натисніть Інтеграції > API токени</string>
+    <string name="login_instructions_step4">4. Створіть новий токен з правами \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Скопіюйте токен і вставте вище</string>
+    <string name="login_instructions_full">1. Увійдіть у веб-застосунок Fastmail\n2. Перейдіть до Налаштування > Конфіденційність і безпека\n3. Натисніть Інтеграції > API токени\n4. Створіть новий токен з правами \"Masked Email\"\n5. Скопіюйте токен і вставте вище</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Маски email</string>
+    <string name="email_list_search_placeholder">Пошук email…</string>
+    <string name="email_list_clear_search">Очистити пошук</string>
+    <string name="email_list_filter_emails">Фільтрувати email</string>
+    <string name="email_list_create_fab">Створити</string>
+    <string name="email_list_create_description">Створити нову маску email</string>
+    <string name="email_list_empty">Маски email не знайдено</string>
+    <string name="email_list_logout">Вийти</string>
+    <string name="email_list_settings">Налаштування</string>
+    <string name="filter_all">Усі</string>
+    <string name="filter_enabled">Активні</string>
+    <string name="filter_disabled">Вимкнені</string>
+    <string name="filter_deleted">Видалені</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Створити маску email</string>
+    <string name="create_email_prefix_label">Префікс email (необов\'язково)</string>
+    <string name="create_email_prefix_placeholder">напр., mysite_shopping</string>
+    <string name="create_email_prefix_hint">Макс. 64 символи: малі літери, цифри, підкреслення</string>
+    <string name="create_email_domain_label">Пов\'язаний домен (необов\'язково)</string>
+    <string name="create_email_domain_placeholder">напр., example.com</string>
+    <string name="create_email_description_label">Опис (необов\'язково)</string>
+    <string name="create_email_description_placeholder">напр., Акаунт для покупок</string>
+    <string name="create_email_url_label">URL (необов\'язково)</string>
+    <string name="create_email_url_placeholder">напр., https://example.com</string>
+    <string name="create_email_initial_state">Початковий стан</string>
+    <string name="create_email_button">Створити маску email</string>
+    <string name="create_email_created">Створено: %s</string>
+    <string name="create_email_copy_action">Копіювати</string>
+    <string name="navigate_back">Назад</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Деталі email</string>
+    <string name="email_detail_copy_email">Копіювати адресу email</string>
+    <string name="email_detail_delete">Видалити email</string>
+    <string name="email_detail_status">Статус:</string>
+    <string name="email_detail_created_by">Створено: %s</string>
+    <string name="email_detail_created">Створено: %s</string>
+    <string name="email_detail_last_message">Останнє повідомлення: %s</string>
+    <string name="email_detail_enable">Увімкнути</string>
+    <string name="email_detail_disable">Вимкнути</string>
+    <string name="email_detail_edit_title">Редагувати</string>
+    <string name="email_detail_description_label">Опис</string>
+    <string name="email_detail_domain_label">Пов\'язаний домен</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Зберегти зміни</string>
+    <string name="email_detail_updated">Успішно оновлено</string>
+    <string name="email_detail_deleted">Успішно видалено</string>
+    <string name="email_detail_copied">Скопійовано до буфера обміну</string>
+    <string name="email_detail_delete_dialog_title">Видалити маску email</string>
+    <string name="email_detail_delete_dialog_message">Ви впевнені, що хочете видалити цю маску email? Цю дію не можна скасувати.</string>
+    <string name="email_detail_delete_confirm">Видалити</string>
+    <string name="email_detail_delete_cancel">Скасувати</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Активна</string>
+    <string name="state_disabled">Вимкнена</string>
+    <string name="state_deleted">Видалена</string>
+    <string name="state_pending">Очікування</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Не вдалося завантажити email</string>
+    <string name="error_retry">Повторити</string>
+    <string name="error_generic">Сталася помилка</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_language">Мова</string>
+    <string name="settings_language_description">Вибрати мову застосунку</string>
+    <string name="settings_system_default">Системна за замовчуванням</string>
+    <string name="settings_contact">Зв\'язок та відгуки</string>
+    <string name="settings_contact_description">Надішліть нам відгук</string>
+    <string name="settings_logout">Вийти</string>
+    <string name="settings_logout_description">Вийти з акаунту</string>
+    <string name="settings_version">Версія %s</string>
+    <string name="settings_select_language">Вибрати мову</string>
+    <string name="settings_feedback_subject">Відгук про FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

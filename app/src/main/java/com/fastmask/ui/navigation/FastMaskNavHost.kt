@@ -17,6 +17,7 @@ import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
 import com.fastmask.ui.list.MaskedEmailListScreen
+import com.fastmask.ui.settings.SettingsScreen
 
 private const val TRANSITION_DURATION_MS = 300
 
@@ -79,13 +80,24 @@ fun FastMaskNavHost(
                     onNavigateToDetail = { emailId ->
                         navController.navigate(NavRoutes.emailDetail(emailId))
                     },
+                    onNavigateToSettings = {
+                        navController.navigate(NavRoutes.SETTINGS)
+                    },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this@composable
+                )
+            }
+
+            composable(NavRoutes.SETTINGS) {
+                SettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
                     onLogout = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
                         }
-                    },
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    animatedContentScope = this@composable
+                    }
                 )
             }
 

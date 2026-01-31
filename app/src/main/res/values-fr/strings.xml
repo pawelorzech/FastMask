@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Gestionnaire d\'emails masqués Fastmail</string>
+    <string name="login_api_token_label">Jeton API</string>
+    <string name="login_api_token_placeholder">Entrez votre jeton API Fastmail</string>
+    <string name="login_button">Connexion</string>
+    <string name="login_show_token">Afficher le jeton</string>
+    <string name="login_hide_token">Masquer le jeton</string>
+    <string name="login_instructions_title">Comment obtenir votre jeton API :</string>
+    <string name="login_instructions_step1">1. Connectez-vous à l\'application web Fastmail</string>
+    <string name="login_instructions_step2">2. Allez dans Paramètres > Confidentialité et sécurité</string>
+    <string name="login_instructions_step3">3. Cliquez sur Intégrations > Jetons API</string>
+    <string name="login_instructions_step4">4. Créez un nouveau jeton avec la portée \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Copiez le jeton et collez-le ci-dessus</string>
+    <string name="login_instructions_full">1. Connectez-vous à l\'application web Fastmail\n2. Allez dans Paramètres > Confidentialité et sécurité\n3. Cliquez sur Intégrations > Jetons API\n4. Créez un nouveau jeton avec la portée \"Masked Email\"\n5. Copiez le jeton et collez-le ci-dessus</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Emails masqués</string>
+    <string name="email_list_search_placeholder">Rechercher des emails…</string>
+    <string name="email_list_clear_search">Effacer la recherche</string>
+    <string name="email_list_filter_emails">Filtrer les emails</string>
+    <string name="email_list_create_fab">Créer</string>
+    <string name="email_list_create_description">Créer un nouvel email masqué</string>
+    <string name="email_list_empty">Aucun email masqué trouvé</string>
+    <string name="email_list_logout">Déconnexion</string>
+    <string name="email_list_settings">Paramètres</string>
+    <string name="filter_all">Tous</string>
+    <string name="filter_enabled">Activés</string>
+    <string name="filter_disabled">Désactivés</string>
+    <string name="filter_deleted">Supprimés</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Créer un email masqué</string>
+    <string name="create_email_prefix_label">Préfixe d\'email (optionnel)</string>
+    <string name="create_email_prefix_placeholder">ex. : monsite_achats</string>
+    <string name="create_email_prefix_hint">Max 64 caractères : lettres minuscules, chiffres, tirets bas</string>
+    <string name="create_email_domain_label">Domaine associé (optionnel)</string>
+    <string name="create_email_domain_placeholder">ex. : exemple.com</string>
+    <string name="create_email_description_label">Description (optionnel)</string>
+    <string name="create_email_description_placeholder">ex. : Compte d\'achats</string>
+    <string name="create_email_url_label">URL (optionnel)</string>
+    <string name="create_email_url_placeholder">ex. : https://exemple.com</string>
+    <string name="create_email_initial_state">État initial</string>
+    <string name="create_email_button">Créer l\'email masqué</string>
+    <string name="create_email_created">Créé : %s</string>
+    <string name="create_email_copy_action">Copier</string>
+    <string name="navigate_back">Retour</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Détails de l\'email</string>
+    <string name="email_detail_copy_email">Copier l\'adresse email</string>
+    <string name="email_detail_delete">Supprimer l\'email</string>
+    <string name="email_detail_status">Statut :</string>
+    <string name="email_detail_created_by">Créé par : %s</string>
+    <string name="email_detail_created">Créé : %s</string>
+    <string name="email_detail_last_message">Dernier message : %s</string>
+    <string name="email_detail_enable">Activer</string>
+    <string name="email_detail_disable">Désactiver</string>
+    <string name="email_detail_edit_title">Modifier les détails</string>
+    <string name="email_detail_description_label">Description</string>
+    <string name="email_detail_domain_label">Domaine associé</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Enregistrer les modifications</string>
+    <string name="email_detail_updated">Mis à jour avec succès</string>
+    <string name="email_detail_deleted">Supprimé avec succès</string>
+    <string name="email_detail_copied">Copié dans le presse-papiers</string>
+    <string name="email_detail_delete_dialog_title">Supprimer l\'email masqué</string>
+    <string name="email_detail_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cet email masqué ? Cette action est irréversible.</string>
+    <string name="email_detail_delete_confirm">Supprimer</string>
+    <string name="email_detail_delete_cancel">Annuler</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Activé</string>
+    <string name="state_disabled">Désactivé</string>
+    <string name="state_deleted">Supprimé</string>
+    <string name="state_pending">En attente</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Échec du chargement des emails</string>
+    <string name="error_retry">Réessayer</string>
+    <string name="error_generic">Une erreur s\'est produite</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_description">Sélectionner la langue de l\'app</string>
+    <string name="settings_system_default">Par défaut du système</string>
+    <string name="settings_contact">Contact et commentaires</string>
+    <string name="settings_contact_description">Envoyez-nous vos commentaires</string>
+    <string name="settings_logout">Déconnexion</string>
+    <string name="settings_logout_description">Se déconnecter de votre compte</string>
+    <string name="settings_version">Version %s</string>
+    <string name="settings_select_language">Sélectionner la langue</string>
+    <string name="settings_feedback_subject">Commentaires FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>

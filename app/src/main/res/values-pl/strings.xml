@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">FastMask</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Menedżer ukrytych adresów Fastmail</string>
+    <string name="login_api_token_label">Token API</string>
+    <string name="login_api_token_placeholder">Wprowadź token API Fastmail</string>
+    <string name="login_button">Zaloguj się</string>
+    <string name="login_show_token">Pokaż token</string>
+    <string name="login_hide_token">Ukryj token</string>
+    <string name="login_instructions_title">Jak uzyskać token API:</string>
+    <string name="login_instructions_step1">1. Zaloguj się do aplikacji webowej Fastmail</string>
+    <string name="login_instructions_step2">2. Przejdź do Ustawienia > Prywatność i bezpieczeństwo</string>
+    <string name="login_instructions_step3">3. Kliknij Integracje > Tokeny API</string>
+    <string name="login_instructions_step4">4. Utwórz nowy token z zakresem \"Masked Email\"</string>
+    <string name="login_instructions_step5">5. Skopiuj token i wklej go powyżej</string>
+    <string name="login_instructions_full">1. Zaloguj się do aplikacji webowej Fastmail\n2. Przejdź do Ustawienia > Prywatność i bezpieczeństwo\n3. Kliknij Integracje > Tokeny API\n4. Utwórz nowy token z zakresem \"Masked Email\"\n5. Skopiuj token i wklej go powyżej</string>
+
+    <!-- Email List Screen -->
+    <string name="email_list_title">Ukryte adresy</string>
+    <string name="email_list_search_placeholder">Szukaj adresów…</string>
+    <string name="email_list_clear_search">Wyczyść wyszukiwanie</string>
+    <string name="email_list_filter_emails">Filtruj adresy</string>
+    <string name="email_list_create_fab">Utwórz</string>
+    <string name="email_list_create_description">Utwórz nowy ukryty adres</string>
+    <string name="email_list_empty">Nie znaleziono ukrytych adresów</string>
+    <string name="email_list_logout">Wyloguj</string>
+    <string name="email_list_settings">Ustawienia</string>
+    <string name="filter_all">Wszystkie</string>
+    <string name="filter_enabled">Aktywne</string>
+    <string name="filter_disabled">Wyłączone</string>
+    <string name="filter_deleted">Usunięte</string>
+
+    <!-- Create Email Screen -->
+    <string name="create_email_title">Utwórz ukryty adres</string>
+    <string name="create_email_prefix_label">Prefiks adresu (opcjonalnie)</string>
+    <string name="create_email_prefix_placeholder">np. mojastrona_zakupy</string>
+    <string name="create_email_prefix_hint">Maks. 64 znaki: małe litery, cyfry, podkreślenia</string>
+    <string name="create_email_domain_label">Powiązana domena (opcjonalnie)</string>
+    <string name="create_email_domain_placeholder">np. przyklad.pl</string>
+    <string name="create_email_description_label">Opis (opcjonalnie)</string>
+    <string name="create_email_description_placeholder">np. Konto zakupowe</string>
+    <string name="create_email_url_label">URL (opcjonalnie)</string>
+    <string name="create_email_url_placeholder">np. https://przyklad.pl</string>
+    <string name="create_email_initial_state">Stan początkowy</string>
+    <string name="create_email_button">Utwórz ukryty adres</string>
+    <string name="create_email_created">Utworzono: %s</string>
+    <string name="create_email_copy_action">Kopiuj</string>
+    <string name="navigate_back">Wstecz</string>
+
+    <!-- Email Detail Screen -->
+    <string name="email_detail_title">Szczegóły adresu</string>
+    <string name="email_detail_copy_email">Kopiuj adres e-mail</string>
+    <string name="email_detail_delete">Usuń adres</string>
+    <string name="email_detail_status">Status:</string>
+    <string name="email_detail_created_by">Utworzony przez: %s</string>
+    <string name="email_detail_created">Utworzono: %s</string>
+    <string name="email_detail_last_message">Ostatnia wiadomość: %s</string>
+    <string name="email_detail_enable">Włącz</string>
+    <string name="email_detail_disable">Wyłącz</string>
+    <string name="email_detail_edit_title">Edytuj szczegóły</string>
+    <string name="email_detail_description_label">Opis</string>
+    <string name="email_detail_domain_label">Powiązana domena</string>
+    <string name="email_detail_url_label">URL</string>
+    <string name="email_detail_save">Zapisz zmiany</string>
+    <string name="email_detail_updated">Zaktualizowano pomyślnie</string>
+    <string name="email_detail_deleted">Usunięto pomyślnie</string>
+    <string name="email_detail_copied">Skopiowano do schowka</string>
+    <string name="email_detail_delete_dialog_title">Usuń ukryty adres</string>
+    <string name="email_detail_delete_dialog_message">Czy na pewno chcesz usunąć ten ukryty adres? Tej operacji nie można cofnąć.</string>
+    <string name="email_detail_delete_confirm">Usuń</string>
+    <string name="email_detail_delete_cancel">Anuluj</string>
+
+    <!-- Email States -->
+    <string name="state_enabled">Aktywny</string>
+    <string name="state_disabled">Wyłączony</string>
+    <string name="state_deleted">Usunięty</string>
+    <string name="state_pending">Oczekujący</string>
+
+    <!-- Error Messages -->
+    <string name="error_load_emails">Nie udało się załadować adresów</string>
+    <string name="error_retry">Ponów próbę</string>
+    <string name="error_generic">Wystąpił błąd</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Ustawienia</string>
+    <string name="settings_language">Język</string>
+    <string name="settings_language_description">Wybierz język aplikacji</string>
+    <string name="settings_system_default">Domyślny systemowy</string>
+    <string name="settings_contact">Kontakt i opinie</string>
+    <string name="settings_contact_description">Wyślij nam swoją opinię</string>
+    <string name="settings_logout">Wyloguj</string>
+    <string name="settings_logout_description">Wyloguj się z konta</string>
+    <string name="settings_version">Wersja %s</string>
+    <string name="settings_select_language">Wybierz język</string>
+    <string name="settings_feedback_subject">Opinia o FastMask</string>
+
+    <!-- Language Names (Native) -->
+    <string name="language_en">English</string>
+    <string name="language_zh">中文</string>
+    <string name="language_es">Español</string>
+    <string name="language_hi">हिन्दी</string>
+    <string name="language_ar">العربية</string>
+    <string name="language_pt">Português</string>
+    <string name="language_bn">বাংলা</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_ja">日本語</string>
+    <string name="language_fr">Français</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_ko">한국어</string>
+    <string name="language_it">Italiano</string>
+    <string name="language_tr">Türkçe</string>
+    <string name="language_vi">Tiếng Việt</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_uk">Українська</string>
+    <string name="language_nl">Nederlands</string>
+    <string name="language_th">ไทย</string>
+    <string name="language_id">Bahasa Indonesia</string>
+</resources>
