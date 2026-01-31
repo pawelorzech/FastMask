@@ -38,8 +38,20 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 
-# Google Tink / Error Prone annotations
+# Google Tink (used by security-crypto)
+-keep class com.google.crypto.tink.** { *; }
+-keepclassmembers class * extends com.google.crypto.tink.shaded.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+
+# Tink optional dependencies (not used but referenced)
+-dontwarn com.google.api.client.http.**
+-dontwarn com.google.errorprone.annotations.InlineMe
+-dontwarn org.joda.time.**
+
+# Google Error Prone annotations
 -dontwarn com.google.errorprone.annotations.CanIgnoreReturnValue
 -dontwarn com.google.errorprone.annotations.CheckReturnValue
 -dontwarn com.google.errorprone.annotations.Immutable
 -dontwarn com.google.errorprone.annotations.RestrictedApi
+-dontwarn javax.annotation.**
