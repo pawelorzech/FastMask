@@ -3,6 +3,7 @@ package com.fastmask.ui.navigation
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,7 +20,7 @@ import com.fastmask.ui.detail.MaskedEmailDetailScreen
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.settings.SettingsScreen
 
-private const val TRANSITION_DURATION_MS = 300
+private const val TRANSITION_DURATION_MS = 220
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -36,26 +37,26 @@ fun FastMaskNavHost(
             enterTransition = {
                 slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(TRANSITION_DURATION_MS)
-                ) + fadeIn(animationSpec = tween(TRANSITION_DURATION_MS))
+                    animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
+                )
             },
             exitTransition = {
                 slideOutOfContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                    animationSpec = tween(TRANSITION_DURATION_MS)
-                ) + fadeOut(animationSpec = tween(TRANSITION_DURATION_MS))
+                    animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
+                )
             },
             popEnterTransition = {
                 slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(TRANSITION_DURATION_MS)
-                ) + fadeIn(animationSpec = tween(TRANSITION_DURATION_MS))
+                    animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
+                )
             },
             popExitTransition = {
                 slideOutOfContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.End,
-                    animationSpec = tween(TRANSITION_DURATION_MS)
-                ) + fadeOut(animationSpec = tween(TRANSITION_DURATION_MS))
+                    animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
+                )
             }
         ) {
             composable(

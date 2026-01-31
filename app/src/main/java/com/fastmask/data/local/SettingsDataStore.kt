@@ -14,7 +14,7 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
 class SettingsDataStore @Inject constructor(
@@ -22,12 +22,12 @@ class SettingsDataStore @Inject constructor(
 ) {
     private val languageKey = stringPreferencesKey("language_code")
 
-    val languageFlow: Flow<String?> = context.dataStore.data.map { preferences ->
+    val languageFlow: Flow<String?> = context.settingsDataStore.data.map { preferences ->
         preferences[languageKey]
     }
 
     suspend fun setLanguage(languageCode: String?) {
-        context.dataStore.edit { preferences ->
+        context.settingsDataStore.edit { preferences ->
             if (languageCode == null) {
                 preferences.remove(languageKey)
             } else {
@@ -38,7 +38,17 @@ class SettingsDataStore @Inject constructor(
 
     fun getLanguageBlocking(): String? {
         return runBlocking {
-            context.dataStore.data.first()[languageKey]
+            context.settingsDataStore.data.first()[languageKey]
+        }
+    }
+
+    companion object {
+        private val LANGUAGE_KEY = stringPreferencesKey("language_code")
+
+        fun getLanguageBlocking(context: Context): String? {
+            return runBlocking {
+                context.settingsDataStore.data.first()[LANGUAGE_KEY]
+            }
         }
     }
 }

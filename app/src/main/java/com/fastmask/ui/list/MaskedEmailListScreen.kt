@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -95,10 +96,12 @@ fun MaskedEmailListScreen(
     val createDesc = stringResource(R.string.email_list_create_description)
 
     // Refresh the list when the screen resumes (e.g., after creating a new email)
+    // Delay refresh to allow navigation animation to complete smoothly
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.loadMaskedEmails()
+            delay(250L)
+            viewModel.refreshMaskedEmails()
         }
     }
 

@@ -63,6 +63,44 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
+    fun refreshMaskedEmails() {
+        viewModelScope.launch {
+            // Don't show loading if we already have data (soft refresh)
+            if (_uiState.value.emails.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
+
+            getMaskedEmailsUseCase().fold(
+                onSuccess = { emails ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            emails = emails.sortedByDescending { email -> email.createdAt },
+                            filteredEmails = filterEmails(
+                                emails,
+                                it.searchQuery,
+                                it.selectedFilter
+                            )
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    // Only show error if we have no data
+                    if (_uiState.value.emails.isEmpty()) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = error.message ?: "Failed to load emails"
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                }
+            )
+        }
+    }
+
     fun onSearchQueryChange(query: String) {
         _uiState.update {
             it.copy(
