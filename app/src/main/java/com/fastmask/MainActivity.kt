@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.ui.navigation.FastMaskNavHost
@@ -22,9 +23,22 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authRepository: AuthRepository
 
+    private var isReady = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        splashScreen.setKeepOnScreenCondition { !isReady }
+
         enableEdgeToEdge()
+
+        val startDestination = if (authRepository.isLoggedIn()) {
+            NavRoutes.EMAIL_LIST
+        } else {
+            NavRoutes.LOGIN
+        }
+        isReady = true
 
         setContent {
             FastMaskTheme {
@@ -33,11 +47,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    val startDestination = if (authRepository.isLoggedIn()) {
-                        NavRoutes.EMAIL_LIST
-                    } else {
-                        NavRoutes.LOGIN
-                    }
 
                     FastMaskNavHost(
                         navController = navController,

@@ -1,27 +1,48 @@
 ---
 layout: default
 title: FastMask - Fastmail Masked Email Manager for Android
+description: Native Android app for managing Fastmail masked emails. Create, view, edit, and delete masked email addresses with Material 3 design.
 ---
 
 # FastMask
 
-A native Android app for managing Fastmail masked emails.
+**Native Android app for managing Fastmail masked emails**
 
-Create, view, edit, and manage your masked email addresses directly from your Android device.
+[![Latest Release](https://img.shields.io/github/v/release/pawelorzech/FastMask?style=flat-square)](https://github.com/pawelorzech/FastMask/releases/latest)
+[![License](https://img.shields.io/github/license/pawelorzech/FastMask?style=flat-square)](https://github.com/pawelorzech/FastMask/blob/main/LICENSE)
+[![API 26+](https://img.shields.io/badge/API-26%2B-brightgreen?style=flat-square)](https://developer.android.com/about/versions/oreo)
+
+---
 
 ## Download
 
-**[Download Latest APK](https://github.com/pawelorzech/FastMask/releases/latest)**
+<a href="https://github.com/pawelorzech/FastMask/releases/latest" style="display: inline-block; padding: 12px 24px; background-color: #6750A4; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;">Download Latest APK</a>
+
+Or view all releases on [GitHub](https://github.com/pawelorzech/FastMask/releases)
+
+---
+
+## What is FastMask?
+
+FastMask lets you manage your [Fastmail](https://www.fastmail.com) masked email addresses directly from your Android phone.
+
+**Masked emails** are disposable addresses that forward to your real inbox. They help you:
+- Protect your real email from spam
+- Track which services share your email
+- Easily disable addresses if they get compromised
 
 ## Features
 
-- **View Masked Emails** - Browse all your Fastmail masked email addresses
-- **Create New Masks** - Generate new masked email addresses instantly
-- **Enable/Disable** - Toggle masked emails on or off
-- **Edit Details** - Update description, domain, and URL
-- **Copy to Clipboard** - Quick one-tap copy
-- **Search** - Filter your masked emails
-- **Material You** - Modern Material 3 design
+| Feature | Description |
+|---------|-------------|
+| **View All Masks** | Browse your masked emails in a clean, searchable list |
+| **Create New** | Generate new masked addresses with custom descriptions |
+| **Enable/Disable** | Toggle masks on or off without deleting them |
+| **Edit Details** | Update description, domain, and URL associations |
+| **Quick Copy** | One-tap copy to clipboard |
+| **Delete** | Remove masks you no longer need |
+| **Search & Filter** | Find specific masks instantly |
+| **Material You** | Dynamic theming that adapts to your wallpaper |
 
 ## Requirements
 
@@ -30,21 +51,59 @@ Create, view, edit, and manage your masked email addresses directly from your An
 
 ## Quick Start
 
-1. Download the APK from [Releases](https://github.com/pawelorzech/FastMask/releases)
-2. Install the app on your Android device
-3. Create a Fastmail API token at [Fastmail Settings](https://www.fastmail.com/settings/security/tokens)
-4. Enter your token in FastMask to start managing your masked emails
+### 1. Install the App
 
-## Privacy
+Download the APK from [Releases](https://github.com/pawelorzech/FastMask/releases) and install it.
 
-- Your API token is stored securely using Android's EncryptedSharedPreferences
-- Direct communication with Fastmail's API - no third-party servers
-- No analytics or tracking
+### 2. Create a Fastmail API Token
 
-## Source Code
+1. Log in to [Fastmail](https://www.fastmail.com)
+2. Go to **Settings** → **Privacy & Security** → **Integrations** → **API tokens**
+3. Click **New API token**
+4. Name it "FastMask"
+5. Select scope: **Masked Email** (read/write)
+6. Copy the token
 
-FastMask is open source. View the code on [GitHub](https://github.com/pawelorzech/FastMask).
+### 3. Log In
+
+Open FastMask, paste your token, and tap "Log in".
 
 ---
 
+## Privacy & Security
+
+- **Secure Storage**: Your API token is encrypted using Android's EncryptedSharedPreferences
+- **Direct Connection**: The app talks directly to Fastmail - no middleman servers
+- **No Tracking**: Zero analytics or data collection
+- **Open Source**: [Full source code](https://github.com/pawelorzech/FastMask) available for review
+
+---
+
+## Tech Stack
+
+- **Kotlin** - 100% Kotlin codebase
+- **Jetpack Compose** - Modern declarative UI
+- **Material 3** - Latest Material Design with dynamic theming
+- **JMAP** - Fastmail's native API protocol
+
+---
+
+## Contributing
+
+FastMask is open source and welcomes contributions!
+
+- [View Source Code](https://github.com/pawelorzech/FastMask)
+- [Report a Bug](https://github.com/pawelorzech/FastMask/issues/new?template=bug_report.md)
+- [Request a Feature](https://github.com/pawelorzech/FastMask/issues/new?template=feature_request.md)
+
+---
+
+## License
+
+FastMask is released under the [MIT License](https://github.com/pawelorzech/FastMask/blob/main/LICENSE).
+
+---
+
+<p style="text-align: center; color: #666; margin-top: 40px;">
 Made with Kotlin and Jetpack Compose
+</p>
