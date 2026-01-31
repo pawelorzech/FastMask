@@ -46,7 +46,8 @@ fun MaskedEmailCard(
     onClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isScrolling: Boolean = false
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -61,9 +62,13 @@ fun MaskedEmailCard(
         Card(
             modifier = modifier
                 .fillMaxWidth()
-                .sharedBounds(
-                    sharedContentState = rememberSharedContentState(key = "card-${maskedEmail.id}"),
-                    animatedVisibilityScope = animatedContentScope
+                .then(
+                    if (!isScrolling) {
+                        Modifier.sharedBounds(
+                            sharedContentState = rememberSharedContentState(key = "card-${maskedEmail.id}"),
+                            animatedVisibilityScope = animatedContentScope
+                        )
+                    } else Modifier
                 )
                 .clickable {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -85,10 +90,12 @@ fun MaskedEmailCard(
             ) {
                 StatusIcon(
                     state = maskedEmail.state,
-                    modifier = Modifier.sharedElement(
-                        state = rememberSharedContentState(key = "icon-${maskedEmail.id}"),
-                        animatedVisibilityScope = animatedContentScope
-                    )
+                    modifier = if (!isScrolling) {
+                        Modifier.sharedElement(
+                            state = rememberSharedContentState(key = "icon-${maskedEmail.id}"),
+                            animatedVisibilityScope = animatedContentScope
+                        )
+                    } else Modifier
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -97,10 +104,12 @@ fun MaskedEmailCard(
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.sharedElement(
-                            state = rememberSharedContentState(key = "title-${maskedEmail.id}"),
-                            animatedVisibilityScope = animatedContentScope
-                        )
+                        modifier = if (!isScrolling) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "title-${maskedEmail.id}"),
+                                animatedVisibilityScope = animatedContentScope
+                            )
+                        } else Modifier
                     )
                     Text(
                         text = maskedEmail.email,
@@ -108,10 +117,12 @@ fun MaskedEmailCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.sharedElement(
-                            state = rememberSharedContentState(key = "email-${maskedEmail.id}"),
-                            animatedVisibilityScope = animatedContentScope
-                        )
+                        modifier = if (!isScrolling) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = "email-${maskedEmail.id}"),
+                                animatedVisibilityScope = animatedContentScope
+                            )
+                        } else Modifier
                     )
                     maskedEmail.forDomain?.let { domain ->
                         Text(
