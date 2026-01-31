@@ -196,6 +196,10 @@ Contributions are welcome! Here's how you can help:
 - **New**: Localization support for 20 languages (English, Chinese, Spanish, Hindi, Arabic, Portuguese, Bengali, Russian, Japanese, French, German, Korean, Italian, Turkish, Vietnamese, Polish, Ukrainian, Dutch, Thai, Indonesian)
 - **New**: In-app language override using AppCompatDelegate
 - **Improved**: All UI strings now use centralized string resources
+- **Fixed**: Choppy navigation transitions between Settings and List screens
+- **Fixed**: Language preference now persists correctly across app restarts
+- **Improved**: Navigation animations simplified (slide-only, 220ms with FastOutSlowInEasing)
+- **Improved**: Soft refresh prevents shimmer loading when returning from Settings
 
 ### v1.2 (January 2026)
 - **Fixed**: Login crash caused by `ParameterizedType` casting error at runtime
