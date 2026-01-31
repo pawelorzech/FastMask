@@ -49,7 +49,6 @@ fun MaskedEmailCard(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
-    val statusColors = FastMaskStatusColors.current
 
     val stateDescription = when (maskedEmail.state) {
         EmailState.ENABLED -> "Enabled"

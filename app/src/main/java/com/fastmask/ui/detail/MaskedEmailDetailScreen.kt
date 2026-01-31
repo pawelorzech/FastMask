@@ -475,10 +475,10 @@ private fun EmailDetailContent(
                 enabled = !uiState.isUpdating
             )
 
-            if (uiState.error != null) {
+            uiState.error?.let { error ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = uiState.error!!,
+                    text = error,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )
