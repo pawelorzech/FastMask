@@ -186,6 +186,19 @@ Contributions are welcome! Here's how you can help:
 - Use meaningful commit messages
 - Write tests for new features when applicable
 
+## Changelog
+
+### v1.1 (January 2026)
+- **Fixed**: ProGuard/R8 minification crash with `ParameterizedType` casting error
+- **Improved**: Added proper ProGuard rules for Google Tink (security-crypto dependency)
+- **Stability**: Release builds now work correctly with code minification enabled
+
+### v1.0 (Initial Release)
+- Manage Fastmail masked emails
+- Create, edit, enable/disable, and delete masks
+- Material 3 dynamic theming
+- Secure token storage with EncryptedSharedPreferences
+
 ## Roadmap
 
 - [ ] Add screenshots to README
