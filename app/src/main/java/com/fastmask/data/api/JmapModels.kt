@@ -67,7 +67,7 @@ data class JmapSetError(
 data class MaskedEmailDto(
     val id: String,
     val email: String,
-    val state: MaskedEmailState,
+    val state: MaskedEmailState = MaskedEmailState.ENABLED,
     val forDomain: String? = null,
     val description: String? = null,
     val createdBy: String? = null,
