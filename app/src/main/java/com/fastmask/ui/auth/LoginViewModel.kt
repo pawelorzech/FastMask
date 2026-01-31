@@ -30,7 +30,8 @@ class LoginViewModel @Inject constructor(
     }
 
     fun login() {
-        val token = _uiState.value.token.trim()
+        // Remove all whitespace characters (spaces, newlines, tabs) from the token
+        val token = _uiState.value.token.filterNot { it.isWhitespace() }
         if (token.isBlank()) {
             _uiState.update { it.copy(error = "Please enter your API token") }
             return

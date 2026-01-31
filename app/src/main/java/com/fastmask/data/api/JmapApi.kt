@@ -33,8 +33,14 @@ class JmapApi @Inject constructor(
 
     fun getApiUrl(): String = cachedSession?.apiUrl ?: JmapService.FASTMAIL_API_URL
 
+    private suspend fun ensureSession(token: String): String {
+        cachedAccountId?.let { return it }
+        getSession(token).getOrThrow()
+        return cachedAccountId ?: throw IllegalStateException("Failed to get account ID from session")
+    }
+
     suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runCatching {
-        val accountId = cachedAccountId ?: throw IllegalStateException("Session not initialized")
+        val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
         val methodCall = buildJsonArray {
@@ -63,7 +69,7 @@ class JmapApi @Inject constructor(
         token: String,
         create: MaskedEmailCreate
     ): Result<MaskedEmailDto> = runCatching {
-        val accountId = cachedAccountId ?: throw IllegalStateException("Session not initialized")
+        val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
         val createObject = buildJsonObject {
@@ -104,7 +110,7 @@ class JmapApi @Inject constructor(
         id: String,
         update: MaskedEmailUpdate
     ): Result<Unit> = runCatching {
-        val accountId = cachedAccountId ?: throw IllegalStateException("Session not initialized")
+        val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
         val updateObject = buildJsonObject {
@@ -140,7 +146,7 @@ class JmapApi @Inject constructor(
     }
 
     suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runCatching {
-        val accountId = cachedAccountId ?: throw IllegalStateException("Session not initialized")
+        val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
         val methodCall = buildJsonArray {
@@ -226,6 +232,11 @@ class JmapApi @Inject constructor(
 
         setResponse.notUpdated?.get(id)?.let { error ->
             throw JmapException("Failed to update: ${error.type} - ${error.description}")
+        }
+
+        // Verify the update actually succeeded
+        if (setResponse.updated?.containsKey(id) != true) {
+            throw JmapException("Update not confirmed by server - ID not found in updated response")
         }
     }
 

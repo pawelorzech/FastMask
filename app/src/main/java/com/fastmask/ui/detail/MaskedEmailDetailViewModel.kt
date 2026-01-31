@@ -52,6 +52,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                isUpdating = false,
                                 email = email,
                                 editedDescription = email.description ?: "",
                                 editedForDomain = email.forDomain ?: "",
@@ -62,6 +63,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                isUpdating = false,
                                 error = "Email not found"
                             )
                         }
@@ -71,6 +73,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            isUpdating = false,
                             error = error.message ?: "Failed to load email"
                         )
                     }
