@@ -57,8 +57,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.components.ErrorMessage
-import com.fastmask.ui.components.LoadingIndicator
 import com.fastmask.ui.components.MaskedEmailCard
+import com.fastmask.ui.components.ShimmerEmailList
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -76,6 +76,10 @@ fun MaskedEmailListScreen(
     var searchActive by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
+
+    val isScrolling by remember {
+        derivedStateOf { listState.isScrollInProgress }
+    }
 
     val expandedFab by remember {
         derivedStateOf {
@@ -196,7 +200,7 @@ fun MaskedEmailListScreen(
 
             when {
                 uiState.isLoading && uiState.emails.isEmpty() -> {
-                    LoadingIndicator()
+                    ShimmerEmailList()
                 }
 
                 uiState.error != null && uiState.emails.isEmpty() -> {
@@ -214,7 +218,8 @@ fun MaskedEmailListScreen(
                         onEmailClick = { email -> onNavigateToDetail(email.id) },
                         listState = listState,
                         sharedTransitionScope = sharedTransitionScope,
-                        animatedContentScope = animatedContentScope
+                        animatedContentScope = animatedContentScope,
+                        isScrolling = isScrolling
                     )
                 }
             }
@@ -310,7 +315,8 @@ private fun EmailList(
     onEmailClick: (MaskedEmail) -> Unit,
     listState: LazyListState,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope: AnimatedContentScope,
+    isScrolling: Boolean
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -343,7 +349,8 @@ private fun EmailList(
                         onClick = { onEmailClick(email) },
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier.animateItem(),
+                        isScrolling = isScrolling
                     )
                 }
             }

@@ -15,26 +15,23 @@ data class MaskedEmail(
     val url: String?,
     val emailPrefix: String?,
     val createdAt: Instant?,
-    val lastMessageAt: Instant?
+    val lastMessageAt: Instant?,
+    val formattedCreatedAt: String? = createdAt?.let { formatInstant(it) },
+    val formattedLastMessageAt: String? = lastMessageAt?.let { formatInstant(it) }
 ) {
     val displayName: String
         get() = description?.takeIf { it.isNotBlank() }
             ?: forDomain?.takeIf { it.isNotBlank() }
             ?: email.substringBefore("@")
 
-    val formattedCreatedAt: String?
-        get() = createdAt?.let { formatInstant(it) }
-
-    val formattedLastMessageAt: String?
-        get() = lastMessageAt?.let { formatInstant(it) }
-
     val isActive: Boolean
         get() = state == EmailState.ENABLED || state == EmailState.PENDING
 
-    private fun formatInstant(instant: Instant): String {
-        val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+    companion object {
+        private val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
             .withZone(ZoneId.systemDefault())
-        return formatter.format(instant)
+
+        fun formatInstant(instant: Instant): String = formatter.format(instant)
     }
 }
 
