@@ -48,7 +48,7 @@ data class MaskedEmailGetResponse(
 data class MaskedEmailSetResponse(
     val accountId: String,
     val oldState: String? = null,
-    val newState: String,
+    val newState: String? = null,
     val created: Map<String, MaskedEmailDto>? = null,
     val updated: Map<String, JsonElement?>? = null,
     val destroyed: List<String>? = null,
