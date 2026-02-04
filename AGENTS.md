@@ -20,3 +20,7 @@
 ```
 
 APK outputs: `app/build/outputs/apk/`
+
+## Development
+
+TODO: Document how to run the app from Android Studio/emulator once confirmed.
