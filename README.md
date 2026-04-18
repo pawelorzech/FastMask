@@ -48,9 +48,11 @@ FastMask is a native Android application that lets you manage your [Fastmail](ht
 | **Enable/Disable** | Toggle masks on or off without deleting them |
 | **Edit Details** | Update description, domain, and URL associations |
 | **Quick Copy** | One-tap copy to clipboard |
-| **Delete** | Remove masks you no longer need |
-| **Search & Filter** | Find specific masks instantly |
-| **Material You** | Dynamic theming that adapts to your wallpaper |
+| **Archive** | Disable masks reversibly (mail bounces, restorable later) |
+| **Search & Filter** | Find specific masks instantly, filter by Active / Off / Archived |
+| **Sorted by Activity** | Newest mail at the top, not just newest creation |
+| **Warm-Ink Design** | Custom parchment/ink palette, Instrument Serif + JetBrains Mono typography |
+| **Light & Dark** | Both modes follow system theme |
 | **20 Languages** | Full localization with in-app language picker |
 | **Settings** | Language selection, contact/feedback, and logout |
 
@@ -122,8 +124,9 @@ Your token is stored securely using Android's EncryptedSharedPreferences.
 | Category | Technology |
 |----------|------------|
 | **Language** | [Kotlin](https://kotlinlang.org/) 100% |
-| **UI Framework** | [Jetpack Compose](https://developer.android.com/jetpack/compose) |
-| **Design System** | [Material 3](https://m3.material.io/) with dynamic theming |
+| **UI Framework** | [Jetpack Compose](https://developer.android.com/jetpack/compose) (BOM 2024.09) |
+| **Design System** | Custom warm-ink palette on top of [Material 3](https://m3.material.io/) primitives |
+| **Typography** | Instrument Serif (display) + Inter Tight (text) + JetBrains Mono (mono), via Google Fonts |
 | **DI** | [Hilt](https://dagger.dev/hilt/) |
 | **Networking** | [Retrofit](https://square.github.io/retrofit/) + [OkHttp](https://square.github.io/okhttp/) |
 | **Serialization** | [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization) |
@@ -191,6 +194,18 @@ Contributions are welcome! Here's how you can help:
 
 ## Changelog
 
+### v1.4 (April 2026)
+- **Redesign**: Complete UI overhaul to a warm-ink visual language — parchment background, Instrument Serif display type, JetBrains Mono labels, single amber accent
+- **New typography**: Three Google Fonts (Instrument Serif, Inter Tight, JetBrains Mono) replace the Material default
+- **Sort by activity**: List defaults to most recently active mask at the top (uses `lastMessageAt`, falls back to `createdAt`)
+- **Archive instead of Delete**: Destructive action renamed to "Archive" with restorable copy ("Mail sent here will bounce. You can restore it later.")
+- **New custom components**: `PillButton`, `PillIconButton`, `StateDot`, `StatePill`, `DesignCard`, `DesignInput` replacing M3 stock variants
+- **Filter pills with counts**: Active / Off / Archived show live count next to the label
+- **Performance**: Removed per-item animations and pre-computed timestamps for smoother scrolling on large libraries (100+ masks)
+- **Removed**: Material You / dynamic color (replaced by fixed warm palette)
+- **Fixed**: R8/ProGuard rules for Retrofit suspend functions and kotlinx.serialization on release builds
+- **i18n**: English and Polish strings rewritten for the new design language; other 18 locales fall back to English for new keys
+
 ### v1.3 (January 2026)
 - **New**: Settings screen with language picker, contact button, and logout
 - **New**: Localization support for 20 languages (English, Chinese, Spanish, Hindi, Arabic, Portuguese, Bengali, Russian, Japanese, French, German, Korean, Italian, Turkish, Vietnamese, Polish, Ukrainian, Dutch, Thai, Indonesian)
@@ -221,7 +236,10 @@ Contributions are welcome! Here's how you can help:
 
 - [ ] Add screenshots to README
 - [ ] Widget for quick mask creation
-- [ ] Dark/light mode toggle
+- [ ] In-app accent picker (amber / ink / sage / plum / cobalt)
+- [ ] Bulk archive
+- [x] Custom design system (warm-ink palette, serif/mono typography)
+- [x] Sort by latest activity
 - [x] Localization support (20 languages)
 - [x] Settings screen with language picker
 

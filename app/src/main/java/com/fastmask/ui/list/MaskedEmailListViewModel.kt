@@ -42,7 +42,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            emails = emails.sortedByDescending { email -> email.createdAt },
+                            emails = emails.sortedByDescending { email -> email.lastMessageAt ?: email.createdAt },
                             filteredEmails = filterEmails(
                                 emails,
                                 it.searchQuery,
@@ -75,7 +75,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            emails = emails.sortedByDescending { email -> email.createdAt },
+                            emails = emails.sortedByDescending { email -> email.lastMessageAt ?: email.createdAt },
                             filteredEmails = filterEmails(
                                 emails,
                                 it.searchQuery,
@@ -148,7 +148,7 @@ class MaskedEmailListViewModel @Inject constructor(
                             email.forDomain?.contains(query, ignoreCase = true) == true
                 }
             }
-            .sortedByDescending { it.createdAt }
+            .sortedByDescending { it.lastMessageAt ?: it.createdAt }
     }
 }
 

@@ -4,98 +4,129 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Menedżer ukrytych adresów Fastmail</string>
+    <string name="login_subtitle">Spokojne miejsce dla ukrytych adresów.</string>
+    <string name="login_eyebrow">FastMask · v%s</string>
+    <string name="login_hero_prefix">Spokojne miejsce dla</string>
+    <string name="login_hero_accent">ukrytych adresów</string>
+    <string name="login_hero_suffix">.</string>
+    <string name="login_intro">Spokojne miejsce dla ukrytych adresów. Wklej token API Fastmail, by zacząć.</string>
     <string name="login_api_token_label">Token API</string>
-    <string name="login_api_token_placeholder">Wprowadź token API Fastmail</string>
-    <string name="login_button">Zaloguj się</string>
+    <string name="login_api_token_placeholder">Wklej token API Fastmail</string>
+    <string name="login_button">Odblokuj</string>
     <string name="login_show_token">Pokaż token</string>
     <string name="login_hide_token">Ukryj token</string>
-    <string name="login_instructions_title">Jak uzyskać token API:</string>
-    <string name="login_instructions_step1">1. Zaloguj się do aplikacji webowej Fastmail</string>
-    <string name="login_instructions_step2">2. Przejdź do Ustawienia > Prywatność i bezpieczeństwo</string>
-    <string name="login_instructions_step3">3. Kliknij Integracje > Tokeny API</string>
-    <string name="login_instructions_step4">4. Utwórz nowy token z zakresem \"Masked Email\"</string>
-    <string name="login_instructions_step5">5. Skopiuj token i wklej go powyżej</string>
+    <string name="login_instructions_title">Jak uzyskać token API</string>
+    <string name="login_instructions_step1">Zaloguj się do Fastmail w przeglądarce</string>
+    <string name="login_instructions_step2">Ustawienia → Prywatność i bezpieczeństwo</string>
+    <string name="login_instructions_step3">Integracje → Tokeny API</string>
+    <string name="login_instructions_step4">Utwórz token z zakresem Masked Email</string>
+    <string name="login_instructions_step5">Wklej go tutaj</string>
     <string name="login_instructions_full">1. Zaloguj się do aplikacji webowej Fastmail\n2. Przejdź do Ustawienia > Prywatność i bezpieczeństwo\n3. Kliknij Integracje > Tokeny API\n4. Utwórz nowy token z zakresem \"Masked Email\"\n5. Skopiuj token i wklej go powyżej</string>
+    <string name="login_error_empty_token">Wprowadź token API</string>
+    <string name="login_error_failed">Nie udało się zalogować</string>
 
     <!-- Email List Screen -->
-    <string name="email_list_title">Ukryte adresy</string>
-    <string name="email_list_search_placeholder">Szukaj adresów…</string>
+    <string name="email_list_title">Maski</string>
+    <string name="email_list_search_placeholder">Szukaj masek, domen, notatek…</string>
     <string name="email_list_clear_search">Wyczyść wyszukiwanie</string>
-    <string name="email_list_filter_emails">Filtruj adresy</string>
-    <string name="email_list_create_fab">Utwórz</string>
-    <string name="email_list_create_description">Utwórz nowy ukryty adres</string>
-    <string name="email_list_empty">Nie znaleziono ukrytych adresów</string>
+    <string name="email_list_filter_emails">Filtruj maski</string>
+    <string name="email_list_create_fab">Nowa maska</string>
+    <string name="email_list_create_description">Utwórz nową maskę</string>
+    <string name="email_list_empty">Tu jeszcze pusto.</string>
+    <string name="email_list_empty_sub">Utwórz maskę, żeby otrzymywać pocztę bez ujawniania prawdziwego adresu.</string>
     <string name="email_list_logout">Wyloguj</string>
     <string name="email_list_settings">Ustawienia</string>
+    <string name="list_stats_active">aktywnych</string>
+    <string name="list_stats_total">łącznie</string>
+    <string name="list_stats_separator"> · </string>
     <string name="filter_all">Wszystkie</string>
     <string name="filter_enabled">Aktywne</string>
-    <string name="filter_disabled">Wyłączone</string>
-    <string name="filter_deleted">Usunięte</string>
+    <string name="filter_disabled">Wył.</string>
+    <string name="filter_deleted">Archiwum</string>
+    <string name="error_load_emails_short">Nie udało się załadować masek</string>
 
     <!-- Create Email Screen -->
-    <string name="create_email_title">Utwórz ukryty adres</string>
-    <string name="create_email_prefix_label">Prefiks adresu (opcjonalnie)</string>
-    <string name="create_email_prefix_placeholder">np. mojastrona_zakupy</string>
-    <string name="create_email_prefix_hint">Maks. 64 znaki: małe litery, cyfry, podkreślenia</string>
-    <string name="create_email_domain_label">Powiązana domena (opcjonalnie)</string>
-    <string name="create_email_domain_placeholder">np. przyklad.pl</string>
-    <string name="create_email_description_label">Opis (opcjonalnie)</string>
-    <string name="create_email_description_placeholder">np. Konto zakupowe</string>
-    <string name="create_email_url_label">URL (opcjonalnie)</string>
-    <string name="create_email_url_placeholder">np. https://przyklad.pl</string>
+    <string name="create_email_title">Nowa maska</string>
+    <string name="create_email_subtitle">Skonfiguruj nowy ukryty adres</string>
+    <string name="create_email_preview_label">Podgląd</string>
+    <string name="create_email_preview_random">losowe</string>
+    <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
+    <string name="create_email_prefix_label">Prefiks</string>
+    <string name="create_email_prefix_placeholder">mojastrona_zakupy</string>
+    <string name="create_email_prefix_hint">Opcjonalnie. a–z, 0–9, _ · maks. 64</string>
+    <string name="create_email_domain_label">Domena</string>
+    <string name="create_email_domain_placeholder">np. figma.com</string>
+    <string name="create_email_description_label">Notatka</string>
+    <string name="create_email_description_placeholder">Do czego to?</string>
+    <string name="create_email_url_label">URL</string>
+    <string name="create_email_url_placeholder">https://…</string>
     <string name="create_email_initial_state">Stan początkowy</string>
-    <string name="create_email_button">Utwórz ukryty adres</string>
+    <string name="create_email_button">Utwórz maskę</string>
     <string name="create_email_created">Utworzono: %s</string>
     <string name="create_email_copy_action">Kopiuj</string>
+    <string name="create_email_error_failed">Nie udało się utworzyć maski</string>
     <string name="navigate_back">Wstecz</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">Szczegóły adresu</string>
+    <string name="email_detail_title">Maska</string>
     <string name="email_detail_copy_email">Kopiuj adres e-mail</string>
-    <string name="email_detail_delete">Usuń adres</string>
-    <string name="email_detail_status">Status:</string>
-    <string name="email_detail_created_by">Utworzony przez: %s</string>
-    <string name="email_detail_created">Utworzono: %s</string>
-    <string name="email_detail_last_message">Ostatnia wiadomość: %s</string>
+    <string name="email_detail_delete">Archiwizuj maskę</string>
+    <string name="email_detail_status">Status</string>
+    <string name="email_detail_created_by">Utworzone przez</string>
+    <string name="email_detail_created">Utworzono</string>
+    <string name="email_detail_last_message">Ostatnia wiadomość</string>
     <string name="email_detail_enable">Włącz</string>
     <string name="email_detail_disable">Wyłącz</string>
-    <string name="email_detail_edit_title">Edytuj szczegóły</string>
-    <string name="email_detail_description_label">Opis</string>
-    <string name="email_detail_domain_label">Powiązana domena</string>
+    <string name="email_detail_edit_title">Szczegóły</string>
+    <string name="email_detail_description_label">Notatka</string>
+    <string name="email_detail_domain_label">Domena</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Zapisz zmiany</string>
-    <string name="email_detail_updated">Zaktualizowano pomyślnie</string>
-    <string name="email_detail_deleted">Usunięto pomyślnie</string>
-    <string name="email_detail_copied">Skopiowano do schowka</string>
-    <string name="email_detail_delete_dialog_title">Usuń ukryty adres</string>
-    <string name="email_detail_delete_dialog_message">Czy na pewno chcesz usunąć ten ukryty adres? Tej operacji nie można cofnąć.</string>
-    <string name="email_detail_delete_confirm">Usuń</string>
+    <string name="email_detail_updated">Zaktualizowano</string>
+    <string name="email_detail_deleted">Zarchiwizowano</string>
+    <string name="email_detail_copied">Skopiowano</string>
+    <string name="email_detail_delete_dialog_title">Zarchiwizować maskę?</string>
+    <string name="email_detail_delete_dialog_message">Poczta wysłana na ten adres nie dotrze. Można ją później przywrócić.</string>
+    <string name="email_detail_delete_confirm">Archiwizuj</string>
     <string name="email_detail_delete_cancel">Anuluj</string>
+    <string name="email_detail_error_load">Nie udało się wczytać maski</string>
+    <string name="email_detail_error_update">Nie udało się zaktualizować</string>
+    <string name="email_detail_error_save">Nie udało się zapisać</string>
+    <string name="email_detail_error_delete">Nie udało się zarchiwizować</string>
 
     <!-- Email States -->
-    <string name="state_enabled">Aktywny</string>
-    <string name="state_disabled">Wyłączony</string>
-    <string name="state_deleted">Usunięty</string>
-    <string name="state_pending">Oczekujący</string>
+    <string name="state_enabled">Aktywna</string>
+    <string name="state_disabled">Wyłączona</string>
+    <string name="state_deleted">Archiwum</string>
+    <string name="state_pending">Oczekuje</string>
 
     <!-- Error Messages -->
-    <string name="error_load_emails">Nie udało się załadować adresów</string>
-    <string name="error_retry">Ponów próbę</string>
-    <string name="error_generic">Wystąpił błąd</string>
+    <string name="error_load_emails">Nie udało się załadować masek</string>
+    <string name="error_retry">Ponów</string>
+    <string name="error_generic">Coś poszło nie tak</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Ustawienia</string>
     <string name="settings_language">Język</string>
     <string name="settings_language_description">Wybierz język aplikacji</string>
-    <string name="settings_system_default">Domyślny systemowy</string>
-    <string name="settings_contact">Kontakt i opinie</string>
-    <string name="settings_contact_description">Wyślij nam swoją opinię</string>
+    <string name="settings_system_default">Systemowy</string>
+    <string name="settings_contact">Wyślij opinię</string>
+    <string name="settings_contact_description">pawel@orzech.me</string>
     <string name="settings_logout">Wyloguj</string>
-    <string name="settings_logout_description">Wyloguj się z konta</string>
+    <string name="settings_logout_description">Zapomnij token na tym urządzeniu</string>
     <string name="settings_version">Wersja %s</string>
-    <string name="settings_select_language">Wybierz język</string>
+    <string name="settings_select_language">Język</string>
     <string name="settings_feedback_subject">Opinia o FastMask</string>
+
+    <!-- Relative time -->
+    <string name="time_never">nigdy</string>
+    <string name="time_just_now">przed chwilą</string>
+    <string name="time_min_ago">%d min temu</string>
+    <string name="time_hour_ago">%d godz. temu</string>
+    <string name="time_day_ago">%d dni temu</string>
+    <string name="time_week_ago">%d tyg. temu</string>
+    <string name="time_month_ago">%d mies. temu</string>
+    <string name="time_year_ago">%d lat temu</string>
 
     <!-- Language Names (Native) -->
     <string name="language_en">English</string>
