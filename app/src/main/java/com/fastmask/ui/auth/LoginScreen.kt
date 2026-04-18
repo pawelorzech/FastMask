@@ -1,29 +1,28 @@
 package com.fastmask.ui.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,23 +35,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.fastmask.BuildConfig
 import com.fastmask.R
+import com.fastmask.ui.components.DesignCard
+import com.fastmask.ui.components.DesignInput
+import com.fastmask.ui.components.MonoEyebrow
+import com.fastmask.ui.components.MonoLabel
+import com.fastmask.ui.components.PillButton
+import com.fastmask.ui.components.PillButtonVariant
+import com.fastmask.ui.theme.FastMaskExtras
+import com.fastmask.ui.theme.InstrumentSerif
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showToken by remember { mutableStateOf(false) }
+    val extras = FastMaskExtras.current
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -62,122 +75,168 @@ fun LoginScreen(
         }
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp)
+                .padding(horizontal = 28.dp)
+                .padding(top = 48.dp, bottom = 32.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                imageVector = Icons.Default.Email,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            // Eyebrow
+            MonoEyebrow(text = stringResource(R.string.login_eyebrow, BuildConfig.VERSION_NAME))
+            Spacer(Modifier.height(14.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Hero — A quiet place for [accent]masked mail[/accent].
+            val heroPrefix = stringResource(R.string.login_hero_prefix)
+            val heroAccent = stringResource(R.string.login_hero_accent)
+            val heroSuffix = stringResource(R.string.login_hero_suffix)
+            val annotated = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontFamily = InstrumentSerif,
+                    ),
+                ) { append(heroPrefix) }
+                append(" ")
+                withStyle(
+                    SpanStyle(
+                        color = extras.accent,
+                        fontStyle = FontStyle.Italic,
+                        fontFamily = InstrumentSerif,
+                    ),
+                ) { append(heroAccent) }
+                withStyle(
+                    SpanStyle(
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontFamily = InstrumentSerif,
+                    ),
+                ) { append(heroSuffix) }
+            }
+            Text(
+                text = annotated,
+                style = MaterialTheme.typography.displayLarge,
+            )
+            Spacer(Modifier.height(18.dp))
 
             Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Text(
-                text = stringResource(R.string.login_subtitle),
+                text = stringResource(R.string.login_intro),
+                color = extras.inkSoft,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                modifier = Modifier.fillMaxWidth(0.85f),
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(Modifier.height(36.dp))
 
-            OutlinedTextField(
+            // Token input
+            DesignInput(
                 value = uiState.token,
                 onValueChange = viewModel::onTokenChange,
-                label = { Text(stringResource(R.string.login_api_token_label)) },
-                placeholder = { Text(stringResource(R.string.login_api_token_placeholder)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.login_api_token_label),
+                placeholder = stringResource(R.string.login_api_token_placeholder),
+                mono = true,
+                isError = uiState.error != null,
+                enabled = !uiState.isLoading,
                 visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = { viewModel.login() }
-                ),
-                trailingIcon = {
-                    IconButton(onClick = { showToken = !showToken }) {
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { viewModel.login() }),
+                trailing = {
+                    val icon = if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                    val cd = stringResource(if (showToken) R.string.login_hide_token else R.string.login_show_token)
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(androidx.compose.ui.graphics.Color.Transparent)
+                            .padding(2.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
-                            imageVector = if (showToken) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = if (showToken) {
-                                stringResource(R.string.login_hide_token)
-                            } else {
-                                stringResource(R.string.login_show_token)
-                            }
+                            imageVector = icon,
+                            contentDescription = cd,
+                            tint = extras.inkMuted,
+                            modifier = Modifier
+                                .size(20.dp),
                         )
                     }
                 },
-                isError = uiState.error != null,
-                enabled = !uiState.isLoading
+                hint = uiState.error,
             )
 
-            if (uiState.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            Spacer(Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = viewModel::login,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !uiState.isLoading && uiState.token.isNotBlank()
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
+            PillButton(
+                text = if (uiState.isLoading) "…" else stringResource(R.string.login_button),
+                onClick = { viewModel.login() },
+                enabled = !uiState.isLoading && uiState.token.isNotBlank(),
+                variant = PillButtonVariant.Primary,
+                fullWidth = true,
+                trailing = if (uiState.isLoading) {
+                    {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = extras.onAccent,
+                            strokeWidth = 2.dp,
+                        )
+                    }
                 } else {
-                    Text(stringResource(R.string.login_button))
-                }
-            }
+                    {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = extras.onAccent,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                },
+            )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(36.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.login_instructions_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Instructions
+            DesignCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+                    MonoLabel(text = stringResource(R.string.login_instructions_title))
+                    Spacer(Modifier.height(14.dp))
+                    val steps = listOf(
+                        stringResource(R.string.login_instructions_step1),
+                        stringResource(R.string.login_instructions_step2),
+                        stringResource(R.string.login_instructions_step3),
+                        stringResource(R.string.login_instructions_step4),
+                        stringResource(R.string.login_instructions_step5),
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.login_instructions_full),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Start
-                    )
+                    steps.forEachIndexed { index, step ->
+                        InstructionRow(index = index + 1, text = step)
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun InstructionRow(index: Int, text: String) {
+    val extras = FastMaskExtras.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = "%02d".format(index),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+            color = extras.accent,
+            modifier = Modifier
+                .width(28.dp)
+                .padding(top = 3.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = extras.inkSoft,
+        )
     }
 }
