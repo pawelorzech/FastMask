@@ -194,6 +194,19 @@ Contributions are welcome! Here's how you can help:
 
 ## Changelog
 
+### v1.5 (April 2026) — Security hardening
+
+- **Security**: Removed unconditional HTTP body logging — release builds emit zero network logs; debug builds log headers only with `Authorization` redacted
+- **Security**: Release signing config no longer falls back to the public Android debug keystore — keystore must be supplied via `FASTMASK_KEYSTORE`/Gradle properties or the APK is left unsigned for external signing (e.g., Play App Signing)
+- **Security**: `android:allowBackup="false"` — app data is no longer included in cloud backup or device transfer
+- **Security**: Network Security Config restricts trust for `api.fastmail.com` to the system CA store; user-installed CAs cannot intercept JMAP traffic (SPKI pinning scaffold included for follow-up)
+- **Security**: Added `FLAG_SECURE` and `filterTouchesWhenObscured` on the main window — token field, alias list, and detail screens are blanked in screenshots, screen recording, Recents thumbnail, and protected against tapjacking overlays
+- **Security**: JMAP `apiUrl` from the session response is now validated against `*.fastmail.com` before being used for token-bearing requests
+- **Security**: Login token is cleared from in-memory UI state immediately after the login attempt resolves
+- **Security**: GitHub Actions pinned to commit SHAs; Dependabot configured for actions and Gradle dependencies
+- **Hygiene**: Untracked `.idea/` and `.gradle/config.properties` from version control (already in `.gitignore`)
+- **Docs**: Full security audit report added at `Plans/security-audit-report.md`; `SECURITY.md` updated to reflect actual implementation
+
 ### v1.4 (April 2026)
 - **Redesign**: Complete UI overhaul to a warm-ink visual language — parchment background, Instrument Serif display type, JetBrains Mono labels, single amber accent
 - **New typography**: Three Google Fonts (Instrument Serif, Inter Tight, JetBrains Mono) replace the Material default

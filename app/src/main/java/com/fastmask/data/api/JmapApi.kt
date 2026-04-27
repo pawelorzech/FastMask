@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,16 +23,26 @@ class JmapApi @Inject constructor(
 
     suspend fun getSession(token: String): Result<JmapSession> = runCatching {
         val authHeader = "Bearer $token"
-        jmapService.getSession(authHeader = authHeader).also {
-            cachedSession = it
-            cachedAccountId = it.primaryAccounts["https://www.fastmail.com/dev/maskedemail"]
-                ?: it.primaryAccounts.values.firstOrNull()
+        val session = jmapService.getSession(authHeader = authHeader)
+        require(isFastmailHttpsUrl(session.apiUrl)) {
+            "Untrusted apiUrl in session response"
         }
+        cachedSession = session
+        cachedAccountId = session.primaryAccounts["https://www.fastmail.com/dev/maskedemail"]
+            ?: session.primaryAccounts.values.firstOrNull()
+        session
     }
 
     fun getAccountId(): String? = cachedAccountId
 
     fun getApiUrl(): String = cachedSession?.apiUrl ?: JmapService.FASTMAIL_API_URL
+
+    private fun isFastmailHttpsUrl(raw: String): Boolean {
+        val uri = runCatching { URI(raw) }.getOrNull() ?: return false
+        if (!uri.scheme.equals("https", ignoreCase = true)) return false
+        val host = uri.host?.lowercase() ?: return false
+        return host == "api.fastmail.com" || host.endsWith(".fastmail.com")
+    }
 
     private suspend fun ensureSession(token: String): String {
         cachedAccountId?.let { return it }

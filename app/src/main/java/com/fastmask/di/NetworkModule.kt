@@ -1,5 +1,6 @@
 package com.fastmask.di
 
+import com.fastmask.BuildConfig
 import com.fastmask.data.api.JmapService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -32,16 +33,22 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-
-        return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+        val builder = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.HEADERS
+                redactHeader("Authorization")
+                redactHeader("Cookie")
+                redactHeader("Set-Cookie")
+            }
+            builder.addInterceptor(loggingInterceptor)
+        }
+
+        return builder.build()
     }
 
     @Provides

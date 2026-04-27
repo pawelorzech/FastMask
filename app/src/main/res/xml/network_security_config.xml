@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      Restrict trust for api.fastmail.com to the system CA store only,
+      so user-installed CAs (corporate MDM, mitmproxy, captive-portal profiles)
+      cannot intercept JMAP traffic.
+
+      Certificate pinning is intentionally NOT enabled in this commit:
+      pinning requires the live SPKI hashes of api.fastmail.com's leaf
+      and a backup intermediate, which must be obtained out-of-band and
+      rotated on a schedule. To enable it, compute hashes via:
+
+        openssl s_client -connect api.fastmail.com:443 -showcerts </dev/null \
+          | openssl x509 -pubkey -noout \
+          | openssl pkey -pubin -outform DER \
+          | openssl dgst -sha256 -binary | base64
+
+      then add a <pin-set expiration="YYYY-MM-DD"> with two <pin> entries
+      (current + backup) to the <domain-config> below.
+    -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">api.fastmail.com</domain>
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>
