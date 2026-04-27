@@ -14,8 +14,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 6
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -25,17 +25,28 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            val keystorePath = System.getenv("FASTMASK_KEYSTORE")
+                ?: (project.findProperty("fastmask.keystore") as String?)
+            if (keystorePath != null) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("FASTMASK_STORE_PWD")
+                    ?: project.property("fastmask.storePassword") as String
+                keyAlias = System.getenv("FASTMASK_KEY_ALIAS")
+                    ?: project.property("fastmask.keyAlias") as String
+                keyPassword = System.getenv("FASTMASK_KEY_PWD")
+                    ?: project.property("fastmask.keyPassword") as String
+            }
         }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
+            val hasReleaseKeystore = System.getenv("FASTMASK_KEYSTORE") != null
+                || project.hasProperty("fastmask.keystore")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -107,6 +118,10 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
     // Security for encrypted storage
+    // Pinned to 1.1.0-alpha06 because TokenStorage uses MasterKey.Builder API,
+    // which only exists in the 1.1.x line. Migrating to 1.0.0 requires rewriting
+    // TokenStorage to the deprecated MasterKeys API — tracked separately.
+    // See Plans/security-audit-report.md F-05.
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // DataStore

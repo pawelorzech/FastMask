@@ -40,17 +40,16 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            loginUseCase(token).fold(
+            val outcome = loginUseCase(token)
+            _uiState.update { it.copy(token = "", isLoading = false) }
+
+            outcome.fold(
                 onSuccess = {
-                    _uiState.update { it.copy(isLoading = false) }
                     _events.emit(LoginEvent.LoginSuccess)
                 },
                 onFailure = { error ->
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = error.message ?: "Login failed"
-                        )
+                        it.copy(error = error.message ?: "Login failed")
                     }
                 }
             )

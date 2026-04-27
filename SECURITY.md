@@ -39,7 +39,9 @@ If you discover a security vulnerability, please report it by:
 ### Network Security
 
 - All communication with Fastmail uses HTTPS/TLS
-- Certificate pinning is recommended for production builds
+- The app ships a Network Security Config that restricts trust for `api.fastmail.com` to the system CA store (user-installed CAs are not honored)
+- Certificate pinning (SPKI hash pinning) is planned but not yet enabled — see `app/src/main/res/xml/network_security_config.xml`
+- HTTP request/response logging is disabled in release builds (debug builds log only headers, with `Authorization` redacted)
 - No data is sent to third-party servers
 
 ### Privacy
