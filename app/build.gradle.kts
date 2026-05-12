@@ -14,8 +14,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -42,6 +42,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             val hasReleaseKeystore = System.getenv("FASTMASK_KEYSTORE") != null
                 || project.hasProperty("fastmask.keystore")
             if (hasReleaseKeystore) {
