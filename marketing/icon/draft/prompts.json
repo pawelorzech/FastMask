@@ -1,0 +1,35 @@
+{
+  "common_style": "Style: flat 2D vector aesthetic, two-tone — cream parchment background (#F6F0E4) and deep ink navy (#1A2238) for the main glyph, with one thin warm ochre accent (#B8722D). Centered composition with 15% safe-zone margin from all edges. STRICTLY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO TYPOGRAPHY. No gradients, no shadows, no 3D, no photorealism. Recognizable at 48dp size. Editorial Pinterest-tier minimalist design language akin to Stripe and Linear product icons. Square 1024x1024 PNG.",
+  "variants": [
+    {
+      "id": "v1",
+      "concept": "Domino mask merging into envelope flap",
+      "prompt": "Stylized app icon for \"FastMask\", a privacy-focused masked email manager for Android. Visual concept: a minimalist domino mask silhouette where the lower edge dissolves into the top triangular flap of an envelope below."
+    },
+    {
+      "id": "v2",
+      "concept": "Two abstract almond eyes inside a soft squircle",
+      "prompt": "Stylized app icon for FastMask, an editorial masked email manager for Android. Visual concept: two horizontal almond-shaped eye slits sitting above a single graceful curve representing a nose/cheek line, all enclosed in a soft squircle outline (suggesting a mask)."
+    },
+    {
+      "id": "v3",
+      "concept": "@ symbol with peeking eyes",
+      "prompt": "Stylized app icon for FastMask, an editorial masked email manager for Android. Visual concept: the at-sign symbol redesigned so its inner core is replaced with two small almond eyes peeking out, suggesting a face wearing a mask. The outer spiral of the at-sign remains visible."
+    },
+    {
+      "id": "v4",
+      "concept": "Envelope front with mask flap and slit eyes",
+      "prompt": "Stylized app icon for FastMask, an editorial masked email manager for Android. Visual concept: a front-facing envelope whose triangular top flap is contoured as a mask silhouette, with two thin horizontal slit eyes cut into the flap."
+    },
+    {
+      "id": "v5",
+      "concept": "Theater mask with three dots below",
+      "prompt": "Stylized app icon for FastMask, an editorial masked email manager for Android. Visual concept: an abstract domino/theater mask silhouette with three small dots horizontally aligned beneath it, suggesting an email or ellipsis."
+    },
+    {
+      "id": "v6",
+      "concept": "Address-window envelope with hidden eyes inside",
+      "prompt": "Stylized app icon for FastMask, an editorial masked email manager for Android. Visual concept: a rectangular envelope front with an oval transparent address window, through which two simple almond eyes peer out from inside the envelope."
+    }
+  ]
+}

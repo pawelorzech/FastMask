@@ -51,7 +51,9 @@ captures/
 **/.DS_Store
 
 # marketing drafts (final assets are committed; raw Gemini variants and screenshots are not)
-marketing/icon/draft/
+marketing/icon/draft/v*.png
+marketing/icon/draft/grid*.png
+marketing/icon/draft/small-grid.png
 marketing/play/screenshots/raw/
 marketing/play/feature-graphic/draft/
 

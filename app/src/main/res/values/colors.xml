@@ -8,5 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="fastmail_blue">#0066CC</color>
-    <color name="splash_background">#0066CC</color>
+    <color name="splash_background">#F6F0E4</color>
+    <color name="warm_ink">#1A2238</color>
+    <color name="warm_cream">#F6F0E4</color>
+    <color name="warm_ochra">#B8722D</color>
 </resources>
