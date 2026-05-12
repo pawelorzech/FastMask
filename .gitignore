@@ -49,3 +49,16 @@ captures/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# marketing drafts (final assets are committed; raw Gemini variants and screenshots are not)
+marketing/icon/draft/
+marketing/play/screenshots/raw/
+marketing/play/feature-graphic/draft/
+
+# keystores (must never enter the repo)
+*.jks
+*.keystore
+keystore.properties
+
+# Playwright session artifacts (snapshots, screenshots, console logs)
+.playwright-mcp/

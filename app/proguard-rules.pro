@@ -71,3 +71,24 @@
 -dontwarn com.google.errorprone.annotations.CheckReturnValue
 -dontwarn com.google.errorprone.annotations.Immutable
 -dontwarn com.google.errorprone.annotations.RestrictedApi
+
+# ----- Hilt / Dagger -----
+# Hilt/Dagger generuje klasy via annotation processing. R8 musi je zachować,
+# inaczej runtime DI failuje cichcem.
+-keep class dagger.hilt.** { *; }
+-keep class * extends dagger.hilt.android.lifecycle.HiltViewModel
+-keep @dagger.hilt.android.HiltAndroidApp class *
+-keep @dagger.hilt.android.AndroidEntryPoint class *
+-keep class hilt_aggregated_deps.** { *; }
+-keep class dagger.hilt.android.internal.managers.** { *; }
+-keep class dagger.hilt.android.internal.modules.** { *; }
+-keepclasseswithmembers class * { @dagger.hilt.* <methods>; }
+-keepclasseswithmembers class * { @javax.inject.Inject <init>(...); }
+
+# ----- Jetpack Compose -----
+# Compose Compiler emituje classy/metody które reflection-based tooling
+# (preview/inspector, Lifecycle integration) musi widzieć.
+-keep class androidx.compose.runtime.** { *; }
+-keep class androidx.compose.ui.platform.** { *; }
+-keepclassmembers class * { @androidx.compose.runtime.Composable *; }
+-dontwarn androidx.compose.**
