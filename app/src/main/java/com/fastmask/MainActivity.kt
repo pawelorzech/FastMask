@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.rememberNavController
+import com.fastmask.BuildConfig
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.ui.navigation.FastMaskNavHost
 import com.fastmask.ui.navigation.NavRoutes
@@ -30,20 +31,26 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE,
-        )
-        window.decorView.filterTouchesWhenObscured = true
+        if (!BuildConfig.DEBUG) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE,
+            )
+            window.decorView.filterTouchesWhenObscured = true
+        }
 
         splashScreen.setKeepOnScreenCondition { !isReady }
 
         enableEdgeToEdge()
 
+        // Users who have a real Fastmail token, or who have explicitly entered
+        // demo mode, jump straight to the list. Everyone else starts on the
+        // welcome screen — the entry point for "Sign in with Fastmail" and
+        // "Try demo". See [AuthRepositoryImpl.isLoggedIn] for the demo bypass.
         val startDestination = if (authRepository.isLoggedIn()) {
             NavRoutes.EMAIL_LIST
         } else {
-            NavRoutes.LOGIN
+            NavRoutes.WELCOME
         }
         isReady = true
 

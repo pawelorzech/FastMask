@@ -128,6 +128,30 @@
     <string name="time_month_ago">%d mies. temu</string>
     <string name="time_year_ago">%d lat temu</string>
 
+    <!-- Welcome Screen / Demo Mode -->
+    <string name="welcome_signin_cta">Zaloguj się przez Fastmail</string>
+    <string name="welcome_demo_cta">Wypróbuj demo</string>
+    <string name="welcome_tagline">Spokojne miejsce dla ukrytych adresów.</string>
+    <string name="welcome_privacy_note">Prywatność · open source</string>
+    <string name="demo_banner_text">Tryb demo — zmiany nie są zapisywane</string>
+    <string name="demo_banner_signin">Zaloguj</string>
+    <string name="tutorial_step_1_title">Twoje maskowane adresy</string>
+    <string name="tutorial_step_1_body">Każdy adres przekierowuje pocztę do twojej skrzynki, ukrywając prawdziwy email.</string>
+    <string name="tutorial_step_2_title">Szukaj</string>
+    <string name="tutorial_step_2_body">Znajdź dowolną maskę po nazwie, domenie lub notatce.</string>
+    <string name="tutorial_step_3_title">Filtruj</string>
+    <string name="tutorial_step_3_body">Pokaż tylko aktywne, wyłączone lub zarchiwizowane maski.</string>
+    <string name="tutorial_step_4_title">Dotknij maski</string>
+    <string name="tutorial_step_4_body">Otwórz ją, by skopiować adres, edytować notatkę lub wyłączyć.</string>
+    <string name="tutorial_step_5_title">Utwórz nową maskę</string>
+    <string name="tutorial_step_5_body">Stuknij tutaj, by wygenerować nowy adres do dowolnego serwisu.</string>
+    <string name="tutorial_next">Dalej</string>
+    <string name="tutorial_skip">Pomiń</string>
+    <string name="tutorial_done">Rozumiem</string>
+    <string name="settings_demo_section">Konto</string>
+    <string name="settings_demo_description">Jesteś w trybie demo. Zmiany nie są zapisywane na koncie Fastmail.</string>
+    <string name="settings_signin_with_fastmail">Zaloguj się przez Fastmail</string>
+
     <!-- Language Names (Native) -->
     <string name="language_en">English</string>
     <string name="language_zh">中文</string>

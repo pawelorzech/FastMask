@@ -52,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.components.DashedDesignCard
+import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignInput
 import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
@@ -66,6 +67,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun CreateMaskedEmailScreen(
     onNavigateBack: () -> Unit,
+    onSignInFromBanner: () -> Unit,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -105,6 +107,9 @@ fun CreateMaskedEmailScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
+            // Demo mode banner (auto-hides in REAL mode).
+            DemoBanner(onSignInClick = onSignInFromBanner)
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,12 +37,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -57,14 +64,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.R
+import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.MonoEyebrow
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.components.StateDot
+import com.fastmask.ui.components.TooltipPosition
+import com.fastmask.ui.components.TutorialOverlay
+import com.fastmask.ui.components.TutorialStep
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
 import com.fastmask.ui.theme.MonoSmallStyle
@@ -79,6 +91,7 @@ fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
@@ -86,6 +99,9 @@ fun MaskedEmailListScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
+
+    val appMode by viewModel.appMode.collectAsState()
+    val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
@@ -98,6 +114,20 @@ fun MaskedEmailListScreen(
     val activeCount = uiState.emails.count { it.state == EmailState.ENABLED || it.state == EmailState.PENDING }
     val totalCount = uiState.emails.size
 
+    // Tutorial coach-mark bounds. Each key corresponds to a step index defined
+    // below; values are filled in via Modifier.onGloballyPositioned on the
+    // respective UI elements as they enter composition.
+    val tutorialBounds = remember { mutableStateMapOf<Int, Rect>() }
+    var showTutorial by remember { mutableStateOf(false) }
+
+    // Show the tutorial once all 5 target elements have measured their bounds
+    // (only relevant in demo mode and only once per demo session).
+    LaunchedEffect(appMode, tutorialCompleted, tutorialBounds.size) {
+        showTutorial = appMode == AppMode.DEMO &&
+            !tutorialCompleted &&
+            tutorialBounds.size >= 5
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
@@ -105,115 +135,178 @@ fun MaskedEmailListScreen(
                 label = stringResource(R.string.email_list_create_fab),
                 description = stringResource(R.string.email_list_create_description),
                 onClick = onNavigateToCreate,
+                modifier = Modifier.onGloballyPositioned { coords ->
+                    tutorialBounds[4] = coords.boundsInRoot()
+                },
             )
         },
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            // Header
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, end = 20.dp, top = 12.dp, bottom = 8.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Demo mode banner (auto-hides in REAL mode).
+                DemoBanner(onSignInClick = onSignInFromBanner)
+
+                // Header
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 20.dp, top = 12.dp, bottom = 8.dp),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        MonoEyebrow(
-                            text = "$activeCount " +
-                                stringResource(R.string.list_stats_active) +
-                                stringResource(R.string.list_stats_separator) +
-                                "$totalCount " +
-                                stringResource(R.string.list_stats_total),
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.email_list_title),
-                            style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                    PillIconButton(
-                        onClick = onNavigateToSettings,
-                        contentDescription = stringResource(R.string.email_list_settings),
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            MonoEyebrow(
+                                text = "$activeCount " +
+                                    stringResource(R.string.list_stats_active) +
+                                    stringResource(R.string.list_stats_separator) +
+                                    "$totalCount " +
+                                    stringResource(R.string.list_stats_total),
+                            )
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                text = stringResource(R.string.email_list_title),
+                                style = MaterialTheme.typography.displayMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                            )
+                        }
+                        PillIconButton(
+                            onClick = onNavigateToSettings,
+                            contentDescription = stringResource(R.string.email_list_settings),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
                     }
-                }
 
-                Spacer(Modifier.height(18.dp))
+                    Spacer(Modifier.height(18.dp))
 
-                SearchField(
-                    query = uiState.searchQuery,
-                    onQueryChange = viewModel::onSearchQueryChange,
-                )
+                    SearchField(
+                        query = uiState.searchQuery,
+                        onQueryChange = viewModel::onSearchQueryChange,
+                        modifier = Modifier.onGloballyPositioned { coords ->
+                            tutorialBounds[1] = coords.boundsInRoot()
+                        },
+                    )
 
-                Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                FilterRow(
-                    selected = uiState.selectedFilter,
-                    counts = mapOf(
-                        EmailFilter.ALL to totalCount,
-                        EmailFilter.ENABLED to activeCount,
-                        EmailFilter.DISABLED to uiState.emails.count { it.state == EmailState.DISABLED },
-                        EmailFilter.DELETED to uiState.emails.count { it.state == EmailState.DELETED },
-                    ),
-                    onSelect = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.onFilterChange(it)
-                    },
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            when {
-                uiState.isLoading && uiState.emails.isEmpty() -> {
-                    LoadingShimmer()
-                }
-                uiState.error != null && uiState.emails.isEmpty() -> {
-                    ErrorBlock(
-                        message = uiState.error ?: stringResource(R.string.error_load_emails),
-                        onRetry = viewModel::loadMaskedEmails,
+                    FilterRow(
+                        selected = uiState.selectedFilter,
+                        counts = mapOf(
+                            EmailFilter.ALL to totalCount,
+                            EmailFilter.ENABLED to activeCount,
+                            EmailFilter.DISABLED to uiState.emails.count { it.state == EmailState.DISABLED },
+                            EmailFilter.DELETED to uiState.emails.count { it.state == EmailState.DELETED },
+                        ),
+                        onSelect = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.onFilterChange(it)
+                        },
+                        modifier = Modifier.onGloballyPositioned { coords ->
+                            tutorialBounds[2] = coords.boundsInRoot()
+                        },
                     )
                 }
-                uiState.filteredEmails.isEmpty() -> {
-                    EmptyBlock()
-                }
-                else -> {
-                    val nowSec = androidx.compose.runtime.remember(uiState.emails) { Instant.now().epochSecond }
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isLoading,
-                        onRefresh = viewModel::loadMaskedEmails,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        LazyColumn(
-                            state = listState,
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 100.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+
+                Spacer(Modifier.height(8.dp))
+
+                when {
+                    uiState.isLoading && uiState.emails.isEmpty() -> {
+                        LoadingShimmer()
+                    }
+                    uiState.error != null && uiState.emails.isEmpty() -> {
+                        ErrorBlock(
+                            message = uiState.error ?: stringResource(R.string.error_load_emails),
+                            onRetry = viewModel::loadMaskedEmails,
+                        )
+                    }
+                    uiState.filteredEmails.isEmpty() -> {
+                        EmptyBlock()
+                    }
+                    else -> {
+                        val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
+                        PullToRefreshBox(
+                            isRefreshing = uiState.isLoading,
+                            onRefresh = viewModel::loadMaskedEmails,
+                            modifier = Modifier.fillMaxSize(),
                         ) {
-                            items(items = uiState.filteredEmails, key = { it.id }) { email ->
-                                MaskRow(
-                                    email = email,
-                                    nowSec = nowSec,
-                                    onClick = { onNavigateToDetail(email.id) },
-                                )
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 100.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.onGloballyPositioned { coords ->
+                                    // Step 0 highlights the list as a whole.
+                                    tutorialBounds[0] = coords.boundsInRoot()
+                                },
+                            ) {
+                                itemsIndexed(
+                                    items = uiState.filteredEmails,
+                                    key = { _, e -> e.id },
+                                ) { index, email ->
+                                    MaskRow(
+                                        email = email,
+                                        nowSec = nowSec,
+                                        onClick = { onNavigateToDetail(email.id) },
+                                        modifier = if (index == 0) {
+                                            Modifier.onGloballyPositioned { coords ->
+                                                // Step 3 highlights the first mask card.
+                                                tutorialBounds[3] = coords.boundsInRoot()
+                                            }
+                                        } else Modifier,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+
+            // Tutorial coach marks — overlays the entire scaffold body.
+            TutorialOverlay(
+                visible = showTutorial,
+                steps = rememberTutorialSteps(bounds = tutorialBounds),
+                onComplete = {
+                    viewModel.markTutorialCompleted()
+                    showTutorial = false
+                },
+                onSkip = {
+                    viewModel.markTutorialCompleted()
+                    showTutorial = false
+                },
+            )
         }
+    }
+}
+
+@Composable
+private fun rememberTutorialSteps(bounds: Map<Int, Rect>): List<TutorialStep> {
+    val titles = listOf(
+        stringResource(R.string.tutorial_step_1_title),
+        stringResource(R.string.tutorial_step_2_title),
+        stringResource(R.string.tutorial_step_3_title),
+        stringResource(R.string.tutorial_step_4_title),
+        stringResource(R.string.tutorial_step_5_title),
+    )
+    val bodies = listOf(
+        stringResource(R.string.tutorial_step_1_body),
+        stringResource(R.string.tutorial_step_2_body),
+        stringResource(R.string.tutorial_step_3_body),
+        stringResource(R.string.tutorial_step_4_body),
+        stringResource(R.string.tutorial_step_5_body),
+    )
+    return titles.indices.map { i ->
+        TutorialStep(
+            title = titles[i],
+            description = bodies[i],
+            targetBounds = bounds[i],
+            tooltipPosition = TooltipPosition.AUTO,
+        )
     }
 }
 
@@ -221,12 +314,13 @@ fun MaskedEmailListScreen(
 private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
     val shape = RoundedCornerShape(14.dp)
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface, shape)
@@ -285,9 +379,10 @@ private fun FilterRow(
     selected: EmailFilter,
     counts: Map<EmailFilter, Int>,
     onSelect: (EmailFilter) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -480,12 +575,17 @@ private fun ErrorBlock(message: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun CreateFab(label: String, description: String, onClick: () -> Unit) {
+private fun CreateFab(
+    label: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
     val shape = RoundedCornerShape(100.dp)
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(shape)
             .background(extras.accent, shape)
             .clickable {

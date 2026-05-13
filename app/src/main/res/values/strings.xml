@@ -128,6 +128,31 @@
     <string name="time_month_ago">%dmo ago</string>
     <string name="time_year_ago">%dy ago</string>
 
+    <!-- Welcome Screen / Demo Mode -->
+    <!-- TODO: translate to remaining 18 locales in v1.6 -->
+    <string name="welcome_signin_cta">Sign in with Fastmail</string>
+    <string name="welcome_demo_cta">Try demo</string>
+    <string name="welcome_tagline">A quiet place for your masked addresses.</string>
+    <string name="welcome_privacy_note">Privacy-first · open source</string>
+    <string name="demo_banner_text">Demo mode — changes won\'t be saved</string>
+    <string name="demo_banner_signin">Sign in</string>
+    <string name="tutorial_step_1_title">Your masked emails</string>
+    <string name="tutorial_step_1_body">Each address forwards mail to your inbox while hiding your real email.</string>
+    <string name="tutorial_step_2_title">Search</string>
+    <string name="tutorial_step_2_body">Find any mask by name, domain, or note.</string>
+    <string name="tutorial_step_3_title">Filter</string>
+    <string name="tutorial_step_3_body">Show only Active, Off, or Archived masks.</string>
+    <string name="tutorial_step_4_title">Tap a mask</string>
+    <string name="tutorial_step_4_body">Open it to copy the address, edit notes, or turn it off.</string>
+    <string name="tutorial_step_5_title">Create a new mask</string>
+    <string name="tutorial_step_5_body">Tap here to generate a fresh address for any service.</string>
+    <string name="tutorial_next">Next</string>
+    <string name="tutorial_skip">Skip</string>
+    <string name="tutorial_done">Got it</string>
+    <string name="settings_demo_section">Account</string>
+    <string name="settings_demo_description">You\'re in demo mode. Changes don\'t sync to your real Fastmail account.</string>
+    <string name="settings_signin_with_fastmail">Sign in with Fastmail</string>
+
     <!-- Language Names (Native) -->
     <string name="language_en">English</string>
     <string name="language_zh">中文</string>

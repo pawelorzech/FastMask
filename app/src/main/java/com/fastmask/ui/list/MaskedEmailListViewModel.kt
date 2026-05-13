@@ -2,6 +2,8 @@ package com.fastmask.ui.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
@@ -10,9 +12,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,8 +24,29 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
-    private val logoutUseCase: LogoutUseCase
+    private val logoutUseCase: LogoutUseCase,
+    private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
+
+    /** Live app-mode flag used by the screen to gate the demo tutorial overlay. */
+    val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = settingsDataStore.appModeBlocking(),
+    )
+
+    /** Whether the user has already seen the demo tutorial. */
+    val tutorialCompleted: StateFlow<Boolean> = settingsDataStore.tutorialCompleted.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = false,
+    )
+
+    fun markTutorialCompleted() {
+        viewModelScope.launch {
+            settingsDataStore.setTutorialCompleted(true)
+        }
+    }
 
     private val _uiState = MutableStateFlow(MaskedEmailListUiState())
     val uiState: StateFlow<MaskedEmailListUiState> = _uiState.asStateFlow()

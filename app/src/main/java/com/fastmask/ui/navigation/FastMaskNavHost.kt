@@ -19,6 +19,7 @@ import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.settings.SettingsScreen
+import com.fastmask.ui.welcome.WelcomeScreen
 
 private const val TRANSITION_DURATION_MS = 220
 
@@ -60,6 +61,23 @@ fun FastMaskNavHost(
             }
         ) {
             composable(
+                route = NavRoutes.WELCOME,
+                enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+                exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) },
+            ) {
+                WelcomeScreen(
+                    onSignIn = {
+                        navController.navigate(NavRoutes.LOGIN)
+                    },
+                    onEnterDemo = {
+                        navController.navigate(NavRoutes.EMAIL_LIST) {
+                            popUpTo(NavRoutes.WELCOME) { inclusive = true }
+                        }
+                    },
+                )
+            }
+
+            composable(
                 route = NavRoutes.LOGIN,
                 enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
                 exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
@@ -67,7 +85,7 @@ fun FastMaskNavHost(
                 LoginScreen(
                     onLoginSuccess = {
                         navController.navigate(NavRoutes.EMAIL_LIST) {
-                            popUpTo(NavRoutes.LOGIN) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )
@@ -84,6 +102,11 @@ fun FastMaskNavHost(
                     onNavigateToSettings = {
                         navController.navigate(NavRoutes.SETTINGS)
                     },
+                    onSignInFromBanner = {
+                        navController.navigate(NavRoutes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
                 )
@@ -95,10 +118,15 @@ fun FastMaskNavHost(
                         navController.popBackStack()
                     },
                     onLogout = {
+                        navController.navigate(NavRoutes.WELCOME) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
+                    onSignInFromDemo = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
                         }
-                    }
+                    },
                 )
             }
 
@@ -106,7 +134,12 @@ fun FastMaskNavHost(
                 CreateMaskedEmailScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    }
+                    },
+                    onSignInFromBanner = {
+                        navController.navigate(NavRoutes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    },
                 )
             }
 
@@ -119,6 +152,11 @@ fun FastMaskNavHost(
                 MaskedEmailDetailScreen(
                     onNavigateBack = {
                         navController.popBackStack()
+                    },
+                    onSignInFromBanner = {
+                        navController.navigate(NavRoutes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
