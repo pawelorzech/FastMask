@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
 import com.fastmask.ui.components.HairlineDivider
@@ -74,6 +75,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
+    onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
@@ -124,6 +126,9 @@ fun MaskedEmailDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
+            // Demo mode banner (auto-hides in REAL mode).
+            DemoBanner(onSignInClick = onSignInFromBanner)
+
             // Top bar
             Row(
                 modifier = Modifier

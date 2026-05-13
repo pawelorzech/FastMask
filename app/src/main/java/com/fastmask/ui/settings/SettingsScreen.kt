@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
@@ -53,8 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
 import com.fastmask.R
+import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.ui.components.HairlineDivider
+import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
@@ -67,9 +70,11 @@ import kotlinx.coroutines.flow.collectLatest
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
+    onSignInFromDemo: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val appMode by viewModel.appMode.collectAsState()
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
     val extras = FastMaskExtras.current
@@ -78,6 +83,7 @@ fun SettingsScreen(
         viewModel.events.collectLatest { event ->
             when (event) {
                 is SettingsEvent.LoggedOut -> onLogout()
+                is SettingsEvent.GoToSignIn -> onSignInFromDemo()
             }
         }
     }
@@ -130,6 +136,27 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(28.dp))
+
+                // Demo-mode "Account" section — only visible while AppMode.DEMO is active.
+                if (appMode == AppMode.DEMO) {
+                    MonoLabel(text = stringResource(R.string.settings_demo_section))
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.settings_demo_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = extras.inkSoft,
+                    )
+                    Spacer(Modifier.height(14.dp))
+                    SettingsRow(
+                        label = stringResource(R.string.settings_signin_with_fastmail),
+                        value = stringResource(R.string.welcome_tagline),
+                        leading = Icons.AutoMirrored.Filled.Login,
+                        leadingTint = extras.accent,
+                        trailing = Icons.Filled.ChevronRight,
+                        onClick = viewModel::exitDemoMode,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
 
                 SettingsRow(
                     label = stringResource(R.string.settings_language),
