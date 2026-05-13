@@ -100,4 +100,3 @@ FastMask is open source under the [MIT License](https://github.com/pawelorzech/F
 
 - Email: [pawel@orzech.me](mailto:pawel@orzech.me)
 - GitHub Issues: <https://github.com/pawelorzech/FastMask/issues>
-- Postal mail: Paweł Orzech, YesWas, ks. Teofila Boguckiego 3A/65, 01-508 Warszawa, Poland
