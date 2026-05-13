@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,11 +50,11 @@ import com.fastmask.ui.theme.FastMaskExtras
 /**
  * Position of the tooltip relative to the highlighted target.
  *
- * - [TOP]: tooltip is drawn above the target rectangle.
- * - [BOTTOM]: tooltip is drawn below the target rectangle.
- * - [AUTO]: the overlay decides based on where the target sits vertically —
- *   if the target's top half is in the upper portion of the screen, the
- *   tooltip is placed below, otherwise above. Useful for targets near edges.
+ * Retained for source compatibility with callers, but the current overlay
+ * implementation pins the tooltip to a fixed position at the bottom of the
+ * screen regardless of this value. Targets that don't fit comfortably
+ * above the tooltip are still highlighted via the spotlight cutout — the
+ * tooltip itself simply doesn't try to chase them around the screen.
  */
 enum class TooltipPosition { TOP, BOTTOM, AUTO }
 
@@ -63,9 +62,9 @@ data class TutorialStep(
     val title: String,
     val description: String,
     /**
-     * Target rectangle in root coordinates. If `null`, the step is shown as a
-     * centered modal with no cutout — used for the first/last steps when there
-     * isn't a single UI element to highlight.
+     * Target rectangle in root coordinates. If `null`, the step shows the
+     * scrim with no cutout (a plain modal) — used for steps that don't have
+     * a single UI element to highlight.
      */
     val targetBounds: Rect?,
     val tooltipPosition: TooltipPosition = TooltipPosition.AUTO,
@@ -73,10 +72,10 @@ data class TutorialStep(
 
 private val ScrimColor = Color.Black.copy(alpha = 0.7f)
 private const val ANIM_DURATION_MS = 300
-private val TooltipMaxWidth = 320.dp
+private val TooltipMaxWidth = 480.dp
 private val TooltipPadding = 16.dp
 private val ScreenEdgePadding = 20.dp
-private val TooltipTargetGap = 12.dp
+private val TooltipBottomMargin = 32.dp
 private val CutoutCornerRadius = 12f
 private val CutoutPadding = 6f
 
@@ -191,48 +190,33 @@ private fun TooltipBubble(
     onSkip: () -> Unit,
     onNext: () -> Unit,
 ) {
-    val density = LocalDensity.current
     val extras = FastMaskExtras.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Position the tooltip. For null bounds we center it.
-        val tooltipModifier = if (step.targetBounds == null) {
-            Modifier.align(Alignment.Center)
-        } else {
-            val target = step.targetBounds
-            // Heuristic: target sitting in the upper half (top < 400dp) → put
-            // tooltip below the target; otherwise place it above. Callers can
-            // force TOP/BOTTOM via [TutorialStep.tooltipPosition].
-            val placementForOffset = when (step.tooltipPosition) {
-                TooltipPosition.TOP, TooltipPosition.BOTTOM -> step.tooltipPosition
-                TooltipPosition.AUTO -> {
-                    val targetTopDp = with(density) { target.top.toDp() }
-                    if (targetTopDp > 400.dp) TooltipPosition.TOP else TooltipPosition.BOTTOM
-                }
-            }
-            // Estimated tooltip height for the TOP placement nudge — keeps the
-            // bubble above the cutout without needing to measure the surface.
-            val estimatedTooltipHeightDp = 140.dp
-            val targetTopDp = with(density) { target.top.toDp() }
-            val targetBottomDp = with(density) { target.bottom.toDp() }
-            val yDp = when (placementForOffset) {
-                TooltipPosition.TOP -> targetTopDp - TooltipTargetGap - estimatedTooltipHeightDp
-                TooltipPosition.BOTTOM, TooltipPosition.AUTO -> targetBottomDp + TooltipTargetGap
-            }.coerceAtLeast(ScreenEdgePadding)
-
-            Modifier
-                .align(Alignment.TopStart)
-                .offset(x = ScreenEdgePadding, y = yDp)
-        }
-
+    // Fixed bottom-aligned tooltip. Earlier revisions tried to chase the
+    // highlighted target with dynamic top/bottom placement, but with full-
+    // height targets (e.g. the whole list view) the computed Y ended up
+    // off-screen and the tooltip never appeared. Pinning it to the bottom
+    // makes rendering deterministic — the spotlight cutout still visually
+    // points at the target.
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding(),
+    ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
             shadowElevation = 8.dp,
-            modifier = tooltipModifier
-                .widthIn(max = TooltipMaxWidth)
-                .padding(end = ScreenEdgePadding),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(
+                    start = ScreenEdgePadding,
+                    end = ScreenEdgePadding,
+                    bottom = TooltipBottomMargin,
+                )
+                .fillMaxWidth()
+                .widthIn(max = TooltipMaxWidth),
         ) {
             Column(modifier = Modifier.padding(TooltipPadding)) {
                 Text(
