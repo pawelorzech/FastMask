@@ -8,13 +8,13 @@ plugins {
 
 android {
     namespace = "com.fastmask"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.fastmask"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 7
+        targetSdk = 35
+        versionCode = 9
         versionName = "1.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
