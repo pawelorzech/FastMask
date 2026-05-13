@@ -2,9 +2,38 @@
 
 **Owner egzekucji:** Claude (autonomicznie, z Playwright)
 **Rola Pawła:** wybory artystyczne, hasła/2FA przy logowaniach, dane JDG, akceptacja akcji zewnętrznych. Nic poza tym.
-**SLA:** ~3 dni roboczej pracy maszynowej **+ 2–4 tyg D-U-N-S registration + ~1–2 tyg Google Organization verification** + 1–7 dni Google production review.
-**ETA live na Production:** **2026-06-15 do 2026-06-30** (zależnie od D-U-N-S/Google timing).
+**SLA (aktualne 2026-05-13):** Organization upgrade FINALIZED dziś o 10:28 (8:28 UTC). Pozostaje: 1–7 dni Google production review (Internal Testing pomijamy lub przelatujemy w 24h bo Organization account = brak wymogu 14-dniowego).
+**ETA live na Production:** **2026-05-15 do 2026-05-21** (przyspieszone — payments profile verified w ~24h zamiast 2–7 dni, link dziś rano, AAB gotowy w `app/build/outputs/bundle/release/`).
 **Kluczowa zmiana:** zamiast 14-dniowego Closed Testing na koncie osobistym → **upgrade konta do Organization (JDG Pawła Orzecha, nie Cocolab)**. Jednorazowy koszt teraz, ale wszystkie przyszłe apki (LineApp 2.0 etc.) lecą prosto na Production bez 14-dniowego wymogu.
+
+**Live status (2026-05-13):**
+- ✅ D-U-N-S Number: **427999274** (YESWAS PAWEŁ ORZECH, nadany 8 min po submit)
+- ✅ Google Search Console: orzech.me Domain property verified (TXT przez Bunny DNS API)
+- ✅ Play Console website verified (pawel.orzech.me via parent domain)
+- ✅ Payments profile YESWAS PAWEŁ ORZECH stworzony i zweryfikowany przez Google (2026-05-13 08:21 UTC)
+- ✅ Organization wizard (5 stepów): Account type → Payments → Org info → Contact → Public profile — DONE
+- ✅ Document upload: CEIDG `Wydruk.pdf` (Organization) + government photo ID (Authorized representative via OnePlus mobile flow)
+- ✅ **Payments profile LINKED → account type = ORGANIZATION** (2026-05-13 08:28 UTC, screenshot `play-after-link-payments.png`, confirmation mail thread `AwCv8-e9t3LN`)
+- ✅ Faza 0–3 + 1.1–1.7 (kod + ikona V3 + privacy + copy + feature graphic) DONE i pushed na origin (commits 0abb424, dea9f70, 9d19c43)
+- ✅ Faza 5 — signed AAB gotowy: `app/build/outputs/bundle/release/app-release.aab` (6.2 MB, 2026-05-12 10:41)
+- ✅ **App utworzony w Play Console** (2026-05-13 08:30 UTC): "FastMask – Fastmail Masks" / com.fastmask / App ID `4975267426879332531`, Free, App. Package name dostępność potwierdzona przez Play Console.
+- ✅ **GitHub Pages enabled** dla `pawelorzech/FastMask` (main /docs), URL: `https://pawelorzech.github.io/FastMask/privacy.html`. Build live po ~5 min.
+- 🔄 **Faza 6 setup tasks: 7/11 completed + 2 jako draft** (sesja 2026-05-13 10:30-11:06 UTC):
+  - ✅ Set privacy policy URL: `https://pawelorzech.github.io/FastMask/privacy.html`
+  - ✅ Ads = No
+  - ✅ Government apps = No
+  - ✅ Financial features = None
+  - ✅ Health = None
+  - ✅ Content rating = IARC submitted (All Other App Types, all No - email management app)
+  - ✅ App category = Productivity
+  - ✅ Contact details: email `pawel@orzech.lol`, phone `+48 789 497 469`, website `pawel.orzech.me`
+  - 🔄 Data safety (Step 5/5 jako draft): Yes collect Email addresses (Personal info), encryption in transit Yes, accounts created via external Fastmail OAuth-like, data auto-deleted &lt;90 days, purpose: App functionality + Account management. Preview OK. Czeka na **Target audience completion** żeby submit.
+  - 🔄 Store listing (jako draft): App name + short + full description z `marketing/copy/en.md` filled. Czeka na **screenshots upload** + **icon-512** + **feature-graphic 1024x500** (asset library blocker — może wymagać click przez UI niedostępny via Playwright).
+- ⏸️ **2 taski BLOKED na test Fastmail credentials Pawła (jutro):**
+  - App access (wymaga test credentials Fastmail dla Google reviewera + instrukcje)
+  - Target audience (zależy od App access)
+
+**Screenshots aplikacji** — Paweł zdecydował "skip na razie, do końca", trzeba zrobić zanim submit do Internal Testing.
 
 ---
 
