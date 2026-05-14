@@ -3,6 +3,17 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.5.2] — 2026-05-14
+
+### Fixed
+- App icon foreground now respects the Android adaptive-icon safe zone — the `@` glyph was bleeding to the canvas edges and got clipped by launcher masks; it is now scaled to ~64% of the canvas with proper margin.
+- Opaque-black corners removed from the icon foreground PNGs — they showed as black fragments on the Welcome screen and splash screen, where the drawable is rendered unmasked. Corners are now fully transparent.
+- Monochrome (themed) icon layer regenerated with the same safe-zone treatment.
+- Play Store icon (`marketing/play/icon-512.png`) rebuilt full-bleed on the cream background with no black corners.
+
+### Changed
+- `versionCode` 10 → 11, `versionName` "1.5.1" → "1.5.2".
+
 ## [1.5.1] — 2026-05-11
 
 ### Added
