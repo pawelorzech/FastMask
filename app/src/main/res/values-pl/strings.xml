@@ -34,6 +34,10 @@
     <string name="email_list_create_description">Utwórz nową maskę</string>
     <string name="email_list_empty">Tu jeszcze pusto.</string>
     <string name="email_list_empty_sub">Utwórz maskę, żeby otrzymywać pocztę bez ujawniania prawdziwego adresu.</string>
+    <string name="list_copied">Skopiowano do schowka</string>
+    <string name="list_copy_action">Kopiuj adres</string>
+    <string name="list_archived_snackbar">Maska zarchiwizowana</string>
+    <string name="list_undo">Cofnij</string>
     <string name="email_list_logout">Wyloguj</string>
     <string name="email_list_settings">Ustawienia</string>
     <string name="list_stats">%1$d aktywnych · %2$d wszystkich</string>

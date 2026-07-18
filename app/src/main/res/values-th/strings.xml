@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">เข้าสู่ระบบด้วย Fastmail</string>
     <string name="error_network">ไม่มีการเชื่อมต่อ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณและลองอีกครั้ง</string>
     <string name="error_auth">Fastmail ปฏิเสธโทเคน โปรดเข้าสู่ระบบอีกครั้ง</string>
+    <string name="list_copied">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
+    <string name="list_copy_action">คัดลอกที่อยู่</string>
+    <string name="list_archived_snackbar">หน้ากากถูกเก็บไว้</string>
+    <string name="list_undo">เลิกทำ</string>
 </resources>

@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">使用 Fastmail 登录</string>
     <string name="error_network">没有连接。请检查您的互联网连接并重试。</string>
     <string name="error_auth">Fastmail 拒绝了令牌。请重新登录。</string>
+    <string name="list_copied">已复制到剪贴板</string>
+    <string name="list_copy_action">复制地址</string>
+    <string name="list_archived_snackbar">面具已存档</string>
+    <string name="list_undo">撤销</string>
 </resources>

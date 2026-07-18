@@ -7,7 +7,9 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
+import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
+    private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
 
@@ -42,6 +45,18 @@ class MaskedEmailListViewModel @Inject constructor(
     fun markTutorialCompleted() {
         viewModelScope.launch {
             settingsDataStore.setTutorialCompleted(true)
+        }
+    }
+
+    /**
+     * Restore a just-archived mask back to enabled (the "Undo" snackbar action).
+     * Un-deleting a masked email re-enables it on Fastmail, so ENABLED is the
+     * correct target regardless of its state before archiving.
+     */
+    fun restoreMask(id: String) {
+        viewModelScope.launch {
+            updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = EmailState.ENABLED))
+                .onSuccess { loadMaskedEmails() }
         }
     }
 

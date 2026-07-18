@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Mit Fastmail anmelden</string>
     <string name="error_network">Keine Verbindung. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
     <string name="error_auth">Fastmail hat das Token abgelehnt. Melden Sie sich erneut an.</string>
+    <string name="list_copied">In die Zwischenablage kopiert</string>
+    <string name="list_copy_action">Adresse kopieren</string>
+    <string name="list_archived_snackbar">Maske archiviert</string>
+    <string name="list_undo">Rückgängig</string>
 </resources>

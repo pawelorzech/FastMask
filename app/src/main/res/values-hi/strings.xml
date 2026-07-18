@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Fastmail के साथ साइन इन करें</string>
     <string name="error_network">कोई कनेक्शन नहीं। अपने इंटरनेट कनेक्शन की जांच करें और फिर से कोशिश करें।</string>
     <string name="error_auth">Fastmail ने टोकन को अस्वीकार कर दिया। फिर से साइन इन करें।</string>
+    <string name="list_copied">क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="list_copy_action">पता कॉपी करें</string>
+    <string name="list_archived_snackbar">मास्क संग्रहीत किया गया</string>
+    <string name="list_undo">पूर्ववत् करें</string>
 </resources>

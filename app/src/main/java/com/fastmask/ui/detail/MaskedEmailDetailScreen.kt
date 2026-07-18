@@ -1,7 +1,5 @@
 package com.fastmask.ui.detail
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
@@ -74,6 +73,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
+    onArchived: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
@@ -87,7 +87,6 @@ fun MaskedEmailDetailScreen(
     val extras = FastMaskExtras.current
 
     val updatedMessage = stringResource(R.string.email_detail_updated)
-    val deletedMessage = stringResource(R.string.email_detail_deleted)
     val copiedMessage = stringResource(R.string.email_detail_copied)
     val backDesc = stringResource(R.string.navigate_back)
     val deleteDesc = stringResource(R.string.email_detail_delete)
@@ -99,8 +98,10 @@ fun MaskedEmailDetailScreen(
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
                 is MaskedEmailDetailEvent.Deleted -> {
-                    snackbarHostState.showSnackbar(deletedMessage, duration = SnackbarDuration.Short)
-                    onNavigateBack()
+                    // Navigate straight back and let the list host the "archived —
+                    // undo" snackbar, so the undo action lives where the mask
+                    // reappears. No blocking snackbar here.
+                    onArchived(event.id)
                 }
             }
         }
@@ -179,11 +180,6 @@ fun MaskedEmailDetailScreen(
             }
         }
     }
-}
-
-private fun copyToClipboard(context: Context, value: String) {
-    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    cm.setPrimaryClip(ClipData.newPlainText("Email", value))
 }
 
 @Composable

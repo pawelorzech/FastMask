@@ -8,6 +8,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,6 +24,7 @@ import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
 
 private const val TRANSITION_DURATION_MS = 220
+private const val KEY_ARCHIVED_ID = "archived_mask_id"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -93,7 +96,12 @@ fun FastMaskNavHost(
                 )
             }
 
-            composable(NavRoutes.EMAIL_LIST) {
+            composable(NavRoutes.EMAIL_LIST) { entry ->
+                // Set by the detail screen after archiving, so the list can show
+                // an "archived — undo" snackbar where the mask reappears.
+                val justArchivedId by entry.savedStateHandle
+                    .getStateFlow<String?>(KEY_ARCHIVED_ID, null)
+                    .collectAsState()
                 MaskedEmailListScreen(
                     onNavigateToCreate = {
                         navController.navigate(NavRoutes.CREATE_EMAIL) { launchSingleTop = true }
@@ -110,6 +118,8 @@ fun FastMaskNavHost(
                             launchSingleTop = true
                         }
                     },
+                    justArchivedId = justArchivedId,
+                    onArchivedConsumed = { entry.savedStateHandle[KEY_ARCHIVED_ID] = null },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
                 )
@@ -157,6 +167,12 @@ fun FastMaskNavHost(
             ) {
                 MaskedEmailDetailScreen(
                     onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onArchived = { id ->
+                        // Hand the archived id back to the list, then pop.
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle?.set(KEY_ARCHIVED_ID, id)
                         navController.popBackStack()
                     },
                     onSignInFromBanner = {

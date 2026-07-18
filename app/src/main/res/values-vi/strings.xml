@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Đăng nhập bằng Fastmail</string>
     <string name="error_network">Không có kết nối. Vui lòng kiểm tra kết nối Internet của bạn và thử lại.</string>
     <string name="error_auth">Fastmail đã từ chối mã thông báo. Vui lòng đăng nhập lại.</string>
+    <string name="list_copied">Đã sao chép vào bộ nhớ tạm</string>
+    <string name="list_copy_action">Sao chép địa chỉ</string>
+    <string name="list_archived_snackbar">Mặt nạ đã được lưu trữ</string>
+    <string name="list_undo">Hoàn tác</string>
 </resources>

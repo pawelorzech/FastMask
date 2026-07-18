@@ -179,7 +179,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
             deleteMaskedEmailUseCase(emailId).fold(
                 onSuccess = {
-                    _events.send(MaskedEmailDetailEvent.Deleted)
+                    _events.send(MaskedEmailDetailEvent.Deleted(emailId))
                 },
                 onFailure = { error ->
                     _uiState.update {
@@ -207,5 +207,5 @@ data class MaskedEmailDetailUiState(
 
 sealed class MaskedEmailDetailEvent {
     data object Updated : MaskedEmailDetailEvent()
-    data object Deleted : MaskedEmailDetailEvent()
+    data class Deleted(val id: String) : MaskedEmailDetailEvent()
 }

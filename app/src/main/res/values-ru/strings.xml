@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Войти с помощью Fastmail</string>
     <string name="error_network">Нет соединения. Проверьте подключение к Интернету и повторите попытку.</string>
     <string name="error_auth">Fastmail отклонил токен. Войдите снова.</string>
+    <string name="list_copied">Скопировано в буфер обмена</string>
+    <string name="list_copy_action">Копировать адрес</string>
+    <string name="list_archived_snackbar">Маска архивирована</string>
+    <string name="list_undo">Отменить</string>
 </resources>
