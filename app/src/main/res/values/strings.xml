@@ -36,9 +36,7 @@
     <string name="email_list_empty_sub">Create a mask to route mail without sharing your real address.</string>
     <string name="email_list_logout">Sign out</string>
     <string name="email_list_settings">Settings</string>
-    <string name="list_stats_active">active</string>
-    <string name="list_stats_total">total</string>
-    <string name="list_stats_separator"> · </string>
+    <string name="list_stats">%1$d active · %2$d total</string>
     <string name="filter_all">All</string>
     <string name="filter_enabled">Active</string>
     <string name="filter_disabled">Off</string>
@@ -103,6 +101,8 @@
     <!-- Error Messages -->
     <string name="error_load_emails">Could not load masks</string>
     <string name="error_retry">Retry</string>
+    <string name="error_network">No connection. Check your internet and try again.</string>
+    <string name="error_auth">Fastmail rejected the token. Sign in again.</string>
     <string name="error_generic">Something went wrong</string>
 
     <!-- Settings Screen -->
