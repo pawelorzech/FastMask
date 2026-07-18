@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Aanmelden met Fastmail</string>
     <string name="error_network">Geen verbinding. Controleer uw internetverbinding en probeer het opnieuw.</string>
     <string name="error_auth">Fastmail heeft het token geweigerd. Meld u opnieuw aan.</string>
+    <string name="list_copied">Gekopieerd naar klembord</string>
+    <string name="list_copy_action">Adres kopiëren</string>
+    <string name="list_archived_snackbar">Masker gearchiveerd</string>
+    <string name="list_undo">Ongedaan maken</string>
 </resources>

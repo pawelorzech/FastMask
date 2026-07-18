@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Accedi con Fastmail</string>
     <string name="error_network">Nessuna connessione. Controlla la tua connessione Internet e riprova.</string>
     <string name="error_auth">Fastmail ha rifiutato il token. Accedi di nuovo.</string>
+    <string name="list_copied">Copiato negli appunti</string>
+    <string name="list_copy_action">Copia indirizzo</string>
+    <string name="list_archived_snackbar">Maschera archiviata</string>
+    <string name="list_undo">Annulla</string>
 </resources>

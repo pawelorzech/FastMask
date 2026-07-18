@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Fastmail দিয়ে সাইন ইন করুন</string>
     <string name="error_network">কোনো সংযোগ নেই। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।</string>
     <string name="error_auth">Fastmail টোকেন প্রত্যাখ্যান করেছে। আবার সাইন ইন করুন।</string>
+    <string name="list_copied">ক্লিপবোর্ডে অনুলিপি করা হয়েছে</string>
+    <string name="list_copy_action">ঠিকানা অনুলিপি করুন</string>
+    <string name="list_archived_snackbar">মাস্ক আর্কাইভ করা হয়েছে</string>
+    <string name="list_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
 </resources>

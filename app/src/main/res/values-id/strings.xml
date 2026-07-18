@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Masuk dengan Fastmail</string>
     <string name="error_network">Tidak ada koneksi. Periksa koneksi internet Anda dan coba lagi.</string>
     <string name="error_auth">Fastmail menolak token. Masuk kembali.</string>
+    <string name="list_copied">Disalin ke papan klip</string>
+    <string name="list_copy_action">Salin alamat</string>
+    <string name="list_archived_snackbar">Topeng telah diarsipkan</string>
+    <string name="list_undo">Batalkan</string>
 </resources>

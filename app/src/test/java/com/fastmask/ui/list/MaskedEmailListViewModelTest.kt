@@ -5,6 +5,7 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
+import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
@@ -31,7 +32,11 @@ class MaskedEmailListViewModelTest {
     }
 
     private fun vm(repo: FakeMaskedEmailRepository) =
-        MaskedEmailListViewModel(GetMaskedEmailsUseCase(repo), settings)
+        MaskedEmailListViewModel(
+            GetMaskedEmailsUseCase(repo),
+            UpdateMaskedEmailUseCase(repo),
+            settings,
+        )
 
     private val t1: Instant = Instant.parse("2026-01-01T10:00:00Z")
     private val t2: Instant = Instant.parse("2026-02-01T10:00:00Z")
@@ -155,6 +160,24 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+    }
+
+    @Test
+    fun `restoreMask re-enables an archived mask and reloads`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", state = EmailState.DELETED))
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.restoreMask("m1")
+        advanceUntilIdle()
+
+        assertEquals(1, repo.updateCalls)
+        assertEquals("m1", repo.lastUpdateId)
+        assertEquals(EmailState.ENABLED, repo.lastUpdateParams?.state)
+        // reload fired after the successful restore
+        assertEquals(2, repo.getCalls)
     }
 
     @Test

@@ -8,7 +8,9 @@ val LightSurface = Color(0xFFFAF7F1)
 val LightSurfaceAlt = Color(0xFFECE6D8)
 val LightInk = Color(0xFF1A1714)
 val LightInkSoft = Color(0xFF4A4438)
-val LightInkMuted = Color(0xFF8A8170)
+// Darkened from #8A8170 (3.36:1) to meet WCAG AA (4.5:1) for the small
+// timestamp/label text this tone carries — ~4.9:1 on bg, ~5.3:1 on surface.
+val LightInkMuted = Color(0xFF6A614F)
 val LightLine = Color(0xFFDDD4C2)
 val LightLineStrong = Color(0xFFC2B9A5)
 val LightChip = Color(0xFFE6DFCE)
@@ -28,7 +30,9 @@ val DarkSurface = Color(0xFF201D19)
 val DarkSurfaceAlt = Color(0xFF2A2621)
 val DarkInk = Color(0xFFF0EBE1)
 val DarkInkSoft = Color(0xFFC8C1B1)
-val DarkInkMuted = Color(0xFF8A8171)
+// Lightened from #8A8171 (4.4:1 on surface) to a comfortable AA margin
+// (~5.4:1 on surface, ~5.9:1 on bg) for small text.
+val DarkInkMuted = Color(0xFF9A9181)
 val DarkLine = Color(0xFF332E27)
 val DarkLineStrong = Color(0xFF443D33)
 val DarkChip = Color(0xFF2D2923)

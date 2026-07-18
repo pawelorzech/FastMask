@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Fastmail ile oturum aç</string>
     <string name="error_network">Bağlantı yok. İnternet bağlantınızı kontrol edin ve tekrar deneyin.</string>
     <string name="error_auth">Fastmail belirteci reddetti. Tekrar oturum açın.</string>
+    <string name="list_copied">Panoya kopyalandı</string>
+    <string name="list_copy_action">Adresi kopyala</string>
+    <string name="list_archived_snackbar">Maske arşivlendi</string>
+    <string name="list_undo">Geri al</string>
 </resources>

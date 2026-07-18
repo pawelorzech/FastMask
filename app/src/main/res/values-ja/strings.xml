@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">Fastmailでサインイン</string>
     <string name="error_network">接続がありません。インターネット接続を確認してもう一度試してください。</string>
     <string name="error_auth">Fastmailがトークンを拒否しました。もう一度サインインしてください。</string>
+    <string name="list_copied">クリップボードにコピーしました</string>
+    <string name="list_copy_action">アドレスをコピー</string>
+    <string name="list_archived_snackbar">マスクをアーカイブしました</string>
+    <string name="list_undo">取り消す</string>
 </resources>

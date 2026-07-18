@@ -20,18 +20,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +85,7 @@ import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.components.StateDot
 import com.fastmask.ui.components.TooltipPosition
+import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.components.TutorialStep
 import com.fastmask.ui.theme.FastMaskExtras
@@ -87,6 +95,7 @@ import com.fastmask.ui.theme.MonoTimestampStyle
 import com.fastmask.ui.util.RelativeTime
 import java.time.Instant
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
@@ -97,11 +106,36 @@ fun MaskedEmailListScreen(
     onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
+    justArchivedId: String? = null,
+    onArchivedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val copiedMessage = stringResource(R.string.list_copied)
+    val archivedMessage = stringResource(R.string.list_archived_snackbar)
+    val undoLabel = stringResource(R.string.list_undo)
+
+    // A mask was just archived on the detail screen; offer an Undo snackbar here,
+    // where the mask reappears. Consume the signal so it doesn't re-fire on
+    // recomposition or return.
+    LaunchedEffect(justArchivedId) {
+        val archivedId = justArchivedId ?: return@LaunchedEffect
+        onArchivedConsumed()
+        val result = snackbarHostState.showSnackbar(
+            message = archivedMessage,
+            actionLabel = undoLabel,
+            duration = SnackbarDuration.Short,
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            viewModel.restoreMask(archivedId)
+        }
+    }
 
     val appMode by viewModel.appMode.collectAsState()
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
@@ -133,6 +167,7 @@ fun MaskedEmailListScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             CreateFab(
                 label = stringResource(R.string.email_list_create_fab),
@@ -252,6 +287,16 @@ fun MaskedEmailListScreen(
                                         email = email,
                                         nowSec = nowSec,
                                         onClick = { onNavigateToDetail(email.id) },
+                                        onCopy = {
+                                            copyToClipboard(context, email.email)
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    copiedMessage,
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            }
+                                        },
                                         modifier = if (index == 0) {
                                             Modifier.onGloballyPositioned { coords ->
                                                 // Step 3 highlights the first mask card.
@@ -450,10 +495,12 @@ private fun MaskRow(
     email: MaskedEmail,
     nowSec: Long,
     onClick: () -> Unit,
+    onCopy: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val extras = FastMaskExtras.current
     val context = LocalContext.current
+    val copyLabel = stringResource(R.string.list_copy_action)
     DesignCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
@@ -461,7 +508,7 @@ private fun MaskRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             StateDot(state = email.state)
@@ -495,6 +542,23 @@ private fun MaskRow(
                     color = extras.inkMuted,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.width(4.dp))
+            // Quick-copy: the most common action, without opening the detail
+            // screen. 48dp touch target; the glyph stays compact.
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = copyLabel, onClick = onCopy),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ContentCopy,
+                    contentDescription = copyLabel,
+                    tint = extras.inkMuted,
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }

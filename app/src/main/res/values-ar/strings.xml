@@ -171,4 +171,8 @@
     <string name="settings_signin_with_fastmail">تسجيل الدخول عبر Fastmail</string>
     <string name="error_network">لا توجد اتصالات. تحقق من اتصال الإنترنت الخاص بك وحاول مرة أخرى.</string>
     <string name="error_auth">رفضت Fastmail الرمز. تسجيل الدخول مرة أخرى.</string>
+    <string name="list_copied">تم النسخ إلى الحافظة</string>
+    <string name="list_copy_action">نسخ العنوان</string>
+    <string name="list_archived_snackbar">تم أرشفة القناع</string>
+    <string name="list_undo">تراجع</string>
 </resources>
