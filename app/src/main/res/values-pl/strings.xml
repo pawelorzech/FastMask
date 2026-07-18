@@ -36,9 +36,7 @@
     <string name="email_list_empty_sub">Utwórz maskę, żeby otrzymywać pocztę bez ujawniania prawdziwego adresu.</string>
     <string name="email_list_logout">Wyloguj</string>
     <string name="email_list_settings">Ustawienia</string>
-    <string name="list_stats_active">aktywnych</string>
-    <string name="list_stats_total">łącznie</string>
-    <string name="list_stats_separator"> · </string>
+    <string name="list_stats">%1$d aktywnych · %2$d wszystkich</string>
     <string name="filter_all">Wszystkie</string>
     <string name="filter_enabled">Aktywne</string>
     <string name="filter_disabled">Wył.</string>
@@ -103,6 +101,8 @@
     <!-- Error Messages -->
     <string name="error_load_emails">Nie udało się załadować masek</string>
     <string name="error_retry">Ponów</string>
+    <string name="error_network">Brak połączenia. Sprawdź internet i spróbuj ponownie.</string>
+    <string name="error_auth">Fastmail odrzucił token. Zaloguj się ponownie.</string>
     <string name="error_generic">Coś poszło nie tak</string>
 
     <!-- Settings Screen -->

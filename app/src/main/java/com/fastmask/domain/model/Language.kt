@@ -7,7 +7,7 @@ enum class Language(
     val displayNameRes: Int
 ) {
     ENGLISH("en", R.string.language_en),
-    CHINESE("zh", R.string.language_zh),
+    CHINESE("zh-Hans", R.string.language_zh),
     SPANISH("es", R.string.language_es),
     HINDI("hi", R.string.language_hi),
     ARABIC("ar", R.string.language_ar),
