@@ -8,6 +8,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.decodeFromJsonElement
 import java.net.URI
 import javax.inject.Inject
@@ -20,6 +22,7 @@ class JmapApi @Inject constructor(
 ) {
     private var cachedSession: JmapSession? = null
     private var cachedAccountId: String? = null
+    private val sessionMutex = Mutex()
 
     suspend fun getSession(token: String): Result<JmapSession> = runCatching {
         val authHeader = "Bearer $token"
@@ -46,8 +49,13 @@ class JmapApi @Inject constructor(
 
     private suspend fun ensureSession(token: String): String {
         cachedAccountId?.let { return it }
-        getSession(token).getOrThrow()
-        return cachedAccountId ?: throw IllegalStateException("Failed to get account ID from session")
+        // Mutex so concurrent first calls fetch the session once instead of racing.
+        sessionMutex.withLock {
+            cachedAccountId?.let { return it }
+            getSession(token).getOrThrow()
+            return cachedAccountId
+                ?: throw IllegalStateException("Failed to get account ID from session")
+        }
     }
 
     suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runCatching {

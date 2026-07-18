@@ -11,6 +11,11 @@ import java.io.IOException
  * "HTTP 401") must never reach the UI — they are English-only and technical.
  *
  * Pure function → unit-testable without Android.
+ *
+ * Note: JMAP method-level errors (a `JmapException` from an HTTP-200 body,
+ * e.g. `unknownAccountId`) intentionally fall through to the caller's
+ * fallback — Fastmail rejects an invalid/revoked Bearer token at the
+ * transport layer (HTTP 401), which IS mapped to [R.string.error_auth].
  */
 object UiErrors {
 
