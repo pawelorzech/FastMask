@@ -1,0 +1,7 @@
+Nowości w 1.6.0
+
+• Szybkie kopiowanie: skopiuj adres maski prosto z listy, jednym tapnięciem
+• Cofnij archiwizację: przypadkiem zarchiwizowano maskę? Tapnij Cofnij
+• Czytelniejszy, bardziej kontrastowy tekst i większe pola dotyku
+• Pełne tłumaczenia we wszystkich 20 językach
+• Poprawki niezawodności: edycja masek, szybszy start, lepsze komunikaty błędów
