@@ -5,7 +5,6 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.repository.AuthRepository
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,14 +21,12 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun logout() {
+    override suspend fun logout() {
         tokenStorage.clearToken()
         jmapApi.clearSession()
         // Clear demo flag and tutorial state so the next session starts fresh.
-        runBlocking {
-            settingsDataStore.setAppMode(AppMode.REAL)
-            settingsDataStore.setTutorialCompleted(false)
-        }
+        settingsDataStore.setAppMode(AppMode.REAL)
+        settingsDataStore.setTutorialCompleted(false)
     }
 
     override fun isLoggedIn(): Boolean {

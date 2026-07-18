@@ -3,18 +3,20 @@ package com.fastmask.ui.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.usecase.DeleteMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
+import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,8 +36,10 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MaskedEmailDetailUiState())
     val uiState: StateFlow<MaskedEmailDetailUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<MaskedEmailDetailEvent>()
-    val events: SharedFlow<MaskedEmailDetailEvent> = _events.asSharedFlow()
+    // Channel-backed one-time events: buffered delivery survives windows with
+    // no active collector (e.g. mid-rotation) and each event is handled once.
+    private val _events = Channel<MaskedEmailDetailEvent>(Channel.BUFFERED)
+    val events: Flow<MaskedEmailDetailEvent> = _events.receiveAsFlow()
 
     init {
         loadEmail()
@@ -43,7 +47,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     fun loadEmail() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, errorRes = null) }
 
             getMaskedEmailsUseCase().fold(
                 onSuccess = { emails ->
@@ -64,7 +68,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 isUpdating = false,
-                                error = "Email not found"
+                                errorRes = R.string.email_detail_error_load
                             )
                         }
                     }
@@ -74,7 +78,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             isUpdating = false,
-                            error = error.message ?: "Failed to load email"
+                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
                         )
                     }
                 }
@@ -105,19 +109,21 @@ class MaskedEmailDetailViewModel @Inject constructor(
     fun disable() = updateState(EmailState.DISABLED)
 
     private fun updateState(newState: EmailState) {
+        if (_uiState.value.isUpdating || _uiState.value.isDeleting) return
+        // Set synchronously so the guard above cannot race the launch.
+        _uiState.update { it.copy(isUpdating = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isUpdating = true) }
 
             updateMaskedEmailUseCase(emailId, UpdateMaskedEmailParams(state = newState)).fold(
                 onSuccess = {
                     loadEmail()
-                    _events.emit(MaskedEmailDetailEvent.Updated)
+                    _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
                             isUpdating = false,
-                            error = error.message ?: "Failed to update"
+                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_update)
                         )
                     }
                 }
@@ -128,32 +134,36 @@ class MaskedEmailDetailViewModel @Inject constructor(
     fun saveChanges() {
         val state = _uiState.value
         val email = state.email ?: return
+        if (state.isUpdating || state.isDeleting) return
 
-        val hasChanges = state.editedDescription != (email.description ?: "") ||
-                state.editedForDomain != (email.forDomain ?: "") ||
-                state.editedUrl != (email.url ?: "")
+        // Send only the fields that actually changed. A field cleared by the user
+        // is sent as "" (which clears it server-side) — `null` means "not changed"
+        // and is omitted from the JMAP update entirely. Previously a cleared field
+        // was mapped to null, so the server kept the old value and the UI silently
+        // reverted the user's deletion.
+        val params = UpdateMaskedEmailParams(
+            description = state.editedDescription.trim().takeIf { it != (email.description ?: "") },
+            forDomain = state.editedForDomain.trim().takeIf { it != (email.forDomain ?: "") },
+            url = state.editedUrl.trim().takeIf { it != (email.url ?: "") }
+        )
 
+        val hasChanges = params.description != null || params.forDomain != null || params.url != null
         if (!hasChanges) return
 
+        // Set synchronously so the guard above cannot race the launch.
+        _uiState.update { it.copy(isUpdating = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isUpdating = true) }
-
-            val params = UpdateMaskedEmailParams(
-                description = state.editedDescription.takeIf { it.isNotBlank() },
-                forDomain = state.editedForDomain.takeIf { it.isNotBlank() },
-                url = state.editedUrl.takeIf { it.isNotBlank() }
-            )
 
             updateMaskedEmailUseCase(emailId, params).fold(
                 onSuccess = {
                     loadEmail()
-                    _events.emit(MaskedEmailDetailEvent.Updated)
+                    _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
                             isUpdating = false,
-                            error = error.message ?: "Failed to save changes"
+                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_save)
                         )
                     }
                 }
@@ -162,18 +172,20 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     fun delete() {
+        if (_uiState.value.isDeleting || _uiState.value.isUpdating) return
+        // Set synchronously so the guard above cannot race the launch.
+        _uiState.update { it.copy(isDeleting = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isDeleting = true) }
 
             deleteMaskedEmailUseCase(emailId).fold(
                 onSuccess = {
-                    _events.emit(MaskedEmailDetailEvent.Deleted)
+                    _events.send(MaskedEmailDetailEvent.Deleted)
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            error = error.message ?: "Failed to delete"
+                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_delete)
                         )
                     }
                 }
@@ -190,7 +202,7 @@ data class MaskedEmailDetailUiState(
     val editedDescription: String = "",
     val editedForDomain: String = "",
     val editedUrl: String = "",
-    val error: String? = null
+    val errorRes: Int? = null
 )
 
 sealed class MaskedEmailDetailEvent {

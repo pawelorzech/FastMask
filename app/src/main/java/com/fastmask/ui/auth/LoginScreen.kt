@@ -56,7 +56,6 @@ import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.InstrumentSerif
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun LoginScreen(
@@ -68,7 +67,7 @@ fun LoginScreen(
     val extras = FastMaskExtras.current
 
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.events.collect { event ->
             when (event) {
                 is LoginEvent.LoginSuccess -> onLoginSuccess()
             }
@@ -137,7 +136,7 @@ fun LoginScreen(
                 label = stringResource(R.string.login_api_token_label),
                 placeholder = stringResource(R.string.login_api_token_placeholder),
                 mono = true,
-                isError = uiState.error != null,
+                isError = uiState.errorRes != null,
                 enabled = !uiState.isLoading,
                 visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
@@ -161,7 +160,7 @@ fun LoginScreen(
                         )
                     }
                 },
-                hint = uiState.error,
+                hint = uiState.errorRes?.let { stringResource(it) },
             )
 
             Spacer(Modifier.height(16.dp))

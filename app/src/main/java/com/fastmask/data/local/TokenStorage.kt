@@ -13,11 +13,25 @@ class TokenStorage @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val sharedPreferences: SharedPreferences by lazy {
+        try {
+            createEncryptedPrefs()
+        } catch (e: Exception) {
+            // The Tink keyset or the KeyStore master key can become unreadable
+            // (OS update, keystore corruption, restored data without the key).
+            // Without recovery the app would crash-loop on every launch.
+            // Deleting the pref file (and retrying once) recovers the app at the
+            // cost of a forced re-login — the token is re-obtainable by the user.
+            context.deleteSharedPreferences(PREFS_FILE_NAME)
+            createEncryptedPrefs()
+        }
+    }
+
+    private fun createEncryptedPrefs(): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             context,
             PREFS_FILE_NAME,
             masterKey,
@@ -31,7 +45,15 @@ class TokenStorage @Inject constructor(
     }
 
     fun getToken(): String? {
-        return sharedPreferences.getString(KEY_API_TOKEN, null)
+        return try {
+            sharedPreferences.getString(KEY_API_TOKEN, null)
+        } catch (e: Exception) {
+            // Covers both a single-value decryption failure (SecurityException)
+            // and a double-fault where the lazy initializer's retry also failed
+            // (KeyStore unavailable). Treat as logged out instead of crashing —
+            // saveToken() will surface the underlying error at login time.
+            null
+        }
     }
 
     fun clearToken() {

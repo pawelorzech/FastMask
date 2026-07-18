@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,8 +16,10 @@ class WelcomeViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
 
-    private val _events = MutableSharedFlow<WelcomeEvent>()
-    val events: SharedFlow<WelcomeEvent> = _events.asSharedFlow()
+    // Channel-backed one-time events: buffered delivery survives windows with
+    // no active collector (e.g. mid-rotation) and each event is handled once.
+    private val _events = Channel<WelcomeEvent>(Channel.BUFFERED)
+    val events: Flow<WelcomeEvent> = _events.receiveAsFlow()
 
     /**
      * Enter demo mode: flip the app mode flag and reset the tutorial flag so the
@@ -29,13 +31,13 @@ class WelcomeViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.setAppMode(AppMode.DEMO)
             settingsDataStore.setTutorialCompleted(false)
-            _events.emit(WelcomeEvent.EnterDemo)
+            _events.send(WelcomeEvent.EnterDemo)
         }
     }
 
     fun goToSignIn() {
         viewModelScope.launch {
-            _events.emit(WelcomeEvent.GoToSignIn)
+            _events.send(WelcomeEvent.GoToSignIn)
         }
     }
 }

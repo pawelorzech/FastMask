@@ -2,19 +2,17 @@ package com.fastmask.ui.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
-import com.fastmask.domain.usecase.LogoutUseCase
+import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -24,7 +22,6 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
-    private val logoutUseCase: LogoutUseCase,
     private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
 
@@ -51,17 +48,15 @@ class MaskedEmailListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MaskedEmailListUiState())
     val uiState: StateFlow<MaskedEmailListUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<MaskedEmailListEvent>()
-    val events: SharedFlow<MaskedEmailListEvent> = _events.asSharedFlow()
-
     init {
         loadMaskedEmails()
     }
 
     fun loadMaskedEmails() {
+        // Set synchronously (before the coroutine is dispatched) so the guard in
+        // refreshMaskedEmails() sees the in-flight load immediately.
+        _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
             getMaskedEmailsUseCase().fold(
                 onSuccess = { emails ->
                     _uiState.update {
@@ -80,7 +75,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = error.message ?: "Failed to load emails"
+                            errorRes = UiErrors.messageRes(error, R.string.error_load_emails)
                         )
                     }
                 }
@@ -89,10 +84,13 @@ class MaskedEmailListViewModel @Inject constructor(
     }
 
     fun refreshMaskedEmails() {
+        // The init load is already in flight on first entry — the on-resume
+        // refresh would duplicate the network call the user is waiting on.
+        if (_uiState.value.isLoading) return
         viewModelScope.launch {
             // Don't show loading if we already have data (soft refresh)
             if (_uiState.value.emails.isEmpty()) {
-                _uiState.update { it.copy(isLoading = true, error = null) }
+                _uiState.update { it.copy(isLoading = true, errorRes = null) }
             }
 
             getMaskedEmailsUseCase().fold(
@@ -115,7 +113,7 @@ class MaskedEmailListViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = error.message ?: "Failed to load emails"
+                                errorRes = UiErrors.messageRes(error, R.string.error_load_emails)
                             )
                         }
                     } else {
@@ -144,13 +142,6 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
-    fun logout() {
-        logoutUseCase()
-        viewModelScope.launch {
-            _events.emit(MaskedEmailListEvent.LoggedOut)
-        }
-    }
-
     private fun filterEmails(
         emails: List<MaskedEmail>,
         query: String,
@@ -160,7 +151,9 @@ class MaskedEmailListViewModel @Inject constructor(
             .filter { email ->
                 when (filter) {
                     EmailFilter.ALL -> true
-                    EmailFilter.ENABLED -> email.state == EmailState.ENABLED
+                    // "Active" must match the chip count, which includes PENDING
+                    // (a freshly created mask is pending until its first message).
+                    EmailFilter.ENABLED -> email.isActive
                     EmailFilter.DISABLED -> email.state == EmailState.DISABLED
                     EmailFilter.DELETED -> email.state == EmailState.DELETED
                 }
@@ -183,13 +176,9 @@ data class MaskedEmailListUiState(
     val filteredEmails: List<MaskedEmail> = emptyList(),
     val searchQuery: String = "",
     val selectedFilter: EmailFilter = EmailFilter.ALL,
-    val error: String? = null
+    val errorRes: Int? = null
 )
 
 enum class EmailFilter {
     ALL, ENABLED, DISABLED, DELETED
-}
-
-sealed class MaskedEmailListEvent {
-    data object LoggedOut : MaskedEmailListEvent()
 }

@@ -67,11 +67,12 @@ fun FastMaskNavHost(
             ) {
                 WelcomeScreen(
                     onSignIn = {
-                        navController.navigate(NavRoutes.LOGIN)
+                        navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
                     },
                     onEnterDemo = {
                         navController.navigate(NavRoutes.EMAIL_LIST) {
                             popUpTo(NavRoutes.WELCOME) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                 )
@@ -86,6 +87,7 @@ fun FastMaskNavHost(
                     onLoginSuccess = {
                         navController.navigate(NavRoutes.EMAIL_LIST) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     }
                 )
@@ -94,17 +96,18 @@ fun FastMaskNavHost(
             composable(NavRoutes.EMAIL_LIST) {
                 MaskedEmailListScreen(
                     onNavigateToCreate = {
-                        navController.navigate(NavRoutes.CREATE_EMAIL)
+                        navController.navigate(NavRoutes.CREATE_EMAIL) { launchSingleTop = true }
                     },
                     onNavigateToDetail = { emailId ->
-                        navController.navigate(NavRoutes.emailDetail(emailId))
+                        navController.navigate(NavRoutes.emailDetail(emailId)) { launchSingleTop = true }
                     },
                     onNavigateToSettings = {
-                        navController.navigate(NavRoutes.SETTINGS)
+                        navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
                     },
                     onSignInFromBanner = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,
@@ -120,11 +123,13 @@ fun FastMaskNavHost(
                     onLogout = {
                         navController.navigate(NavRoutes.WELCOME) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     onSignInFromDemo = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                 )
@@ -138,6 +143,7 @@ fun FastMaskNavHost(
                     onSignInFromBanner = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                 )
@@ -156,6 +162,7 @@ fun FastMaskNavHost(
                     onSignInFromBanner = {
                         navController.navigate(NavRoutes.LOGIN) {
                             popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,

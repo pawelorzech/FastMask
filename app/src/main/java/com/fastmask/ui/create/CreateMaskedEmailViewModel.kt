@@ -2,15 +2,17 @@ package com.fastmask.ui.create
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.R
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
+import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,8 +26,10 @@ class CreateMaskedEmailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CreateMaskedEmailUiState())
     val uiState: StateFlow<CreateMaskedEmailUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<CreateMaskedEmailEvent>()
-    val events: SharedFlow<CreateMaskedEmailEvent> = _events.asSharedFlow()
+    // Channel-backed one-time events: buffered delivery survives windows with
+    // no active collector (e.g. mid-rotation) and each event is handled once.
+    private val _events = Channel<CreateMaskedEmailEvent>(Channel.BUFFERED)
+    val events: Flow<CreateMaskedEmailEvent> = _events.receiveAsFlow()
 
     fun onPrefixChange(prefix: String) {
         val sanitized = prefix.lowercase().filter { it.isLetterOrDigit() || it == '_' }
@@ -57,10 +61,15 @@ class CreateMaskedEmailViewModel @Inject constructor(
     fun create() {
         val state = _uiState.value
         if (state.prefixError != null) return
+        // Guard against rapid double-tap: the button's `enabled` flips only on the
+        // next recomposition, so two taps in one frame would otherwise both land
+        // here and create two real masks on the Fastmail account.
+        if (state.isLoading) return
 
+        // Set synchronously (before the coroutine is dispatched) so the
+        // double-tap guard above cannot race the launch.
+        _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
             val params = CreateMaskedEmailParams(
                 state = state.initialState,
                 forDomain = state.forDomain.takeIf { it.isNotBlank() },
@@ -72,13 +81,13 @@ class CreateMaskedEmailViewModel @Inject constructor(
             createMaskedEmailUseCase(params).fold(
                 onSuccess = { email ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.emit(CreateMaskedEmailEvent.Created(email.email))
+                    _events.send(CreateMaskedEmailEvent.Created(email.email))
                 },
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = error.message ?: "Failed to create masked email"
+                            errorRes = UiErrors.messageRes(error, R.string.create_email_error_failed)
                         )
                     }
                 }
@@ -94,7 +103,7 @@ data class CreateMaskedEmailUiState(
     val url: String = "",
     val initialState: EmailState = EmailState.ENABLED,
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val errorRes: Int? = null,
     val prefixError: String? = null
 )
 

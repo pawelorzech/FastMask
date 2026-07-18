@@ -61,7 +61,6 @@ import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.components.StateDot
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +79,7 @@ fun CreateMaskedEmailScreen(
     val backDesc = stringResource(R.string.navigate_back)
 
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.events.collect { event ->
             when (event) {
                 is CreateMaskedEmailEvent.Created -> {
                     val msg = createdMessageTemplate.replace("%s", event.email)
@@ -226,10 +225,10 @@ fun CreateMaskedEmailScreen(
                     enabled = !uiState.isLoading,
                 )
 
-                if (uiState.error != null) {
+                if (uiState.errorRes != null) {
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = uiState.error!!,
+                        text = stringResource(uiState.errorRes!!),
                         style = MaterialTheme.typography.bodySmall,
                         color = extras.status.deleted.content,
                     )

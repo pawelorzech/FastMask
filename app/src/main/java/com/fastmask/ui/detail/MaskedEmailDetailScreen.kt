@@ -68,7 +68,6 @@ import com.fastmask.ui.components.StatePill
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
 import com.fastmask.ui.util.RelativeTime
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
@@ -95,7 +94,7 @@ fun MaskedEmailDetailScreen(
     val copyDesc = stringResource(R.string.email_detail_copy_email)
 
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.events.collect { event ->
             when (event) {
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
@@ -144,7 +143,7 @@ fun MaskedEmailDetailScreen(
                         modifier = Modifier.size(18.dp),
                     )
                 }
-                if (uiState.email != null) {
+                if (uiState.email != null && !uiState.isDeleting && !uiState.isUpdating) {
                     PillIconButton(
                         onClick = { showDeleteDialog = true },
                         contentDescription = deleteDesc,
@@ -161,7 +160,7 @@ fun MaskedEmailDetailScreen(
 
             when {
                 uiState.isLoading && uiState.email == null -> CenteredLoading()
-                uiState.error != null && uiState.email == null -> ErrorMessage(uiState.error!!)
+                uiState.errorRes != null && uiState.email == null -> ErrorMessage(stringResource(uiState.errorRes!!))
                 uiState.email != null -> DetailContent(
                     uiState = uiState,
                     onDescriptionChange = viewModel::onDescriptionChange,
@@ -330,10 +329,10 @@ private fun DetailContent(
             enabled = !uiState.isUpdating,
         )
 
-        if (uiState.error != null) {
+        if (uiState.errorRes != null) {
             Spacer(Modifier.height(14.dp))
             Text(
-                text = uiState.error!!,
+                text = stringResource(uiState.errorRes!!),
                 style = MaterialTheme.typography.bodySmall,
                 color = extras.status.deleted.content,
             )

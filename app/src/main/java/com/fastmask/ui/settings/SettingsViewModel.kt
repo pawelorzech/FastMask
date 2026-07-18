@@ -9,12 +9,12 @@ import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -32,8 +32,10 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private val _events = MutableSharedFlow<SettingsEvent>()
-    val events: SharedFlow<SettingsEvent> = _events.asSharedFlow()
+    // Channel-backed one-time events: buffered delivery survives windows with
+    // no active collector (e.g. mid-rotation) and each event is handled once.
+    private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
+    val events: Flow<SettingsEvent> = _events.receiveAsFlow()
 
     /** Live app-mode flag — used to render the demo "sign in" section. */
     val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
@@ -62,9 +64,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun logout() {
-        logoutUseCase()
         viewModelScope.launch {
-            _events.emit(SettingsEvent.LoggedOut)
+            logoutUseCase()
+            _events.send(SettingsEvent.LoggedOut)
         }
     }
 
@@ -77,7 +79,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsDataStore.setAppMode(AppMode.REAL)
             settingsDataStore.setTutorialCompleted(false)
-            _events.emit(SettingsEvent.GoToSignIn)
+            _events.send(SettingsEvent.GoToSignIn)
         }
     }
 }

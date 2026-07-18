@@ -37,7 +37,6 @@ import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.InstrumentSerif
-import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun WelcomeScreen(
@@ -48,7 +47,7 @@ fun WelcomeScreen(
     val extras = FastMaskExtras.current
 
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.events.collect { event ->
             when (event) {
                 is WelcomeEvent.EnterDemo -> onEnterDemo()
                 is WelcomeEvent.GoToSignIn -> onSignIn()
