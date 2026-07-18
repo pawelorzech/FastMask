@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" width="100" alt="FastMask Logo">
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width="100" alt="FastMask Logo">
 </p>
 
 <h1 align="center">FastMask</h1>

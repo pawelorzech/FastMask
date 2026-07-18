@@ -270,6 +270,13 @@ class JmapApi @Inject constructor(
         setResponse.notDestroyed?.get(id)?.let { error ->
             throw JmapException("Failed to delete: ${error.type} - ${error.description}")
         }
+
+        // Verify the destroy actually succeeded — mirrors the positive check in
+        // parseSetResponseUpdated. Without it a silent server no-op would be
+        // reported to the user as a successful archive.
+        if (setResponse.destroyed?.contains(id) != true) {
+            throw JmapException("Delete not confirmed by server - ID not found in destroyed response")
+        }
     }
 
     fun clearSession() {

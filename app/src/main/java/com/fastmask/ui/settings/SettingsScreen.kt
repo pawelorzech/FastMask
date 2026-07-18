@@ -63,7 +63,6 @@ import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +79,7 @@ fun SettingsScreen(
     val extras = FastMaskExtras.current
 
     LaunchedEffect(Unit) {
-        viewModel.events.collectLatest { event ->
+        viewModel.events.collect { event ->
             when (event) {
                 is SettingsEvent.LoggedOut -> onLogout()
                 is SettingsEvent.GoToSignIn -> onSignInFromDemo()

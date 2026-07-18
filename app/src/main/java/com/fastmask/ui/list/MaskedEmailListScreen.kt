@@ -53,7 +53,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -159,11 +162,7 @@ fun MaskedEmailListScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             MonoEyebrow(
-                                text = "$activeCount " +
-                                    stringResource(R.string.list_stats_active) +
-                                    stringResource(R.string.list_stats_separator) +
-                                    "$totalCount " +
-                                    stringResource(R.string.list_stats_total),
+                                text = stringResource(R.string.list_stats, activeCount, totalCount),
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
@@ -220,9 +219,9 @@ fun MaskedEmailListScreen(
                     uiState.isLoading && uiState.emails.isEmpty() -> {
                         LoadingShimmer()
                     }
-                    uiState.error != null && uiState.emails.isEmpty() -> {
+                    uiState.errorRes != null && uiState.emails.isEmpty() -> {
                         ErrorBlock(
-                            message = uiState.error ?: stringResource(R.string.error_load_emails),
+                            message = stringResource(uiState.errorRes ?: R.string.error_load_emails),
                             onRetry = viewModel::loadMaskedEmails,
                         )
                     }
@@ -353,11 +352,13 @@ private fun SearchField(
             }
         }
         if (query.isNotEmpty()) {
+            // 40dp touch target (visual glyph stays 16dp) — a11y minimum for a
+            // secondary inline control inside the 44dp-tall search field.
             Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(role = Role.Button) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onQueryChange("")
                     },
@@ -424,6 +425,9 @@ private fun FilterPill(
             .background(bg, shape)
             .border(1.dp, border, shape)
             .clickable(onClick = onClick)
+            // Expose the filter's on/off state to TalkBack — visually it is
+            // conveyed by color only.
+            .semantics { this.selected = selected; role = Role.Tab }
             .padding(horizontal = 12.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,

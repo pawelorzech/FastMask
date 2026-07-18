@@ -25,7 +25,7 @@ APK outputs: `app/build/outputs/apk/`
 
 ## Project Configuration
 
-- **SDK**: Compile/Target 34, Min 26
+- **SDK**: Compile/Target 35, Min 26
 - **JDK**: 17
 - **Kotlin**: 1.9.22
 - **Package**: `com.fastmask`
@@ -51,7 +51,7 @@ Clean Architecture with MVVM pattern. Three distinct layers:
 
 ### UI Layer (`ui/`)
 - `auth/`, `list/`, `create/`, `detail/`, `settings/` - Feature screens with ViewModels
-- `components/` - Reusable composables (MaskedEmailCard, ShimmerEffect, ErrorMessage)
+- `components/` - Reusable composables (DesignKit, DesignInput, ErrorMessage, DemoBanner, TutorialOverlay)
 - `navigation/` - Jetpack Navigation with shared element transitions
 - `theme/` - Material 3 theming with dynamic colors
 

@@ -28,9 +28,6 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import com.fastmask.ui.theme.FastMaskExtras
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -99,9 +96,6 @@ class DemoBannerViewModel @Inject constructor(
         initialValue = settingsDataStore.appModeBlocking(),
     )
 
-    private val _events = MutableSharedFlow<DemoBannerEvent>()
-    val events: SharedFlow<DemoBannerEvent> = _events.asSharedFlow()
-
     /**
      * Switch out of demo mode, reset the tutorial flag, then invoke [onDone]
      * (typically a navigation callback to the login screen). The callback is
@@ -114,8 +108,4 @@ class DemoBannerViewModel @Inject constructor(
             onDone()
         }
     }
-}
-
-sealed class DemoBannerEvent {
-    data object GoToSignIn : DemoBannerEvent()
 }

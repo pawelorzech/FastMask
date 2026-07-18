@@ -155,19 +155,28 @@ fun PillIconButton(
     val haptic = LocalHapticFeedback.current
     val border = MaterialTheme.colorScheme.outline
     val tone = tint ?: MaterialTheme.colorScheme.onBackground
+    // Outer 48dp box = accessible touch target (a11y minimum); the visible
+    // 40dp pill stays unchanged inside it.
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(48.dp)
             .clip(CircleShape)
-            .border(BorderStroke(1.dp, border), CircleShape)
             .clickable(role = Role.Button, onClickLabel = contentDescription) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick()
             },
         contentAlignment = Alignment.Center,
     ) {
-        CompositionLocalProvider(LocalContentColor provides tone) {
-            content()
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .border(BorderStroke(1.dp, border), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            CompositionLocalProvider(LocalContentColor provides tone) {
+                content()
+            }
         }
     }
 }
