@@ -3,6 +3,33 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] — 2026-07-19
+
+### Added
+- **Quick-copy on the list** — a copy button on every mask card copies the address straight to the clipboard, no need to open the mask first.
+- **Undo archive** — archiving a mask now shows an "Undo" snackbar on the list; one tap restores it.
+
+### Fixed
+- Editing a mask and clearing the note, domain, or URL now actually clears it (was silently reverted by the server).
+- Rapid double-taps on Create/Login/Save/Archive no longer fire duplicate requests (could create duplicate masks).
+- Corrupted secure storage (encryption keyset) no longer crash-loops the app on launch — it recovers by requiring a fresh sign-in.
+- One-time navigation events (e.g. after login/create) are no longer lost when the screen rotates mid-request.
+- The "Active" filter now matches its count (includes pending masks).
+- Archiving now verifies the server confirmed the change instead of assuming success.
+- Network and auth errors show clear, localized messages instead of raw technical text.
+
+### Changed
+- App startup does its storage work off the main thread for a smoother launch.
+- Muted text (timestamps, labels) darkened/lightened to meet WCAG AA contrast.
+- Larger touch targets on icon buttons; filter chips announce their selected state to screen readers.
+
+### Localization
+- Completed translations across all 20 languages (previously ~34% of strings fell back to English in 18 locales); fixed Chinese never resolving.
+
+### Internal
+- Added a unit-test suite (50 tests) covering JMAP parsing, sort/filter, error mapping, and the fixes above.
+- `versionCode` 11 → 12, `versionName` "1.5.2" → "1.6.0".
+
 ## [1.5.2] — 2026-05-14
 
 ### Fixed
