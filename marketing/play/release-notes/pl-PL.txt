@@ -1,7 +1,7 @@
-Nowości w 1.6.0
+Nowości w 1.7.0
 
-• Szybkie kopiowanie: skopiuj adres maski prosto z listy, jednym tapnięciem
-• Cofnij archiwizację: przypadkiem zarchiwizowano maskę? Tapnij Cofnij
-• Czytelniejszy, bardziej kontrastowy tekst i większe pola dotyku
-• Pełne tłumaczenia we wszystkich 20 językach
-• Poprawki niezawodności: edycja masek, szybszy start, lepsze komunikaty błędów
+• FastMask Pro — opcjonalny, jednorazowy zakup wspierający rozwój aplikacji
+• Pro: pięć motywów akcentów (Bursztyn, Atrament, Szałwia, Śliwka, Kobalt)
+• Pro: blokada biometryczna dla dodatkowej prywatności
+• Pro: eksport wszystkich masek do CSV
+• Wszystko, co było darmowe, pozostaje darmowe — bez subskrypcji, reklam i śledzenia

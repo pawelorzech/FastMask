@@ -20,6 +20,7 @@ import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
 import com.fastmask.ui.list.MaskedEmailListScreen
+import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
 
@@ -141,6 +142,25 @@ fun FastMaskNavHost(
                             popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
+                    },
+                    onNavigateToPro = { source ->
+                        navController.navigate(NavRoutes.pro(source)) { launchSingleTop = true }
+                    },
+                )
+            }
+
+            composable(
+                route = NavRoutes.PRO,
+                arguments = listOf(
+                    navArgument("source") {
+                        type = NavType.StringType
+                        defaultValue = "settings"
+                    }
+                ),
+            ) {
+                ProScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
                     },
                 )
             }

@@ -3,6 +3,27 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] — 2026-07-19
+
+### Added
+- **FastMask Pro** — an optional, one-time purchase (Google Play Billing 8.3.0) that supports development and unlocks:
+  - **Accent themes** — five accents (Amber, Ink, Sage, Plum, Cobalt), all WCAG-AA compliant, applied instantly without restart.
+  - **Biometric app lock** — optional fingerprint/credential gate when opening the app; content is never composed behind the lock screen.
+  - **CSV export** — share all masks (including archived) as an RFC-4180 CSV via the system share sheet; no storage permissions.
+- Pro screen with price fetched from Google Play, purchase, restore, and clear offline/unavailable states. No dark patterns: no timers, no forced paywalls, back always works.
+- Terms of use page (`terms.html`) on the project site.
+
+### Unchanged (by design)
+- **Every feature that existed before 1.7.0 stays free, forever.** Pro only adds new extras.
+- **Still zero tracking** — no analytics SDK was added; the monetization funnel is instrumented locally (debug builds only) and revenue metrics come from Play Console.
+
+### Internal
+- Billing architecture: `BillingDataSource` abstraction → `ProRepository` as the single entitlement source of truth; Play is authoritative, DataStore caches the last verified state for offline; acknowledge-before-unlock; pending purchases stay locked; downgrade only on an authoritative empty answer.
+- `MONETIZATION_ENABLED` build flag as a kill switch (hides every Pro entry point).
+- 36 new unit tests (86 total): purchase/cancel/pending/offline/restore/downgrade/double-tap, paywall gating, CSV escaping.
+- New strings localized across all 20 languages.
+- `versionCode` 12 → 13, `versionName` "1.6.0" → "1.7.0".
+
 ## [1.6.0] — 2026-07-19
 
 ### Added

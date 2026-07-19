@@ -157,6 +157,53 @@
     <string name="settings_demo_description">You\'re in demo mode. Changes don\'t sync to your real Fastmail account.</string>
     <string name="settings_signin_with_fastmail">Sign in with Fastmail</string>
 
+    <!-- FastMask Pro -->
+    <string name="pro_label">Support open source</string>
+    <string name="pro_title">FastMask Pro</string>
+    <string name="pro_subtitle">One small purchase supports an independent, open-source app — and unlocks the extras.</string>
+    <string name="pro_feature_accents_title">Accent themes</string>
+    <string name="pro_feature_accents_body">Five inks to make FastMask yours.</string>
+    <string name="pro_feature_lock_title">App lock</string>
+    <string name="pro_feature_lock_body">Biometric lock for an extra layer of privacy.</string>
+    <string name="pro_feature_export_title">CSV export</string>
+    <string name="pro_feature_export_body">Your masks, portable — share or archive them.</string>
+    <string name="pro_buy_cta">Unlock Pro · %1$s</string>
+    <string name="pro_one_time_note">One-time purchase · yours forever · no subscription</string>
+    <string name="pro_restore">Restore purchase</string>
+    <string name="pro_retry">Try again</string>
+    <string name="pro_owned">You\'re Pro. Thank you for supporting FastMask.</string>
+    <string name="pro_purchase_success">Pro unlocked. Thank you!</string>
+    <string name="pro_purchase_pending">Payment pending — Pro unlocks once it completes.</string>
+    <string name="pro_purchase_cancelled">Purchase cancelled.</string>
+    <string name="pro_purchase_failed">Something went wrong. You were not charged.</string>
+    <string name="pro_billing_unavailable">Google Play billing isn\'t available on this device.</string>
+    <string name="pro_restore_success">Purchase restored — welcome back.</string>
+    <string name="pro_restore_nothing">No previous purchase found on this Google account.</string>
+    <string name="pro_restore_failed">Couldn\'t reach Google Play. Try again later.</string>
+    <string name="pro_privacy_policy">Privacy policy</string>
+    <string name="pro_terms">Terms</string>
+    <string name="settings_pro_section">FastMask Pro</string>
+    <string name="settings_pro_row_title">FastMask Pro</string>
+    <string name="settings_pro_value_free">Unlock accents, app lock and export</string>
+    <string name="settings_pro_value_active">Active — thank you!</string>
+    <string name="settings_accent">Accent</string>
+    <string name="settings_accent_locked">A FastMask Pro feature</string>
+    <string name="settings_select_accent">Choose accent</string>
+    <string name="accent_amber">Amber</string>
+    <string name="accent_ink">Ink</string>
+    <string name="accent_sage">Sage</string>
+    <string name="accent_plum">Plum</string>
+    <string name="accent_cobalt">Cobalt</string>
+    <string name="settings_app_lock">App lock</string>
+    <string name="settings_app_lock_description">Require unlock when opening the app</string>
+    <string name="settings_app_lock_unavailable">Set up a screen lock or fingerprint in system settings first.</string>
+    <string name="settings_export_title">Export masks</string>
+    <string name="settings_export_description">Share all masks as a CSV file</string>
+    <string name="settings_export_failed">Export failed. Try again.</string>
+    <string name="app_lock_locked_subtitle">Locked. Unlock to continue.</string>
+    <string name="app_lock_unlock">Unlock</string>
+    <string name="app_lock_prompt_title">Unlock FastMask</string>
+
     <!-- Language Names (Native) -->
     <string name="language_en">English</string>
     <string name="language_zh">中文</string>

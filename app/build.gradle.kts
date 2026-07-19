@@ -14,13 +14,18 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.6.0"
+        versionCode = 13
+        versionName = "1.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Monetization kill-switch. Set to "false" to ship a build with every
+        // Pro entry point hidden (existing Pro owners keep their entitlement).
+        // See Plans/monetization.md § Rollback.
+        buildConfigField("boolean", "MONETIZATION_ENABLED", "true")
     }
 
     signingConfigs {
@@ -117,6 +122,15 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
+    // Google Play Billing — base (Java) artifact, NOT billing-ktx: the ktx
+    // extensions are compiled with a newer Kotlin than this project's 1.9.22
+    // and only wrap listeners we replace with our own suspend wrappers anyway.
+    // 8.x satisfies Play's "Billing Library 8+" requirement (Aug 31, 2026).
+    implementation("com.android.billingclient:billing:8.3.0")
+
+    // Biometric app lock (Pro feature)
+    implementation("androidx.biometric:biometric:1.1.0")
 
     // Security for encrypted storage
     // Pinned to 1.1.0-alpha06 because TokenStorage uses MasterKey.Builder API,

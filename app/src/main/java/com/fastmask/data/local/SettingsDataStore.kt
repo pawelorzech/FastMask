@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -71,6 +72,31 @@ class SettingsDataStore @Inject constructor(
             val raw = context.settingsDataStore.data.first()[appModeKey]
             raw?.let { runCatching { AppMode.valueOf(it) }.getOrDefault(AppMode.REAL) }
                 ?: AppMode.REAL
+        }
+    }
+
+    // --- Pro personalization: accent theme + biometric app lock ---
+
+    private val accentKey = stringPreferencesKey("accent")
+    private val appLockKey = booleanPreferencesKey("app_lock_enabled")
+
+    val accent: Flow<Accent> = context.settingsDataStore.data.map { preferences ->
+        Accent.fromName(preferences[accentKey])
+    }
+
+    suspend fun setAccent(accent: Accent) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[accentKey] = accent.name
+        }
+    }
+
+    val appLockEnabled: Flow<Boolean> = context.settingsDataStore.data.map { preferences ->
+        preferences[appLockKey] ?: false
+    }
+
+    suspend fun setAppLockEnabled(enabled: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[appLockKey] = enabled
         }
     }
 

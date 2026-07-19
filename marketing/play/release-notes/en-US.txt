@@ -1,7 +1,7 @@
-What's new in 1.6.0
+What's new in 1.7.0
 
-• Quick copy: copy any masked address straight from the list, one tap
-• Undo archive: archived a mask by mistake? Tap Undo
-• Clearer, higher-contrast text and larger tap targets
-• Full translations across all 20 languages
-• Reliability fixes: editing masks, faster launch, better error messages
+• FastMask Pro — optional one-time purchase that supports development
+• Pro: five accent themes (Amber, Ink, Sage, Plum, Cobalt)
+• Pro: biometric app lock for extra privacy
+• Pro: export all masks as CSV
+• Everything that was free stays free — no subscriptions, no ads, no tracking
