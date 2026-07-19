@@ -41,6 +41,24 @@ class MaskCsvTest {
     }
 
     @Test
+    fun `formula-leading fields are neutralized against spreadsheet injection`() {
+        val csv = MaskCsv.build(
+            listOf(
+                mask(
+                    "a",
+                    description = "=HYPERLINK(\"http://evil\")",
+                    forDomain = "+spam.example",
+                    url = "@import",
+                )
+            )
+        )
+        // Leading apostrophe forces text interpretation in Excel/Sheets.
+        assertTrue(csv.contains("\"'=HYPERLINK(\"\"http://evil\"\")\""))
+        assertTrue(csv.contains("'+spam.example"))
+        assertTrue(csv.contains("'@import"))
+    }
+
+    @Test
     fun `timestamps are exported as ISO instants`() {
         val csv = MaskCsv.build(
             listOf(mask("a", createdAt = Instant.parse("2026-01-02T03:04:05Z")))

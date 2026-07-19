@@ -38,11 +38,20 @@ object MaskCsv {
         }
     }
 
-    /** RFC 4180: quote fields containing separators/quotes/newlines; double inner quotes. */
-    private fun String.csvEscaped(): String =
-        if (any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
-            "\"${replace("\"", "\"\"")}\""
+    /** Characters that make spreadsheets execute a cell as a formula. */
+    private val FORMULA_LEAD_CHARS = setOf('=', '+', '-', '@', '\t')
+
+    /**
+     * RFC 4180 quoting plus spreadsheet formula neutralization: a mask note
+     * like `=HYPERLINK(...)` must open as text, not execute, in Excel/Sheets
+     * (OWASP CSV-injection mitigation — leading apostrophe).
+     */
+    private fun String.csvEscaped(): String {
+        val neutralized = if (firstOrNull() in FORMULA_LEAD_CHARS) "'$this" else this
+        return if (neutralized.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
+            "\"${neutralized.replace("\"", "\"\"")}\""
         } else {
-            this
+            neutralized
         }
+    }
 }
