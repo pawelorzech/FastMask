@@ -112,6 +112,9 @@ fun SettingsScreen(
                     withContext(Dispatchers.IO) {
                         runCatching {
                             val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+                            // Previous exports are stale the moment a new one is
+                            // requested — keep the cache dir at a single file.
+                            dir.listFiles()?.forEach { it.delete() }
                             val file = File(dir, "fastmask-masks.csv")
                             file.writeText(event.csv)
                             FileProvider.getUriForFile(

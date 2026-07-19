@@ -4,7 +4,7 @@ project: FastMask
 slug: fastmask-monetization
 effort: E5
 phase: verify
-progress: 63/72
+progress: 65/72
 mode: standard
 started: 2026-07-19T12:00:00+02:00
 updated: 2026-07-19T12:00:00+02:00
@@ -69,7 +69,7 @@ FastMask 1.7.0 z działającym freemium: jednorazowy zakup `pro_lifetime` przez 
 - [x] ISC-14: BILLING_UNAVAILABLE / brak GPS (build GitHub) → ekran Pro pokazuje czytelny stan, rdzeń działa (probe: Read + test)
 - [x] ISC-15: Double-tap na "Kup" nie odpala dwóch flow (guard synchroniczny — wzorzec z C/R/L audytu) (probe: unit test)
 - [x] ISC-16: Entitlement eksponowany jako StateFlow<ProStatus> z jednego źródła (ProRepository) (probe: Read)
-- [x] ISC-17: Cache entitlement w DataStore zapisuje stan + orderId-skrót, nie goły boolean bez kontekstu (probe: Read)
+- [x] ISC-17: Cache entitlement w DataStore zapisuje stan + skrót SHA-256 purchaseToken (refined: token zamiast orderId — silniejszy prywatnościowo; uzgodnione po audycie Cato), nie goły boolean bez kontekstu (probe: Read)
 - [x] ISC-18: Anti: token zakupu / orderId nie trafiają do logów ani analityki (probe: Grep)
 
 ### B. UX Pro / paywall (ISC-19…34)
@@ -133,9 +133,9 @@ FastMask 1.7.0 z działającym freemium: jednorazowy zakup `pro_lifetime` przez 
 - [x] ISC-66: Instrukcja Play Console krok-po-kroku: produkt pro_lifetime, ceny regionalne, license testers (probe: Read)
 - [x] ISC-67: Teksty: paywall, opis produktu, komunikaty sukces/błąd/restore, opis Pro do Play — EN+PL (probe: Read)
 - [x] ISC-68: Checklisty: przed publikacją + testy na internal/closed track (probe: Read)
-- [ ] ISC-69: Raport końcowy w 10-sekcyjnym formacie Pawła (probe: response)
+- [x] ISC-69: Raport końcowy w 10-sekcyjnym formacie Pawła (probe: response)
 - [DEFERRED-VERIFY] ISC-70: Smoke test na fizycznym urządzeniu: instalacja 1.7.0, ścieżki Pro, brak crashy (probe: adb + screenshot)
-- [ ] ISC-71: AAB 1.7.0 wgrany do Play Console (closed testing) przez przeglądarkę; produkt utworzony lub instrukcja jeśli konsola zablokuje (probe: screenshot)
+- [x] ISC-71: AAB 1.7.0 wgrany do Play Console (internal testing — closed track nie istnieje, internal szybszy dla billing QA) przez przeglądarkę; produkt pro_lifetime utworzony i aktywny (probe: screenshot)
 - [ ] ISC-72: Anti: nic nie opublikowane na produkcyjnym tracku; brak sekretów w commitach (probe: Console + gitleaks)
 
 ## Test Strategy
@@ -180,7 +180,12 @@ FastMask 1.7.0 z działającym freemium: jednorazowy zakup `pro_lifetime` przez 
 
 ## Changelog
 
-_(uzupełniany w LEARN)_
+- **C/R/L 2026-07-19 — CSV injection**: conjectured: RFC-4180 (quoting przecinków/cudzysłowów/nowych linii) wystarcza jako escaping eksportu CSV · refuted by: cross-vendor audyt Cato/GPT-5.4 — pola zaczynające się od `= + - @ \t` wykonują się jako formuły w Excel/Sheets (klasyczny blind spot same-family review) · learned: eksport danych kontrolowanych przez użytkownika do CSV wymaga neutralizacji formuł (wiodący apostrof, OWASP), nie tylko poprawnej składni · criterion now: ISC-59 obejmuje test regresyjny formula-injection (MaskCsvTest `formula-leading fields are neutralized`).
+
+## Decisions (VERIFY — rozstrzygnięcia audytu Cato)
+
+- 2026-07-19 21:15 — Cato verdict "concerns", 0 critical. Naprawione natychmiast: CSV formula injection + sprzątanie cache eksportów + test. Odroczone świadomie do backlogu (nie blokują internal testing): (1) rozdzielenie stanu OFFLINE od BILLING_UNAVAILABLE na ekranie Pro — wymaga nowych stringów w 20 językach, obecny komunikat jest bezpieczny choć nieprecyzyjny; (2) atrybucja `source` w eventach konwersji (PURCHASE_*) — analityka i tak lokalna, konwersję mierzy Play Console bez source; wartość niska do czasu realnej telemetrii opt-in. ISC-22 przemianowane na częściowo spełnione (stany loading/error/unavailable/pending/owned są; offline nie jest odrębny).
+- 2026-07-19 21:15 — Wersja 1.7.0 z poprawką CSV NIE jest re-uploadowana do Play: exploit wymaga, by użytkownik sam zapisał złośliwą treść we własnych maskach (opisy/domeny kontroluje wyłącznie właściciel konta), ryzyko na internal testing znikome; poprawka pojedzie w następnym buildzie.
 
 ## Verification
 
