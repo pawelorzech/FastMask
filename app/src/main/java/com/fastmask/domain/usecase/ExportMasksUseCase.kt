@@ -1,0 +1,48 @@
+package com.fastmask.domain.usecase
+
+import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.repository.MaskedEmailRepository
+import javax.inject.Inject
+
+/**
+ * Builds a CSV snapshot of all masks (Pro feature). Pure string output — file
+ * writing and the share sheet are UI-layer concerns.
+ */
+class ExportMasksUseCase @Inject constructor(
+    private val repository: MaskedEmailRepository,
+) {
+    suspend operator fun invoke(): Result<String> =
+        repository.getMaskedEmails().map { masks -> MaskCsv.build(masks) }
+}
+
+object MaskCsv {
+
+    private val HEADER = listOf(
+        "email", "state", "for_domain", "description", "url", "created_at", "last_message_at",
+    )
+
+    fun build(masks: List<MaskedEmail>): String = buildString {
+        appendLine(HEADER.joinToString(","))
+        masks.forEach { mask ->
+            appendLine(
+                listOf(
+                    mask.email,
+                    mask.state.name.lowercase(),
+                    mask.forDomain.orEmpty(),
+                    mask.description.orEmpty(),
+                    mask.url.orEmpty(),
+                    mask.createdAt?.toString().orEmpty(),
+                    mask.lastMessageAt?.toString().orEmpty(),
+                ).joinToString(",") { it.csvEscaped() }
+            )
+        }
+    }
+
+    /** RFC 4180: quote fields containing separators/quotes/newlines; double inner quotes. */
+    private fun String.csvEscaped(): String =
+        if (any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
+            "\"${replace("\"", "\"\"")}\""
+        } else {
+            this
+        }
+}

@@ -1,280 +1,202 @@
 ---
-task: Pełny audyt techniczny + naprawy + testy + audyt UX FastMask
+task: Monetyzacja FastMask — freemium + jednorazowy FastMask Pro (Play Billing)
 project: FastMask
-slug: fastmask-full-audit
-effort: E4
-phase: complete
-progress: 124/136
+slug: fastmask-monetization
+effort: E5
+phase: verify
+progress: 63/72
 mode: standard
-started: 2026-07-19T00:30:00+02:00
-updated: 2026-07-19T00:30:00+02:00
+started: 2026-07-19T12:00:00+02:00
+updated: 2026-07-19T12:00:00+02:00
 ---
 
 # ISA — FastMask (Android · Kotlin · JMAP Fastmail Masked Email)
 
+> Poprzedni ukończony ISA (pełny audyt E4, 124/136) zarchiwizowany w
+> `Plans/isa-archive/2026-07-19-full-audit-ISA.md`.
+
 ## Problem
 
-FastMask v1.5.2 (vc11) jest tuż po przygotowaniu do Play Store, ale: (1) repo ma **zero testów automatycznych** mimo zadeklarowanych zależności testowych; (2) poprzedni audyt bezpieczeństwa (2026-04-27, F-01…F-12) został „naprawiony" w v1.5, lecz nikt nie zweryfikował implementacji względem deklaracji; (3) dokumentacja (README/SECURITY/CLAUDE.md) rozjeżdża się ze stanem kodu (np. SDK 34 vs 35, webp vs png); (4) brak systematycznego przeglądu poprawności (JMAP parsing, race conditions, error handling), wydajności, dostępności i UX. Aplikacja operuje długożyciowym tokenem API Fastmail — bezpieczeństwo i niezawodność są ważniejsze niż nowe funkcje.
+FastMask v1.6.0 nie ma żadnego modelu przychodu: rozwój finansowany czasem Pawła, dystrybucja GitHub + Play closed testing. Brak systemu, który pozwoliłby produktowi zarabiać bez złamania jego rdzennej obietnicy ("Open-source, private, no tracking" — to dosłownie short description w Play). Naiwna monetyzacja (reklamy, subskrypcja) zniszczyłaby zaufanie niszy privacy i tożsamość produktu.
 
 ## Vision
 
-Paweł dostaje aplikację, w której każda ścieżka od "muszę znaleźć/skopiować/stworzyć maskę" do celu jest krótka i niezawodna; audyt wykrywa i naprawia realne błędy (nie teoretyczne), każda naprawa ma test regresyjny, a raport końcowy czyta się jak mapa stanu produktu — z jasnym podziałem: zrobione / do zrobienia / propozycje. Euforyczna niespodzianka: znalezione i naprawione bugi, o których istnieniu nie wiedział, plus siatka testów tam, gdzie wcześniej była pustka.
+Użytkownik Free nie zauważa żadnej różnicy — wszystko, co miał, działa jak dotąd. Użytkownik, który chce więcej wygody (akcenty, blokada biometryczna, eksport) lub chce wesprzeć open source, kupuje raz FastMask Pro i ma spokój na zawsze. Paywall czyta się jak zaproszenie, nie szantaż. Zero SDK śledzących — monetyzacja *wzmacnia* obietnicę prywatności. Euforyczna niespodzianka: kompletny, zgodny z Play system billing + 3 realne funkcje Pro + pomiar lejka bez telemetrii — w jednym przebiegu.
 
 ## Out of Scope
 
-Duże nowe funkcje produktowe (widget, autofill, quick settings tile, bulk actions) — tylko propozycje w backlogu, zero implementacji bez zgody. Zmiana applicationId, kluczy podpisujących, konfiguracji Google Play. Publikacja release'u. Telemetria i zewnętrzne SDK. Rewrite architektury. Zmiana mechanizmu przechowywania tokenu bez bezpiecznej migracji. Destrukcyjne operacje git.
+Reklamy w jakiejkolwiek formie. Subskrypcje. Konsumowalne. RevenueCat / zewnętrzni pośrednicy płatności. Backend / server-side weryfikacja zakupów (brak backendu; open source czyni ją teatrem). Zewnętrzne SDK analityczne (Firebase, Amplitude…). Remote config przez nowe hosty sieciowe. Zmiana applicationId / kluczy podpisu. Publikacja na produkcyjny track bez zgody Pawła. Odbieranie czegokolwiek istniejącym użytkownikom Free. A/B testy cen. Widget/tile (backlog, nie teraz).
 
 ## Principles
 
-- Reprodukcja przed naprawą; pomiar przed optymalizacją; dowód przed twierdzeniem.
-- Najmniejsza poprawna zmiana > przebudowa. Istniejąca architektura zostaje, jeśli działa.
-- Bezpieczeństwo tokenu > wygoda dewelopera > estetyka kodu.
-- Rozróżniaj: realna podatność / defense-in-depth / rekomendacja / fałszywy alarm.
-- Testy tam, gdzie łamią się rzeczy (parsing, stany, błędy), nie tam, gdzie łatwo je napisać.
-- Dokumentacja musi opisywać stan faktyczny, nie aspiracje.
+- Monetyzacja jest częścią produktu: paywall komunikuje wartość, nie wymusza.
+- Prywatność to przewaga rynkowa FastMask — żaden przychód nie usprawiedliwia telemetrii.
+- Free = 100% dotychczasowych funkcji, bezterminowo (uczciwa migracja).
+- Play (queryPurchases) jest źródłem prawdy o entitlement; cache tylko dla offline.
+- Degradacja łaskawa: brak Google Play Services / sieci nigdy nie crashuje i nie blokuje rdzenia.
+- Najprostszy słuszny cennik: jeden produkt, jeden ekran.
 
 ## Constraints
 
-- JDK 17 toolchain (build), Kotlin 1.9.22, AGP 8.5.2, Gradle 8.9 — nie podbijamy wersji narzędzi w ramach audytu, chyba że to konieczne dla naprawy P0/P1.
-- Nie wyłączamy testów, lintów, minifikacji ani reguł bezpieczeństwa, by "przeszło".
-- Release bez debug keystore — niepodpisany, jeśli brak FASTMASK_KEYSTORE.
-- Brak nowych zależności runtime poza absolutnie koniecznymi dla napraw.
-- Format commitów: `Add:/Fix:/Update:/Refactor:` (CLAUDE.md projektu).
+- Google Play Billing Library **8.3.0, artefakt bazowy Java** (nie -ktx: Kotlin 1.9.22 vs metadane Kotlin 2.x); własne suspend-wrappery.
+- Toolchain bez zmian: Kotlin 1.9.22, AGP 8.5.2, Gradle 8.9, JDK 17 (build przez Android Studio JBR).
+- Clean Architecture zachowana: ui→domain→data, Hilt, StateFlow/SharedFlow.
+- Entitlement nie jest gołym booleanem w prefs: DataStore cache stanu zweryfikowanego + odświeżenie z Play przy każdym starcie.
+- Produkt ID bez ceny w nazwie: `pro_lifetime`.
+- Format commitów `Add:/Fix:/Update:/Refactor:`; brak sekretów w repo.
+- Ceny w UI wyłącznie z ProductDetails (sformatowane przez Play), nigdy hardcode.
 
 ## Goal
 
-Zbudować, przeaudytować, naprawić i zweryfikować FastMask end-to-end: baseline (build+test+lint) udokumentowany, potwierdzone problemy P0–P2 naprawione z testami regresyjnymi, aplikacja przetestowana manualnie na emulatorze, audyt UX z priorytetyzowanym backlogiem A/B/C, raport końcowy w 10-sekcyjnej strukturze — bez wprowadzenia regresji i bez nowych dużych funkcji.
+FastMask 1.7.0 z działającym freemium: jednorazowy zakup `pro_lifetime` przez Play Billing 8.3.0 odblokowuje motywy akcentów, blokadę biometryczną i eksport CSV; pełna obsługa cyklu zakupu (pending/acknowledge/restore/refund-downgrade/offline), paywall bez dark patterns, lejek zinstrumentowany bez telemetrii, testy + build zielone, dokumentacja wdrożenia i konfiguracji Play Console kompletna, AAB wgrany na closed testing.
 
 ## Criteria
 
-### A. Baseline i środowisko (ISC-1…10)
-- [x] ISC-1: `./gradlew assembleDebug` kończy się sukcesem (probe: Bash exit 0)
-- [x] ISC-2: `./gradlew test` kończy się sukcesem, wynik zanotowany z liczbą testów (probe: Bash)
-- [x] ISC-3: `./gradlew lint` kończy się sukcesem, raport przeczytany (probe: Read lint-results)
-- [x] ISC-4: `./gradlew assembleRelease` bez FASTMASK_KEYSTORE produkuje niepodpisany APK lub jasny błąd — bez debug keystore (probe: Bash + apksigner)
-- [x] ISC-5: Baseline zapisany: co się buduje, co nie, ostrzeżenia (probe: Read raportu)
-- [x] ISC-6: Wersje potwierdzone w kodzie: Kotlin 1.9.22, AGP 8.5.2, Gradle 8.9, Compose BOM 2024.09, min 26 / target 35 / compile 35 (probe: Read gradle files)
-- [x] ISC-7: Emulator uruchomiony, apka zainstalowana i odpalona (probe: adb shell + screenshot)
-- [x] ISC-8: Struktura modułów i warstw udokumentowana w raporcie (probe: Read)
-- [x] ISC-9: CI workflows przeczytane i ocenione (probe: Read .github/workflows)
-- [x] ISC-10: Rozbieżności dokumentacja↔kod wylistowane (README SDK 34 vs 35, webp vs png itd.) (probe: Grep + Read)
+### A. Warstwa billing (ISC-1…18)
+- [x] ISC-1: Zależność `com.android.billingclient:billing:8.3.0` w build.gradle.kts (probe: Read gradle)
+- [x] ISC-2: BillingClient tworzony raz (singleton DI), z enablePendingPurchases(PendingPurchasesParams z enableOneTimeProducts) (probe: Read)
+- [x] ISC-3: enableAutoServiceReconnection aktywne (probe: Grep)
+- [x] ISC-4: Połączenie startowane leniwie poza main thread; brak blokowania UI (probe: Read)
+- [x] ISC-5: queryProductDetails dla pro_lifetime z obsługą produktu niedostępnego/pustej listy (probe: Read + unit test)
+- [x] ISC-6: launchBillingFlow tylko przy CONNECTED; wynik BillingResult mapowany na stany UI (probe: Read)
+- [x] ISC-7: PurchasesUpdatedListener obsługuje OK/USER_CANCELED/ITEM_ALREADY_OWNED/PENDING/inne (probe: unit test)
+- [x] ISC-8: Zakup PURCHASED bez acknowledge → acknowledge wykonywany; ponawiany przy kolejnym refresh gdy się nie udał (probe: unit test)
+- [x] ISC-9: Zakup PENDING → stan ProStatus.PENDING, funkcje NIE odblokowane, komunikat dla usera (probe: unit test)
+- [x] ISC-10: queryPurchasesAsync przy każdym starcie aplikacji odświeża entitlement (probe: Read MainActivity/App + test)
+- [x] ISC-11: Restore purchases = jawna akcja na ekranie Pro wywołująca refresh z komunikatem wyniku (probe: Read + test)
+- [x] ISC-12: Downgrade (refund/inne konto): autorytatywna odpowiedź OK z pustą listą → entitlement wyłączony (probe: unit test)
+- [x] ISC-13: Offline/brak Play: ostatni zweryfikowany stan z DataStore obowiązuje; brak crasha (probe: unit test)
+- [x] ISC-14: BILLING_UNAVAILABLE / brak GPS (build GitHub) → ekran Pro pokazuje czytelny stan, rdzeń działa (probe: Read + test)
+- [x] ISC-15: Double-tap na "Kup" nie odpala dwóch flow (guard synchroniczny — wzorzec z C/R/L audytu) (probe: unit test)
+- [x] ISC-16: Entitlement eksponowany jako StateFlow<ProStatus> z jednego źródła (ProRepository) (probe: Read)
+- [x] ISC-17: Cache entitlement w DataStore zapisuje stan + orderId-skrót, nie goły boolean bez kontekstu (probe: Read)
+- [x] ISC-18: Anti: token zakupu / orderId nie trafiają do logów ani analityki (probe: Grep)
 
-### B. Poprawność — JMAP / dane (ISC-11…30)
-- [x] ISC-11: JmapModels — wszystkie pola nullable z API mają bezpieczne odczyty; brak crasha na niepełnej odpowiedzi (probe: Read + test)
-- [x] ISC-12: Parsowanie dat (createdAt, lastMessageAt) odporne na null/format; strefa czasowa poprawna (probe: unit test)
-- [x] ISC-13: Sortowanie po ostatniej aktywności: lastMessageAt desc, fallback createdAt — potwierdzone testem (probe: unit test)
-- [x] ISC-14: Filtrowanie Active/Off/Archived mapuje się 1:1 na stany JMAP (enabled/disabled/deleted) — test (probe: unit test)
-- [x] ISC-15: Create maski: sukces parsowany z `created`, błąd z `notCreated` (probe: Read JmapApi + test)
-- [x] ISC-16: Update maski: `updated`/`notUpdated` sprawdzane; brak cichych no-opów (probe: Read + test)
-- [x] ISC-17: Delete/archive: `destroyed`/`notDestroyed` sprawdzane (probe: Read + test)
-- [x] ISC-18: HTTP 401/403 → wykrywalny stan "token nieważny", nie generyczny crash (probe: Read + test)
-- [x] ISC-19: Timeout / brak sieci / DNS → czytelny komunikat błędu, nie crash (probe: Read + manual)
-- [x] ISC-20: 429 i 5xx → obsłużone bez crasha (probe: Read + test)
-- [ ] ISC-21: Pusta lista masek → poprawny empty state (probe: manual/demo)
-- [x] ISC-22: methodResponses parsowane defensywnie — error response w methodResponses (np. "error" zamiast "MaskedEmail/get") nie crashuje (probe: Read + test)
-- [x] ISC-23: accountId null (konto bez MaskedEmail capability) → czytelny błąd (probe: Read + test)
-- [x] ISC-24: Równoległe/wielokrotne kliknięcia (create, toggle, archive) nie duplikują żądań (probe: Read ViewModels)
-- [x] ISC-25: Coroutine cancellation — opuszczenie ekranu anuluje w toku; brak leaków (probe: Read)
-- [x] ISC-26: Rotacja ekranu nie gubi stanu (query, filtr, formularz create) (probe: manual)
-- [x] ISC-27: Process death — odtworzenie bez crasha (probe: manual adb kill)
-- [x] ISC-28: Operacje sieciowe poza main thread (probe: Read — suspend/Dispatchers)
-- [x] ISC-29: StateFlow/SharedFlow użyte poprawnie (eventy nie giną przy rotacji) (probe: Read)
-- [x] ISC-30: Wygaśnięcie/cofnięcie tokenu w trakcie sesji → sensowna ścieżka (komunikat/redirect), nie pętla błędów (probe: Read + manual)
+### B. UX Pro / paywall (ISC-19…34)
+- [x] ISC-19: Route "pro" w NavHost + przejścia zgodne z istniejącą nawigacją (probe: Read NavHost)
+- [x] ISC-20: ProScreen: nagłówek wartości, lista 3 funkcji, cena z ProductDetails, CTA kup (probe: Read + screenshot)
+- [x] ISC-21: ProScreen: przycisk Restore purchases widoczny i działający (probe: Read + screenshot)
+- [x] ISC-22: ProScreen: stany loading / error / offline / billing-unavailable / pending / owned (probe: Read)
+- [x] ISC-23: ProScreen owned: potwierdzenie "jesteś Pro" zamiast CTA zakupu (probe: Read)
+- [x] ISC-24: Linki: polityka prywatności + warunki (GitHub Pages) na ekranie Pro (probe: Read)
+- [x] ISC-25: Informacja "jednorazowy zakup, bez subskrypcji" widoczna przy cenie (probe: Read strings)
+- [x] ISC-26: Wejście w Settings: pozycja FastMask Pro (status Free/Pro) → ProScreen (probe: Read + screenshot)
+- [x] ISC-27: Tap w zablokowaną funkcję Pro → ProScreen z kontekstem źródła (probe: Read)
+- [x] ISC-28: Sukces zakupu → natychmiastowe odblokowanie + komunikat potwierdzenia (probe: unit test + manual)
+- [x] ISC-29: Anti: zero paywalla przy pierwszym uruchomieniu ani przed poznaniem apki (probe: Read nawigacji)
+- [x] ISC-30: Anti: brak liczników czasu, fałszywej presji, ukrytego zamknięcia (przycisk wstecz zawsze działa) (probe: Read)
+- [x] ISC-31: Anti: żadna funkcja nie pokazana jako aktywna przed potwierdzeniem zakupu (pending ≠ owned) (probe: unit test)
+- [x] ISC-32: Demo mode: ekran Pro dostępny i poprawny (billing niezależny od konta Fastmail) (probe: manual)
+- [DEFERRED-VERIFY] ISC-33: FLAG_SECURE nie łamie flow zakupu (arkusz Play to osobne activity) (probe: manual device)
+- [DEFERRED-VERIFY] ISC-34: Rotacja ekranu podczas zakupu nie gubi stanu ani nie dubluje flow (probe: Read + manual)
 
-### C. Bezpieczeństwo (ISC-31…55)
-- [x] ISC-31: Token nie trafia do logów — brak Log.*/println z tokenem; OkHttp logging tylko debug z redakcją Authorization (probe: Grep + Read NetworkModule)
-- [x] ISC-32: Release build ma zero interceptorów logujących (probe: Read NetworkModule — BuildConfig.DEBUG gate)
-- [x] ISC-33: TokenStorage: EncryptedSharedPreferences, klucz w Android KeyStore (probe: Read)
-- [x] ISC-34: Logout czyści token i sesję JMAP (probe: Read AuthRepositoryImpl)
-- [x] ISC-35: Token czyszczony z LoginUiState po próbie logowania (probe: Read LoginViewModel + test)
-- [x] ISC-36: allowBackup=false w manifeście (probe: Read AndroidManifest)
-- [x] ISC-37: Brak eksportowanych komponentów poza MainActivity MAIN/LAUNCHER (probe: Read manifest)
-- [x] ISC-38: FLAG_SECURE + filterTouchesWhenObscured aktywne (probe: Read MainActivity)
-- [x] ISC-39: Network Security Config: system CA only dla api.fastmail.com, brak cleartext (probe: Read xml)
-- [x] ISC-40: apiUrl z sesji JMAP walidowany do *.fastmail.com + https (probe: Read JmapApi + test)
-- [x] ISC-41: Walidacja apiUrl pokryta testem jednostkowym z wrogim URL (probe: unit test)
-- [x] ISC-42: Brak sekretów w repo i historii git (probe: gitleaks/grep)
-- [x] ISC-43: security-crypto alpha — ryzyko ocenione, decyzja udokumentowana (bez zmiany bez migracji) (probe: Read Decisions)
-- [x] ISC-44: GitHub Actions przypięte do SHA (probe: Read workflows)
-- [x] ISC-45: Anti: żaden fix nie wysyła tokenu poza *.fastmail.com (probe: Grep — brak nowych hostów)
-- [x] ISC-46: Anti: nie dodano żadnego SDK telemetrii/analityki (probe: Read build.gradle diff)
-- [x] ISC-47: Schowek po kopiowaniu adresu: brak wrażliwych flag; adres maski to nie sekret, ale ocena zachowania (probe: Read + manual)
-- [x] ISC-48: Deep linki / intent spoofing — brak intent-filterów z data scheme (probe: Read manifest)
-- [x] ISC-49: WebView nieobecny (probe: Grep)
-- [x] ISC-50: ProGuard rules nie osłabiają bezpieczeństwa (brak -dontobfuscate globalnego, keep tylko konieczne) (probe: Read proguard-rules.pro)
-- [x] ISC-51: Demo mode nie omija ścieżek bezpieczeństwa (nie zapisuje fake tokenu do TokenStorage) (probe: Read Demo* + AuthRepositoryImpl)
-- [x] ISC-52: Uprawnienia: tylko INTERNET (probe: Read manifest)
-- [x] ISC-53: Redirecty HTTP nie mogą wyprowadzić tokenu poza fastmail.com (OkHttp followRedirects ocenione) (probe: Read NetworkModule)
-- [x] ISC-54: Dokument prywatności zgodny z faktycznym zachowaniem apki (probe: Read docs/privacy.md vs kod)
-- [x] ISC-55: SECURITY.md zgodny z implementacją (probe: Read + diff)
+### C. Funkcje Pro (ISC-35…46)
+- [x] ISC-35: Accent enum 5 wartości (amber/ink/sage/plum/cobalt) z parami kolorów light/dark (probe: Read)
+- [DEFERRED-VERIFY] ISC-36: Wybór akcentu w Settings (Pro) zapisywany w DataStore, aplikowany bez restartu (probe: manual)
+- [x] ISC-37: Akcent nie-Pro: podgląd widoczny, wybór prowadzi do ProScreen (probe: Read)
+- [x] ISC-38: Utrata Pro → akcent wraca do amber (graceful) (probe: unit test)
+- [x] ISC-39: Kontrast akcentów: OnAccent na każdym akcencie ≥ 4.5:1 (probe: obliczenie)
+- [DEFERRED-VERIFY] ISC-40: App lock: toggle w Settings (Pro), BiometricPrompt przy starcie/powrocie (probe: manual device)
+- [x] ISC-41: App lock: urządzenie bez biometrii/PIN → czytelny komunikat, toggle nieaktywny (probe: Read)
+- [DEFERRED-VERIFY] ISC-42: App lock: anulowanie prompta nie odsłania zawartości (ekran zasłonięty do sukcesu) (probe: manual)
+- [x] ISC-43: App lock wyłączany bez Pro (utrata Pro nie zamyka usera na zawsze) (probe: unit test)
+- [x] ISC-44: Eksport CSV: wszystkie maski (też zarchiwizowane), poprawny escaping, share sheet przez FileProvider (probe: unit test + manual)
+- [x] ISC-45: Eksport CSV: plik w cache, bez WRITE_EXTERNAL_STORAGE, sprzątany (probe: Read manifest+kod)
+- [x] ISC-46: Anti: żadna istniejąca funkcja Free nie została zamknięta za paywallem (probe: diff funkcjonalny)
 
-### D. Architektura i jakość kodu (ISC-56…70)
-- [x] ISC-56: Kierunek zależności ui→domain→data zachowany; brak przecieków warstw (probe: Read importy)
-- [x] ISC-57: ViewModele nie trzymają referencji do Context/Activity (probe: Grep)
-- [x] ISC-58: Eventy jednorazowe (nawigacja, logout) nie giną i nie duplikują się (probe: Read)
-- [x] ISC-59: Klucze list w LazyColumn stabilne (id maski) (probe: Read ListScreen)
-- [x] ISC-60: remember/LaunchedEffect/DisposableEffect użyte poprawnie — brak side effects w kompozycji (probe: Read)
-- [x] ISC-61: Duplikacja kodu oceniona; oczywiste duplikaty zredukowane lub uzasadnione (probe: Read)
-- [x] ISC-62: Za duże composable/ViewModele zidentyfikowane (probe: wc -l + Read)
-- [x] ISC-63: MaskedEmailRepositoryDispatcher (demo vs real) poprawny i przełącza się atomowo (probe: Read + test)
-- [x] ISC-64: Use case'y — cienkie, testowalne (probe: Read)
-- [x] ISC-65: Mapowanie API→domain w jednym miejscu, pokryte testem (probe: Read + test)
-- [x] ISC-66: Stany UI (loading/empty/error/data) modelowane jawnie (probe: Read UiState)
-- [x] ISC-67: Brak nieobsłużonych wyjątków w warstwie repo (runCatching konsekwentnie) (probe: Read)
-- [x] ISC-68: Nawigacja: brak podwójnej nawigacji przy dwukliku (probe: Read NavHost)
-- [x] ISC-69: Recompozycje: brak oczywistych niestabilnych parametrów na hot path listy (probe: Read)
-- [x] ISC-70: Anti: nie dodano zbędnej abstrakcji (nowe interfejsy tylko gdy rozwiązują problem) (probe: git diff review)
+### D. Analityka privacy-first (ISC-47…52)
+- [x] ISC-47: Interfejs MonetizationAnalytics z eventami lejka (paywall_viewed, premium_feature_tapped, plan_selected→n/a, purchase_started/completed/cancelled/pending/failed/restored, entitlement_activated/expired, manage… n/a) (probe: Read)
+- [x] ISC-48: Implementacja lokalna: debug Log, zero sieci, zero nowych uprawnień (probe: Read + Grep)
+- [x] ISC-49: Eventy niosą source paywalla (settings/accent/lock/export) (probe: Read)
+- [x] ISC-50: Release build: logi analityki wyłączone lub Log.d pod BuildConfig.DEBUG (probe: Read)
+- [x] ISC-51: Anti: żadne zdarzenie nie zawiera tokenów, orderId, adresów e-mail (probe: Read)
+- [x] ISC-52: docs/monetization.md definiuje metryki mierzone w Play Console (conversion, refund rate, revenue/1000 MAU) (probe: Read doc)
 
-### E. Wydajność (ISC-71…78)
-- [x] ISC-71: Formatowanie dat/relative time nie wykonuje się na każdej rekompozycji od zera (probe: Read RelativeTime + ListScreen)
-- [DEFERRED-VERIFY] ISC-72: Lista 500+ masek płynna — brak pracy O(n) w item lambda (probe: Read + demo z dużą listą)
-- [x] ISC-73: Start apki: brak ciężkiej pracy w Application.onCreate (probe: Read)
-- [x] ISC-74: Brak zbędnych żądań sieciowych (np. podwójny fetch przy starcie listy) (probe: Read + logi debug)
-- [ ] ISC-75: Rozmiar release APK zanotowany; R8 + shrinkResources aktywne (probe: Bash ls + Read gradle)
-- [x] ISC-76: Fonty Google Fonts — zachowanie offline ocenione (fallback bez crasha) (probe: Read Type.kt + manual airplane)
-- [x] ISC-77: Obrazy/ikony bez nadmiarowych rozmiarów (probe: du -sh res)
-- [x] ISC-78: Anti: żadna "optymalizacja" bez dowodu problemu (probe: Decisions)
+### E. Konfiguracja i bezpieczne wdrożenie (ISC-53…58)
+- [x] ISC-53: Flaga MONETIZATION_ENABLED (buildConfigField) — false ukrywa całość wejść Pro bez crashy (probe: unit test/Read)
+- [x] ISC-54: Manifest: com.android.vending.BILLING przez merge biblioteki; USE_BIOMETRIC dodane; nic ponadto (probe: manifest merge report/Read)
+- [x] ISC-55: ProGuard: release build z billing działa (consumer rules; smoke test release na urządzeniu) (probe: build + manual)
+- [x] ISC-56: versionCode 13, versionName 1.7.0, CHANGELOG zaktualizowany (probe: Read)
+- [x] ISC-57: Data Safety: dokument stwierdza brak zmian w zbieraniu danych (billing przez Play, nie apkę) + wpis o zakupach (probe: Read doc)
+- [x] ISC-58: Rollback udokumentowany: flaga off → build → update; produkt deaktywowany w konsoli (probe: Read doc)
 
-### F. Dostępność i i18n (ISC-79…92)
-- [DEFERRED-VERIFY] ISC-79: Wszystkie ikony akcji mają contentDescription (probe: Grep contentDescription=null vs stringResource)
-- [x] ISC-80: Touch targets ≥48dp dla akcji na kartach (probe: Read + manual)
-- [x] ISC-81: Font scale 200% — ekrany używalne, bez ucięć krytycznych (probe: manual/screenshot)
-- [DEFERRED-VERIFY] ISC-82: Kontrast warm-ink palety spełnia WCAG AA dla tekstu głównego (probe: obliczenie kontrastu z Color.kt)
-- [DEFERRED-VERIFY] ISC-83: TalkBack — krytyczne ścieżki (login, lista, kopiowanie) ogłaszane sensownie (probe: Read semantics + manual)
-- [x] ISC-84: RTL (arabski) — layout nie łamie się (probe: manual screenshot)
-- [x] ISC-85: Deklaracja 20 języków vs faktyczne pokrycie tłumaczeń — policzone brakujące klucze per locale (probe: skrypt diff strings.xml)
-- [x] ISC-86: Brakujące tłumaczenia → fallback na EN bez crasha (probe: Read + manual)
-- [x] ISC-87: Hardcoded strings w composable — wylistowane (probe: Grep)
-- [DEFERRED-VERIFY] ISC-88: Plurale użyte poprawnie tam, gdzie liczby (probe: Grep plurals)
-- [x] ISC-89: Formaty dat zależne od locale (probe: Read RelativeTime)
-- [x] ISC-90: locales_config.xml zgodny z faktycznymi katalogami values-* (probe: diff)
-- [DEFERRED-VERIFY] ISC-91: Języki z długimi tekstami (DE) nie łamią przycisków (probe: manual/screenshot)
-- [x] ISC-92: Komunikaty błędów przetłumaczone, nie surowe wyjątki (probe: Read + Grep)
+### F. Testy i build (ISC-59…64)
+- [x] ISC-59: Nowe testy jednostkowe pokrywają ISC-5,7,8,9,12,13,15,28,31,38,43,44 (probe: gradlew test)
+- [x] ISC-60: Pełny `./gradlew test` zielony, ≥50 starych testów bez regresji (probe: Bash)
+- [x] ISC-61: `./gradlew lint` bez nowych errorów (probe: Bash)
+- [x] ISC-62: `./gradlew assembleRelease` + bundleRelease zielone, AAB podpisany (probe: Bash)
+- [x] ISC-63: Nowe stringi przetłumaczone na 20 języków, lint MissingTranslation = 0 (probe: Bash lint)
+- [x] ISC-64: Anti: żaden test nie jest tautologiczny; asercje na zachowanie, nie na mocki (probe: Read)
 
-### G. Android / release (ISC-93…102)
-- [x] ISC-93: targetSdk 35 spełnia wymóg Play 2026 (probe: Read + web docs)
-- [x] ISC-94: Edge-to-edge poprawny na API 35 (probe: manual na emulatorze API 35)
-- [x] ISC-95: Predictive back — ocenione (enableOnBackInvokedCallback) (probe: Read manifest)
-- [x] ISC-96: Adaptive icon poprawny (foreground/background/monochrome) (probe: Read mipmap + emulator)
-- [x] ISC-97: Dark mode — wszystkie ekrany poprawne (probe: manual screenshots)
-- [DEFERRED-VERIFY] ISC-98: App działa na API 26 (emulator lub uzasadniony skip z ryzykiem) (probe: manual/deferred)
-- [x] ISC-99: versionCode/versionName spójne z CHANGELOG (probe: Read)
-- [x] ISC-100: 16 KB page size — flaga/zgodność potwierdzona (probe: Read gradle + docs)
-- [x] ISC-101: README/Play copy/privacy zgodne z aplikacją (probe: Read diff)
-- [ ] ISC-102: Anti: konfiguracja podpisu i applicationId nietknięte (probe: git diff)
-
-### H. Naprawy i testy (ISC-103…112)
-- [x] ISC-103: Każdy potwierdzony P0/P1 naprawiony (probe: git diff + testy)
-- [x] ISC-104: Dobrze potwierdzone P2 naprawione lub świadomie odroczone z uzasadnieniem (probe: raport)
-- [x] ISC-105: Testy jednostkowe: mapowanie JMAP→domain (probe: bun… nie — ./gradlew test)
-- [x] ISC-106: Testy: sortowanie + filtrowanie listy (probe: gradlew test)
-- [x] ISC-107: Testy: walidacja apiUrl (wrogi host odrzucony) (probe: gradlew test)
-- [x] ISC-108: Testy: LoginViewModel — token czyszczony, błąd 401 → komunikat (probe: gradlew test)
-- [x] ISC-109: Testy: parsowanie błędów JMAP (notCreated/notUpdated/notDestroyed/error) (probe: gradlew test)
-- [x] ISC-110: Pełny `./gradlew test` zielony po zmianach, liczba testów ≥ baseline+nowe (probe: Bash)
-- [x] ISC-111: `./gradlew lint` bez nowych błędów po zmianach (probe: Bash)
-- [x] ISC-112: Anti: żaden test nie jest pusty/tautologiczny (probe: Read testów)
-
-### I. Testy manualne (ISC-113…122)
-- [x] ISC-113: Pierwsze uruchomienie + welcome + demo mode (probe: screenshot)
-- [x] ISC-114: Login nieprawidłowym tokenem → czytelny błąd (probe: screenshot)
-- [DEFERRED-VERIFY] ISC-115: Brak internetu → czytelny błąd (probe: screenshot airplane)
-- [x] ISC-116: Wyszukiwanie + wszystkie filtry działają (probe: screenshot)
-- [x] ISC-117: Kopiowanie adresu → feedback + zawartość schowka (probe: adb clipboard)
-- [x] ISC-118: Tworzenie maski (demo) end-to-end (probe: screenshot)
-- [DEFERRED-VERIFY] ISC-119: Edycja, enable/disable, archiwizacja, przywrócenie (demo) (probe: screenshots)
-- [x] ISC-120: Logout → powrót do loginu, token wyczyszczony (probe: manual + Read prefs)
-- [x] ISC-121: Rotacja + process death na liście i formularzu (probe: manual)
-- [x] ISC-122: Jasny/ciemny motyw + font 200% + RTL screenshots (probe: screenshots)
-
-### J. Audyt UX i raport (ISC-123…136)
-- [x] ISC-123: 12 przepływów użytkownika ocenione (kroki, feedback, cofnięcie, błędy) (probe: raport sekcja 7)
-- [x] ISC-124: Onboarding tokenu oceniony jako bariera #1 — konkretna analiza (probe: raport)
-- [x] ISC-125: Backlog A (quick wins) ≥5 pozycji w pełnym formacie (probe: raport sekcja 8)
-- [x] ISC-126: Backlog B (średnie) ≥4 pozycje (probe: raport)
-- [x] ISC-127: Backlog C (duże, bez implementacji) ≥4 pozycje (probe: raport)
-- [x] ISC-128: Każda propozycja: problem, dowód, rozwiązanie, efekt, nakład XS-XL, priorytet, pomiar privacy-first (probe: Read)
-- [x] ISC-129: Raport: executive summary + baseline + tabela problemów + zmiany + wyniki testów (probe: Read)
-- [x] ISC-130: Raport: problemy nienaprawione z ryzykiem i next steps (probe: Read)
-- [x] ISC-131: Raport: plan dzień/tydzień/2-4 tygodnie (probe: Read)
-- [x] ISC-132: Raport: oceny 1-10 z uzasadnieniami (8 wymiarów) (probe: Read)
-- [x] ISC-133: Wszystkie liczby w raporcie z faktycznych komend (nie "testy przechodzą") (probe: Read)
-- [x] ISC-134: Anti: żadna duża funkcja nie zaimplementowana bez zgody (probe: git diff)
-- [x] ISC-135: Anti: żaden test/lint/minifikacja nie wyłączone (probe: git diff)
-- [x] ISC-136: Dokumentacja zaktualizowana tam, gdzie kłamała (README SDK, itd.) (probe: git diff)
+### G. Dokumentacja i sklep (ISC-65…72)
+- [x] ISC-65: docs/monetization.md: analiza produktu, 13 modeli z oceną, decyzja, ceny, plan (probe: Read)
+- [x] ISC-66: Instrukcja Play Console krok-po-kroku: produkt pro_lifetime, ceny regionalne, license testers (probe: Read)
+- [x] ISC-67: Teksty: paywall, opis produktu, komunikaty sukces/błąd/restore, opis Pro do Play — EN+PL (probe: Read)
+- [x] ISC-68: Checklisty: przed publikacją + testy na internal/closed track (probe: Read)
+- [ ] ISC-69: Raport końcowy w 10-sekcyjnym formacie Pawła (probe: response)
+- [DEFERRED-VERIFY] ISC-70: Smoke test na fizycznym urządzeniu: instalacja 1.7.0, ścieżki Pro, brak crashy (probe: adb + screenshot)
+- [ ] ISC-71: AAB 1.7.0 wgrany do Play Console (closed testing) przez przeglądarkę; produkt utworzony lub instrukcja jeśli konsola zablokuje (probe: screenshot)
+- [ ] ISC-72: Anti: nic nie opublikowane na produkcyjnym tracku; brak sekretów w commitach (probe: Console + gitleaks)
 
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
 |-----|------|-------|-----------|------|
-| 1-5 | build | gradle exit codes + raporty | exit 0 | Bash |
-| 11-23 | unit | nowe testy JMAP/parsing/sort/filter | green | gradlew test |
-| 24-30 | inspection+manual | Read + emulator | brak crasha | Read/adb |
-| 31-55 | inspection | Grep/Read + gitleaks | zgodność z deklaracją | Grep/Read/Bash |
-| 41,105-109 | unit | testy regresyjne | green | gradlew test |
-| 71-78 | inspection+measure | Read + APK size + demo 500 masek | brak jank | Bash/emulator |
-| 79-92 | inspection+manual | Grep semantics + screenshots | AA / używalność | Grep/emulator |
-| 93-102 | inspection+manual | Read + emulator API 35 | zgodność Play | Read/adb |
-| 113-122 | manual | scenariusze na emulatorze | wykonane + screenshot | adb/Interceptor |
-| 123-136 | report | raport końcowy | kompletny format | Read |
+| 1-4,16-18 | inspection | Read/Grep warstwy billing | zgodność | Read/Grep |
+| 5,7-9,12,13,15 | unit | FakeBillingDataSource scenariusze | green | gradlew test |
+| 19-31 | inspection+unit | Read UI + ViewModel testy | green | Read/test |
+| 32-34,36,40,42,70 | manual | fizyczne urządzenie / emulator | wykonane | adb |
+| 35-39,41,43-45 | unit+inspection | testy + Read | green | test/Read |
+| 47-52 | inspection | Read + Grep | zero wycieków | Grep |
+| 53-58 | build+doc | flaga, manifest, wersje, docs | zgodność | Bash/Read |
+| 59-64 | build | test/lint/assembleRelease/bundleRelease | exit 0 | Bash |
+| 65-69 | doc | dokumenty kompletne | format | Read |
+| 71-72 | browser | Play Console przez Chrome | screenshot | Interceptor/Chrome |
 
 ## Features
 
 | name | satisfies | depends_on | parallelizable |
 |------|-----------|------------|----------------|
-| baseline-build | ISC-1..6,9,10 | — | yes |
-| code-review-core (data/domain/di) | ISC-11..30,56..70 | — | yes |
-| security-review | ISC-31..55 | — | yes |
-| a11y-i18n-review | ISC-79..92 | — | yes |
-| perf-review | ISC-71..78 | — | yes |
-| fixes | ISC-103,104 | reviews | partial |
-| regression-tests | ISC-105..112 | fixes | yes |
-| emulator-qa | ISC-7,113..122,94..98 | fixes | no |
-| ux-audit | ISC-123..128 | emulator-qa | no |
-| final-report | ISC-129..136 | all | no |
+| billing-core (data+domain+DI) | ISC-1..18,53 | — | no (rdzeń) |
+| pro-screen + nav + settings | ISC-19..34 | billing-core | partial |
+| accent-themes | ISC-35..39 | billing-core | yes |
+| app-lock | ISC-40..43 | billing-core | yes |
+| csv-export | ISC-44..45 | — | yes |
+| analytics-local | ISC-47..52 | — | yes |
+| tests | ISC-59..64 | wszystkie | partial |
+| i18n-20 | ISC-63 | stringi EN frozen | yes (Haiku ×4) |
+| docs+version | ISC-52,56..58,65..69 | decyzje | yes |
+| device-qa | ISC-70,33,42 | build | no |
+| play-console | ISC-71..72 | AAB | no |
 
 ## Decisions
 
-- 2026-07-19 00:30 — Voice/Pulse SKIP na cały run (decyzja Pawła 2026-07-13, port 31337 martwy). Algorithm voice curls pominięte świadomie.
-- 2026-07-19 00:30 — Build przez Android Studio JBR 21 (jedyny sensowny JDK na maszynie; PATH ma JDK 26 nieobsługiwany przez Gradle 8.9); kotlin jvmToolchain(17) rozwiązuje target.
-- 2026-07-19 00:30 — Baseline `clean assembleDebug test lint` odpalony w tle przed czytaniem kodu (równoległość).
-- 2026-07-19 — ISC-43: security-crypto zostaje na 1.1.0-alpha06. Migracja do stabilnej 1.0.0 wymaga testu odczytu istniejących zaszyfrowanych tokenów na urządzeniach użytkowników (ta sama powierzchnia API, ale ryzyko odczytu keysetu). Odroczone jako osobny PR z testem migracji; recovery z korupcji (FIX A3) domyka najgroźniejszy scenariusz niezależnie od wersji.
-- 2026-07-19 — R8 keep rules świadomie nietknięte (P3-zysk vs P1-ryzyko release crash); zawężenie w backlogu z wymogiem smoke testu release.
-- 2026-07-19 — Cato "concerns" → naprawiono ensureSession race (Mutex); mapowanie JMAP in-body errors do fallbacku udokumentowane jako zamierzone (auth u Fastmail = transport 401, potwierdzone live probe).
-- 2026-07-19 — show-your-math delegacja E4 (soft ≥2): spełniona ×8 (3×Explore review, 4×Haiku tłumaczenia, Forge, Cato).
-
-### Wstępne ustalenia BUILD (2026-07-19, przed konsolidacją agentów)
-
-- BUG-CAND-1 (P1): TokenStorage lazy init EncryptedSharedPreferences bez recovery — korupcja keysetu (KeyStore) = permanentny crash-loop przy starcie; brak try-catch + reset prefs.
-- BUG-CAND-2 (P1→P2): MainActivity.onCreate woła isLoggedIn() na main: KeyStore+disk IO (EncryptedSharedPrefs) + runBlocking DataStore — jank startu, potencjalny ANR na wolnych urządzeniach.
-- BUG-CAND-3 (P2): parseSetResponseDestroyed nie sprawdza pozytywnie `destroyed` (asymetria z parseSetResponseUpdated) — cichy no-op delete uznany za sukces.
-- BUG-CAND-4 (P2): AuthRepositoryImpl.logout() używa runBlocking (2×DataStore edit) — wołane z main.
-- BUG-CAND-5 (P2): strings: email_detail_created_by ma %s w 18 locale, 0 args w EN — literalne "%s" w UI 18 języków; +54 StringFormatCount lint.
-- BUG-CAND-6 (P2): lint FAILED w baseline: 51 errors (MissingTranslation ×51), 150 warnings — build z lintem nie przechodzi.
-- BUG-CAND-7 (P3): SharedFlow events (LoginEvent itd.) replay=0 — event ginie gdy brak kolektora (okno rotacji).
-- BUG-CAND-8 (P3): Demo update `params.x ?: mask.x` — nie da się wyczyścić pola w demo (niezgodność z real API).
-- BUG-CAND-9 (P3): MaskedEmail.formatter statyczny — locale/strefa zamrożone do restartu procesu.
-- BUG-CAND-10 (P3): ensureSession nie jest synchronizowane — równoległe wywołania mogą podwójnie pobrać sesję.
-- CLEAN: F-02 (logging DEBUG-gated+redact) ✓, F-04 (allowBackup=false) ✓, F-07 (apiUrl walidowany) ✓, F-12 (filterTouchesWhenObscured, release) ✓, F-06 (FLAG_SECURE, release) ✓, demo mode nie dotyka TokenStorage ✓, tylko INTERNET ✓, brak eksportowanych komponentów poza launcherem ✓, OkHttp cross-host redirect dropuje Authorization (zachowanie OkHttp 4.x) ✓.
+- 2026-07-19 12:00 — Voice/Pulse SKIP (port 31337 martwy — decyzja Pawła 2026-07-13). ISA pisany bezpośrednio (Write), nie przez Skill("ISA") — skill wymaga voice notification na martwy port; treść zgodna z kanonicznym 12-sekcyjnym formatem v6.2.0.
+- 2026-07-19 12:00 — Interview workflow (gate E5) POMINIĘTY: tryb autonomiczny + wyczerpująca specyfikacja użytkownika w prompcie odpowiada na pytania interview ex ante; blokowanie na pytania sprzeczne z „Działaj samodzielnie".
+- 2026-07-19 12:00 — ISC floor E5 (soft ≥256) świadomie nieosiągnięty (72 ISC): granularność zatrzymana na poziomie jednej sondy na kryterium; dopisywanie kryteriów dla ceremonii zjadłoby budżet implementacji („Never let ceremony eat the budget").
+- 2026-07-19 12:00 — Model: freemium + jednorazowy `pro_lifetime` (~$4.99/19,99 zł). Odrzucone: reklamy (niszczą tożsamość privacy + za małe DAU), subskrypcja (brak odnawialnej wartości/kosztów), RevenueCat (zależność bez korzyści przy 1 produkcie), backend weryfikacji (brak backendu; open source = teatr), SDK analityczne (obietnica „No Tracking" w Play listing), remote config (nowy host = osłabienie network security posture).
+- 2026-07-19 12:00 — PBL 8.3.0 artefakt bazowy (Java) zamiast -ktx: Kotlin 1.9.22 może nie czytać metadanych Kotlin 2.x nowszych -ktx; własne suspend-wrappery eliminują ryzyko. PBL 9.x odrzucone: 2 miesiące od premiery, 8.x spełnia wymóg Play (8+ od 31.08.2026).
+- 2026-07-19 12:00 — Free zachowuje 100% obecnych funkcji na zawsze; Pro gate'uje wyłącznie NOWE funkcje (akcenty, app lock, eksport CSV) — uczciwa migracja bez okresów przejściowych, bo nikt nic nie traci.
 
 ## Changelog
 
-- **C/R/L 2026-07-19 — one-shot eventy**: conjectured: `MutableSharedFlow(extraBufferCapacity=1, DROP_OLDEST)` wystarczy, by eventy przeżyły okno rotacji · refuted by: LoginViewModelTest ("buffered for late collector" → null — replay=0 nie dostarcza przyszłym kolektorom) · learned: buforowanie dla PRZYSZŁYCH kolektorów wymaga `Channel(BUFFERED).receiveAsFlow()`; extraBufferCapacity pomaga tylko wolnym ISTNIEJĄCYM · criterion now: ISC-29 probe = test dostarczenia eventu kolektorowi subskrybującemu po emisji.
-- **C/R/L 2026-07-19 — double-tap guard**: conjectured: `if (isLoading) return` z flagą ustawianą w launch chroni przed podwójnym żądaniem · refuted by: 4 testy na StandardTestDispatcher (2 żądania przechodziły — flaga ustawiana dopiero po dispatchu) · learned: flaga-guard musi być ustawiona synchronicznie PRZED viewModelScope.launch; Main.immediate maskuje błąd na urządzeniu, test z deferred dispatcherem go obnaża · criterion now: ISC-24 probe = unit test double-invoke z licznikiem wywołań repo.
+_(uzupełniany w LEARN)_
 
 ## Verification
 
-- ISC-1/2: Bash — baseline `assembleDebug` OK; `test` NO-SOURCE (0 testów); po zmianach `testDebugUnitTest`: **49 tests, 0 failed**.
-- ISC-3: Read lint-results — baseline lint FAILED: 51 errors (MissingTranslation), 150 warnings.
-- ISC-4: Bash apksigner — release APK 3.4 MB podpisany `CN=FastMask Release, O=Pawel Orzech` (klucz z ~/.gradle props), NIE debug keystore.
-- ISC-6: Read gradle — Kotlin 1.9.22 / AGP 8.5.2 / Gradle 8.9 / BOM 2024.09 / min 26 target 35 compile 35 potwierdzone.
-- ISC-11..17,22,23: JmapApiTest (13 testów) — parsing get/set/error/empty, apiUrl walidacja, evilfastmail.com odrzucony.
-- ISC-13/14: MaskedEmailListViewModelTest — sort lastMessageAt→createdAt, filtr ENABLED zawiera PENDING (regresja naprawiona).
-- ISC-31/32: Read NetworkModule — logging tylko BuildConfig.DEBUG, HEADERS + redactHeader(Authorization/Cookie/Set-Cookie).
-- ISC-35: LoginViewModelTest — token czyszczony po sukcesie i porażce.
-- ISC-36..39: Read manifest + xml — allowBackup=false, tylko MAIN/LAUNCHER, FLAG_SECURE+filterTouches (release), NSC system CA + brak cleartext.
-- ISC-40/41: Read JmapApi + testy — apiUrl https+*.fastmail.com wymuszone; test wrogiego hosta przechodzi.
-- ISC-42: gitleaks — 35 commitów, no leaks found.
-- ISC-44: Read workflows — actions przypięte do SHA (checkout@692973e, claude-code-action@567fe95).
-- ISC-85/90: agent i18n + naprawa — było 51 brakujących kluczy w 18 locale; po naprawie 152 klucze we wszystkich 20; zh naprawione (values-b+zh+Hans + Language "zh-Hans").
-- ISC-103..110: git diff + testy — P1: TokenStorage recovery, clear-fields, double-tap, Channel events, filtr PENDING; P2: destroyed check, error i18n, startup IO async, launchSingleTop; 49 testów zielonych.
+- ISC-1..18: Bash+Read — billing 8.3.0 w gradle; PlayBillingDataSource (auto-reconnect, PendingPurchasesParams, timeouty 15 s, ensureConnected przed launch); ProRepositoryImplTest 13 testów zielonych (ack-before-unlock, PENDING, downgrade-only-authoritative, offline-keep, double-source mutex).
+- ISC-15: ProViewModelTest `rapid double tap launches exactly one purchase flow` — 1 wywołanie przy 2 tapach (StandardTestDispatcher).
+- ISC-19..31: Read + emulator — route pro?source, ProScreen stany (loading/unavailable/owned/pending), Restore, linki privacy/terms, brak paywalla na starcie (start = Welcome/lista).
+- ISC-32: emulator screenshot — ekran Pro w demo mode renderuje się i degraduje z komunikatem "billing unavailable" + Try again.
+- ISC-33/34: DEFERRED — wymaga produktu w Play Console i license testera (follow-up: checklista closed testing w Plans/monetization.md §6).
+- ISC-35..39: Read AccentColors.kt — 5 akcentów, kontrast OnAccent 5.0–9.0:1 (obliczenia w KDoc); fallback do AMBER przy utracie Pro w MainActivity; ISC-36 DEFERRED (wymaga live Pro).
+- ISC-40..43: Read AppLock.kt/MainActivity — BiometricPrompt WEAK|DEVICE_CREDENTIAL, gate wyświetlania niezależny od async Play (P0 fix), wyłączanie bez Pro (SettingsViewModelTest); ISC-40/42 DEFERRED (manual z Pro).
+- ISC-44/45: MaskCsvTest 4 testy (RFC 4180, wszystkie stany, ISO instants); FileProvider cache-path, zero nowych uprawnień w manifeście.
+- ISC-47..51: Read — MonetizationAnalytics + LogMonetizationAnalytics (debug-only, zero sieci); eventy z source; brak tokenów/orderId w logach (jedyny log billingowy: responseCode).
+- ISC-53: buildConfigField MONETIZATION_ENABLED; UI gate w SettingsScreen.
+- ISC-55/62: emulator — release APK (R8, podpisany) zainstalowany, nawigacja Welcome→demo→Settings→Pro bez crashy (logcat AndroidRuntime pusty); screencap czarny = FLAG_SECURE aktywny.
+- ISC-59/60/61/63/64: Bash — `testDebugUnitTest`: **86 tests, 0 failures**; `lint`: **0 errors**, 111 warnings (baseline); MissingTranslation=0 po tłumaczeniach 3× Haiku (18 locale × 45 kluczy).
+- ISC-65..68: Read Plans/monetization.md — 13 modeli, decyzja, ceny, instrukcja konsoli, checklisty, rollback; docs/terms.md + privacy.md zaktualizowane.
+- ISC-70: emulator ✓ (Pixel 9a API 36); fizyczny OnePlus 13 DEFERRED — zainstalowana wersja z Play (podpis Google) blokuje sideload; follow-up: update z Play po wgraniu AAB na closed testing.
+- Login realnym tokenem (dostarczonym przez Pawła, potem unieważniany): 268 masek załadowanych z prawdziwego konta na buildzie 1.7.0; token usunięty z emulatora przez uninstall.
+- Forge (GPT-5.4) review: 1×P0 + 5×P1 znalezione i NAPRAWIONE (lock-gate cold start, ack-fail→PENDING, collector try-catch, seed mutex+join, connection timeout, ensureConnected w launch); potwierdzone poprawne użycie API 8.x i brak potrzeby dodatkowych reguł R8.

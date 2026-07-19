@@ -1,0 +1,50 @@
+package com.fastmask.domain.usecase
+
+import com.fastmask.domain.model.EmailState
+import com.fastmask.testutil.mask
+import java.time.Instant
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class MaskCsvTest {
+
+    @Test
+    fun `header comes first and covers all exported fields`() {
+        val csv = MaskCsv.build(emptyList())
+        assertEquals(
+            "email,state,for_domain,description,url,created_at,last_message_at",
+            csv.lineSequence().first(),
+        )
+    }
+
+    @Test
+    fun `every mask is exported including archived ones`() {
+        val csv = MaskCsv.build(
+            listOf(
+                mask("active", state = EmailState.ENABLED),
+                mask("off", state = EmailState.DISABLED),
+                mask("gone", state = EmailState.DELETED),
+            )
+        )
+        val lines = csv.trim().lines()
+        assertEquals(4, lines.size) // header + 3 masks
+        assertTrue(lines[3].startsWith("gone@fastmail.com,deleted"))
+    }
+
+    @Test
+    fun `fields with commas and quotes are RFC 4180 escaped`() {
+        val csv = MaskCsv.build(
+            listOf(mask("a", description = """shop, the "best" one"""))
+        )
+        assertTrue(csv.contains("\"shop, the \"\"best\"\" one\""))
+    }
+
+    @Test
+    fun `timestamps are exported as ISO instants`() {
+        val csv = MaskCsv.build(
+            listOf(mask("a", createdAt = Instant.parse("2026-01-02T03:04:05Z")))
+        )
+        assertTrue(csv.contains("2026-01-02T03:04:05Z"))
+    }
+}

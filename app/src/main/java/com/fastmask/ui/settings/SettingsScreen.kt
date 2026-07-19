@@ -27,13 +27,20 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,17 +59,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.FileProvider
 import com.fastmask.BuildConfig
 import com.fastmask.R
+import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
+import com.fastmask.domain.model.ProStatus
 import com.fastmask.ui.components.HairlineDivider
 import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
+import com.fastmask.ui.lock.canUseAppLock
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
+import com.fastmask.ui.theme.color
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,19 +85,52 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     onSignInFromDemo: () -> Unit,
+    onNavigateToPro: (String) -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val appMode by viewModel.appMode.collectAsState()
+    val proStatus by viewModel.proStatus.collectAsState()
+    val selectedAccent by viewModel.accent.collectAsState()
+    val appLockEnabled by viewModel.appLockEnabled.collectAsState()
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showLockUnavailableDialog by remember { mutableStateOf(false) }
     val extras = FastMaskExtras.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val exportFailedMessage = stringResource(R.string.settings_export_failed)
+    val exportChooserTitle = stringResource(R.string.settings_export_title)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is SettingsEvent.LoggedOut -> onLogout()
                 is SettingsEvent.GoToSignIn -> onSignInFromDemo()
+                is SettingsEvent.OpenPro -> onNavigateToPro(event.source)
+                is SettingsEvent.ExportFailed -> snackbarHostState.showSnackbar(exportFailedMessage)
+                is SettingsEvent.ShareCsv -> {
+                    withContext(Dispatchers.IO) {
+                        runCatching {
+                            val dir = File(context.cacheDir, "exports").apply { mkdirs() }
+                            val file = File(dir, "fastmask-masks.csv")
+                            file.writeText(event.csv)
+                            FileProvider.getUriForFile(
+                                context,
+                                "${BuildConfig.APPLICATION_ID}.fileprovider",
+                                file,
+                            )
+                        }
+                    }.onSuccess { uri ->
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/csv"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(send, exportChooserTitle))
+                    }.onFailure {
+                        snackbarHostState.showSnackbar(exportFailedMessage)
+                    }
+                }
             }
         }
     }
@@ -98,9 +146,49 @@ fun SettingsScreen(
         )
     }
 
+    if (uiState.showAccentDialog) {
+        AccentPickerDialog(
+            selected = selectedAccent,
+            onSelect = viewModel::onAccentSelected,
+            onDismiss = viewModel::onAccentDialogDismissed,
+        )
+    }
+
+    if (showLockUnavailableDialog) {
+        AlertDialog(
+            onDismissRequest = { showLockUnavailableDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = stringResource(R.string.settings_app_lock),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.settings_app_lock_unavailable),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            confirmButton = {
+                PillButton(
+                    text = stringResource(R.string.email_detail_delete_cancel),
+                    onClick = { showLockUnavailableDialog = false },
+                    variant = PillButtonVariant.Ghost,
+                )
+            },
+        )
+    }
+
     val backDesc = stringResource(R.string.navigate_back)
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { paddingValues ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,6 +243,64 @@ fun SettingsScreen(
                         onClick = viewModel::exitDemoMode,
                     )
                     Spacer(Modifier.height(8.dp))
+                }
+
+                if (BuildConfig.MONETIZATION_ENABLED) {
+                    val isPro = proStatus == ProStatus.PRO
+                    MonoLabel(text = stringResource(R.string.settings_pro_section))
+                    Spacer(Modifier.height(4.dp))
+                    SettingsRow(
+                        label = stringResource(R.string.settings_pro_row_title),
+                        value = if (isPro) {
+                            stringResource(R.string.settings_pro_value_active)
+                        } else {
+                            stringResource(R.string.settings_pro_value_free)
+                        },
+                        leading = Icons.Filled.WorkspacePremium,
+                        leadingTint = extras.accent,
+                        trailing = Icons.Filled.ChevronRight,
+                        onClick = viewModel::onProRowClick,
+                    )
+                    SettingsRow(
+                        label = stringResource(R.string.settings_accent),
+                        value = if (isPro) {
+                            stringResource(selectedAccent.displayNameRes)
+                        } else {
+                            stringResource(R.string.settings_accent_locked)
+                        },
+                        leading = Icons.Filled.Palette,
+                        trailing = Icons.Filled.ChevronRight,
+                        onClick = viewModel::onAccentClick,
+                    )
+                    SettingsToggleRow(
+                        label = stringResource(R.string.settings_app_lock),
+                        value = if (isPro) {
+                            stringResource(R.string.settings_app_lock_description)
+                        } else {
+                            stringResource(R.string.settings_accent_locked)
+                        },
+                        leading = Icons.Filled.Fingerprint,
+                        checked = appLockEnabled && isPro,
+                        onToggle = { enabled ->
+                            if (enabled && isPro && !canUseAppLock(context)) {
+                                showLockUnavailableDialog = true
+                            } else {
+                                viewModel.onAppLockToggled(enabled)
+                            }
+                        },
+                    )
+                    SettingsRow(
+                        label = stringResource(R.string.settings_export_title),
+                        value = if (isPro) {
+                            stringResource(R.string.settings_export_description)
+                        } else {
+                            stringResource(R.string.settings_accent_locked)
+                        },
+                        leading = Icons.Filled.FileDownload,
+                        trailing = Icons.Filled.ChevronRight,
+                        onClick = viewModel::onExportClick,
+                    )
+                    Spacer(Modifier.height(24.dp))
                 }
 
                 SettingsRow(
@@ -266,6 +412,135 @@ private fun SettingsRow(
         }
         HairlineDivider()
     }
+}
+
+@Composable
+private fun SettingsToggleRow(
+    label: String,
+    value: String,
+    leading: ImageVector,
+    checked: Boolean,
+    onToggle: (Boolean) -> Unit,
+) {
+    val extras = FastMaskExtras.current
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggle(!checked) }
+                .padding(vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = leading,
+                    contentDescription = null,
+                    tint = extras.inkSoft,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = extras.inkMuted,
+                )
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onToggle,
+            )
+        }
+        HairlineDivider()
+    }
+}
+
+internal val Accent.displayNameRes: Int
+    get() = when (this) {
+        Accent.AMBER -> R.string.accent_amber
+        Accent.INK -> R.string.accent_ink
+        Accent.SAGE -> R.string.accent_sage
+        Accent.PLUM -> R.string.accent_plum
+        Accent.COBALT -> R.string.accent_cobalt
+    }
+
+@Composable
+private fun AccentPickerDialog(
+    selected: Accent,
+    onSelect: (Accent) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val extras = FastMaskExtras.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(20.dp),
+        title = {
+            Text(
+                text = stringResource(R.string.settings_select_accent),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        },
+        text = {
+            Column {
+                Accent.entries.forEach { accent ->
+                    val rowBg = if (accent == selected) extras.surfaceAlt else Color.Transparent
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(rowBg)
+                            .clickable { onSelect(accent) }
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(accent.color),
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(accent.displayNameRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (accent == selected) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = extras.accent,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            PillButton(
+                text = stringResource(R.string.email_detail_delete_cancel),
+                onClick = onDismiss,
+                variant = PillButtonVariant.Ghost,
+            )
+        },
+    )
 }
 
 @Composable

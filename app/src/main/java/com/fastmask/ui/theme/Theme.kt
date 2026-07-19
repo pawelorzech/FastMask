@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import com.fastmask.domain.model.Accent
 
 private val LightColorScheme = lightColorScheme(
     primary = AccentAmber,
@@ -66,10 +67,15 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun FastMaskTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    accent: Accent = Accent.DEFAULT,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val extras = if (darkTheme) DarkExtras else LightExtras
+    val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val baseExtras = if (darkTheme) DarkExtras else LightExtras
+    val colorScheme =
+        if (accent == Accent.DEFAULT) baseScheme else baseScheme.copy(primary = accent.color)
+    val extras =
+        if (accent == Accent.DEFAULT) baseExtras else baseExtras.copy(accent = accent.color)
 
     CompositionLocalProvider(
         LocalStatusColors provides extras.status,

@@ -7,8 +7,8 @@ permalink: /privacy.html
 
 # Privacy Policy
 
-**Last updated: 2026-05-11**
-**Effective date: 2026-05-11**
+**Last updated: 2026-07-19**
+**Effective date: 2026-07-19**
 
 This Privacy Policy explains how the FastMask Android application ("FastMask", "the app", "we", "our") handles your personal information. FastMask is an unofficial, open‑source client for [Fastmail](https://www.fastmail.com) masked email addresses. It is not affiliated with or endorsed by Fastmail Pty Ltd.
 
@@ -31,6 +31,8 @@ FastMask processes only the minimum data needed to function as a Fastmail masked
 | **Fastmail API token** | Locally on your device, encrypted via Android `EncryptedSharedPreferences` (AES‑256‑GCM for values, AES‑256‑SIV for keys) | To authenticate JMAP API calls to `api.fastmail.com` on your behalf |
 | **Masked email addresses, descriptions, domain/URL associations, activity timestamps** | In memory while the app runs; persisted only on Fastmail's servers | To display, create, edit, and search your masked emails |
 | **Selected language** | Locally on your device via Android `DataStore` | To remember your language preference between sessions |
+| **App preferences (accent theme, app-lock on/off)** | Locally on your device via Android `DataStore` | To remember your personalization choices |
+| **FastMask Pro entitlement** | Locally on your device via Android `DataStore` — a status flag plus a SHA‑256 digest of the Google Play purchase token (never the token itself, never payment data) | To keep Pro features working offline; Google Play remains the source of truth and is re-checked at every app start |
 
 We do **not** collect or process any of the following:
 
@@ -39,6 +41,10 @@ We do **not** collect or process any of the following:
 - Device identifiers (advertising ID, IMEI, MAC address)
 - Location, contacts, photos, microphone, or any other phone resource
 - Your Fastmail account password (the app never sees it — only an API token you generate yourself)
+- Payment or card data (purchases are processed entirely by Google Play; the app only receives a purchase confirmation)
+- Biometric data (the optional app lock uses Android's system `BiometricPrompt`; authentication happens inside the operating system and the app never accesses fingerprint or face data)
+
+**CSV export** (a Pro feature) is generated locally, on your explicit request, and handed to the app *you* choose in the share sheet — nothing is uploaded anywhere by FastMask.
 
 ## 3. Legal Basis for Processing (GDPR)
 
@@ -48,7 +54,9 @@ For users in the European Economic Area, the legal basis for processing the data
 
 We do not share, sell, rent, or otherwise transfer your personal data to third parties.
 
-The only network destination contacted by the app is `api.fastmail.com` (Fastmail's JMAP API), which is reached **directly from your device** over HTTPS/TLS. The app uses Android's Network Security Config to restrict trust for that hostname to the system certificate authority store.
+If you buy the optional **FastMask Pro** in-app purchase, the transaction is handled by **Google Play** (Google LLC / Google Ireland Ltd.), acting as an independent data controller under its own privacy policy: <https://policies.google.com/privacy>. FastMask receives only a purchase confirmation — never your payment details.
+
+The only network destination contacted by the app itself is `api.fastmail.com` (Fastmail's JMAP API), which is reached **directly from your device** over HTTPS/TLS. The app uses Android's Network Security Config to restrict trust for that hostname to the system certificate authority store.
 
 Your Fastmail account, including all masked emails, is governed by Fastmail's own privacy policy: <https://www.fastmail.com/about/privacy/>.
 
