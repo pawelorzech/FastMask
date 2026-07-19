@@ -3,6 +3,23 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.7.2] — 2026-07-19
+
+### Changed
+- **New app icon** — an amber domino mask on the warm parchment background, replacing the `@`-with-a-face glyph. All layers regenerated (adaptive foreground, monochrome/themed, legacy + round mipmaps, Play Store 512px); splash screen picks it up automatically.
+
+### Internal
+- `versionCode` 14 → 15, `versionName` "1.7.1" → "1.7.2".
+
+## [1.7.1] — 2026-07-19
+
+### Fixed
+- CSV export hardening: fields starting with spreadsheet formula characters (`=`, `+`, `-`, `@`, tab) are neutralized with a leading apostrophe (OWASP CSV-injection mitigation), so a mask note never executes as a formula in Excel/Sheets.
+- Export cache keeps a single file — previous exports are deleted before writing a new one.
+
+### Internal
+- `versionCode` 13 → 14, `versionName` "1.7.0" → "1.7.1". (1.7.0/vc13 reached internal testing only.)
+
 ## [1.7.0] — 2026-07-19
 
 ### Added
