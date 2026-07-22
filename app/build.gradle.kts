@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.fastmask"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.fastmask"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 15
-        versionName = "1.7.2"
+        targetSdk = 36
+        versionCode = 16
+        versionName = "1.7.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

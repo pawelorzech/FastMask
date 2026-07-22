@@ -1,7 +1,5 @@
-Nowości w 1.7.0
+Nowości w 1.7.3
 
-• FastMask Pro — opcjonalny, jednorazowy zakup wspierający rozwój aplikacji
-• Pro: pięć motywów akcentów (Bursztyn, Atrament, Szałwia, Śliwka, Kobalt)
-• Pro: blokada biometryczna dla dodatkowej prywatności
-• Pro: eksport wszystkich masek do CSV
-• Wszystko, co było darmowe, pozostaje darmowe — bez subskrypcji, reklam i śledzenia
+• Aktualizacja pod najnowszego Androida (zgodność z Androidem 16)
+• Poprawki utrzymaniowe i stabilnościowe
+• Nadal zero śledzenia, bez reklam i subskrypcji

@@ -1,7 +1,5 @@
-What's new in 1.7.0
+What's new in 1.7.3
 
-• FastMask Pro — optional one-time purchase that supports development
-• Pro: five accent themes (Amber, Ink, Sage, Plum, Cobalt)
-• Pro: biometric app lock for extra privacy
-• Pro: export all masks as CSV
-• Everything that was free stays free — no subscriptions, no ads, no tracking
+• Updated for the latest Android (compatibility with Android 16)
+• Maintenance and stability improvements
+• Still zero tracking, no ads, no subscriptions
