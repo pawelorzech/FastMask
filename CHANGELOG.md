@@ -3,6 +3,15 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.7.3] — 2026-07-22
+
+### Changed
+- **Target API level bumped to 36 (Android 16)** to meet Google Play's requirement taking effect August 31, 2026 (target API must stay within one year of the latest Android release). No behavioural changes for users.
+
+### Internal
+- `compileSdk`/`targetSdk` 35 → 36, `android.suppressUnsupportedCompileSdk` 35 → 36 (AGP 8.5.2 / Gradle 8.9 unchanged).
+- `versionCode` 15 → 16, `versionName` "1.7.2" → "1.7.3".
+
 ## [1.7.2] — 2026-07-19
 
 ### Changed
