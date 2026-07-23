@@ -57,6 +57,13 @@ class MaskedEmailListViewModel @Inject constructor(
         viewModelScope.launch {
             updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = EmailState.ENABLED))
                 .onSuccess { loadMaskedEmails() }
+                .onFailure { error ->
+                    // Undo silently "succeeding" while the mask stays archived
+                    // is worse than an error banner — surface it.
+                    _uiState.update {
+                        it.copy(errorRes = UiErrors.messageRes(error, R.string.email_detail_error_update))
+                    }
+                }
         }
     }
 
