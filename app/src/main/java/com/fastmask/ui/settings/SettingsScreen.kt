@@ -5,6 +5,9 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,9 +56,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -405,11 +412,17 @@ private fun SettingsRow(
                 )
             }
             if (trailing != null) {
+                // Every trailing icon today is the directional ChevronRight,
+                // which has no AutoMirrored variant in this icons version —
+                // mirror it manually so RTL (Arabic) points "deeper", not back.
+                val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
                 Icon(
                     imageVector = trailing,
                     contentDescription = null,
                     tint = extras.inkMuted,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .graphicsLayer { if (isRtl) scaleX = -1f },
                 )
             }
         }
@@ -430,7 +443,10 @@ private fun SettingsToggleRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onToggle(!checked) }
+                // One toggleable row with a Switch role — a clickable row plus
+                // an independently-clickable Switch gives TalkBack two focus
+                // targets for a single setting and announces no state on the row.
+                .toggleable(value = checked, role = Role.Switch, onValueChange = onToggle)
                 .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -464,7 +480,9 @@ private fun SettingsToggleRow(
             }
             Switch(
                 checked = checked,
-                onCheckedChange = onToggle,
+                // Handled by the row's toggleable; null keeps the Switch a
+                // purely visual indicator instead of a second a11y target.
+                onCheckedChange = null,
             )
         }
         HairlineDivider()
@@ -507,7 +525,14 @@ private fun AccentPickerDialog(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .background(rowBg)
-                            .clickable { onSelect(accent) }
+                            // selectable + RadioButton role: without it TalkBack
+                            // reads five identical rows with no way to tell
+                            // which accent is currently active.
+                            .selectable(
+                                selected = accent == selected,
+                                role = Role.RadioButton,
+                                onClick = { onSelect(accent) },
+                            )
                             .padding(horizontal = 12.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -515,7 +540,7 @@ private fun AccentPickerDialog(
                             modifier = Modifier
                                 .size(20.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(accent.color),
+                                .background(accent.color(isSystemInDarkTheme())),
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
@@ -607,7 +632,9 @@ private fun LanguageRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(rowBg)
-            .clickable(onClick = onClick)
+            // TalkBack must announce which language is active, not just a list
+            // of identically-labelled buttons.
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
