@@ -72,10 +72,22 @@ fun FastMaskTheme(
 ) {
     val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val baseExtras = if (darkTheme) DarkExtras else LightExtras
-    val colorScheme =
-        if (accent == Accent.DEFAULT) baseScheme else baseScheme.copy(primary = accent.color)
-    val extras =
-        if (accent == Accent.DEFAULT) baseExtras else baseExtras.copy(accent = accent.color)
+    val colorScheme = if (accent == Accent.DEFAULT) {
+        baseScheme
+    } else {
+        baseScheme.copy(
+            primary = accent.color(darkTheme),
+            onPrimary = accent.onColor(darkTheme),
+        )
+    }
+    val extras = if (accent == Accent.DEFAULT) {
+        baseExtras
+    } else {
+        baseExtras.copy(
+            accent = accent.color(darkTheme),
+            onAccent = accent.onColor(darkTheme),
+        )
+    }
 
     CompositionLocalProvider(
         LocalStatusColors provides extras.status,
