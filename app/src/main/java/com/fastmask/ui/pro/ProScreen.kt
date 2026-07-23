@@ -121,10 +121,9 @@ fun ProScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 PillIconButton(
-                    onClick = {
-                        viewModel.onClosed()
-                        onNavigateBack()
-                    },
+                    // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
+                    // gesture/system back counts too, not just this button.
+                    onClick = onNavigateBack,
                     contentDescription = backDesc,
                 ) {
                     Icon(
@@ -227,7 +226,7 @@ fun ProScreen(
                                 product?.formattedPrice.orEmpty(),
                             ),
                             onClick = { activity?.let(viewModel::buy) },
-                            enabled = !uiState.purchaseInFlight,
+                            loading = uiState.purchaseInFlight,
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(Modifier.height(10.dp))
@@ -246,7 +245,7 @@ fun ProScreen(
                     PillButton(
                         text = stringResource(R.string.pro_restore),
                         onClick = viewModel::restore,
-                        enabled = !uiState.restoreInFlight,
+                        loading = uiState.restoreInFlight,
                         variant = PillButtonVariant.Ghost,
                         modifier = Modifier.fillMaxWidth(),
                     )

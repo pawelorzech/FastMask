@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -193,12 +194,16 @@ fun PillButton(
     modifier: Modifier = Modifier,
     variant: PillButtonVariant = PillButtonVariant.Primary,
     enabled: Boolean = true,
+    // In-flight state: shows a small spinner and disables the button. Payment
+    // and other slow actions must not look frozen while they work.
+    loading: Boolean = false,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     fullWidth: Boolean = false,
 ) {
     val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
+    val effectivelyEnabled = enabled && !loading
 
     val (bg, fg, borderColor) = when (variant) {
         PillButtonVariant.Primary -> Triple(extras.accent, extras.onAccent, Color.Transparent)
@@ -212,9 +217,9 @@ fun PillButton(
     val base = Modifier
         .then(if (fullWidth) Modifier.fillMaxWidth() else Modifier)
         .clip(shape)
-        .background(bg, shape)
+        .background(if (effectivelyEnabled) bg else bg.copy(alpha = bg.alpha * 0.55f), shape)
         .border(BorderStroke(1.dp, borderColor), shape)
-        .clickable(enabled = enabled) {
+        .clickable(enabled = effectivelyEnabled) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onClick()
         }
@@ -225,10 +230,18 @@ fun PillButton(
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        leading?.invoke()
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+                color = fg,
+            )
+        } else {
+            leading?.invoke()
+        }
         Text(
             text = text,
-            color = if (enabled) fg else fg.copy(alpha = 0.5f),
+            color = if (effectivelyEnabled) fg else fg.copy(alpha = 0.5f),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         )
         trailing?.invoke()

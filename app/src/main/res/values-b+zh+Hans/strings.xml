@@ -192,7 +192,8 @@
     <string name="pro_retry">重试</string>
     <string name="pro_owned">你是 Pro 用户。感谢支持 FastMask。</string>
     <string name="pro_purchase_success">Pro 已解锁。谢谢！</string>
-    <string name="pro_purchase_pending">支付待处理 — Pro 完成后解锁。</string>
+    <string name="pro_purchase_pending">付款待处理——完成后将解锁 Pro。通常需要几分钟，部分付款方式最长可能需要一天。</string>
+    <string name="action_ok">好的</string>
     <string name="pro_purchase_cancelled">购买已取消。</string>
     <string name="pro_purchase_failed">出错了。未向你收费。</string>
     <string name="pro_billing_unavailable">Google Play 此设备不可用。</string>

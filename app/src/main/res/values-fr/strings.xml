@@ -192,7 +192,8 @@
     <string name="pro_retry">Réessayer</string>
     <string name="pro_owned">Vous êtes Pro. Merci de soutenir FastMask.</string>
     <string name="pro_purchase_success">Pro déverrouillé. Merci !</string>
-    <string name="pro_purchase_pending">Paiement en attente — Pro sera déverrouillé une fois terminé.</string>
+    <string name="pro_purchase_pending">Paiement en attente — Pro sera débloqué une fois terminé. Cela prend généralement quelques minutes, mais peut durer jusqu\'à un jour selon le moyen de paiement.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Achat annulé.</string>
     <string name="pro_purchase_failed">Quelque chose s\'est mal passé. Vous n\'avez pas été facturé.</string>
     <string name="pro_billing_unavailable">Google Play n\'est pas disponible sur cet appareil.</string>

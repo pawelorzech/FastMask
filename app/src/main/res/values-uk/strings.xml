@@ -192,7 +192,8 @@
     <string name="pro_retry">Спробувати ще раз</string>
     <string name="pro_owned">У вас є Pro. Дякуємо за підтримку FastMask.</string>
     <string name="pro_purchase_success">Pro розблоковано. Дякуємо!</string>
-    <string name="pro_purchase_pending">Платіж в очікуванні — Pro розблокується після завершення.</string>
+    <string name="pro_purchase_pending">Платіж в обробці — Pro розблокується після його завершення. Зазвичай це триває кілька хвилин, з деякими способами оплати — до доби.</string>
+    <string name="action_ok">ОК</string>
     <string name="pro_purchase_cancelled">Покупка скасована.</string>
     <string name="pro_purchase_failed">Щось пішло не так. Вам не було виставлено рахунок.</string>
     <string name="pro_billing_unavailable">Біллінг Google Play недоступний на цьому пристрої.</string>

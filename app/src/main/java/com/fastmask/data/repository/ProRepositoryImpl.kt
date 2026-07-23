@@ -54,6 +54,10 @@ class ProRepositoryImpl @Inject constructor(
     private val _events = Channel<ProPurchaseEvent>(Channel.BUFFERED)
     override val events: Flow<ProPurchaseEvent> = _events.receiveAsFlow()
 
+    override fun drainPendingEvents() {
+        while (_events.tryReceive().isSuccess) { /* discard stale */ }
+    }
+
     /** Serializes every entitlement reconciliation (seed, refresh, buy flow). */
     private val reconcileMutex = Mutex()
 

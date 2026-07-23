@@ -192,7 +192,8 @@
     <string name="pro_retry">다시 시도</string>
     <string name="pro_owned">당신은 Pro입니다. FastMask를 지원해주셔서 감사합니다.</string>
     <string name="pro_purchase_success">Pro이 잠금 해제됨. 감사합니다!</string>
-    <string name="pro_purchase_pending">결제 대기 중 — 완료 시 Pro가 잠금 해제됩니다.</string>
+    <string name="pro_purchase_pending">결제 대기 중 — 완료되면 Pro가 잠금 해제됩니다. 보통 몇 분 걸리지만 일부 결제 수단은 최대 하루가 걸릴 수 있습니다.</string>
+    <string name="action_ok">확인</string>
     <string name="pro_purchase_cancelled">구매가 취소되었습니다.</string>
     <string name="pro_purchase_failed">문제가 발생했습니다. 청구되지 않았습니다.</string>
     <string name="pro_billing_unavailable">이 기기에서는 Google Play 청구를 사용할 수 없습니다.</string>

@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,10 @@ import com.fastmask.ui.theme.color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.TimeUnit
+
+/** Exports older than this are certainly no longer held by any share target. */
+private val EXPORT_MAX_AGE_MS = TimeUnit.HOURS.toMillis(1)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,10 +124,14 @@ fun SettingsScreen(
                     withContext(Dispatchers.IO) {
                         runCatching {
                             val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-                            // Previous exports are stale the moment a new one is
-                            // requested — keep the cache dir at a single file.
-                            dir.listFiles()?.forEach { it.delete() }
-                            val file = File(dir, "fastmask-masks.csv")
+                            // Delete only exports old enough that no share can
+                            // still be reading them — wiping everything could
+                            // truncate a URI a slow receiver (Drive upload)
+                            // still holds. Timestamped names keep each share's
+                            // content stable.
+                            val cutoff = System.currentTimeMillis() - EXPORT_MAX_AGE_MS
+                            dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
+                            val file = File(dir, "fastmask-masks-${System.currentTimeMillis()}.csv")
                             file.writeText(event.csv)
                             FileProvider.getUriForFile(
                                 context,
@@ -185,7 +194,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 PillButton(
-                    text = stringResource(R.string.email_detail_delete_cancel),
+                    text = stringResource(R.string.action_ok),
                     onClick = { showLockUnavailableDialog = false },
                     variant = PillButtonVariant.Ghost,
                 )
@@ -308,6 +317,7 @@ fun SettingsScreen(
                         },
                         leading = Icons.Filled.FileDownload,
                         trailing = Icons.Filled.ChevronRight,
+                        showProgress = uiState.exportInFlight,
                         onClick = viewModel::onExportClick,
                     )
                     Spacer(Modifier.height(24.dp))
@@ -372,6 +382,9 @@ private fun SettingsRow(
     onClick: () -> Unit,
     trailing: ImageVector? = null,
     leadingTint: Color? = null,
+    // Replaces the trailing icon with a small spinner (e.g. CSV export doing
+    // its network fetch) so a slow action doesn't look like a dead tap.
+    showProgress: Boolean = false,
 ) {
     val extras = FastMaskExtras.current
     Column {
@@ -411,7 +424,13 @@ private fun SettingsRow(
                     color = extras.inkMuted,
                 )
             }
-            if (trailing != null) {
+            if (showProgress) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = extras.inkMuted,
+                )
+            } else if (trailing != null) {
                 // Every trailing icon today is the directional ChevronRight,
                 // which has no AutoMirrored variant in this icons version —
                 // mirror it manually so RTL (Arabic) points "deeper", not back.
@@ -563,7 +582,7 @@ private fun AccentPickerDialog(
         },
         confirmButton = {
             PillButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
+                text = stringResource(R.string.action_ok),
                 onClick = onDismiss,
                 variant = PillButtonVariant.Ghost,
             )
@@ -611,7 +630,7 @@ private fun LanguagePickerDialog(
         },
         confirmButton = {
             PillButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
+                text = stringResource(R.string.action_ok),
                 onClick = onDismiss,
                 variant = PillButtonVariant.Ghost,
             )

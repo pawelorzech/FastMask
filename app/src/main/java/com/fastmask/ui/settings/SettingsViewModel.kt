@@ -67,7 +67,6 @@ class SettingsViewModel @Inject constructor(
         initialValue = false,
     )
 
-    private var exportInFlight = false
 
     init {
         loadCurrentLanguage()
@@ -153,13 +152,15 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "export")) }
             return
         }
-        if (exportInFlight) return
-        exportInFlight = true
+        // In UI state, not a private var: the export does a network fetch of
+        // every mask, and the row must show progress instead of looking dead.
+        if (_uiState.value.exportInFlight) return
+        _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
             exportMasksUseCase()
                 .onSuccess { csv -> _events.send(SettingsEvent.ShareCsv(csv)) }
                 .onFailure { _events.send(SettingsEvent.ExportFailed) }
-            exportInFlight = false
+            _uiState.update { it.copy(exportInFlight = false) }
         }
     }
 }
@@ -167,6 +168,7 @@ class SettingsViewModel @Inject constructor(
 data class SettingsUiState(
     val selectedLanguage: Language? = null,
     val showAccentDialog: Boolean = false,
+    val exportInFlight: Boolean = false,
 )
 
 sealed class SettingsEvent {

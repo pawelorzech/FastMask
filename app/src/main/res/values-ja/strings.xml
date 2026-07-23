@@ -192,7 +192,8 @@
     <string name="pro_retry">もう一度試す</string>
     <string name="pro_owned">あなたはProです。FastMaskをサポートしてくれてありがとう。</string>
     <string name="pro_purchase_success">Pro がアンロックされました。ありがとう!</string>
-    <string name="pro_purchase_pending">支払い保留中 — 完了後にPro がアンロックされます。</string>
+    <string name="pro_purchase_pending">お支払いが保留中です。完了するとProが有効になります。通常は数分ですが、お支払い方法によっては最大1日かかることがあります。</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">購入がキャンセルされました。</string>
     <string name="pro_purchase_failed">問題が発生しました。課金されていません。</string>
     <string name="pro_billing_unavailable">このデバイスではGoogle Play の課金が利用できません。</string>
