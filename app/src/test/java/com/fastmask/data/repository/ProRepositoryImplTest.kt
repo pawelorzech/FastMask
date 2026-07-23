@@ -197,6 +197,24 @@ class ProRepositoryImplTest {
         assertEquals(ProPurchaseEvent.Pending, repo.events.first())
     }
 
+    @Test
+    fun `buy flow OK without our product does not downgrade cached pro`() = runTest {
+        // The PurchasesUpdatedListener reports only that update's purchases,
+        // not the account's holdings — an OK update missing pro_lifetime is
+        // NOT an authoritative "you own nothing" and must never clobber the
+        // cached entitlement (only queryPurchases may downgrade).
+        coEvery { store.read() } returns ProStatus.PRO
+        val repo = repository()
+        advanceUntilIdle()
+        assertEquals(ProStatus.PRO, repo.proStatus.value)
+
+        billing.updates.emit(BillingResponse.Ok(emptyList()))
+        advanceUntilIdle()
+
+        assertEquals(ProStatus.PRO, repo.proStatus.value)
+        coVerify(exactly = 0) { store.write(ProStatus.FREE, any()) }
+    }
+
     // --- restore ---
 
     @Test

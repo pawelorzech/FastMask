@@ -54,6 +54,10 @@ class ProRepositoryImpl @Inject constructor(
     private val _events = Channel<ProPurchaseEvent>(Channel.BUFFERED)
     override val events: Flow<ProPurchaseEvent> = _events.receiveAsFlow()
 
+    override fun drainPendingEvents() {
+        while (_events.tryReceive().isSuccess) { /* discard stale */ }
+    }
+
     /** Serializes every entitlement reconciliation (seed, refresh, buy flow). */
     private val reconcileMutex = Mutex()
 
@@ -168,14 +172,21 @@ class ProRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Reconcile entitlement from an authoritative purchase list. [fromBuyFlow]
-     * only controls user-facing events — state handling is identical.
+     * Reconcile entitlement from a purchase list. Only `queryPurchases`
+     * ([fromBuyFlow] = false) is authoritative about ABSENCE: the buy-flow
+     * listener reports the purchases of that update, not the account's full
+     * holdings, so an OK update without our product must never downgrade.
+     * [fromBuyFlow] additionally controls user-facing events.
      */
     private suspend fun handlePurchases(
         purchases: List<BillingPurchase>,
         fromBuyFlow: Boolean,
     ) = reconcileMutex.withLock {
         val proPurchase = purchases.firstOrNull { PRO_LIFETIME in it.productIds }
+        if (fromBuyFlow && proPurchase == null) {
+            // Not ours, not authoritative — leave the cached entitlement alone.
+            return@withLock
+        }
         val previous = _proStatus.value
 
         val newStatus = when {

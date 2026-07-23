@@ -59,6 +59,25 @@ class MaskCsvTest {
     }
 
     @Test
+    fun `control-character-leading fields are neutralized too`() {
+        // OWASP: some spreadsheet parsers strip leading CR/LF/tab and then
+        // evaluate the remainder as a formula — quoting alone is not enough.
+        val csv = MaskCsv.build(
+            listOf(
+                mask(
+                    "a",
+                    description = "\r=HYPERLINK(\"http://evil\")",
+                    forDomain = "\n=1+1",
+                    url = "\t=cmd",
+                )
+            )
+        )
+        assertTrue(csv.contains("\"'\r=HYPERLINK(\"\"http://evil\"\")\""))
+        assertTrue(csv.contains("\"'\n=1+1\""))
+        assertTrue(csv.contains("'\t=cmd"))
+    }
+
+    @Test
     fun `timestamps are exported as ISO instants`() {
         val csv = MaskCsv.build(
             listOf(mask("a", createdAt = Instant.parse("2026-01-02T03:04:05Z")))

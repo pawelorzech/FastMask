@@ -38,7 +38,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -118,10 +121,9 @@ fun ProScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 PillIconButton(
-                    onClick = {
-                        viewModel.onClosed()
-                        onNavigateBack()
-                    },
+                    // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
+                    // gesture/system back counts too, not just this button.
+                    onClick = onNavigateBack,
                     contentDescription = backDesc,
                 ) {
                     Icon(
@@ -224,7 +226,7 @@ fun ProScreen(
                                 product?.formattedPrice.orEmpty(),
                             ),
                             onClick = { activity?.let(viewModel::buy) },
-                            enabled = !uiState.purchaseInFlight,
+                            loading = uiState.purchaseInFlight,
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(Modifier.height(10.dp))
@@ -243,7 +245,7 @@ fun ProScreen(
                     PillButton(
                         text = stringResource(R.string.pro_restore),
                         onClick = viewModel::restore,
-                        enabled = !uiState.restoreInFlight,
+                        loading = uiState.restoreInFlight,
                         variant = PillButtonVariant.Ghost,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -338,14 +340,19 @@ private fun OwnedCard() {
 
 @Composable
 private fun LinkText(text: String, onClick: () -> Unit) {
+    // Play-required legal links on a payment screen: give them a real 48 dp
+    // touch target and a button role for TalkBack; visual size is unchanged
+    // (the text centers inside the enlarged hit area).
     Text(
         text = text,
         style = MonoSmallStyle,
         color = FastMaskExtras.current.inkMuted,
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(4.dp),
+            .clickable(onClick = onClick, role = Role.Button)
+            .heightIn(min = 48.dp)
+            .wrapContentHeight(Alignment.CenterVertically)
+            .padding(horizontal = 4.dp),
     )
 }
 

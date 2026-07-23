@@ -107,6 +107,7 @@ fun MaskedEmailListScreen(
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     justArchivedId: String? = null,
+    justArchivedState: EmailState? = null,
     onArchivedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
@@ -122,18 +123,29 @@ fun MaskedEmailListScreen(
     val undoLabel = stringResource(R.string.list_undo)
 
     // A mask was just archived on the detail screen; offer an Undo snackbar here,
-    // where the mask reappears. Consume the signal so it doesn't re-fire on
-    // recomposition or return.
+    // where the mask reappears. The id must be latched into local state BEFORE
+    // consuming: consuming writes null into the SavedStateHandle, which
+    // recomposes, and a LaunchedEffect keyed directly on the consumed value
+    // would be cancelled mid-showSnackbar — dismissing the snackbar after a
+    // single frame and making Undo untappable.
+    var pendingUndo by remember { mutableStateOf<Pair<String, EmailState>?>(null) }
     LaunchedEffect(justArchivedId) {
-        val archivedId = justArchivedId ?: return@LaunchedEffect
-        onArchivedConsumed()
+        if (justArchivedId != null) {
+            pendingUndo = justArchivedId to (justArchivedState ?: EmailState.ENABLED)
+            onArchivedConsumed()
+        }
+    }
+    LaunchedEffect(pendingUndo) {
+        val (archivedId, previousState) = pendingUndo ?: return@LaunchedEffect
+        // Long, not Short: this snackbar is an undo affordance — 4 s is a tight
+        // window to notice it mid screen transition and reach the action.
         val result = snackbarHostState.showSnackbar(
             message = archivedMessage,
             actionLabel = undoLabel,
-            duration = SnackbarDuration.Short,
+            duration = SnackbarDuration.Long,
         )
         if (result == SnackbarResult.ActionPerformed) {
-            viewModel.restoreMask(archivedId)
+            viewModel.restoreMask(archivedId, previousState)
         }
     }
 

@@ -192,7 +192,8 @@
     <string name="pro_retry">ลองอีกครั้ง</string>
     <string name="pro_owned">คุณใช้ Pro แล้ว ขอบคุณที่สนับสนุน FastMask</string>
     <string name="pro_purchase_success">ปลดล็อก Pro แล้ว ขอบคุณ!</string>
-    <string name="pro_purchase_pending">การชำระเงินค้างอยู่ — Pro ปลดล็อกเมื่อเสร็จสิ้น</string>
+    <string name="pro_purchase_pending">การชำระเงินอยู่ระหว่างดำเนินการ — Pro จะปลดล็อกเมื่อเสร็จสิ้น โดยปกติใช้เวลาไม่กี่นาที บางวิธีการชำระเงินอาจใช้เวลาถึงหนึ่งวัน</string>
+    <string name="action_ok">ตกลง</string>
     <string name="pro_purchase_cancelled">ยกเลิกการซื้อแล้ว</string>
     <string name="pro_purchase_failed">มีบางอย่างผิดปกติ คุณไม่ถูกเรียกเก็บเงิน</string>
     <string name="pro_billing_unavailable">การเรียกเก็บเงิน Google Play ไม่พร้อมใช้งานบนอุปกรณ์นี้</string>

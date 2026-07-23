@@ -192,7 +192,8 @@
     <string name="pro_retry">Erneut versuchen</string>
     <string name="pro_owned">Du bist Pro. Danke, dass du FastMask unterstützt.</string>
     <string name="pro_purchase_success">Pro freigeschaltet. Danke!</string>
-    <string name="pro_purchase_pending">Zahlung läuft — Pro wird freigeschaltet, wenn es abgeschlossen ist.</string>
+    <string name="pro_purchase_pending">Zahlung ausstehend — Pro wird nach Abschluss freigeschaltet. Meist dauert das Minuten, bei manchen Zahlungsarten bis zu einem Tag.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Kauf storniert.</string>
     <string name="pro_purchase_failed">Es ist etwas schief gelaufen. Dir wurde nichts berechnet.</string>
     <string name="pro_billing_unavailable">Google Play Abrechnung ist auf diesem Gerät nicht verfügbar.</string>

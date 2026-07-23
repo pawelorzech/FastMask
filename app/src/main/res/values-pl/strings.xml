@@ -194,7 +194,8 @@
     <string name="pro_retry">Spróbuj ponownie</string>
     <string name="pro_owned">Masz Pro. Dziękuję za wspieranie FastMask.</string>
     <string name="pro_purchase_success">Pro odblokowane. Dziękuję!</string>
-    <string name="pro_purchase_pending">Płatność w toku — Pro odblokuje się po jej zakończeniu.</string>
+    <string name="pro_purchase_pending">Płatność oczekuje — Pro odblokuje się po jej zakończeniu. Zwykle trwa to kilka minut, przy niektórych metodach płatności do doby.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Zakup anulowany.</string>
     <string name="pro_purchase_failed">Coś poszło nie tak. Nie pobrano opłaty.</string>
     <string name="pro_billing_unavailable">Płatności Google Play są niedostępne na tym urządzeniu.</string>

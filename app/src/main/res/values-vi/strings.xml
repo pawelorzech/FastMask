@@ -192,7 +192,8 @@
     <string name="pro_retry">Thử lại</string>
     <string name="pro_owned">Bạn có Pro. Cảm ơn bạn đã hỗ trợ FastMask.</string>
     <string name="pro_purchase_success">Pro đã mở khóa. Cảm ơn!</string>
-    <string name="pro_purchase_pending">Thanh toán đang chờ xử lý — Pro sẽ mở khóa khi hoàn tất.</string>
+    <string name="pro_purchase_pending">Thanh toán đang chờ xử lý — Pro sẽ mở khóa khi hoàn tất. Thường mất vài phút, một số phương thức thanh toán có thể mất tới một ngày.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Hủy mua hàng.</string>
     <string name="pro_purchase_failed">Có điều gì đó không đúng. Bạn chưa bị tính phí.</string>
     <string name="pro_billing_unavailable">Thanh toán Google Play không khả dụng trên thiết bị này.</string>

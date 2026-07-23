@@ -192,7 +192,8 @@
     <string name="pro_retry">Coba lagi</string>
     <string name="pro_owned">Kamu Pro. Terima kasih mendukung FastMask.</string>
     <string name="pro_purchase_success">Pro terbuka. Terima kasih!</string>
-    <string name="pro_purchase_pending">Pembayaran tertunda — Pro akan terbuka setelah selesai.</string>
+    <string name="pro_purchase_pending">Pembayaran tertunda — Pro akan terbuka setelah selesai. Biasanya perlu beberapa menit, dengan sebagian metode pembayaran bisa sampai satu hari.</string>
+    <string name="action_ok">Oke</string>
     <string name="pro_purchase_cancelled">Pembelian dibatalkan.</string>
     <string name="pro_purchase_failed">Ada yang salah. Kamu tidak dikenai biaya.</string>
     <string name="pro_billing_unavailable">Penagihan Google Play tidak tersedia di perangkat ini.</string>

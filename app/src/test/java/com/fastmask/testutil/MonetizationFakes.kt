@@ -89,6 +89,12 @@ class FakeProRepository(
     val eventsChannel = Channel<ProPurchaseEvent>(Channel.BUFFERED)
     override val events: Flow<ProPurchaseEvent> = eventsChannel.receiveAsFlow()
 
+    var drainCalls = 0
+    override fun drainPendingEvents() {
+        drainCalls++
+        while (eventsChannel.tryReceive().isSuccess) { /* discard */ }
+    }
+
     var product: ProProduct? = testProduct
     var refreshResult: RefreshResult = RefreshResult.OK
     var purchaseLaunch: PurchaseLaunch = PurchaseLaunch.LAUNCHED

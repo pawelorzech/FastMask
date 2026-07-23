@@ -82,15 +82,31 @@ class MainActivity : AppCompatActivity() {
         // disk read) and DataStore — both blocking I/O. It runs off the main
         // thread here; the splash stays up until the destination is known, so
         // there is no flash of the wrong screen.
+        // Reconcile the entitlement against Play every time the app comes to
+        // the foreground (Billing guidance): catches PENDING purchases completed
+        // while backgrounded, purchases made on another device, and retries a
+        // failed acknowledgement — an unacknowledged purchase is auto-refunded
+        // by Play after ~3 days, so the retry cadence matters. Deliberately NOT
+        // gated on MONETIZATION_ENABLED: the kill-switch hides entry points,
+        // but a purchase that was already charged must still get acknowledged.
+        lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                lifecycleScope.launch { proRepository.refresh() }
+            }
+        })
+
         lifecycleScope.launch {
             var lockAtLaunch = false
+            var cachedPro = false
+            var cachedAccent = Accent.DEFAULT
             val startDestination = try {
                 withContext(Dispatchers.IO) {
                     // App lock engages from the last VERIFIED entitlement (cache):
-                    // the Play reconciliation below may race this read, and a
-                    // privacy gate should not wait on Play.
-                    lockAtLaunch = settingsDataStore.appLockEnabled.first() &&
-                        proEntitlementStore.read() == ProStatus.PRO
+                    // the Play reconciliation may race this read, and a privacy
+                    // gate should not wait on Play.
+                    cachedPro = proEntitlementStore.read() == ProStatus.PRO
+                    lockAtLaunch = settingsDataStore.appLockEnabled.first() && cachedPro
+                    cachedAccent = settingsDataStore.accent.first()
                     if (authRepository.isLoggedIn()) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
                 }
             } catch (e: Exception) {
@@ -100,30 +116,39 @@ class MainActivity : AppCompatActivity() {
             }
             // A config change (rotation) recreates the Activity mid-session;
             // don't demand a fresh unlock when the previous instance was open.
-            locked.value = if (savedInstanceState != null) {
+            // Only a bundle from THIS process may be trusted: on API < 28
+            // onSaveInstanceState runs BEFORE onStop, so a bundle persisted by a
+            // process that later died in the background carries locked=false
+            // from before the ON_STOP re-lock — restoring it would bypass the
+            // lock. A process token distinguishes rotation from process death.
+            val sameProcess =
+                savedInstanceState?.getString(KEY_PROCESS_TOKEN) == processToken
+            locked.value = if (savedInstanceState != null && sameProcess) {
                 savedInstanceState.getBoolean(KEY_LOCKED, lockAtLaunch)
             } else {
                 lockAtLaunch
             }
             isReady = true
 
-            if (BuildConfig.MONETIZATION_ENABLED) {
-                // Reconcile the entitlement against Play in the background.
-                launch { proRepository.refresh() }
-            }
-
             setContent {
                 val proStatus by proRepository.proStatus.collectAsState()
-                val accentPref by settingsDataStore.accent.collectAsState(initial = Accent.DEFAULT)
+                val accentPref by settingsDataStore.accent.collectAsState(initial = cachedAccent)
                 // Accents are a Pro feature — losing Pro gracefully falls back
                 // to the classic amber without touching the stored preference.
-                val accent = if (proStatus.isPro) accentPref else Accent.DEFAULT
+                // The cache snapshot from the IO read above covers the first
+                // frames before the repository's async seed lands, so a Pro
+                // user's accent doesn't flash amber on every cold start. (If
+                // Play revokes Pro mid-session the accent lingers until the
+                // next launch — cosmetic, self-correcting.)
+                val accent = if (proStatus.isPro || (proStatus == ProStatus.FREE && cachedPro)) {
+                    accentPref
+                } else {
+                    Accent.DEFAULT
+                }
 
                 val appLockEnabled by settingsDataStore.appLockEnabled
                     .collectAsState(initial = lockAtLaunch)
-                // Re-locking requires an active Pro entitlement…
-                val lockActive = appLockEnabled && proStatus.isPro
-                // …but the DISPLAY gate must not wait for the async Play/store
+                // The DISPLAY gate must not wait for the async Play/store
                 // read: on a locked cold start, proStatus still holds its
                 // initial FREE for the first frames — keying the gate on it
                 // would flash the mask list before the lock lands (P0).
@@ -131,9 +156,14 @@ class MainActivity : AppCompatActivity() {
                 val isLocked = locked.value && appLockEnabled
 
                 // Re-engage the lock whenever the app leaves the foreground.
-                DisposableEffect(lockActive) {
+                // Keyed on the DataStore flag alone (not proStatus): proStatus
+                // seeds asynchronously, and an observer waiting for it would
+                // miss a backgrounding in the first moments after a cold-start
+                // unlock. An enabled flag implies Pro at the time of enabling;
+                // the toggle itself stays usable without Pro (anti-lockout).
+                DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
-                        if (event == Lifecycle.Event.ON_STOP && lockActive) {
+                        if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
                             locked.value = true
                         }
                     }
@@ -146,13 +176,17 @@ class MainActivity : AppCompatActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
+                        // The controller lives OUTSIDE the lock gate: a
+                        // lock/unlock cycle must not destroy the back stack and
+                        // the screen ViewModels (half-typed create form, unsaved
+                        // edit). Only the NavHost content is gated.
+                        val navController = rememberNavController()
+
                         if (isLocked) {
                             // Content behind the gate is not composed at all.
                             LockScreen(onUnlockClick = ::requestUnlock)
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
-                            val navController = rememberNavController()
-
                             FastMaskNavHost(
                                 navController = navController,
                                 startDestination = startDestination
@@ -167,6 +201,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_LOCKED, locked.value)
+        outState.putString(KEY_PROCESS_TOKEN, processToken)
     }
 
     private fun requestUnlock() {
@@ -182,5 +217,13 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val KEY_LOCKED = "fastmask_locked"
+        const val KEY_PROCESS_TOKEN = "fastmask_process_token"
+
+        /**
+         * Identifies this OS process. A saved-instance bundle whose token does
+         * not match was written by a previous process (background process
+         * death) — its lock flag is stale and must not be trusted.
+         */
+        val processToken: String = java.util.UUID.randomUUID().toString()
     }
 }

@@ -73,7 +73,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
-    onArchived: (String) -> Unit,
+    onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
@@ -101,7 +101,7 @@ fun MaskedEmailDetailScreen(
                     // Navigate straight back and let the list host the "archived —
                     // undo" snackbar, so the undo action lives where the mask
                     // reappears. No blocking snackbar here.
-                    onArchived(event.id)
+                    onArchived(event.id, event.previousState)
                 }
             }
         }

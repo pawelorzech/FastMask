@@ -192,7 +192,8 @@
     <string name="pro_retry">আবার চেষ্টা করুন</string>
     <string name="pro_owned">আপনি Pro। FastMask সমর্থনের জন্য ধন্যবাদ।</string>
     <string name="pro_purchase_success">Pro আনলক করা হয়েছে। ধন্যবাদ!</string>
-    <string name="pro_purchase_pending">পেমেন্ট অপেক্ষিত — Pro সম্পূর্ণ হলে আনলক করা হবে।</string>
+    <string name="pro_purchase_pending">পেমেন্ট মুলতুবি — সম্পূর্ণ হলে Pro আনলক হবে। সাধারণত কয়েক মিনিট লাগে, কিছু পেমেন্ট পদ্ধতিতে এক দিন পর্যন্ত লাগতে পারে।</string>
+    <string name="action_ok">ঠিক আছে</string>
     <string name="pro_purchase_cancelled">ক্রয় বাতিল করা হয়েছে।</string>
     <string name="pro_purchase_failed">কিছু ভুল হয়েছে। আপনাকে চার্জ করা হয়নি।</string>
     <string name="pro_billing_unavailable">Google Play এই ডিভাইসে উপলব্ধ নয়।</string>

@@ -21,6 +21,14 @@ interface ProRepository {
     /** One-time purchase lifecycle events for UI feedback. */
     val events: Flow<ProPurchaseEvent>
 
+    /**
+     * Discard events buffered while no UI was collecting. Called when the
+     * paywall opens so a purchase resolution from a long-closed session
+     * doesn't replay as a stale snackbar days later. Entitlement state itself
+     * always flows through [proStatus], never through events.
+     */
+    fun drainPendingEvents()
+
     /** Re-query Play for purchases and reconcile the entitlement. */
     suspend fun refresh(): RefreshResult
 

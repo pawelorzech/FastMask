@@ -1,5 +1,8 @@
-What's new in 1.7.3
+What's new in 1.8.0
 
-• Updated for the latest Android (compatibility with Android 16)
-• Maintenance and stability improvements
+• Undo after archiving a mask works reliably and restores its previous state
+• Purchases completed in the background now unlock Pro without a restart
+• Pro accent colors are properly legible in the dark theme
+• Clearer progress on Buy, Restore and CSV export
+• Accessibility: better screen-reader support in Settings, RTL fixes
 • Still zero tracking, no ads, no subscriptions

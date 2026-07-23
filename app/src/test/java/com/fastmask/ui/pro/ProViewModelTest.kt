@@ -13,6 +13,7 @@ import com.fastmask.testutil.MainDispatcherRule
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -35,6 +36,22 @@ class ProViewModelTest {
         analytics = analytics,
         savedStateHandle = SavedStateHandle(mapOf("source" to source)),
     )
+
+    @Test
+    fun `stale events buffered before the paywall opened are drained not replayed`() = runTest {
+        // A purchase resolution from a long-closed session must not fire a
+        // snackbar days later — entitlement state travels via proStatus.
+        repository.eventsChannel.trySend(ProPurchaseEvent.Cancelled)
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        assertEquals(1, repository.drainCalls)
+        val events = mutableListOf<ProUiEvent>()
+        val job = launch { vm.events.collect { events.add(it) } }
+        advanceUntilIdle()
+        assertEquals(emptyList<ProUiEvent>(), events)
+        job.cancel()
+    }
 
     @Test
     fun `paywall view is tracked with its source`() = runTest {
@@ -129,9 +146,16 @@ class ProViewModelTest {
     }
 
     @Test
-    fun `paywall close is tracked`() = runTest {
+    fun `paywall close is tracked from onCleared so gesture back counts too`() = runTest {
         val vm = viewModel()
-        vm.onClosed()
+        advanceUntilIdle()
+
+        // onCleared is framework-invoked; clearing the owning store is the
+        // public path that triggers it (same as any paywall dismissal).
+        androidx.lifecycle.ViewModelStore().apply {
+            put("vm", vm)
+            clear()
+        }
 
         assertEquals(
             MonetizationEvent.PAYWALL_CLOSED,
