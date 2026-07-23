@@ -179,7 +179,15 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
             deleteMaskedEmailUseCase(emailId).fold(
                 onSuccess = {
-                    _events.send(MaskedEmailDetailEvent.Deleted(emailId))
+                    // Carry the pre-archive state so the list's Undo can put
+                    // the mask back EXACTLY as it was — a DISABLED mask must
+                    // not come back accepting mail.
+                    _events.send(
+                        MaskedEmailDetailEvent.Deleted(
+                            id = emailId,
+                            previousState = _uiState.value.email?.state ?: EmailState.ENABLED,
+                        )
+                    )
                 },
                 onFailure = { error ->
                     _uiState.update {
@@ -207,5 +215,5 @@ data class MaskedEmailDetailUiState(
 
 sealed class MaskedEmailDetailEvent {
     data object Updated : MaskedEmailDetailEvent()
-    data class Deleted(val id: String) : MaskedEmailDetailEvent()
+    data class Deleted(val id: String, val previousState: EmailState) : MaskedEmailDetailEvent()
 }

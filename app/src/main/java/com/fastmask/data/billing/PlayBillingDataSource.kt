@@ -66,8 +66,11 @@ class PlayBillingDataSource @Inject constructor(
                 } else {
                     BillingResponse.Error(billingResult.toErrorCode())
                 }
-                // Listener fires on the main thread; hand off to the app scope.
-                scope.launch { _purchaseUpdates.emit(response) }
+                // Emit synchronously from the listener thread: launching a
+                // coroutine per callback can reorder two rapid updates (e.g.
+                // PENDING overtaking PURCHASED). tryEmit never suspends and the
+                // replay+extraBuffer capacity makes it lossless in practice.
+                _purchaseUpdates.tryEmit(response)
             }
             .enablePendingPurchases(
                 PendingPurchasesParams.newBuilder().enableOneTimeProducts().build()

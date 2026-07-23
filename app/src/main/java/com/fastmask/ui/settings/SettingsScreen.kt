@@ -5,6 +5,9 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +37,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,9 +57,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -78,6 +86,10 @@ import com.fastmask.ui.theme.color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.TimeUnit
+
+/** Exports older than this are certainly no longer held by any share target. */
+private val EXPORT_MAX_AGE_MS = TimeUnit.HOURS.toMillis(1)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,10 +124,14 @@ fun SettingsScreen(
                     withContext(Dispatchers.IO) {
                         runCatching {
                             val dir = File(context.cacheDir, "exports").apply { mkdirs() }
-                            // Previous exports are stale the moment a new one is
-                            // requested — keep the cache dir at a single file.
-                            dir.listFiles()?.forEach { it.delete() }
-                            val file = File(dir, "fastmask-masks.csv")
+                            // Delete only exports old enough that no share can
+                            // still be reading them — wiping everything could
+                            // truncate a URI a slow receiver (Drive upload)
+                            // still holds. Timestamped names keep each share's
+                            // content stable.
+                            val cutoff = System.currentTimeMillis() - EXPORT_MAX_AGE_MS
+                            dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
+                            val file = File(dir, "fastmask-masks-${System.currentTimeMillis()}.csv")
                             file.writeText(event.csv)
                             FileProvider.getUriForFile(
                                 context,
@@ -178,7 +194,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 PillButton(
-                    text = stringResource(R.string.email_detail_delete_cancel),
+                    text = stringResource(R.string.action_ok),
                     onClick = { showLockUnavailableDialog = false },
                     variant = PillButtonVariant.Ghost,
                 )
@@ -301,6 +317,7 @@ fun SettingsScreen(
                         },
                         leading = Icons.Filled.FileDownload,
                         trailing = Icons.Filled.ChevronRight,
+                        showProgress = uiState.exportInFlight,
                         onClick = viewModel::onExportClick,
                     )
                     Spacer(Modifier.height(24.dp))
@@ -365,6 +382,9 @@ private fun SettingsRow(
     onClick: () -> Unit,
     trailing: ImageVector? = null,
     leadingTint: Color? = null,
+    // Replaces the trailing icon with a small spinner (e.g. CSV export doing
+    // its network fetch) so a slow action doesn't look like a dead tap.
+    showProgress: Boolean = false,
 ) {
     val extras = FastMaskExtras.current
     Column {
@@ -404,12 +424,24 @@ private fun SettingsRow(
                     color = extras.inkMuted,
                 )
             }
-            if (trailing != null) {
+            if (showProgress) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = extras.inkMuted,
+                )
+            } else if (trailing != null) {
+                // Every trailing icon today is the directional ChevronRight,
+                // which has no AutoMirrored variant in this icons version —
+                // mirror it manually so RTL (Arabic) points "deeper", not back.
+                val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
                 Icon(
                     imageVector = trailing,
                     contentDescription = null,
                     tint = extras.inkMuted,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .graphicsLayer { if (isRtl) scaleX = -1f },
                 )
             }
         }
@@ -430,7 +462,10 @@ private fun SettingsToggleRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onToggle(!checked) }
+                // One toggleable row with a Switch role — a clickable row plus
+                // an independently-clickable Switch gives TalkBack two focus
+                // targets for a single setting and announces no state on the row.
+                .toggleable(value = checked, role = Role.Switch, onValueChange = onToggle)
                 .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -464,7 +499,9 @@ private fun SettingsToggleRow(
             }
             Switch(
                 checked = checked,
-                onCheckedChange = onToggle,
+                // Handled by the row's toggleable; null keeps the Switch a
+                // purely visual indicator instead of a second a11y target.
+                onCheckedChange = null,
             )
         }
         HairlineDivider()
@@ -507,7 +544,14 @@ private fun AccentPickerDialog(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .background(rowBg)
-                            .clickable { onSelect(accent) }
+                            // selectable + RadioButton role: without it TalkBack
+                            // reads five identical rows with no way to tell
+                            // which accent is currently active.
+                            .selectable(
+                                selected = accent == selected,
+                                role = Role.RadioButton,
+                                onClick = { onSelect(accent) },
+                            )
                             .padding(horizontal = 12.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -515,7 +559,7 @@ private fun AccentPickerDialog(
                             modifier = Modifier
                                 .size(20.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(accent.color),
+                                .background(accent.color(isSystemInDarkTheme())),
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
@@ -538,7 +582,7 @@ private fun AccentPickerDialog(
         },
         confirmButton = {
             PillButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
+                text = stringResource(R.string.action_ok),
                 onClick = onDismiss,
                 variant = PillButtonVariant.Ghost,
             )
@@ -586,7 +630,7 @@ private fun LanguagePickerDialog(
         },
         confirmButton = {
             PillButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
+                text = stringResource(R.string.action_ok),
                 onClick = onDismiss,
                 variant = PillButtonVariant.Ghost,
             )
@@ -607,7 +651,9 @@ private fun LanguageRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(rowBg)
-            .clickable(onClick = onClick)
+            // TalkBack must announce which language is active, not just a list
+            // of identically-labelled buttons.
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

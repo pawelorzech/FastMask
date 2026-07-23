@@ -192,7 +192,8 @@
     <string name="pro_retry">حاول مرة أخرى</string>
     <string name="pro_owned">أنت Pro. شكراً لدعمك FastMask.</string>
     <string name="pro_purchase_success">تم فتح Pro. شكراً!</string>
-    <string name="pro_purchase_pending">انتظار الدفع — يتم فتح Pro عند الانتهاء.</string>
+    <string name="pro_purchase_pending">الدفع قيد الانتظار — سيتم فتح Pro عند اكتماله. يستغرق ذلك عادةً دقائق، وقد يصل إلى يوم مع بعض طرق الدفع.</string>
+    <string name="action_ok">حسنًا</string>
     <string name="pro_purchase_cancelled">تم إلغاء الشراء.</string>
     <string name="pro_purchase_failed">حدث خطأ ما. لم يتم تحديد رسوم لك.</string>
     <string name="pro_billing_unavailable">Google Play billing غير متوفر على هذا الجهاز.</string>

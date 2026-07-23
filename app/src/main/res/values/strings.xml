@@ -173,7 +173,8 @@
     <string name="pro_retry">Try again</string>
     <string name="pro_owned">You\'re Pro. Thank you for supporting FastMask.</string>
     <string name="pro_purchase_success">Pro unlocked. Thank you!</string>
-    <string name="pro_purchase_pending">Payment pending — Pro unlocks once it completes.</string>
+    <string name="pro_purchase_pending">Payment pending — Pro unlocks once it completes. This usually takes minutes, but can take up to a day for some payment methods.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Purchase cancelled.</string>
     <string name="pro_purchase_failed">Something went wrong. You were not charged.</string>
     <string name="pro_billing_unavailable">Google Play billing isn\'t available on this device.</string>

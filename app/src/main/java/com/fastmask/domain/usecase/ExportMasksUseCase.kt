@@ -38,8 +38,13 @@ object MaskCsv {
         }
     }
 
-    /** Characters that make spreadsheets execute a cell as a formula. */
-    private val FORMULA_LEAD_CHARS = setOf('=', '+', '-', '@', '\t')
+    /**
+     * Characters that make spreadsheets execute a cell as a formula. CR/LF are
+     * included per OWASP: some parsers strip leading control characters and
+     * then evaluate the remainder, so `\r=HYPERLINK(...)` must also be
+     * neutralized, not just quoted.
+     */
+    private val FORMULA_LEAD_CHARS = setOf('=', '+', '-', '@', '\t', '\r', '\n')
 
     /**
      * RFC 4180 quoting plus spreadsheet formula neutralization: a mask note

@@ -192,7 +192,8 @@
     <string name="pro_retry">Riprova</string>
     <string name="pro_owned">Sei Pro. Grazie per supportare FastMask.</string>
     <string name="pro_purchase_success">Pro sbloccato. Grazie!</string>
-    <string name="pro_purchase_pending">Pagamento in sospeso — Pro si sbloccherà al completamento.</string>
+    <string name="pro_purchase_pending">Pagamento in sospeso: Pro si sbloccherà al completamento. Di solito richiede pochi minuti, con alcuni metodi di pagamento fino a un giorno.</string>
+    <string name="action_ok">OK</string>
     <string name="pro_purchase_cancelled">Acquisto annullato.</string>
     <string name="pro_purchase_failed">Qualcosa è andato storto. Non ti è stato addebitato nulla.</string>
     <string name="pro_billing_unavailable">La fatturazione di Google Play non è disponibile su questo dispositivo.</string>

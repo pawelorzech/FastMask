@@ -192,7 +192,8 @@
     <string name="pro_retry">Intentar de nuevo</string>
     <string name="pro_owned">Eres Pro. ¡Gracias por apoyar FastMask!</string>
     <string name="pro_purchase_success">Pro desbloqueado. ¡Gracias!</string>
-    <string name="pro_purchase_pending">Pago pendiente — Pro se desbloqueará cuando se complete.</string>
+    <string name="pro_purchase_pending">Pago pendiente: Pro se desbloqueará al completarse. Suele tardar minutos, pero con algunos métodos de pago puede tardar hasta un día.</string>
+    <string name="action_ok">Aceptar</string>
     <string name="pro_purchase_cancelled">Compra cancelada.</string>
     <string name="pro_purchase_failed">Algo salió mal. No te cobramos.</string>
     <string name="pro_billing_unavailable">Google Play no está disponible en este dispositivo.</string>
