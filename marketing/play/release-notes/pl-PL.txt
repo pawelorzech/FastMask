@@ -1,5 +1,8 @@
-Nowości w 1.7.3
+Nowości w 1.8.0
 
-• Aktualizacja pod najnowszego Androida (zgodność z Androidem 16)
-• Poprawki utrzymaniowe i stabilnościowe
+• Cofnięcie archiwizacji maski działa niezawodnie i przywraca poprzedni stan
+• Zakupy dokończone w tle odblokowują Pro bez restartu aplikacji
+• Kolory akcentów Pro są czytelne w ciemnym motywie
+• Wyraźny postęp przy zakupie, przywracaniu i eksporcie CSV
+• Dostępność: lepsza obsługa czytnika ekranu w Ustawieniach, poprawki RTL
 • Nadal zero śledzenia, bez reklam i subskrypcji

@@ -3,6 +3,31 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] — 2026-07-23
+
+Full technical audit (see `AUDIT_REPORT.md`) plus every fix from its backlog.
+
+### Fixed
+- **Undo after archiving works again** — the "Archived — Undo" snackbar was dismissed after a single frame by its own consume signal, so the action could never be tapped. It now stays up for ~10 s, and a failed undo shows an error instead of silently keeping the mask archived.
+- Undo restores the mask to its **pre-archive state** — a disabled mask no longer comes back accepting mail.
+- Billing: a buy-flow update that doesn't contain the Pro purchase no longer downgrades the cached entitlement (only an authoritative Play query may); purchase updates are emitted in listener order.
+- Billing: the entitlement is reconciled with Play on every return to the foreground — pending purchases completed in the background unlock without restarting the app, and failed acknowledgements retry well within Play's refund window (also with the monetization kill-switch off).
+- App lock: fixed a bypass after background process death on Android 8.0/8.1 (saved state predating the re-lock was trusted); locking no longer destroys the navigation back stack, so a half-typed form survives a lock/unlock cycle.
+- Pro accents are legible in the dark theme — brightened per-theme variants (the deep light-theme colors rendered at 1.7–2.8:1 on dark surfaces, with Ink nearly invisible as cursor/FAB).
+- CSV export: leading CR/LF are neutralized like other formula lead characters (OWASP); export files are timestamped and only cleaned up after an hour, so a slow share target keeps a valid file.
+- Copied masked addresses are flagged sensitive on Android 13+ (no plaintext in the clipboard preview) and the clip label is localized.
+
+### Changed
+- Buy, Restore and CSV export show an in-flight spinner instead of looking frozen.
+- Pending-payment message explains the expected wait; dialogs that apply choices instantly say "OK" instead of "Cancel" (all 20 languages).
+- Accessibility: accent/language pickers announce the current selection (radio semantics), settings toggles are single Switch-role targets, the settings chevron mirrors in RTL, paywall legal links have 48 dp touch targets.
+- Stale purchase events no longer replay when reopening the paywall; paywall-closed analytics counts gesture back too.
+
+### Internal
+- `androidx.security:security-crypto` 1.1.0-alpha06 → 1.1.0 stable.
+- Unit tests 87 → 92; `local.properties` untracked from git.
+- `versionCode` 16 → 17, `versionName` "1.7.3" → "1.8.0".
+
 ## [1.7.3] — 2026-07-22
 
 ### Changed
