@@ -181,6 +181,23 @@ class MaskedEmailListViewModelTest {
     }
 
     @Test
+    fun `restoreMask failure surfaces an error instead of silently keeping the mask archived`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", state = EmailState.DELETED))
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline now")
+        viewModel.restoreMask("m1")
+        advanceUntilIdle()
+
+        // Undo appearing to work while the mask stays archived is a silent
+        // data-state lie — the failure must reach the UI.
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+    }
+
+    @Test
     fun `soft refresh with cached data suppresses error`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)

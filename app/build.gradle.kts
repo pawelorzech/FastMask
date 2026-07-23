@@ -133,11 +133,10 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
 
     // Security for encrypted storage
-    // Pinned to 1.1.0-alpha06 because TokenStorage uses MasterKey.Builder API,
-    // which only exists in the 1.1.x line. Migrating to 1.0.0 requires rewriting
-    // TokenStorage to the deprecated MasterKeys API — tracked separately.
-    // See Plans/security-audit-report.md F-05.
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // 1.1.0 stable (same API line as the previously pinned 1.1.0-alpha06 —
+    // TokenStorage's MasterKey.Builder API is unchanged). Closes the alpha-pin
+    // trade-off documented in Plans/security-audit-report.md F-05.
+    implementation("androidx.security:security-crypto:1.1.0")
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
