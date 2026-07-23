@@ -107,6 +107,7 @@ fun MaskedEmailListScreen(
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     justArchivedId: String? = null,
+    justArchivedState: EmailState? = null,
     onArchivedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
@@ -127,15 +128,15 @@ fun MaskedEmailListScreen(
     // recomposes, and a LaunchedEffect keyed directly on the consumed value
     // would be cancelled mid-showSnackbar — dismissing the snackbar after a
     // single frame and making Undo untappable.
-    var pendingUndoId by remember { mutableStateOf<String?>(null) }
+    var pendingUndo by remember { mutableStateOf<Pair<String, EmailState>?>(null) }
     LaunchedEffect(justArchivedId) {
         if (justArchivedId != null) {
-            pendingUndoId = justArchivedId
+            pendingUndo = justArchivedId to (justArchivedState ?: EmailState.ENABLED)
             onArchivedConsumed()
         }
     }
-    LaunchedEffect(pendingUndoId) {
-        val archivedId = pendingUndoId ?: return@LaunchedEffect
+    LaunchedEffect(pendingUndo) {
+        val (archivedId, previousState) = pendingUndo ?: return@LaunchedEffect
         // Long, not Short: this snackbar is an undo affordance — 4 s is a tight
         // window to notice it mid screen transition and reach the action.
         val result = snackbarHostState.showSnackbar(
@@ -144,7 +145,7 @@ fun MaskedEmailListScreen(
             duration = SnackbarDuration.Long,
         )
         if (result == SnackbarResult.ActionPerformed) {
-            viewModel.restoreMask(archivedId)
+            viewModel.restoreMask(archivedId, previousState)
         }
     }
 

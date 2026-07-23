@@ -181,6 +181,21 @@ class MaskedEmailListViewModelTest {
     }
 
     @Test
+    fun `restoreMask restores the pre-archive state not blindly ENABLED`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", state = EmailState.DELETED))
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        // The mask was DISABLED before archiving — undo must not re-enable it.
+        viewModel.restoreMask("m1", restoreTo = EmailState.DISABLED)
+        advanceUntilIdle()
+
+        assertEquals(EmailState.DISABLED, repo.lastUpdateParams?.state)
+    }
+
+    @Test
     fun `restoreMask failure surfaces an error instead of silently keeping the mask archived`() = runTest {
         val repo = FakeMaskedEmailRepository(
             emails = listOf(mask("m1", state = EmailState.DELETED))

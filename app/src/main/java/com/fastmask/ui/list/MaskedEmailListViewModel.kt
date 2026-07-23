@@ -49,13 +49,13 @@ class MaskedEmailListViewModel @Inject constructor(
     }
 
     /**
-     * Restore a just-archived mask back to enabled (the "Undo" snackbar action).
-     * Un-deleting a masked email re-enables it on Fastmail, so ENABLED is the
-     * correct target regardless of its state before archiving.
+     * Restore a just-archived mask (the "Undo" snackbar action) to the state it
+     * had BEFORE archiving — undo promises the previous state, so a DISABLED
+     * mask must not come back accepting mail.
      */
-    fun restoreMask(id: String) {
+    fun restoreMask(id: String, restoreTo: EmailState = EmailState.ENABLED) {
         viewModelScope.launch {
-            updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = EmailState.ENABLED))
+            updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = restoreTo))
                 .onSuccess { loadMaskedEmails() }
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived

@@ -192,7 +192,8 @@
     <string name="pro_retry">फिर से कोशिश करें</string>
     <string name="pro_owned">आप Pro हैं। FastMask का समर्थन करने के लिए धन्यवाद।</string>
     <string name="pro_purchase_success">Pro अनलॉक किया गया। धन्यवाद!</string>
-    <string name="pro_purchase_pending">भुगतान लंबित है — Pro पूरा होने पर अनलॉक हो जाएगा।</string>
+    <string name="pro_purchase_pending">भुगतान लंबित है — पूरा होते ही Pro अनलॉक हो जाएगा। आमतौर पर इसमें कुछ मिनट लगते हैं, कुछ भुगतान विधियों में एक दिन तक लग सकता है।</string>
+    <string name="action_ok">ठीक है</string>
     <string name="pro_purchase_cancelled">खरीद रद्द किया गया।</string>
     <string name="pro_purchase_failed">कुछ गलत हुआ। आप पर कोई शुल्क नहीं लगाया गया।</string>
     <string name="pro_billing_unavailable">इस डिवाइस पर Google Play बिलिंग उपलब्ध नहीं है।</string>

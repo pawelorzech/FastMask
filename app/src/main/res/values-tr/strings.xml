@@ -192,7 +192,8 @@
     <string name="pro_retry">Tekrar dene</string>
     <string name="pro_owned">Pro\'ya sahipsiniz. FastMask\'ı desteklediğiniz için teşekkürler.</string>
     <string name="pro_purchase_success">Pro açıldı. Teşekkürler!</string>
-    <string name="pro_purchase_pending">Ödeme beklemede — Pro tamamlandığında açılacak.</string>
+    <string name="pro_purchase_pending">Ödeme beklemede — tamamlandığında Pro açılır. Bu genellikle dakikalar sürer, bazı ödeme yöntemlerinde bir günü bulabilir.</string>
+    <string name="action_ok">Tamam</string>
     <string name="pro_purchase_cancelled">Satın alma iptal edildi.</string>
     <string name="pro_purchase_failed">Bir hata oluştu. Sizden para alınmadı.</string>
     <string name="pro_billing_unavailable">Google Play faturalandırması bu cihazda kullanılamıyor.</string>

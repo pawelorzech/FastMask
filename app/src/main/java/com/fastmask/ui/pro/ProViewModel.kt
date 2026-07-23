@@ -40,6 +40,9 @@ class ProViewModel @Inject constructor(
 
     init {
         analytics.track(MonetizationEvent.PAYWALL_VIEWED, source = source)
+        // Events buffered while no paywall was open (e.g. a purchase resolved
+        // after the user backed out) are stale by now — state is in proStatus.
+        proRepository.drainPendingEvents()
         viewModelScope.launch {
             proRepository.proStatus.collect { status ->
                 _uiState.update { it.copy(status = status) }
@@ -117,8 +120,12 @@ class ProViewModel @Inject constructor(
         }
     }
 
-    fun onClosed() {
+    // onCleared, not the back button's onClick: most paywall dismissals are
+    // gesture/system back, which never touches the button — tracking there
+    // undercounted nearly all closes.
+    override fun onCleared() {
         analytics.track(MonetizationEvent.PAYWALL_CLOSED, source = source)
+        super.onCleared()
     }
 }
 
