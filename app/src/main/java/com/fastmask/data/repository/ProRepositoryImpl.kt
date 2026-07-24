@@ -61,6 +61,14 @@ class ProRepositoryImpl @Inject constructor(
     /** Serializes every entitlement reconciliation (seed, refresh, buy flow). */
     private val reconcileMutex = Mutex()
 
+    /**
+     * Purchase token behind the last [store] write, so a reconciliation can
+     * tell "same entitlement, same purchase" (skip the write) from "same
+     * entitlement, new purchase" (rewrite the proof). Guarded by
+     * [reconcileMutex] — only [handlePurchases] touches it.
+     */
+    private var lastPersistedToken: String? = null
+
     /** Cache seed — reconciliations wait for it so it can never clobber them. */
     private val seedJob = scope.launch {
         val cached = runCatching { store.read() }.getOrDefault(ProStatus.FREE)
@@ -214,9 +222,19 @@ class ProRepositoryImpl @Inject constructor(
             else -> ProStatus.FREE
         }
 
-        if (newStatus != previous) {
+        // Persist when the status moved, and also when it held at PRO across a
+        // DIFFERENT purchase token (a re-purchase after a refund). The stored
+        // proof digest is derived from that token, so skipping the write left
+        // it pointing at a purchase the account no longer holds. Guarding on
+        // the token as well keeps the common case — an unchanged entitlement
+        // reconciled on every resume — free of DataStore writes.
+        val token = proPurchase?.purchaseToken
+        if (newStatus != previous || token != lastPersistedToken) {
             _proStatus.value = newStatus
-            store.write(newStatus, proPurchase?.purchaseToken)
+            store.write(newStatus, token)
+            lastPersistedToken = token
+        }
+        if (newStatus != previous) {
             when {
                 newStatus == ProStatus.PRO -> {
                     analytics.track(MonetizationEvent.ENTITLEMENT_ACTIVATED)

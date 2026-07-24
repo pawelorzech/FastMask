@@ -194,6 +194,12 @@ class MaskedEmailDetailViewModel @Inject constructor(
                             previousState = _uiState.value.email?.state ?: EmailState.ENABLED,
                         )
                     )
+                    // After the event, so the screen is already navigating away
+                    // and the delete button cannot flash back for a frame. The
+                    // operation is finished either way, and leaving the flag set
+                    // would strand this screen behind a spinner if the
+                    // navigation it triggers never happens.
+                    _uiState.update { it.copy(isDeleting = false) }
                 },
                 onFailure = { error ->
                     _uiState.update {
