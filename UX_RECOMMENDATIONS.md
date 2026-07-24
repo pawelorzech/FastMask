@@ -1,7 +1,9 @@
 # FastMask — Rekomendacje UX & niewdrożone znaleziska (2026-07-24 pass B)
 
 > Scoring 1–5: **Impact / Effort / Confidence / Risk**. `Priority = Impact × Confidence / Effort` (narzędzie pomocnicze, nie automat).
-> Znaleziska naprawione w tym przebiegu są w `AUDIT_REPORT.md §3`. Poniżej to, co **świadomie zostawiono do decyzji Pawła**.
+> Znaleziska naprawione w tym przebiegu są w `AUDIT_REPORT.md §3` i §6.
+
+> **✅ Batch 2 — WDROŻONE po decyzji Pawła:** SEC1 (weryfikacja podpisu Play — klucz pobrany z Play Console), R1 (rozjaśniony amber w dark mode), B5 (dialog niezapisanych zmian), R4 (potwierdzenie wylogowania). Szczegóły w `AUDIT_REPORT.md §6` i `CHANGELOG_AGENT.md`. Pozostałe poniżej to nadal-otwarte rekomendacje.
 
 ---
 

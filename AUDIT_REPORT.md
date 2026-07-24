@@ -57,8 +57,8 @@ Status potwierdzenia: **[C]** potwierdzony przez czytanie kodu · **[P]** prawdo
 
 | Metryka | Przed | Po |
 |---|---|---|
-| Testy jednostkowe | 101 (PASS) | **109 (PASS)** |
-| Nowe przypadki | — | +8 |
+| Testy jednostkowe | 101 (PASS) | **114 (PASS)** |
+| Nowe przypadki | — | +13 |
 | Lint errors | 0 | 0 |
 | Nowe warningi | — | 0 (dodano `@file:OptIn` do testu create) |
 
@@ -87,23 +87,32 @@ Dodano 4 nowe stringi do `values/strings.xml`, oznaczone `tools:ignore="MissingT
 
 ---
 
-## 6. Znaleziska NIE naprawione (świadomie) — patrz UX_RECOMMENDATIONS.md
+## 6. Batch 2 — dodatkowo naprawione (po decyzji Pawła)
+
+Po pierwszym raporcie Paweł zatwierdził wdrożenie czterech pozycji wcześniej „do decyzji". Wszystkie zrobione, build zielony:
+
+| ID | Prio | Problem | Poprawka |
+|----|------|---------|----------|
+| SEC1 | P2 | Brak weryfikacji podpisu zakupów Play → możliwy bypass Pro na roocie | Nowy `PurchaseSecurity` (SHA1withRSA); `PlayBillingDataSource.toBillingPurchase` traktuje zakup jako PURCHASED **tylko** gdy podpis zgodny z kluczem RSA. Klucz Base64 pobrany z Play Console (Monetization → Licensing, 2048-bit RSA), wpięty przez `BuildConfig.PLAY_LICENSE_KEY` z gradle property `fastmask.playLicenseKey` w `~/.gradle/gradle.properties` (poza repo). Pusty klucz = weryfikacja pominięta (dev/CI); release z kluczem = wymuszona. +5 testów |
+| R1 | P2 | Domyślny amber jako mały tekst w dark mode: kontrast ≈3.39:1 (< AA) | Nowy `DarkAccentAmber #C9761F` (~5.3:1 na DarkBg, ~4.9:1 na DarkSurface) + dark-ink on-accent na fillach — amber idzie teraz tym samym wzorcem co pozostałe akcenty dark |
+| B5 | P2 | Utrata niezapisanych edycji przy back (create + detail) | `BackHandler` + `ConfirmDialog` „Discard changes?" gdy formularz dirty (współdzielony komponent) |
+| R4 | P3 | Wylogowanie bez potwierdzenia | `ConfirmDialog` „Sign out?" przed `logout()` |
+
+## 7. Znaleziska NIE naprawione (świadomie) — patrz UX_RECOMMENDATIONS.md
 
 | ID | Prio | Problem | Powód niewdrożenia |
 |----|------|---------|--------------------|
-| SEC1 | P2 | Brak kryptograficznej weryfikacji podpisu zakupów Play (`Purchase.signature`) — możliwy bypass Pro na zrootowanym urządzeniu z hookowanym Play | **Wymaga klucza publicznego RSA z Play Console.** Wpisanie pustego/złego klucza = fail-closed, blokada wszystkich realnych zakupów. Standardowy trade-off dla IAP bez backendu. Implementacja opisana w rekomendacjach — czeka na klucz od Pawła |
-| R1 | P2 | Domyślny amber `#A8530F` jako **mały tekst** w dark mode ma kontrast ≈3.39:1 (< AA 4.5:1) | Zmiana koloru brandu = decyzja wizualna/produktowa. Zmierzone i opisane w rekomendacjach z propozycją rozjaśnienia. Nie zmieniam brandu jednostronnie |
-| B5 | P2 | Utrata niezapisanych edycji przy back (create + detail) bez ostrzeżenia | Dialog potwierdzenia dodaje tarcie do częstej akcji = decyzja produktowa; nie wdrażam nowego flow UX jednostronnie |
-| R4 | P3 | Wylogowanie bez potwierdzenia (mniej destrukcyjne archiwum ma dialog) | Jw. — tarcie vs bezpieczeństwo, do decyzji |
-| R2, R3, R8, R9, R10 | P3 | Chaining klawiatury; blokujący snackbar create; label „…" na przyciskach loading; martwe komponenty; brak `<plurals>` | Polish/spójność — w rekomendacjach |
+| R2, R3, R8, R9, R10 | P3 | Chaining klawiatury; blokujący snackbar create; label „…" na przyciskach loading; martwe komponenty; brak `<plurals>` | Polish/spójność — w rekomendacjach, niskie priorytety |
+
+**Uwaga o pozornym zabezpieczeniu** (`ProEntitlementStore` proof): patrz UX_RECOMMENDATIONS §D — realną bramą jest teraz weryfikacja podpisu (SEC1), nie hash tokenu.
 
 Znane z poprzednich audytów (nadal aktualne, poza zakresem tego przebiegu): A1–A5 (tutorial bounds<5, tutorial step3 pozycyjnie, export orphan files, buy no-op gdy context≠Activity, package-keep ProGuard).
 
 ---
 
-## 7. Ograniczenia audytu
+## 8. Ograniczenia audytu
 
-- **Play Billing:** buy/pending/refund i bypass podpisu (SEC1) wymagają internal testing na urządzeniu — CC2 zweryfikowany przez czytanie kodu + test jednostkowy repo, nie runtime.
+- **Play Billing:** buy/pending/refund wymagają internal testing na urządzeniu. SEC1 (weryfikacja podpisu) potwierdzona jednostkowo (wygenerowany keypair) + build z realnym kluczem; runtime na urządzeniu z realnym zakupem zalecany przed publikacją. CC2 zweryfikowany kodowo + test repo.
 - **App lock:** biometryka niemożliwa na emulatorze.
 - **Dostępność:** brak automatycznego skanu TalkBack; znaleziska a11y z analizy kodu (semantyka, tap-targets, kontrast policzony ręcznie).
 - **Instrumented tests:** 0 plików `androidTest` — brak E2E UI (rekomendacja jak w poprzednich audytach).
