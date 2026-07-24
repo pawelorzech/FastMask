@@ -57,6 +57,9 @@ Status: **[C]** potwierdzony (odczyt kodu + uruchomione narzędzie) · **[R]** p
 | **D4** | P2 | [C] | Awaria zapisu DataStore przy wejściu w demo **wywala aplikację** | `WelcomeViewModel.kt:31` | `viewModelScope` re-rzuca nieobsłużone wyjątki na głównym wątku. `SettingsViewModel` i `MaskedEmailListViewModel` mają `CoroutineExceptionHandler`; `WelcomeViewModel` został pominięty |
 | **D5** | P2 | [R] | Podpisany release bez `PLAY_LICENSE_KEY` **cicho wyłącza weryfikację podpisu zakupu** | `build.gradle.kts`, `PlayBillingDataSource.kt:266` | `isSignatureValid()` zwraca `true` przy pustym kluczu (świadomy kompromis dla dev/CI), ale nic nie odróżniało builda dev od produkcyjnego. Ostrzeżenie tylko w logu debug |
 | D6 | P3 | [C] | Dokumentacja podawała SDK 35, faktycznie 36 | `CLAUDE.md` | Drift po bumpie SDK |
+| **D7** | P2 | [C] | **18 z 19 lokali pokazuje surowe `%s`** na ekranie szczegółów maski („Letzte Nachricht: %s") | `values-*/strings.xml:60` | `email_detail_last_message` był kiedyś zdaniem „Last message: %s", potem stał się samą etykietą (wartość renderuje `MetaRow` osobno). Zaktualizowano tylko `values/` i `values-pl`. `stringResource()` wołane bez argumentów → placeholder trafia na ekran dosłownie |
+
+**Jak znalazłem D7:** czytając ostrzeżenia `StringFormatCount` w raporcie lintu. Build failuje tylko na errorach, więc te ostrzeżenia narastały nieprzeczytane — podobnie jak `MissingTranslation` było wyciszone przy D2. To ten sam wzorzec: **sygnał istniał, nikt go nie odbierał**.
 
 ### 3.2 D1 to częściowo **regresja wprowadzona przez poprzedni audyt**
 
@@ -117,11 +120,22 @@ Każda poprawka została **uruchomiona**, nie tylko napisana.
 
 | Metryka | Przed | Po |
 |---|---|---|
-| `testDebugUnitTest` | 114 PASS | **121 PASS**, 0 porażek |
-| `lintDebug` | 0 errorów | 0 errorów |
-| `assembleDebug` | SUCCESS | SUCCESS |
-| `assembleRelease` | SUCCESS | SUCCESS |
+| `testDebugUnitTest` | 114 PASS | **124 PASS**, 0 porażek |
+| `lintDebug` — errory | 0 | 0 |
+| `lintDebug` — `MissingTranslation` | wyciszone `tools:ignore` | **0**, wyciszenia usunięte |
+| `lintDebug` — `StringFormatCount` | 18 ostrzeżeń | **0** |
+| `lintDebug` — `MissingQuantity` | 0 (brak plurals) | **0** (plurals kompletne wg CLDR) |
+| `assembleDebug` / `assembleRelease` | SUCCESS | SUCCESS |
 | Kompletność tłumaczeń | 19 lokali × 13 luk | **0 luk**, pilnowane testem |
+| Wersja | 1.8.1 (vc 18) | **1.8.2 (vc 19)** |
+
+### Wdrożone rekomendacje UX (decyzja Pawła)
+
+| ID | Rekomendacja | Realizacja |
+|---|---|---|
+| A1 | Snackbar nazywa skopiowany adres | `list_copied_value` „Skopiowano %1$s" w 20 lokalach |
+| A2 | Nieudany eksport podaje przyczynę | `ExportFailed(messageRes)` przez `UiErrors`; osobny komunikat dla błędu zapisu pliku; +3 testy |
+| A3 | `<plurals>` w liczniku listy | Dwa fragmenty łączone tłumaczalnym formatem (RTL może zmienić kolejność). Pełne formy CLDR dla pl/ru/uk/ar oraz `many` dla es/fr/it/pt. **ar/bn/hi/th używają neutralnej formy „etykieta: liczba"** — ich reguły zgodności są poza tym, co potrafię zweryfikować, a niesprawdzalna odmiana jest gorsza niż poprawna neutralność |
 
 ---
 
@@ -133,5 +147,5 @@ Czego **nie** dało się zweryfikować w tym środowisku:
 2. **Cały przepływ Play Billing.** Brak konta testowego i builda na Play; logika zweryfikowana wyłącznie jednostkowo na fake'u `BillingDataSource`.
 3. **Biometria i blokada aplikacji.** Wymaga urządzenia z odciskiem/PIN-em; E3 pozostaje niepotwierdzone.
 4. **Realny ruch JMAP.** Brak tokenu Fastmail — warstwa sieciowa testowana tylko na fake'ach.
-5. **Jakość tłumaczeń.** Tłumaczenia wykonałem samodzielnie. Są poprawne znaczeniowo i gramatycznie, ale **nie sprawdził ich native speaker** — dla 19 języków to realne ryzyko drobnych nienaturalności, zwłaszcza w bn, th, hi, vi.
+5. **Jakość tłumaczeń.** Wszystkie tłumaczenia (13 stringów z D2 + 3 z A1/A2 + 2 plurals z A3) wykonałem samodzielnie. Są poprawne znaczeniowo i gramatycznie, ale **nie sprawdził ich native speaker** — dla 19 języków to realne ryzyko drobnych nienaturalności, zwłaszcza w bn, th, hi, vi. Paweł świadomie zaakceptował to ryzyko; punkt wyjścia był gorszy (te same stringi były w 100% po angielsku).
 6. **Brak testów instrumentowanych.** Konfiguracja `androidTest` istnieje, testów UI nie ma; `connectedAndroidTest` nie było uruchamiane (brak emulatora w sesji).

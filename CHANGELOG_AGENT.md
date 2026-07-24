@@ -1,9 +1,9 @@
 # CHANGELOG_AGENT.md — 2026-07-24 (pass C)
 
 Gałąź: `feature/audit-2026-07-24c` (z `main` @ `c8bfc3d`, v1.8.1).
-Weryfikacja: `testDebugUnitTest` **121/121 PASS** · `lintDebug` 0 errors · `assembleDebug` SUCCESS · `assembleRelease` SUCCESS.
+Weryfikacja: `testDebugUnitTest` **124/124 PASS** · `lintDebug` 0 errors · `assembleDebug` SUCCESS · `assembleRelease` SUCCESS.
 
-Pięć commitów, jeden na znalezisko.
+Siedem commitów. Wersja podbita do **1.8.2 (versionCode 19)**.
 
 | Commit | ID | Tytuł |
 |---|---|---|
@@ -12,6 +12,8 @@ Pięć commitów, jeden na znalezisko.
 | `f8dee44` | D3 | Fix: keep the pasted token on a retryable login failure |
 | `09c3759` | D4 | Fix: guard the demo-mode DataStore write |
 | `1ea242e` | D5 | Add: refuse a signed release without a Play licence key |
+| `4aa2d89` | D7 | Fix: strip stray %s from 18 translations |
+| `a21b657` | A1–A3 | Add: UX quick wins |
 
 ## Zmienione pliki — kod produkcyjny
 
