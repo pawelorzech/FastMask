@@ -223,4 +223,6 @@
     <string name="app_lock_locked_subtitle">잠금됨. 계속하려면 잠금 해제하세요.</string>
     <string name="app_lock_unlock">잠금 해제</string>
     <string name="app_lock_prompt_title">FastMask 잠금 해제</string>
+    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
+    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
 </resources>

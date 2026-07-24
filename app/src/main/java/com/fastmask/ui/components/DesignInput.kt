@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -101,16 +102,12 @@ fun DesignInput(
                     }
                 }
                 if (trailing != null) {
-                    Spacer(Modifier.padding(start = 8.dp))
+                    Spacer(Modifier.width(8.dp))
                     trailing()
                 }
             }
         }
-        val supportText = when {
-            isError && hint != null -> hint
-            !isError && hint != null -> hint
-            else -> null
-        }
+        val supportText = if (hint != null) hint else null
         if (supportText != null) {
             Spacer(Modifier.height(8.dp))
             Text(

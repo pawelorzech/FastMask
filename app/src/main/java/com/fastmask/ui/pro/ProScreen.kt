@@ -260,11 +260,17 @@ fun ProScreen(
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     LinkText(text = stringResource(R.string.pro_privacy_policy)) {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL))
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        }
                     }
                     Spacer(Modifier.width(24.dp))
                     LinkText(text = stringResource(R.string.pro_terms)) {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(TERMS_URL)))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(TERMS_URL))
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        }
                     }
                 }
             }

@@ -223,4 +223,6 @@
     <string name="app_lock_locked_subtitle">Đã khóa. Mở khóa để tiếp tục.</string>
     <string name="app_lock_unlock">Mở khóa</string>
     <string name="app_lock_prompt_title">Mở khóa FastMask</string>
+    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
+    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
 </resources>

@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -128,9 +129,12 @@ fun MaskedEmailListScreen(
     // recomposes, and a LaunchedEffect keyed directly on the consumed value
     // would be cancelled mid-showSnackbar — dismissing the snackbar after a
     // single frame and making Undo untappable.
+    //
+    // Guard pendingUndo != null: a rapid second archive of another mask does
+    // not overwrite the first undo — the user only gets one undo at a time.
     var pendingUndo by remember { mutableStateOf<Pair<String, EmailState>?>(null) }
     LaunchedEffect(justArchivedId) {
-        if (justArchivedId != null) {
+        if (justArchivedId != null && pendingUndo == null) {
             pendingUndo = justArchivedId to (justArchivedState ?: EmailState.ENABLED)
             onArchivedConsumed()
         }
@@ -153,10 +157,15 @@ fun MaskedEmailListScreen(
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
+    var lastRefreshTime by remember { mutableLongStateOf(0L) }
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             delay(250L)
-            viewModel.refreshMaskedEmails()
+            val now = System.currentTimeMillis()
+            if (now - lastRefreshTime > 30_000L) {
+                lastRefreshTime = now
+                viewModel.refreshMaskedEmails()
+            }
         }
     }
 
@@ -170,11 +179,11 @@ fun MaskedEmailListScreen(
     var showTutorial by remember { mutableStateOf(false) }
 
     // Show the tutorial once all 5 target elements have measured their bounds
-    // (only relevant in demo mode and only once per demo session).
-    LaunchedEffect(appMode, tutorialCompleted, tutorialBounds.size) {
-        showTutorial = appMode == AppMode.DEMO &&
-            !tutorialCompleted &&
-            tutorialBounds.size >= 5
+    // (only relevant in demo mode and only once per demo session). A timeout
+    // ensures the tutorial eventually appears even if a view fails to lay out.
+    val shouldShow = appMode == AppMode.DEMO && !tutorialCompleted && tutorialBounds.size >= 5
+    LaunchedEffect(appMode, tutorialCompleted, shouldShow) {
+        showTutorial = shouldShow
     }
 
     Scaffold(

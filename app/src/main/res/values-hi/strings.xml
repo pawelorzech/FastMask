@@ -223,4 +223,6 @@
     <string name="app_lock_locked_subtitle">लॉक किया गया। जारी रखने के लिए अनलॉक करें।</string>
     <string name="app_lock_unlock">अनलॉक करें</string>
     <string name="app_lock_prompt_title">FastMask अनलॉक करें</string>
+    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
+    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
 </resources>
