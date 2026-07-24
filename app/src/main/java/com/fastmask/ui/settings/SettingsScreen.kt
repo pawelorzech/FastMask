@@ -80,7 +80,10 @@ import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
 import com.fastmask.ui.components.PillIconButton
+import com.fastmask.ui.common.openExternalIntent
 import com.fastmask.ui.lock.canUseAppLock
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
 import com.fastmask.ui.theme.color
@@ -114,6 +117,8 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val exportFailedMessage = stringResource(R.string.settings_export_failed)
     val exportChooserTitle = stringResource(R.string.settings_export_title)
+    val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -361,8 +366,12 @@ fun SettingsScreen(
                                 context.getString(R.string.settings_feedback_subject),
                             )
                         }
-                        if (emailIntent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(emailIntent)
+                        // No resolveActivity() pre-check: on Android 11+ it is
+                        // package-visibility filtered and used to report "no
+                        // handler" for mailto: even with a mail app installed,
+                        // silently killing the app's only support channel.
+                        if (!openExternalIntent(context, emailIntent)) {
+                            scope.launch { snackbarHostState.showSnackbar(noMailAppMessage) }
                         }
                     },
                 )
