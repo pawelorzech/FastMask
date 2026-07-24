@@ -57,7 +57,7 @@
     <string name="email_detail_status">상태:</string>
     <string name="email_detail_created_by">생성자</string>
     <string name="email_detail_created">생성일</string>
-    <string name="email_detail_last_message">마지막 메시지: %s</string>
+    <string name="email_detail_last_message">마지막 메시지</string>
     <string name="email_detail_enable">활성화</string>
     <string name="email_detail_disable">비활성화</string>
     <string name="email_detail_edit_title">상세 정보 편집</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">API 토큰을 입력하세요</string>
     <string name="login_error_failed">로그인 실패</string>
     <string name="email_list_empty_sub">마스크를 생성하여 실제 주소를 공유하지 않고 메일을 라우팅합니다.</string>
-    <string name="list_stats">%1$d개 활성화 · %2$d개 전체</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">마스크를 로드할 수 없음</string>
     <string name="create_email_subtitle">새 마스크 주소 설정</string>
     <string name="create_email_preview_label">미리보기</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Fastmail로 로그인</string>
     <string name="error_network">연결이 없습니다. 인터넷 연결을 확인하고 다시 시도하세요.</string>
     <string name="error_auth">Fastmail이 토큰을 거부했습니다. 다시 로그인하세요.</string>
-    <string name="list_copied">클립보드에 복사됨</string>
     <string name="list_copy_action">주소 복사</string>
     <string name="list_archived_snackbar">마스크가 보관됨</string>
     <string name="list_undo">실행 취소</string>
@@ -223,6 +222,25 @@
     <string name="app_lock_locked_subtitle">잠금됨. 계속하려면 잠금 해제하세요.</string>
     <string name="app_lock_unlock">잠금 해제</string>
     <string name="app_lock_prompt_title">FastMask 잠금 해제</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="error_server">Fastmail 서버를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="email_list_no_matches">검색 결과 없음</string>
+    <string name="email_list_no_matches_sub">검색어 또는 필터와 일치하는 마스크가 없습니다.</string>
+    <string name="create_email_error_prefix_length">접두사는 64자 이하여야 합니다</string>
+    <string name="create_email_error_prefix_chars">소문자, 숫자, 밑줄만 사용할 수 있습니다</string>
+    <string name="discard_changes_title">변경사항을 취소할까요?</string>
+    <string name="discard_changes_message">편집한 내용이 저장되지 않아 사라집니다.</string>
+    <string name="discard_changes_confirm">취소</string>
+    <string name="discard_changes_cancel">계속 편집</string>
+    <string name="logout_confirm_title">로그아웃할까요?</string>
+    <string name="logout_confirm_message">다시 로그인하려면 Fastmail API 토큰이 필요합니다.</string>
+    <string name="error_no_app_for_link">이 링크를 열 수 있는 앱이 없습니다.</string>
+    <string name="list_copied_value">%1$s 복사됨</string>
+    <string name="settings_export_failed_write">내보내기 파일을 저장하지 못했습니다. 공간을 확보한 뒤 다시 시도해 주세요.</string>
+    <plurals name="list_stats_active">
+        <item quantity="other">활성 %d</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="other">전체 %d</item>
+    </plurals>
 </resources>

@@ -7,6 +7,24 @@
          the Play Billing library's manifest. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!--
+      Android 11+ (API 30) package visibility. Without these declarations
+      PackageManager.resolveActivity() returns null for the intents below even
+      when a handler is installed, so the "Contact" row and the Play-required
+      Privacy / Terms links on the paywall would silently do nothing.
+      See com.fastmask.ui.common.openExternalIntent.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
     <application
         android:name=".FastMaskApplication"
         android:allowBackup="false"

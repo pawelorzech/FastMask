@@ -14,8 +14,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.8.1"
+        versionCode = 19
+        versionName = "1.8.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -93,6 +93,37 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+// A SIGNED release with no licence key silently ships with purchase signature
+// verification disabled (PlayBillingDataSource.isSignatureValid returns true
+// when the key is blank), so a hooked billing service unlocks Pro for free.
+// Unsigned/CI builds stay permissive, so `assembleRelease` without a keystore
+// keeps working as a smoke test.
+//
+// Checked on the task graph rather than in a doFirst: the graph is resolved
+// before ANY task runs, so a misconfigured release fails in a second instead of
+// after a full R8 build — and it fails ahead of validateSigningRelease, which
+// would otherwise mask this error behind its own.
+gradle.taskGraph.whenReady {
+    val releasing = allTasks.any {
+        it.project == project && (it.name == "assembleRelease" || it.name == "bundleRelease")
+    }
+    if (!releasing) return@whenReady
+
+    val signed = System.getenv("FASTMASK_KEYSTORE") != null
+        || project.hasProperty("fastmask.keystore")
+    val key = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
+        ?: (project.findProperty("fastmask.playLicenseKey") as String?)
+
+    if (signed && key.isNullOrBlank()) {
+        throw GradleException(
+            "Refusing to build a signed release without a Play licence key: purchase " +
+                "signatures would not be verified, so any forged purchase would unlock " +
+                "Pro. Set FASTMASK_PLAY_LICENSE_KEY or the fastmask.playLicenseKey Gradle " +
+                "property (Play Console → Monetization setup → Licensing)."
+        )
     }
 }
 

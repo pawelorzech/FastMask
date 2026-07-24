@@ -57,7 +57,7 @@
     <string name="email_detail_status">Estado:</string>
     <string name="email_detail_created_by">Creado por</string>
     <string name="email_detail_created">Creado</string>
-    <string name="email_detail_last_message">Último mensaje: %s</string>
+    <string name="email_detail_last_message">Último mensaje</string>
     <string name="email_detail_enable">Habilitar</string>
     <string name="email_detail_disable">Deshabilitar</string>
     <string name="email_detail_edit_title">Editar detalles</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Por favor ingresa tu token de API</string>
     <string name="login_error_failed">Error al iniciar sesión</string>
     <string name="email_list_empty_sub">Crea una máscara para enrutar correos sin compartir tu dirección real.</string>
-    <string name="list_stats">%1$d activo · %2$d total</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">No se pudieron cargar las máscaras</string>
     <string name="create_email_subtitle">Configura una nueva dirección enmascarada</string>
     <string name="create_email_preview_label">Vista previa</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Iniciar sesión con Fastmail</string>
     <string name="error_network">Sin conexión. Verifica tu conexión a internet e intenta de nuevo.</string>
     <string name="error_auth">Fastmail rechazó el token. Inicia sesión de nuevo.</string>
-    <string name="list_copied">Copiado al portapapeles</string>
     <string name="list_copy_action">Copiar dirección</string>
     <string name="list_archived_snackbar">Máscara archivada</string>
     <string name="list_undo">Deshacer</string>
@@ -223,6 +222,29 @@
     <string name="app_lock_locked_subtitle">Bloqueado. Desbloquea para continuar.</string>
     <string name="app_lock_unlock">Desbloquear</string>
     <string name="app_lock_prompt_title">Desbloquea FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.</string>
+    <string name="error_server">El servidor de Fastmail no está disponible temporalmente. Inténtalo en breve.</string>
+    <string name="email_list_no_matches">Sin resultados</string>
+    <string name="email_list_no_matches_sub">Ninguna máscara coincide con tu búsqueda o filtro.</string>
+    <string name="create_email_error_prefix_length">El prefijo debe tener 64 caracteres o menos</string>
+    <string name="create_email_error_prefix_chars">Solo se permiten letras minúsculas, números y guiones bajos</string>
+    <string name="discard_changes_title">¿Descartar cambios?</string>
+    <string name="discard_changes_message">Tus cambios no se han guardado y se perderán.</string>
+    <string name="discard_changes_confirm">Descartar</string>
+    <string name="discard_changes_cancel">Seguir editando</string>
+    <string name="logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="logout_confirm_message">Necesitarás tu token de API de Fastmail para volver a iniciar sesión.</string>
+    <string name="error_no_app_for_link">No hay ninguna app para abrir este enlace.</string>
+    <string name="list_copied_value">%1$s copiado</string>
+    <string name="settings_export_failed_write">No se pudo guardar el archivo de exportación. Libera espacio e inténtalo de nuevo.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d activa</item>
+        <item quantity="many">%d activas</item>
+        <item quantity="other">%d activas</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">%d en total</item>
+        <item quantity="many">%d en total</item>
+        <item quantity="other">%d en total</item>
+    </plurals>
 </resources>

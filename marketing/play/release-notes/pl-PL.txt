@@ -1,8 +1,9 @@
-Nowości w 1.8.1
+Nowości w 1.8.2
 
-• Bezpieczniejsza weryfikacja zakupów
-• Potwierdzenie przed wylogowaniem i ostrzeżenie przed utratą niezapisanych zmian
-• Czytelniejszy stan „brak wyników" przy wyszukiwaniu i filtrowaniu
-• Mniej usterek brzegowych: brak utraty edycji, brak zablokowanych przycisków, stabilniej przy słabym łączu
-• Lepszy kontrast w ciemnym motywie i etykiety dla czytnika ekranu
+• Naprawione linki do kontaktu, polityki prywatności i regulaminu — na Androidzie 11+ nie otwierały się wcale
+• Komunikaty i potwierdzenia przetłumaczone na wszystkie 20 języków
+• Nieudane logowanie nie kasuje już wklejonego tokenu
+• Kopiowanie pokazuje, który adres trafił do schowka
+• Nieudany eksport CSV mówi, co poszło nie tak
+• Poprawne formy liczby mnogiej w liczniku masek
 • Nadal zero śledzenia, bez reklam i subskrypcji
