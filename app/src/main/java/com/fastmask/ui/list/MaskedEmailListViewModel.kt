@@ -12,6 +12,7 @@ import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,8 +43,12 @@ class MaskedEmailListViewModel @Inject constructor(
         initialValue = false,
     )
 
+    // A DataStore write failure (disk full / corruption) must degrade quietly,
+    // not crash: viewModelScope rethrows uncaught exceptions on the main thread.
+    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
+
     fun markTutorialCompleted() {
-        viewModelScope.launch {
+        viewModelScope.launch(writeErrorHandler) {
             settingsDataStore.setTutorialCompleted(true)
         }
     }
@@ -75,6 +80,10 @@ class MaskedEmailListViewModel @Inject constructor(
     }
 
     fun loadMaskedEmails() {
+        // Skip if a load is already running (pull-to-refresh, retry, and the
+        // restore success path all funnel here) — a second concurrent fetch just
+        // wastes a call and can flicker the last-writer-wins result.
+        if (_uiState.value.isLoading) return
         // Set synchronously (before the coroutine is dispatched) so the guard in
         // refreshMaskedEmails() sees the in-flight load immediately.
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
@@ -105,11 +114,18 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
+    // Guards a soft refresh WITHOUT flipping isLoading (which would show the
+    // pull-to-refresh spinner on a silent on-resume refresh). Set synchronously
+    // before launch so two same-frame refresh() calls can't both start a fetch.
+    private var refreshInFlight = false
+
     fun refreshMaskedEmails() {
         // The init load is already in flight on first entry — the on-resume
         // refresh would duplicate the network call the user is waiting on.
-        if (_uiState.value.isLoading) return
+        if (_uiState.value.isLoading || refreshInFlight) return
+        refreshInFlight = true
         viewModelScope.launch {
+            try {
             // Don't show loading if we already have data (soft refresh)
             if (_uiState.value.emails.isEmpty()) {
                 _uiState.update { it.copy(isLoading = true, errorRes = null) }
@@ -143,6 +159,9 @@ class MaskedEmailListViewModel @Inject constructor(
                     }
                 }
             )
+            } finally {
+                refreshInFlight = false
+            }
         }
     }
 

@@ -215,6 +215,20 @@ class ProRepositoryImplTest {
         coVerify(exactly = 0) { store.write(ProStatus.FREE, any()) }
     }
 
+    @Test
+    fun `buy flow OK without our product still emits a terminal event`() = runTest {
+        // Regression: the paywall's buy button clears its in-flight spinner only
+        // when an event arrives. A buy-flow OK update lacking pro_lifetime must
+        // still emit a terminal event, or the button spins forever.
+        val repo = repository()
+        advanceUntilIdle()
+
+        billing.updates.emit(BillingResponse.Ok(emptyList()))
+        advanceUntilIdle()
+
+        assertTrue(repo.events.first() is ProPurchaseEvent.Failed)
+    }
+
     // --- restore ---
 
     @Test

@@ -11,10 +11,11 @@ import com.fastmask.domain.model.Accent
  * FAB) on dark surfaces — the deep values land at 1.7–2.8:1 on
  * [DarkSurface], below even the 3:1 non-text minimum. Every dark variant is
  * ≥ 6.3:1 on [DarkSurface]/[DarkBg], with dark-ink on-accent text ≥ 5.9:1.
- * Amber is the classic default and intentionally identical in both themes.
+ * Amber (the classic default) is the deep burnt tone in light and a brightened
+ * [DarkAccentAmber] in dark, so it too stays legible as a foreground on dark.
  */
 fun Accent.color(darkTheme: Boolean): Color = when (this) {
-    Accent.AMBER -> AccentAmber
+    Accent.AMBER -> if (darkTheme) DarkAccentAmber else AccentAmber
     Accent.INK -> if (darkTheme) Color(0xFFB5AC9A) else Color(0xFF4A4438)
     Accent.SAGE -> if (darkTheme) Color(0xFF9DBB79) else Color(0xFF4E6B35)
     Accent.PLUM -> if (darkTheme) Color(0xFFD294B4) else Color(0xFF7A3B5E)
@@ -26,8 +27,7 @@ fun Accent.color(darkTheme: Boolean): Color = when (this) {
  * pills). Parchment on the deep light-theme values, dark ink on the brightened
  * dark-theme variants.
  */
-fun Accent.onColor(darkTheme: Boolean): Color = when {
-    this == Accent.AMBER -> OnAccent
-    darkTheme -> LightInk
-    else -> OnAccent
-}
+fun Accent.onColor(darkTheme: Boolean): Color =
+    // Every dark accent (amber included now) is a bright fill carrying dark ink;
+    // every light accent is a deep fill carrying parchment.
+    if (darkTheme) LightInk else OnAccent

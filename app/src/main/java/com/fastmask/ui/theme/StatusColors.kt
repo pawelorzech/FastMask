@@ -65,8 +65,8 @@ val DarkExtras = FastMaskExtraColors(
     chip = DarkChip,
     inputBg = DarkInputBg,
     surfaceAlt = DarkSurfaceAlt,
-    accent = AccentAmber,
-    onAccent = OnAccent,
+    accent = DarkAccentAmber,
+    onAccent = LightInk,
     status = DarkStatusColors,
 )
 

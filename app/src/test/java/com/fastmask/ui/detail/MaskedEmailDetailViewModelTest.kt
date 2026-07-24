@@ -110,4 +110,35 @@ class MaskedEmailDetailViewModelTest {
         assertEquals(1, repo.updateCalls)
         assertEquals(EmailState.DISABLED, repo.lastUpdateParams?.state)
     }
+
+    // --- in-progress edits survive a post-action reload (regression) --------
+
+    @Test
+    fun `post-toggle reload keeps in-progress edits`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", state = EmailState.ENABLED, description = "old note"))
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle() // initial load seeds editedDescription = "old note"
+
+        // User is mid-edit, then toggles state; the toggle's success reload must
+        // NOT clobber the half-typed description back to the server value.
+        viewModel.onDescriptionChange("half-typed draft")
+        viewModel.toggleState()
+        advanceUntilIdle()
+
+        assertEquals("half-typed draft", viewModel.uiState.value.editedDescription)
+    }
+
+    @Test
+    fun `initial load still seeds edit fields from the server`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", description = "seed note", forDomain = "seed.com"))
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertEquals("seed note", viewModel.uiState.value.editedDescription)
+        assertEquals("seed.com", viewModel.uiState.value.editedForDomain)
+    }
 }

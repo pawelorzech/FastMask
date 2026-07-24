@@ -1,8 +1,8 @@
-What's new in 1.8.0
+What's new in 1.8.1
 
-• Undo after archiving a mask works reliably and restores its previous state
-• Purchases completed in the background now unlock Pro without a restart
-• Pro accent colors are properly legible in the dark theme
-• Clearer progress on Buy, Restore and CSV export
-• Accessibility: better screen-reader support in Settings, RTL fixes
+• Purchases are verified more securely
+• Confirmation before signing out, and a prompt before discarding unsaved edits
+• Clearer "no matches" state when searching or filtering
+• Fewer edge-case glitches: no lost edits, no stuck buttons, steadier under poor network
+• Better dark-theme contrast and screen-reader labels
 • Still zero tracking, no ads, no subscriptions

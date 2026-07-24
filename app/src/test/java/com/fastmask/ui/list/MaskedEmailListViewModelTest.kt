@@ -142,6 +142,21 @@ class MaskedEmailListViewModelTest {
     }
 
     @Test
+    fun `two same-frame refreshes fire only one fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle() // init load → getCalls == 1
+
+        // Both calls land before either coroutine dispatches. The synchronous
+        // refreshInFlight guard must stop the second from starting a fetch.
+        viewModel.refreshMaskedEmails()
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    @Test
     fun `refresh after load completes does fetch again`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)

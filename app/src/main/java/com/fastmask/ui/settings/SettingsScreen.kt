@@ -74,6 +74,7 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.HairlineDivider
 import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
@@ -108,6 +109,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLockUnavailableDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val extras = FastMaskExtras.current
     val snackbarHostState = remember { SnackbarHostState() }
     val exportFailedMessage = stringResource(R.string.settings_export_failed)
@@ -170,6 +172,19 @@ fun SettingsScreen(
             selected = selectedAccent,
             onSelect = viewModel::onAccentSelected,
             onDismiss = viewModel::onAccentDialogDismissed,
+        )
+    }
+
+    if (showLogoutDialog) {
+        // Confirm before dropping the token — a mistap otherwise forces a full
+        // re-login. Mirrors the archive confirmation on a less destructive action.
+        ConfirmDialog(
+            title = stringResource(R.string.logout_confirm_title),
+            message = stringResource(R.string.logout_confirm_message),
+            confirmText = stringResource(R.string.settings_logout),
+            dismissText = stringResource(R.string.email_detail_delete_cancel),
+            onConfirm = { showLogoutDialog = false; viewModel.logout() },
+            onDismiss = { showLogoutDialog = false },
         )
     }
 
@@ -357,7 +372,7 @@ fun SettingsScreen(
                     value = stringResource(R.string.settings_logout_description),
                     leading = Icons.AutoMirrored.Filled.Logout,
                     leadingTint = extras.status.deleted.content,
-                    onClick = viewModel::logout,
+                    onClick = { showLogoutDialog = true },
                 )
 
                 Spacer(Modifier.height(48.dp))
