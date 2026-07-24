@@ -37,8 +37,8 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AccentAmber,
-    onPrimary = OnAccent,
+    primary = DarkAccentAmber,
+    onPrimary = LightInk,
     primaryContainer = DarkActiveBg,
     onPrimaryContainer = DarkActiveInk,
     secondary = DarkInkSoft,
