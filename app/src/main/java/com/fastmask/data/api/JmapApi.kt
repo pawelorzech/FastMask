@@ -20,7 +20,14 @@ class JmapApi @Inject constructor(
     private val jmapService: JmapService,
     private val json: Json
 ) {
+    // @Volatile: the fast path in ensureSession() and the lock-free reads in
+    // getAccountId()/getApiUrl() run on different Dispatchers.IO threads than
+    // the writers. Without it there is no happens-before guarantee, so a reader
+    // could see a stale null (redundant re-fetch) or a torn pair where
+    // getApiUrl() still returns the default while getAccountId() is already set.
+    @Volatile
     private var cachedSession: JmapSession? = null
+    @Volatile
     private var cachedAccountId: String? = null
     private val sessionMutex = Mutex()
 

@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +31,7 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
 import com.fastmask.ui.theme.FastMaskExtras
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -75,12 +79,18 @@ fun DemoBanner(
             text = stringResource(R.string.demo_banner_signin),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = extras.accent,
-            modifier = Modifier.clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                viewModel.exitDemoMode {
-                    onSignInClick()
+            // 48dp tall tap target with a Button role — was a bare ~text-height
+            // clickable Text with no role (sub-minimum target, unlabeled for a11y).
+            modifier = Modifier
+                .heightIn(min = 48.dp)
+                .clickable(role = Role.Button) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.exitDemoMode {
+                        onSignInClick()
+                    }
                 }
-            },
+                .padding(horizontal = 4.dp)
+                .wrapContentHeight(Alignment.CenterVertically),
         )
     }
 }
@@ -102,7 +112,11 @@ class DemoBannerViewModel @Inject constructor(
      * fired *after* the state flip so that subsequent screens observe REAL mode.
      */
     fun exitDemoMode(onDone: () -> Unit) {
-        viewModelScope.launch {
+        // Swallow a DataStore write failure instead of crashing on the main
+        // thread (viewModelScope rethrows uncaught exceptions); [onDone] only
+        // runs after both writes succeed, so navigation never fires on a
+        // half-applied state change.
+        viewModelScope.launch(CoroutineExceptionHandler { _, _ -> }) {
             settingsDataStore.setAppMode(AppMode.REAL)
             settingsDataStore.setTutorialCompleted(false)
             onDone()

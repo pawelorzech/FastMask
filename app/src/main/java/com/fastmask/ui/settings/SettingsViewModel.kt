@@ -15,6 +15,7 @@ import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +46,14 @@ class SettingsViewModel @Inject constructor(
     // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
     val events: Flow<SettingsEvent> = _events.receiveAsFlow()
+
+    // A DataStore/token write can throw (disk full, KeyStore corruption).
+    // viewModelScope rethrows uncaught exceptions on the main thread → crash;
+    // this swallows them so a failed write degrades quietly. When it aborts the
+    // coroutine before a post-write navigation event (logout, exitDemoMode), the
+    // event is simply not sent — the user stays put rather than navigating on a
+    // half-completed state change.
+    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
 
     /** Live app-mode flag — used to render the demo "sign in" section. */
     val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
@@ -81,14 +90,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onLanguageSelected(language: Language?) {
-        viewModelScope.launch {
+        viewModelScope.launch(writeErrorHandler) {
             setLanguageUseCase(language)
             _uiState.update { it.copy(selectedLanguage = language) }
         }
     }
 
     fun logout() {
-        viewModelScope.launch {
+        viewModelScope.launch(writeErrorHandler) {
             logoutUseCase()
             _events.send(SettingsEvent.LoggedOut)
         }
@@ -100,7 +109,7 @@ class SettingsViewModel @Inject constructor(
      * an event the screen turns into navigation to the login flow.
      */
     fun exitDemoMode() {
-        viewModelScope.launch {
+        viewModelScope.launch(writeErrorHandler) {
             settingsDataStore.setAppMode(AppMode.REAL)
             settingsDataStore.setTutorialCompleted(false)
             _events.send(SettingsEvent.GoToSignIn)
@@ -129,7 +138,7 @@ class SettingsViewModel @Inject constructor(
     fun onAccentSelected(accent: Accent) {
         _uiState.update { it.copy(showAccentDialog = false) }
         if (!proStatus.value.isPro) return
-        viewModelScope.launch { settingsDataStore.setAccent(accent) }
+        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
     }
 
     /**
@@ -143,7 +152,7 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "app_lock")) }
             return
         }
-        viewModelScope.launch { settingsDataStore.setAppLockEnabled(enabled) }
+        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAppLockEnabled(enabled) }
     }
 
     fun onExportClick() {

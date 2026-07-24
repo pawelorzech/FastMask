@@ -185,6 +185,10 @@ class ProRepositoryImpl @Inject constructor(
         val proPurchase = purchases.firstOrNull { PRO_LIFETIME in it.productIds }
         if (fromBuyFlow && proPurchase == null) {
             // Not ours, not authoritative — leave the cached entitlement alone.
+            // Still emit a terminal event: buy() reports LAUNCHED and relies on
+            // an event to clear its in-flight flag, so a silent return here would
+            // leave the paywall's buy button spinning forever.
+            _events.send(ProPurchaseEvent.Failed("NO_MATCHING_PURCHASE"))
             return@withLock
         }
         val previous = _proStatus.value
@@ -231,7 +235,10 @@ class ProRepositoryImpl @Inject constructor(
                     analytics.track(MonetizationEvent.PURCHASE_PENDING)
                     _events.send(ProPurchaseEvent.Pending)
                 }
-                ProStatus.FREE -> Unit
+                // A buy-flow update that resolves to FREE (purchase neither
+                // PURCHASED nor PENDING) is still terminal — emit so the buy
+                // button's in-flight spinner is always cleared.
+                ProStatus.FREE -> _events.send(ProPurchaseEvent.Failed("NOT_PURCHASED"))
             }
         }
     }
