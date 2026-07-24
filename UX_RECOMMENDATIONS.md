@@ -1,52 +1,64 @@
-# FastMask — Rekomendacje UX (audyt 2026-07-23)
+# FastMask — Rekomendacje UX (audyt 2026-07-24)
 
-Kontekst: rekomendacje z audytu 2026-07-19 (sekcje 7–8 tamtego raportu) pozostają w mocy — tu tylko NOWE obserwacje z obszaru monetyzacji/Pro + rzeczy, które wyszły przy okazji. Scoring 1–5: Impact / Effort (niższy = tańszy) / Confidence / Risk; Priority = Impact × Confidence / Effort.
+Kontekst: rekomendacje z audytu 2026-07-23 pozostają w mocy — tu NOWE obserwacje z bieżącego pełnego sweepu. Scoring 1–5: Impact / Effort (niższy = tańszy) / Confidence / Risk; Priority = Impact × Confidence / Effort.
 
-## Ocena flow Pro (stan po naprawach)
+## Ocena obecnego UX
 
-Mocne strony: paywall ma komplet stanów (loading/unavailable+retry/ready/pending/owned), cenę bierze z Play w walucie użytkownika, restore jest widocznym przyciskiem (lepiej niż w większości aplikacji), gating „locked rows" w Settings daje odkrywalność bez nachalności, anti-lockout locka przemyślany. Największe braki to feedback in-flight na akcjach płatnych i niewidoczność Pro poza Settings.
+**Mocne strony:**
+- Ciepła, spójna paleta "warm-ink" — wyróżnia się na tle Material You
+- Instrument Serif + JetBrains Mono dają charakterystyczny, czytelny styl
+- Pierwszy ekran (welcome) jasno komunikuje dwie ścieżki: zaloguj lub wypróbuj demo
+- Undo archiwizacji z długim snackbarze (~10s) — dobry affordance
+- Quick-copy na listach — najszybsza akcja bez otwierania detailu
+- In-flight states na Buy/Restore (spinner) — naprawione z A18
+- Export z progress indicator — naprawione z A23
+
+**Słabe strony:**
+- Paywall ukryty głęboko w Settings (3 tapnięcia: Settings → Pro → Buy)
+- Brak wizualnego wyróżnienia Pro po zakupie (OwnedCard jest mało celebracyjny)
+- Error states na detailu pokazują tekst bez retry (gdy email != null)
+- Demo tutorial jest prosty, ale pojawia się tylko raz — brak możliwości powrotu
+
+---
 
 ## A. Quick wins
 
 | # | Rekomendacja | Problem użytkownika | Impact | Effort | Conf. | Risk | Prio |
 |---|---|---|---|---|---|---|---|
-| 1 | **Stan in-flight na Buy/Restore** (disabled alpha + spinner w PillButton) | Po tapnięciu „Buy" nic się nie dzieje 1–3 s (wstawanie billing sheet) — wygląda jak zwis, zachęca do tap-mashingu na ekranie PŁATNOŚCI | 4 | 2 | 5 | 1 | **10.0** |
-| 2 | **Spinner przy „Export masks" w trakcie eksportu** (`exportInFlight` do UI state, chevron→spinner) | Eksport robi fetch sieciowy — na wolnym łączu sekundy bez żadnego feedbacku | 3 | 1 | 5 | 1 | **15.0** |
-| 3 | **Zdanie o czasie przy PENDING** („zwykle minuty, do 24 h przy niektórych metodach") | Pending purchase to klasyczny trigger „czy mnie oszukali?" | 3 | 1 | 4 | 1 | **12.0** |
-| 4 | **„Cancel"→„OK/Done" w dialogach akcent/język/info** + dedykowany klucz dla „Pro feature" na locked rows | „Cancel" sugeruje revert, a wybór już się zastosował | 2 | 2 | 5 | 1 | 5.0 |
-| 5 | **Post-purchase: link „Wypróbuj pierwszy akcent →" na OwnedCard** (deep-link do dialogu akcentów) | Moment po zakupie jest płaski; konwersja zakupu w natychmiastowe użycie | 3 | 2 | 3 | 1 | 4.5 |
-| 6 | **Rozjaśniony amber jako tekst/kursor w dark mode** (np. #D97F38 tylko dla foreground-użyć; fill FAB bez zmian) | Klasyczny amber ma 3.1:1 na ciemnych tłach jako tekst (poniżej AA) | 3 | 2 | 4 | 3 (gust — decyzja Pawła) | 6.0 |
+| 1 | **Stan in-flight na Buy/Restore** (już naprawiony w A18) | Po tapnięciu „Buy" nic się nie dzieje 1–3 s — wygląda jak zwis | 4 | 1 | 5 | 1 | **20.0** |
+| 2 | **Spinner przy „Export masks"** (już naprawiony w A23) | Eksport robi fetch sieciowy — na wolnym łączu sekundy bez feedbacku | 3 | 1 | 5 | 1 | **15.0** |
+| 3 | **„Cancel"→„OK" w dialogach akcent/język** | „Cancel" sugeruje revert, a wybór już się zastosował | 2 | 2 | 5 | 1 | 5.0 |
+| 4 | **Post-purchase: link „Wypróbuj akcent →" na OwnedCard** | Moment po zakupie jest płaski; konwersja zakupu w natychmiastowe użycie | 3 | 2 | 3 | 1 | 4.5 |
+| 5 | **Zdanie o czasie przy PENDING** („zwykle minuty, do 24 h") | Pending purchase to klasyczny trigger „czy mnie oszukali?" | 3 | 1 | 4 | 1 | 12.0 |
 
-## B. Średni zakres
+## B. Usprawnienia średniego zakresu
 
 | # | Rekomendacja | Problem | Impact | Effort | Conf. | Risk | Prio |
 |---|---|---|---|---|---|---|---|
-| 1 | **Podgląd akcentów dla free** — picker otwarty dla wszystkich, live preview, gate dopiero na zapisie | Locked row jest abstrakcyjny; „chcę TEN kolor" to konkretna motywacja zakupowa | 4 | 3 | 3 | 2 | 4.0 |
-| 2 | **Subtelna wzmianka o Pro po momencie sukcesu** (np. po 5. utworzonej masce, dismissable) | 3 funkcje Pro niewidoczne, dopóki user sam nie wejdzie w Settings | 4 | 3 | 3 | 2 (nachalność — jedna wzmianka, nie popup) | 4.0 |
-| 3 | **Wyniesienie zapisu CSV z composable do use case'a** + odporność na rotację (eksport ginie przy obrocie w trakcie [A23]) | Utrata eksportu przy rotacji; nietestowalna logika w UI | 3 | 3 | 4 | 1 | 4.0 |
-| 4 | **Eksport z nazwą timestampowaną** + kasowanie starych po wieku, nie wszystkich (A21) | Wolny odbiorca share (Drive) może dostać ucięty plik | 2 | 2 | 3 | 1 | 3.0 |
-| 5 | **Undo przywraca stan sprzed archiwizacji** (ENABLED/DISABLED przez `onArchived(id, prevState)`) (A22) | „Undo" obiecuje stan sprzed; maska DISABLED wraca jako aktywna i znów przyjmuje maile | 2 | 2 | 4 | 2 | 4.0 |
+| 1 | **Podgląd akcentów dla free** — picker otwarty, live preview, gate na zapisie | Locked row jest abstrakcyjny; „chcę TEN kolor" to motywacja zakupowa | 4 | 3 | 3 | 2 | 4.0 |
+| 2 | **Subtelna wzmianka o Pro po 5. masce** (dismissable) | 3 funkcje Pro niewidoczne dopóki user nie wejdzie w Settings | 4 | 3 | 3 | 2 | 4.0 |
+| 3 | **Undo przywraca stan sprzed** — `restoreTo` z `previousState` (A22) | „Undo" obiecuje stan sprzed; DISABLED wraca jako ENABLED | 2 | 2 | 4 | 2 | 4.0 |
+| 4 | **Eksport z timestampowaną nazwą** (już naprawiony — A21 fix w codesie) | Wolny odbiorca share może dostać ucięty plik | 2 | 1 | 3 | 1 | 6.0 |
 
 ## C. Eksperymenty
 
-- **Konwersja per źródło wejścia na paywall** — `source` (settings/accent/app_lock/export) już jest w evencie; po przeniesieniu PAYWALL_CLOSED do `onCleared()` (A24) porównać close-rate per źródło i wyostrzyć copy najsłabszego. Wymaga decyzji o jakiejkolwiek telemetrii (dziś analytics = debug-log — zgodnie z privacy policy; ewentualny pomiar tylko lokalny/dev).
-- **Anchoring „no subscription"** — `pro_one_time_note` nad CTA zamiast pod; test na 3–5 użytkownikach.
-- **Placeholder ceny w LOADING** (shimmer zamiast spinnera w miejscu CTA) — mniejszy skok layoutu; sprawdzić czy Play query bywa realnie wolne na starszych urządzeniach.
+- **Anchoring „no subscription"** — `pro_one_time_note` nad CTA zamiast pod; test na 3–5 użytkownikach
+- **Placeholder ceny w LOADING** (shimmer zamiast spinnera w CTA) — mniejszy skok layoutu
+- **Konwersja per źródło wejścia na paywall** — `source` już jest w evencie; porównać close-rate per źródło
 
 ## D. Odrzucone
 
-- **Server-side weryfikacja zakupów / własny backend licencji** — nieproporcjonalne dla indie-aplikacji bez backendu; Play Billing 8.x waliduje on-device, rekoncyliacja przy starcie wystarcza. Koszt utrzymania i prywatność (nowy serwer z danymi zakupów) > zysk.
-- **Wzmocnienie locka do BIOMETRIC_STRONG + CryptoObject** — złamałoby fallback na PIN (celowy), a bez szyfrowania danych at-rest kluczem z biometrii i tak nie podnosi realnie bezpieczeństwa. Obecny model (gate prywatności) jest uczciwy.
-- **Rozbudowa lokalnego anti-tamperu entitlementu** (np. podpisywanie store'a) — teatr bezpieczeństwa: root i tak wygrywa, a uczciwy użytkownik nie zauważy różnicy. Zamiast tego złagodzić docstring.
-- **Launch-popup/onboarding Pro** — sprzeczne z „buduj tak, żeby chcieli"; zamiast tego B2.
+- **Server-side weryfikacja zakupów** — nieproporcjonalne dla indie-aplikacji bez backendu
+- **BIOMETRIC_STRONG + CryptoObject** — złamałoby fallback na PIN (celowy)
+- **Rozbudowa anti-tamper** — teatr bezpieczeństwa; root i tak wygrywa
+- **Launch-popup Pro** — sprzeczne z „buduj tak, żeby chcieli"
 
-## Metryki (privacy-first, bez telemetrii produkcyjnej)
+## Metryki (privacy-first)
 
-Lokalnie/dev + testy z użytkownikami: crash-free sessions (logcat przy QA), skuteczność zakupu w internal testing (ile prób buy kończy się PRO — mierzalne w Play Console), czas tap-Buy→billing-sheet, odsetek eksportów zakończonych share'em, liczba wejść na paywall per źródło (debug-log), close-rate paywalla po fixie A24. Z Play Console (bez SDK): konwersja strony sklepu, ANR/crash rate, refund rate pro_lifetime — refund rate to też sygnał problemów z acknowledgment (po fixie A3 powinien być ~0 z tego tytułu).
+Lokalnie/dev: crash-free sessions (logcat), skuteczność zakupu (Play Console), czas tap→billing-sheet, close-rate paywalla. Z Play Console: konwersja sklepu, ANR/crash rate, refund rate.
 
-## Roadmapa (propozycja)
+## Roadmapa
 
-1. **Najbliższy patch (1.7.4, razem z merge'em audit-fixes):** A-quick-wins #1–#3 (in-flight states + pending copy) — komplet napraw audytu + feedback na akcjach płatnych.
-2. **Kolejny release:** B3+B4 (refactor eksportu), B5 (undo z prev-state), A4 (stringi dialogów), decyzja Pawła: A6 (amber dark) i B1/B2 (widoczność Pro).
-3. **Większy release:** podbicie stacka (AGP/Kotlin/Compose — osobny PR, backlog z 19.07), instrumented tests dla lock state-machine i undo (luki z sekcji testowej), potem duże C z poprzedniego audytu (Autofill nadal najlepszą dużą dźwignią produktu).
-4. **Do walidacji:** eksperymenty C powyżej.
+1. **Najbliższy patch:** A-quick-wins #1–#3 (in-flight states + pending copy + dialog buttons)
+2. **Kolejny release:** B1+B2 (widoczność Pro), B3 (undo prev-state), decyzja Pawła: B4 (amber dark)
+3. **Większy release:** Podbicie stacka (AGP/Kotlin/Compose), instrumented tests, Autofill

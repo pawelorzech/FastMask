@@ -24,8 +24,8 @@ import com.fastmask.R
 @Composable
 fun ErrorMessage(
     message: String,
+    modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier

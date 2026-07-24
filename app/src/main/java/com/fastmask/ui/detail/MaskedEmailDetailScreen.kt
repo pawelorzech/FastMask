@@ -194,7 +194,6 @@ private fun DetailContent(
     copyDesc: String,
 ) {
     val email = uiState.email!!
-    val context = LocalContext.current
     val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
 
@@ -328,7 +327,7 @@ private fun DetailContent(
         if (uiState.errorRes != null) {
             Spacer(Modifier.height(14.dp))
             Text(
-                text = stringResource(uiState.errorRes!!),
+                text = stringResource(uiState.errorRes),
                 style = MaterialTheme.typography.bodySmall,
                 color = extras.status.deleted.content,
             )
@@ -336,11 +335,10 @@ private fun DetailContent(
 
         Spacer(Modifier.height(16.dp))
 
-        val email1 = uiState.email
-        val hasChanges = email1 != null && (
-            uiState.editedDescription != (email1.description ?: "") ||
-                uiState.editedForDomain != (email1.forDomain ?: "") ||
-                uiState.editedUrl != (email1.url ?: "")
+        val hasChanges = (
+            uiState.editedDescription != (email.description ?: "") ||
+                uiState.editedForDomain != (email.forDomain ?: "") ||
+                uiState.editedUrl != (email.url ?: "")
             )
 
         PillButton(
