@@ -57,7 +57,7 @@
     <string name="email_detail_status">Trạng thái:</string>
     <string name="email_detail_created_by">Tạo bởi</string>
     <string name="email_detail_created">Ngày tạo</string>
-    <string name="email_detail_last_message">Tin nhắn cuối: %s</string>
+    <string name="email_detail_last_message">Tin nhắn cuối</string>
     <string name="email_detail_enable">Bật</string>
     <string name="email_detail_disable">Tắt</string>
     <string name="email_detail_edit_title">Chỉnh sửa chi tiết</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Vui lòng nhập mã API của bạn</string>
     <string name="login_error_failed">Không thể đăng nhập</string>
     <string name="email_list_empty_sub">Tạo một email ẩn danh để định tuyến thư mà không chia sẻ địa chỉ thực của bạn.</string>
-    <string name="list_stats">%1$d đang hoạt động · %2$d tổng cộng</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Không thể tải email ẩn danh</string>
     <string name="create_email_subtitle">Cấu hình địa chỉ email ẩn danh mới</string>
     <string name="create_email_preview_label">Xem trước</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Đăng nhập bằng Fastmail</string>
     <string name="error_network">Không có kết nối. Vui lòng kiểm tra kết nối Internet của bạn và thử lại.</string>
     <string name="error_auth">Fastmail đã từ chối mã thông báo. Vui lòng đăng nhập lại.</string>
-    <string name="list_copied">Đã sao chép vào bộ nhớ tạm</string>
     <string name="list_copy_action">Sao chép địa chỉ</string>
     <string name="list_archived_snackbar">Mặt nạ đã được lưu trữ</string>
     <string name="list_undo">Hoàn tác</string>
@@ -223,6 +222,25 @@
     <string name="app_lock_locked_subtitle">Đã khóa. Mở khóa để tiếp tục.</string>
     <string name="app_lock_unlock">Mở khóa</string>
     <string name="app_lock_prompt_title">Mở khóa FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Quá nhiều yêu cầu. Vui lòng đợi một lát rồi thử lại.</string>
+    <string name="error_server">Máy chủ Fastmail tạm thời không khả dụng. Vui lòng thử lại sau giây lát.</string>
+    <string name="email_list_no_matches">Không có kết quả</string>
+    <string name="email_list_no_matches_sub">Không có mặt nạ nào khớp với tìm kiếm hoặc bộ lọc của bạn.</string>
+    <string name="create_email_error_prefix_length">Tiền tố tối đa 64 ký tự</string>
+    <string name="create_email_error_prefix_chars">Chỉ cho phép chữ thường, số và dấu gạch dưới</string>
+    <string name="discard_changes_title">Hủy thay đổi?</string>
+    <string name="discard_changes_message">Các chỉnh sửa chưa được lưu và sẽ bị mất.</string>
+    <string name="discard_changes_confirm">Hủy</string>
+    <string name="discard_changes_cancel">Tiếp tục chỉnh sửa</string>
+    <string name="logout_confirm_title">Đăng xuất?</string>
+    <string name="logout_confirm_message">Bạn sẽ cần mã API Fastmail để đăng nhập lại.</string>
+    <string name="error_no_app_for_link">Không có ứng dụng nào để mở liên kết này.</string>
+    <string name="list_copied_value">Đã sao chép %1$s</string>
+    <string name="settings_export_failed_write">Không thể lưu tệp xuất. Hãy giải phóng dung lượng rồi thử lại.</string>
+    <plurals name="list_stats_active">
+        <item quantity="other">%d đang bật</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="other">%d tổng</item>
+    </plurals>
 </resources>

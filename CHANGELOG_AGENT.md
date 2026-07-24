@@ -1,70 +1,87 @@
-# CHANGELOG_AGENT.md — 2026-07-24 (pass B)
+# CHANGELOG_AGENT.md — 2026-07-24 (pass C)
 
-Gałąź: `feature/audit-2026-07-24b` (z `main` @ `f1e89ee`, v1.8.0). Wszystkie fixy potwierdzone: `testDebugUnitTest` 109/109 PASS · `lintDebug` 0 errors · `assembleRelease` SUCCESS.
+Gałąź: `feature/audit-2026-07-24c` (z `main` @ `c8bfc3d`, v1.8.1).
+Weryfikacja: `testDebugUnitTest` **124/124 PASS** · `lintDebug` 0 errors · `assembleDebug` SUCCESS · `assembleRelease` SUCCESS.
 
-## Zmienione pliki (kod produkcyjny)
+Siedem commitów. Wersja podbita do **1.8.2 (versionCode 19)**.
 
-| Plik | Zmiana | ID |
-|------|--------|----|
-| `data/api/JmapApi.kt` | `@Volatile` na `cachedSession` i `cachedAccountId` | CC4 |
-| `data/repository/ProRepositoryImpl.kt` | `handlePurchases(fromBuyFlow=true)` emituje event terminalny na gałęziach „brak SKU" i `FREE` (spinner buy nie wisi) | CC2 |
-| `domain/usecase/ExportMasksUseCase.kt` | Neutralizacja CSV na pierwszym nie-białym znaku (`trimStart().firstOrNull()`) | SEC2 |
-| `ui/list/MaskedEmailListViewModel.kt` | `CoroutineExceptionHandler` na zapisie tutorialu; synchroniczny `refreshInFlight` + guard `isLoading` na `loadMaskedEmails` | CC1, CC5 |
-| `ui/settings/SettingsViewModel.kt` | `CoroutineExceptionHandler` na 5 zapisach DataStore/logout | CC1 |
-| `ui/components/DemoBanner.kt` | `CoroutineExceptionHandler` na `exitDemoMode`; „Sign in" → 48dp tap-target + `Role.Button` | CC1, R6 |
-| `ui/detail/MaskedEmailDetailViewModel.kt` | `loadEmail(resetEdits: Boolean)`; reload po save/toggle nie kasuje pól edytowanych | CC3 |
-| `ui/detail/MaskedEmailDetailScreen.kt` | `hasChanges` liczony na `.trim()`; spinner przy `isDeleting`; retry w błędzie ładowania | B7, B6, B3 |
-| `ui/create/CreateMaskedEmailViewModel.kt` | `prefixError: String?` → `prefixErrorRes: Int?` (i18n) | B2 |
-| `ui/create/CreateMaskedEmailScreen.kt` | Użycie współdzielonego `copyToClipboard` (sensitive flag); resolve `prefixErrorRes`; segmented `selectable(Role.RadioButton)`; usunięto lokalny `copyToClipboard` | SEC3, B2, R7 |
-| `ui/list/MaskedEmailListScreen.kt` | `StateDot` z `contentDescription` (helper `stateContentDescription`); `NoMatchesBlock`; label semantyczny search | B1, B4, R5 |
-| `ui/components/DesignKit.kt` | `StateDot` przyjmuje opcjonalny `contentDescription` → semantyka a11y | B1 |
-| `res/values/strings.xml` | +4 stringi (`create_email_error_prefix_length/_chars`, `email_list_no_matches/_sub`) z `tools:ignore="MissingTranslation"`; dodano `xmlns:tools` | B2, B4 |
+| Commit | ID | Tytuł |
+|---|---|---|
+| `8a97711` | D1 | Fix: dead external links on Android 11+ |
+| `5b6d035` | D2 | Fix: translate 13 strings into all 19 locales |
+| `f8dee44` | D3 | Fix: keep the pasted token on a retryable login failure |
+| `09c3759` | D4 | Fix: guard the demo-mode DataStore write |
+| `1ea242e` | D5 | Add: refuse a signed release without a Play licence key |
+| `4aa2d89` | D7 | Fix: strip stray %s from 18 translations |
+| `a21b657` | A1–A3 | Add: UX quick wins |
 
-## Zmienione pliki (testy)
-
-| Plik | Dodane testy |
-|------|--------------|
-| `test/.../MaskCsvTest.kt` | +2: neutralizacja z wiodącą spacją; benign whitespace nietknięty (SEC2) |
-| `test/.../CreateMaskedEmailViewModelTest.kt` | +2: unicode→`prefix_chars`, >64→`prefix_length` (B2); `@file:OptIn` (zero nowych warningów); update `prefixError`→`prefixErrorRes` |
-| `test/.../MaskedEmailDetailViewModelTest.kt` | +2: edycja przetrwa reload po toggle; initial load seeduje pola (CC3) |
-| `test/.../MaskedEmailListViewModelTest.kt` | +1: dwa refresh/klatka = jeden fetch (CC5) |
-| `test/.../ProRepositoryImplTest.kt` | +1: buy-flow OK bez SKU emituje event terminalny (CC2) |
-
-## Zmiany zachowania (do świadomości)
-
-- **Logout/exitDemo przy błędzie zapisu:** jeśli `DataStore.edit`/`logout` rzuci (dysk/korupcja), korutyna jest przerwana i event nawigacyjny **nie** odpala — user zostaje na miejscu zamiast crashować lub nawigować na niespójnym stanie. Wcześniej: crash.
-- **Detail edit + reload:** po zapisie/toggle pola edycji nie są już przeładowywane z serwera. Jeśli serwer znormalizował wartość (np. trim), UI pokaże wersję użytkownika (równą po trim) do następnego pełnego wejścia na ekran. Kosmetyczne, samonaprawialne.
-- **Buy-flow edge (OK bez naszego SKU):** pokazuje teraz stan „nieudane" zamiast wisieć — rzadka ścieżka Play.
-- **Pusty stan listy:** przy aktywnym filtrze/wyszukiwaniu bez wyników pokazuje „No matches" zamiast „Create a mask…".
-
-## Potencjalne regresje / do manualnego QA
-
-- Buy-flow na realnym urządzeniu (internal testing): potwierdź że spinner znika we wszystkich wynikach (Completed/Pending/Cancelled/Failed/edge).
-- Detail: wpisz zmianę, tapnij toggle stanu — sprawdź że wpisany tekst nie znika.
-- Lista: filtr „Disabled/Deleted" bez trafień → „No matches"; puste konto → „Create a mask".
-- TalkBack: kropka stanu na wierszu ogłasza stan; pole search ma etykietę; „Sign in" w demo-bannerze jako Button.
-- 4 nowe stringi wyświetlają się po angielsku poza en — **do przetłumaczenia na 19 języków**.
-
-## Batch 2 — po decyzji Pawła (SEC1, R1, B5, R4)
+## Zmienione pliki — kod produkcyjny
 
 | Plik | Zmiana | ID |
 |------|--------|----|
-| `data/billing/PurchaseSecurity.kt` (nowy) | Weryfikacja podpisu Play SHA1withRSA (java.util.Base64, testowalne na JVM) | SEC1 |
-| `data/billing/PlayBillingDataSource.kt` | `isPurchased` wymaga ważnego podpisu; klucz z `BuildConfig.PLAY_LICENSE_KEY` | SEC1 |
-| `app/build.gradle.kts` | `buildConfigField PLAY_LICENSE_KEY` z `fastmask.playLicenseKey` / env | SEC1 |
-| `~/.gradle/gradle.properties` (poza repo) | `fastmask.playLicenseKey=<Base64 RSA>` pobrany z Play Console | SEC1 |
-| `ui/theme/Color.kt` | `DarkAccentAmber #C9761F` | R1 |
-| `ui/theme/StatusColors.kt`, `Theme.kt`, `AccentColors.kt` | Dark accent = DarkAccentAmber + dark-ink on-accent; amber spójny z resztą | R1 |
-| `ui/components/ConfirmDialog.kt` (nowy) | Współdzielony dialog potwierdzenia (pill-button styling) | B5/R4 |
-| `ui/create/CreateMaskedEmailScreen.kt`, `ui/detail/MaskedEmailDetailScreen.kt` | `BackHandler` + discard-changes dialog gdy dirty | B5 |
-| `ui/settings/SettingsScreen.kt` | Logout confirm dialog | R4 |
-| `res/values/strings.xml` | +6 stringów dialogów (`tools:ignore`, do przetłumaczenia) | B5/R4 |
-| `test/.../PurchaseSecurityTest.kt` (nowy) | +5: valid/tampered/foreign-key/blank/malformed | SEC1 |
+| `AndroidManifest.xml` | Dodane `<queries>` dla `SENDTO`/`mailto` i `VIEW`/`https` (widoczność pakietów API 30+) | D1 |
+| `ui/common/ExternalLinks.kt` **(nowy)** | `openExternalIntent()` — launch + catch `ActivityNotFoundException`, zwraca `Boolean`; zastępuje wzorzec `resolveActivity() != null` | D1 |
+| `ui/settings/SettingsScreen.kt` | Kontakt używa helpera; snackbar gdy brak aplikacji pocztowej | D1 |
+| `ui/pro/ProScreen.kt` | Polityka prywatności i Regulamin przez helper `openLink`; snackbar przy braku przeglądarki | D1 |
+| `ui/auth/LoginViewModel.kt` | Token czyszczony tylko po sukcesie lub odrzuceniu 401/403; zachowany przy błędach powtarzalnych | D3 |
+| `ui/common/UiErrors.kt` | Nowe `isRetryable(Throwable)` — ta sama tabela co `messageRes`, żeby nie mogły się rozjechać | D3 |
+| `ui/welcome/WelcomeViewModel.kt` | `CoroutineExceptionHandler` na `enterDemoMode()` | D4 |
+| `build.gradle.kts` | Bramka `gradle.taskGraph.whenReady` — podpisany release bez klucza licencyjnego jest odrzucany | D5 |
+| `ui/list/MaskedEmailListScreen.kt` | Snackbar kopiowania nazywa adres; nagłówek listy używa `pluralStringResource` | A1, A3 |
+| `ui/settings/SettingsViewModel.kt` | `ExportFailed(messageRes)` — przyczyna przez `UiErrors` zamiast jednego komunikatu | A2 |
+| `ui/settings/SettingsScreen.kt` | Osobny komunikat dla błędu **zapisu** pliku eksportu | A2 |
+| `res/values/strings.xml` | Nowe `error_no_app_for_link`, `list_copied_value`, `settings_export_failed_write`, 2× `<plurals>`; `list_stats` → format `%1$s · %2$s`; usunięty `list_copied`; usunięte **10** `tools:ignore="MissingTranslation"` | D1, D2, A1–A3 |
+| `res/values-*/strings.xml` (19 plików) | 247 tłumaczeń (D2) + 3 stringi i 2 plurals × 19 (A1–A3) + usunięty zbędny `%s` w 18 lokalach (D7) | D2, D7, A1–A3 |
+| `CLAUDE.md` | SDK 35 → 36 (drift dokumentacji) | D6 |
+| `app/build.gradle.kts` | versionCode 18 → 19, versionName 1.8.1 → 1.8.2 | release |
+| `marketing/play/release-notes/{pl-PL,en-US}.txt` | Notatki 1.8.2, obie w limicie 500 znaków Play | release |
 
-**SEC1 weryfikacja:** release build zielony, `BuildConfig.PLAY_LICENSE_KEY` niepusty (2048-bit RSA, potwierdzone `openssl`). Pusty klucz (dev/CI) → weryfikacja pominięta z ostrzeżeniem debug. **Do manualnego QA:** realny zakup na internal testing musi wciąż odblokowywać Pro (podpis prawdziwego zakupu jest ważny); sfałszowany — nie.
+## Dodane testy (+10, łącznie 124)
 
-**Zmiana wizualna (R1):** amber FAB/pill w dark mode ma teraz ciemny tekst (jak pozostałe akcenty), nie parchment. Obejrzyj na urządzeniu.
+| Plik | Testy | Co pokrywa |
+|---|---|---|
+| `i18n/TranslationCompletenessTest.kt` **(nowy)** | 3 | Brak klucza w dowolnym lokalu; angielskie zdanie ocalałe w tłumaczeniu; niezgodność argumentów formatujących. Krótkie etykiety (OK, URL, Status) świadomie wyłączone z drugiego testu — w tych językach naprawdę są identyczne |
+| `ui/common/UiErrorsTest.kt` | +2 | `isRetryable` dla transportu/5xx/429 vs 401/403/nieznane |
+| `ui/auth/LoginViewModelTest.kt` | +3, 1 przemianowany | Token zachowany przy IOException, 503 i 429; czyszczony przy 401 |
+| `ui/settings/SettingsViewModelTest.kt` | +2, 1 zaktualizowany | `ExportFailed` niesie przyczynę: sieć, rate limit, fallback |
 
-## Czego NIE ruszano (świadomie, patrz UX_RECOMMENDATIONS.md D)
+**Wszystkie trzy testy i18n sprawdzone negatywnie** — celowo przywróciłem każdy z bugów, przeciw którym stoją (usunięty klucz w `values-pl`, angielskie zdanie w `values-pl`, `%s` z powrotem w `values-de`). Każdy failuje; po przywróceniu stanu przechodzą.
 
-- R2/R3/R8/R9/R10 — polish/spójność, niskie priorytety.
+## Zmiany zachowania (widoczne dla użytkownika)
+
+1. **Kontakt, Polityka prywatności, Regulamin faktycznie się otwierają** na Androidzie 11+. Gdy naprawdę brak handlera — snackbar zamiast ciszy.
+2. **Nieudane logowanie przy braku sieci / 429 / 5xx nie kasuje już wklejonego tokenu.** Przy 401/403 nadal kasuje.
+3. **19 języków dostaje przetłumaczone** komunikaty walidacji prefiksu, pusty stan „brak wyników" oraz dialogi potwierdzenia wylogowania i odrzucenia zmian.
+4. **Wejście w tryb demo nie wywala aplikacji** przy błędzie zapisu DataStore (zostajesz na ekranie powitalnym).
+5. **Build:** `assembleRelease`/`bundleRelease` z keystore, ale bez klucza licencyjnego, teraz **failuje** zamiast po cichu wypuścić APK bez weryfikacji podpisu zakupu.
+6. **18 języków nie pokazuje już surowego `%s`** na ekranie szczegółów maski (D7).
+7. **Snackbar kopiowania nazywa adres**, nieudany eksport CSV podaje przyczynę, licznik masek ma poprawne formy liczby mnogiej (A1–A3).
+
+## Świadoma rewizja wcześniejszej decyzji
+
+D3 zmienia kontrakt, który poprzedni audyt celowo ustanowił i pokrył testem („token hygiene"). Nie usunąłem tego testu — zawęziłem kontrakt i przemianowałem test:
+
+- **Zachowane z pierwotnej intencji:** token znika ze stanu UI, gdy spełnił swoją rolę (sukces → jest w EncryptedSharedPreferences) albo został ostatecznie odrzucony (401/403).
+- **Zmienione:** przy błędzie powtarzalnym token zostaje. `UiErrors` mówi wtedy użytkownikowi „spróbuj ponownie", a aplikacja jednocześnie kasowała zamaskowany ~40-znakowy sekret potrzebny do tej próby. Te dwa zachowania były wzajemnie sprzeczne.
+
+Jeśli uznasz, że higiena sekretu ma pierwszeństwo nad wygodą — cofnięcie to jedna linia w `LoginViewModel` plus aktualizacja trzech testów.
+
+## Potencjalne regresje do sprawdzenia
+
+| Ryzyko | Dlaczego niskie | Jak sprawdzić |
+|---|---|---|
+| `<queries>` zmienia widoczność pakietów | Deklaracja tylko rozszerza widoczność, nic nie odbiera | Manifest zmergowany — zweryfikowany odczytem |
+| Snackbar w `ProScreen` koliduje z komunikatami zakupu | Ten sam `SnackbarHostState`, komunikaty kolejkowane | Tapnij Regulamin w trakcie trwającego zakupu |
+| Bramka release blokuje CI | Warunkowana obecnością keystore; bez keystore przechodzi | Zweryfikowane — `assembleRelease` bez keystore SUCCESS |
+| Tłumaczenia psują layout (dłuższe teksty) | Dialogi mają swobodny layout, brak stałych szerokości | Manualnie: DE i RU (najdłuższe) na wąskim ekranie |
+
+## Do manualnego QA przed publikacją
+
+1. **Android 11+ (najlepiej 13/14): Ustawienia → Kontakt** — musi otworzyć klienta poczty. To główny nienaprawialny-automatycznie dowód dla D1.
+2. **Paywall → Polityka prywatności i Regulamin** — muszą otworzyć przeglądarkę (wymóg Play).
+3. **Logowanie w trybie samolotowym** — błąd sieci, token **zostaje** w polu, przycisk działa po włączeniu sieci.
+4. **Logowanie błędnym tokenem** — 401, pole **czyszczone**.
+5. **Przełącz język na polski** → wyloguj się i odrzuć zmiany w edycji maski — oba dialogi po polsku.
+6. **Niemiecki / rosyjski → szczegóły maski** — etykieta „Letzte Nachricht" bez `%s` (D7).
+7. **Polski → lista masek** — licznik odmienia się: 1 aktywna, 2 aktywne, 5 aktywnych (A3).
+8. **Zakup Pro w internal testing** na buildzie z realnym kluczem licencyjnym (nietknięte tym przebiegiem, ale D5 zmienia proces budowania).

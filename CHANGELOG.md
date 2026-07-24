@@ -3,6 +3,28 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.2] — 2026-07-24
+
+Fourth audit pass (see `AUDIT_REPORT.md`, `CHANGELOG_AGENT.md`) — 7 fixes plus 3 UX quick wins, no P0. 114 → 124 unit tests.
+
+### Fixed
+- **Contact, Privacy Policy and Terms links did nothing on Android 11+.** `resolveActivity()` is package-visibility filtered since API 30 and the manifest declared no `<queries>`, so it reported "no handler" for `mailto:` and `https:` even with apps installed — and the failure was silent. The Privacy/Terms case was a regression introduced in 1.8.1; the Contact case had been broken since January.
+- **13 strings appeared in English in all 19 translated locales**, including the sign-out and discard-changes confirmations. They had been added with `tools:ignore="MissingTranslation"`, which silenced Lint.
+- **18 locales rendered a raw `%s`** on the mask detail screen: `email_detail_last_message` became a bare label but the translations kept the old "Label: %s" sentence form.
+- A failed sign-in no longer clears the pasted API token when the failure is retryable (no network, 429, 5xx). An auth rejection (401/403) still clears it.
+- Entering demo mode no longer crashes the app if the settings write fails.
+
+### Changed
+- The copy snackbar names the address that was copied.
+- A failed CSV export reports the actual cause (network, rate limit, server, or a file-write failure) instead of one generic message.
+- The list header uses `<plurals>`, so Polish, Russian and Ukrainian inflect the count correctly.
+
+### Build
+- `assembleRelease` / `bundleRelease` now **refuse to produce a signed build without a Play licence key**, which would otherwise ship with purchase signature verification silently disabled. Unsigned CI builds are unaffected.
+
+### Tests
+- New `TranslationCompletenessTest`: fails on a missing key in any locale, on an English sentence surviving into a translation, and on a translation whose format arguments disagree with the default. All three were verified by deliberately reintroducing the bugs they guard against.
+
 ## [1.8.1] — 2026-07-24
 
 Third audit pass (see `AUDIT_REPORT.md`, `CHANGELOG_AGENT.md`) — 20 fixes, no P0/P1, all P2/P3. 101 → 114 unit tests.

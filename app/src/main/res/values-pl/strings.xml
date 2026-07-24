@@ -34,13 +34,12 @@
     <string name="email_list_create_description">Utwórz nową maskę</string>
     <string name="email_list_empty">Tu jeszcze pusto.</string>
     <string name="email_list_empty_sub">Utwórz maskę, żeby otrzymywać pocztę bez ujawniania prawdziwego adresu.</string>
-    <string name="list_copied">Skopiowano do schowka</string>
     <string name="list_copy_action">Kopiuj adres</string>
     <string name="list_archived_snackbar">Maska zarchiwizowana</string>
     <string name="list_undo">Cofnij</string>
     <string name="email_list_logout">Wyloguj</string>
     <string name="email_list_settings">Ustawienia</string>
-    <string name="list_stats">%1$d aktywnych · %2$d wszystkich</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="filter_all">Wszystkie</string>
     <string name="filter_enabled">Aktywne</string>
     <string name="filter_disabled">Wył.</string>
@@ -225,6 +224,31 @@
     <string name="app_lock_locked_subtitle">Zablokowano. Odblokuj, aby kontynuować.</string>
     <string name="app_lock_unlock">Odblokuj</string>
     <string name="app_lock_prompt_title">Odblokuj FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.</string>
+    <string name="error_server">Serwer Fastmail jest chwilowo niedostępny. Spróbuj ponownie za moment.</string>
+    <string name="email_list_no_matches">Brak wyników</string>
+    <string name="email_list_no_matches_sub">Żadna maska nie pasuje do wyszukiwania ani filtra.</string>
+    <string name="create_email_error_prefix_length">Prefiks może mieć maksymalnie 64 znaki</string>
+    <string name="create_email_error_prefix_chars">Dozwolone są tylko małe litery, cyfry i podkreślenia</string>
+    <string name="discard_changes_title">Odrzucić zmiany?</string>
+    <string name="discard_changes_message">Zmiany nie zostały zapisane i przepadną.</string>
+    <string name="discard_changes_confirm">Odrzuć</string>
+    <string name="discard_changes_cancel">Wróć do edycji</string>
+    <string name="logout_confirm_title">Wylogować się?</string>
+    <string name="logout_confirm_message">Aby zalogować się ponownie, będziesz potrzebować tokenu API Fastmail.</string>
+    <string name="error_no_app_for_link">Brak aplikacji, która otworzy ten link.</string>
+    <string name="list_copied_value">Skopiowano %1$s</string>
+    <string name="settings_export_failed_write">Nie udało się zapisać pliku eksportu. Zwolnij miejsce i spróbuj ponownie.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d aktywna</item>
+        <item quantity="few">%d aktywne</item>
+        <item quantity="many">%d aktywnych</item>
+        <item quantity="other">%d aktywnej</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">łącznie %d</item>
+        <item quantity="few">łącznie %d</item>
+        <item quantity="many">łącznie %d</item>
+        <item quantity="other">łącznie %d</item>
+    </plurals>
 </resources>

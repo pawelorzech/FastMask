@@ -57,7 +57,7 @@
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Aangemaakt door</string>
     <string name="email_detail_created">Aangemaakt</string>
-    <string name="email_detail_last_message">Laatste bericht: %s</string>
+    <string name="email_detail_last_message">Laatste bericht</string>
     <string name="email_detail_enable">Inschakelen</string>
     <string name="email_detail_disable">Uitschakelen</string>
     <string name="email_detail_edit_title">Details bewerken</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Voer uw API-token in</string>
     <string name="login_error_failed">Inloggen mislukt</string>
     <string name="email_list_empty_sub">Maak een masker om e-mail door te sturen zonder uw echte adres te delen.</string>
-    <string name="list_stats">%1$d actief · %2$d totaal</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Kan maskers niet laden</string>
     <string name="create_email_subtitle">Configureer een nieuw gemaskeerd adres</string>
     <string name="create_email_preview_label">Voorbeeld</string>
@@ -150,7 +150,7 @@
     <string name="welcome_signin_cta">Aanmelden met Fastmail</string>
     <string name="welcome_demo_cta">Demo proberen</string>
     <string name="welcome_tagline">Een rustige plek voor uw gemaskeerde adressen.</string>
-    <string name="welcome_privacy_note">Privacy-first · open source</string>
+    <string name="welcome_privacy_note">Privacy voorop · open source</string>
     <string name="demo_banner_text">Demo-modus — wijzigingen worden niet opgeslagen</string>
     <string name="demo_banner_signin">Aanmelden</string>
     <string name="tutorial_step_1_title">Uw gemaskeerde e-mails</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Aanmelden met Fastmail</string>
     <string name="error_network">Geen verbinding. Controleer uw internetverbinding en probeer het opnieuw.</string>
     <string name="error_auth">Fastmail heeft het token geweigerd. Meld u opnieuw aan.</string>
-    <string name="list_copied">Gekopieerd naar klembord</string>
     <string name="list_copy_action">Adres kopiëren</string>
     <string name="list_archived_snackbar">Masker gearchiveerd</string>
     <string name="list_undo">Ongedaan maken</string>
@@ -223,6 +222,27 @@
     <string name="app_lock_locked_subtitle">Vergrendeld. Ontgrendel om verder te gaan.</string>
     <string name="app_lock_unlock">Ontgrendelen</string>
     <string name="app_lock_prompt_title">FastMask ontgrendelen</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Te veel verzoeken. Wacht even en probeer het opnieuw.</string>
+    <string name="error_server">De Fastmail-server is tijdelijk niet beschikbaar. Probeer het zo opnieuw.</string>
+    <string name="email_list_no_matches">Geen resultaten</string>
+    <string name="email_list_no_matches_sub">Geen maskers komen overeen met je zoekopdracht of filter.</string>
+    <string name="create_email_error_prefix_length">Het voorvoegsel mag maximaal 64 tekens bevatten</string>
+    <string name="create_email_error_prefix_chars">Alleen kleine letters, cijfers en liggende streepjes zijn toegestaan</string>
+    <string name="discard_changes_title">Wijzigingen verwerpen?</string>
+    <string name="discard_changes_message">Je wijzigingen zijn niet opgeslagen en gaan verloren.</string>
+    <string name="discard_changes_confirm">Verwerpen</string>
+    <string name="discard_changes_cancel">Verder bewerken</string>
+    <string name="logout_confirm_title">Uitloggen?</string>
+    <string name="logout_confirm_message">Je hebt je Fastmail API-token nodig om opnieuw in te loggen.</string>
+    <string name="error_no_app_for_link">Geen app beschikbaar om deze link te openen.</string>
+    <string name="list_copied_value">%1$s gekopieerd</string>
+    <string name="settings_export_failed_write">Het exportbestand kon niet worden opgeslagen. Maak ruimte vrij en probeer het opnieuw.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d actief</item>
+        <item quantity="other">%d actief</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">%d totaal</item>
+        <item quantity="other">%d totaal</item>
+    </plurals>
 </resources>

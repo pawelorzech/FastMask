@@ -57,9 +57,12 @@ import com.fastmask.ui.components.HairlineDivider
 import com.fastmask.ui.components.MonoLabel
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
+import com.fastmask.ui.common.openExternalIntent
 import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 private const val PRIVACY_URL = "https://pawelorzech.github.io/FastMask/privacy.html"
 private const val TERMS_URL = "https://pawelorzech.github.io/FastMask/terms.html"
@@ -104,6 +107,18 @@ fun ProScreen(
     }
 
     val backDesc = stringResource(R.string.navigate_back)
+
+    // Play requires these legal links to work. If no browser can take the
+    // intent the user must be told — the previous resolveActivity() guard let
+    // the tap fail in complete silence.
+    val noAppMessage = stringResource(R.string.error_no_app_for_link)
+    val scope = rememberCoroutineScope()
+    val openLink: (String) -> Unit = { url ->
+        val opened = openExternalIntent(context, Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        if (!opened) {
+            scope.launch { snackbarHostState.showSnackbar(noAppMessage) }
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -260,17 +275,11 @@ fun ProScreen(
                     horizontalArrangement = Arrangement.Center,
                 ) {
                     LinkText(text = stringResource(R.string.pro_privacy_policy)) {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL))
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        }
+                        openLink(PRIVACY_URL)
                     }
                     Spacer(Modifier.width(24.dp))
                     LinkText(text = stringResource(R.string.pro_terms)) {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(TERMS_URL))
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
-                        }
+                        openLink(TERMS_URL)
                     }
                 }
             }
