@@ -25,7 +25,7 @@ APK outputs: `app/build/outputs/apk/`
 
 ## Project Configuration
 
-- **SDK**: Compile/Target 35, Min 26
+- **SDK**: Compile/Target 36, Min 26
 - **JDK**: 17
 - **Kotlin**: 1.9.22
 - **Package**: `com.fastmask`
