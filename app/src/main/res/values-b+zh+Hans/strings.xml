@@ -57,7 +57,7 @@
     <string name="email_detail_status">状态：</string>
     <string name="email_detail_created_by">创建者</string>
     <string name="email_detail_created">创建时间</string>
-    <string name="email_detail_last_message">最后消息：%s</string>
+    <string name="email_detail_last_message">最后消息</string>
     <string name="email_detail_enable">启用</string>
     <string name="email_detail_disable">禁用</string>
     <string name="email_detail_edit_title">编辑详情</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">请输入您的 API 令牌</string>
     <string name="login_error_failed">登录失败</string>
     <string name="email_list_empty_sub">创建一个隐藏邮箱来转发邮件，而无需泄露您的真实地址。</string>
-    <string name="list_stats">%1$d 个活跃 · %2$d 个总计</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">无法加载隐藏邮箱</string>
     <string name="create_email_subtitle">配置新的隐藏邮箱</string>
     <string name="create_email_preview_label">预览</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">使用 Fastmail 登录</string>
     <string name="error_network">没有连接。请检查您的互联网连接并重试。</string>
     <string name="error_auth">Fastmail 拒绝了令牌。请重新登录。</string>
-    <string name="list_copied">已复制到剪贴板</string>
     <string name="list_copy_action">复制地址</string>
     <string name="list_archived_snackbar">面具已存档</string>
     <string name="list_undo">撤销</string>
@@ -236,4 +235,12 @@
     <string name="logout_confirm_title">退出登录？</string>
     <string name="logout_confirm_message">重新登录时需要你的 Fastmail API 令牌。</string>
     <string name="error_no_app_for_link">没有可打开此链接的应用。</string>
+    <string name="list_copied_value">已复制 %1$s</string>
+    <string name="settings_export_failed_write">无法保存导出文件。请释放一些空间后重试。</string>
+    <plurals name="list_stats_active">
+        <item quantity="other">%d 个启用</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="other">共 %d 个</item>
+    </plurals>
 </resources>

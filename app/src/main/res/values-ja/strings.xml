@@ -57,7 +57,7 @@
     <string name="email_detail_status">状態：</string>
     <string name="email_detail_created_by">作成者</string>
     <string name="email_detail_created">作成日</string>
-    <string name="email_detail_last_message">最後のメッセージ：%s</string>
+    <string name="email_detail_last_message">最後のメッセージ</string>
     <string name="email_detail_enable">有効にする</string>
     <string name="email_detail_disable">無効にする</string>
     <string name="email_detail_edit_title">詳細を編集</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">APIトークンを入力してください</string>
     <string name="login_error_failed">ログインに失敗しました</string>
     <string name="email_list_empty_sub">マスクを作成して、実のメールアドレスを共有せずにメールをルーティングします。</string>
-    <string name="list_stats">%1$d個有効 · %2$d個合計</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">マスクを読み込めません</string>
     <string name="create_email_subtitle">新しいマスクアドレスを設定</string>
     <string name="create_email_preview_label">プレビュー</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Fastmailでサインイン</string>
     <string name="error_network">接続がありません。インターネット接続を確認してもう一度試してください。</string>
     <string name="error_auth">Fastmailがトークンを拒否しました。もう一度サインインしてください。</string>
-    <string name="list_copied">クリップボードにコピーしました</string>
     <string name="list_copy_action">アドレスをコピー</string>
     <string name="list_archived_snackbar">マスクをアーカイブしました</string>
     <string name="list_undo">取り消す</string>
@@ -236,4 +235,12 @@
     <string name="logout_confirm_title">サインアウトしますか？</string>
     <string name="logout_confirm_message">再度サインインするには Fastmail の API トークンが必要です。</string>
     <string name="error_no_app_for_link">このリンクを開けるアプリがありません。</string>
+    <string name="list_copied_value">%1$s をコピーしました</string>
+    <string name="settings_export_failed_write">エクスポートファイルを保存できませんでした。空き容量を確保して再試行してください。</string>
+    <plurals name="list_stats_active">
+        <item quantity="other">有効 %d</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="other">全 %d</item>
+    </plurals>
 </resources>

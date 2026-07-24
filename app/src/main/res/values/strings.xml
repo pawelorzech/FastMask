@@ -37,13 +37,12 @@
     <!-- Shown when masks exist but none match the active search/filter (pending translation). -->
     <string name="email_list_no_matches">No matches</string>
     <string name="email_list_no_matches_sub">No masks match your search or filter.</string>
-    <string name="list_copied">Copied to clipboard</string>
     <string name="list_copy_action">Copy address</string>
     <string name="list_archived_snackbar">Mask archived</string>
     <string name="list_undo">Undo</string>
     <string name="email_list_logout">Sign out</string>
     <string name="email_list_settings">Settings</string>
-    <string name="list_stats">%1$d active · %2$d total</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="filter_all">All</string>
     <string name="filter_enabled">Active</string>
     <string name="filter_disabled">Off</string>
@@ -242,4 +241,14 @@
     <string name="language_th">ไทย</string>
     <string name="language_id">Bahasa Indonesia</string>
     <string name="error_no_app_for_link">No app available to open this link.</string>
+    <string name="list_copied_value">Copied %1$s</string>
+    <string name="settings_export_failed_write">Couldn\'t save the export file. Free up some space and try again.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d active</item>
+        <item quantity="other">%d active</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">%d total</item>
+        <item quantity="other">%d total</item>
+    </plurals>
 </resources>

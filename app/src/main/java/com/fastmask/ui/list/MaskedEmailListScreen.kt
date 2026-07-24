@@ -60,6 +60,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -119,7 +120,10 @@ fun MaskedEmailListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val copiedMessage = stringResource(R.string.list_copied)
+    // Names the address that was copied. With several similar masks the old
+    // "Copied to clipboard" left the user pasting somewhere just to check
+    // which one they got — on the most frequent action in the app.
+    val copiedFormat = stringResource(R.string.list_copied_value)
     val archivedMessage = stringResource(R.string.list_archived_snackbar)
     val undoLabel = stringResource(R.string.list_undo)
 
@@ -217,8 +221,23 @@ fun MaskedEmailListScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
+                            // Two pluralized fragments joined by a translatable
+                            // format, rather than one string with two %d.
+                            // Polish, Russian, Ukrainian and Arabic inflect the
+                            // noun by count ("1 maska / 2 maski / 5 masek"),
+                            // which a single %d format cannot express; keeping
+                            // the separator in the resource lets RTL locales
+                            // reorder the fragments.
                             MonoEyebrow(
-                                text = stringResource(R.string.list_stats, activeCount, totalCount),
+                                text = stringResource(
+                                    R.string.list_stats,
+                                    pluralStringResource(
+                                        R.plurals.list_stats_active, activeCount, activeCount,
+                                    ),
+                                    pluralStringResource(
+                                        R.plurals.list_stats_total, totalCount, totalCount,
+                                    ),
+                                ),
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
@@ -316,7 +335,7 @@ fun MaskedEmailListScreen(
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             scope.launch {
                                                 snackbarHostState.showSnackbar(
-                                                    copiedMessage,
+                                                    copiedFormat.format(email.email),
                                                     duration = SnackbarDuration.Short,
                                                 )
                                             }

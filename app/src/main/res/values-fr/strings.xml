@@ -57,7 +57,7 @@
     <string name="email_detail_status">Statut :</string>
     <string name="email_detail_created_by">Créé par</string>
     <string name="email_detail_created">Créé</string>
-    <string name="email_detail_last_message">Dernier message : %s</string>
+    <string name="email_detail_last_message">Dernier message</string>
     <string name="email_detail_enable">Activer</string>
     <string name="email_detail_disable">Désactiver</string>
     <string name="email_detail_edit_title">Modifier les détails</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Veuillez entrer votre jeton API</string>
     <string name="login_error_failed">Échec de la connexion</string>
     <string name="email_list_empty_sub">Créez un masque pour acheminer le courrier sans partager votre adresse réelle.</string>
-    <string name="list_stats">%1$d actif · %2$d total</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Impossible de charger les masques</string>
     <string name="create_email_subtitle">Configurez une nouvelle adresse masquée</string>
     <string name="create_email_preview_label">Aperçu</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Se connecter avec Fastmail</string>
     <string name="error_network">Pas de connexion. Vérifiez votre connexion Internet et réessayez.</string>
     <string name="error_auth">Fastmail a rejeté le jeton. Connectez-vous à nouveau.</string>
-    <string name="list_copied">Copié dans le presse-papiers</string>
     <string name="list_copy_action">Copier l\'adresse</string>
     <string name="list_archived_snackbar">Masque archivé</string>
     <string name="list_undo">Annuler</string>
@@ -236,4 +235,16 @@
     <string name="logout_confirm_title">Se déconnecter ?</string>
     <string name="logout_confirm_message">Vous aurez besoin de votre jeton d\'API Fastmail pour vous reconnecter.</string>
     <string name="error_no_app_for_link">Aucune application ne peut ouvrir ce lien.</string>
+    <string name="list_copied_value">%1$s copié</string>
+    <string name="settings_export_failed_write">Impossible d\'enregistrer le fichier d\'export. Libérez de l\'espace et réessayez.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d active</item>
+        <item quantity="many">%d actives</item>
+        <item quantity="other">%d actives</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">%d au total</item>
+        <item quantity="many">%d au total</item>
+        <item quantity="other">%d au total</item>
+    </plurals>
 </resources>

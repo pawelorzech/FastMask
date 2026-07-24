@@ -69,6 +69,39 @@ class TranslationCompletenessTest {
         )
     }
 
+    /**
+     * A translation must take the same format arguments as the default.
+     *
+     * `email_detail_last_message` was once the sentence "Last message: %s" and
+     * later became a bare label, with the value rendered separately — but 18
+     * locales kept the old form. `stringResource()` is called without
+     * arguments, so those users saw a literal "Letzte Nachricht: %s" on the
+     * detail screen. Too few arguments is the more dangerous direction: it
+     * throws at format time.
+     */
+    @Test
+    fun `translations take the same format arguments as the default`() {
+        val base = strings(File(resDir, "values/strings.xml"))
+        val formatArg = Regex("""%(\d+\$)?[sdf]""")
+
+        val mismatched = localeDirs().flatMap { dir ->
+            val translated = strings(File(dir, "strings.xml"))
+            base.mapNotNull { (key, english) ->
+                val value = translated[key] ?: return@mapNotNull null
+                val expected = formatArg.findAll(english).count()
+                val actual = formatArg.findAll(value).count()
+                if (expected == actual) null
+                else "${dir.name}: $key takes $actual argument(s), default takes $expected — \"$value\""
+            }
+        }
+
+        assertTrue(
+            "${mismatched.size} translation(s) disagree with the default on format arguments:\n" +
+                mismatched.joinToString("\n").prependIndent("  "),
+            mismatched.isEmpty(),
+        )
+    }
+
     @Test
     fun `no sentence is left in English`() {
         val base = strings(File(resDir, "values/strings.xml"))

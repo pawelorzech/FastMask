@@ -57,7 +57,7 @@
     <string name="email_detail_status">الحالة:</string>
     <string name="email_detail_created_by">أنشأه</string>
     <string name="email_detail_created">تاريخ الإنشاء</string>
-    <string name="email_detail_last_message">آخر رسالة: %s</string>
+    <string name="email_detail_last_message">آخر رسالة</string>
     <string name="email_detail_enable">تفعيل</string>
     <string name="email_detail_disable">تعطيل</string>
     <string name="email_detail_edit_title">تعديل التفاصيل</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">يرجى إدخال رمز API الخاص بك</string>
     <string name="login_error_failed">فشل تسجيل الدخول</string>
     <string name="email_list_empty_sub">أنشئ بريداً مقنّعاً لتوجيه البريد دون مشاركة عنوانك الحقيقي.</string>
-    <string name="list_stats">%1$d نشط · %2$d الإجمالي</string>
+    <string name="list_stats">%2$s · %1$s</string>
     <string name="error_load_emails_short">لم يتم تحميل البريد المقنّع</string>
     <string name="create_email_subtitle">إعداد بريد مقنّع جديد</string>
     <string name="create_email_preview_label">معاينة</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">تسجيل الدخول عبر Fastmail</string>
     <string name="error_network">لا توجد اتصالات. تحقق من اتصال الإنترنت الخاص بك وحاول مرة أخرى.</string>
     <string name="error_auth">رفضت Fastmail الرمز. تسجيل الدخول مرة أخرى.</string>
-    <string name="list_copied">تم النسخ إلى الحافظة</string>
     <string name="list_copy_action">نسخ العنوان</string>
     <string name="list_archived_snackbar">تم أرشفة القناع</string>
     <string name="list_undo">تراجع</string>
@@ -236,4 +235,22 @@
     <string name="logout_confirm_title">تسجيل الخروج؟</string>
     <string name="logout_confirm_message">ستحتاج إلى رمز Fastmail API لتسجيل الدخول مرة أخرى.</string>
     <string name="error_no_app_for_link">لا يوجد تطبيق لفتح هذا الرابط.</string>
+    <string name="list_copied_value">تم نسخ %1$s</string>
+    <string name="settings_export_failed_write">تعذّر حفظ ملف التصدير. حرِّر بعض المساحة ثم أعد المحاولة.</string>
+    <plurals name="list_stats_active">
+        <item quantity="zero">نشط: %d</item>
+        <item quantity="one">نشط: %d</item>
+        <item quantity="two">نشط: %d</item>
+        <item quantity="few">نشط: %d</item>
+        <item quantity="many">نشط: %d</item>
+        <item quantity="other">نشط: %d</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="zero">الإجمالي: %d</item>
+        <item quantity="one">الإجمالي: %d</item>
+        <item quantity="two">الإجمالي: %d</item>
+        <item quantity="few">الإجمالي: %d</item>
+        <item quantity="many">الإجمالي: %d</item>
+        <item quantity="other">الإجمالي: %d</item>
+    </plurals>
 </resources>

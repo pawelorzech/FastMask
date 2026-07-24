@@ -57,7 +57,7 @@
     <string name="email_detail_status">Статус:</string>
     <string name="email_detail_created_by">Створено</string>
     <string name="email_detail_created">Створено</string>
-    <string name="email_detail_last_message">Останнє повідомлення: %s</string>
+    <string name="email_detail_last_message">Останнє повідомлення</string>
     <string name="email_detail_enable">Увімкнути</string>
     <string name="email_detail_disable">Вимкнути</string>
     <string name="email_detail_edit_title">Редагувати</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Будь ласка, введіть ваш API токен</string>
     <string name="login_error_failed">Не вдалося увійти</string>
     <string name="email_list_empty_sub">Створіть маску для маршрутизації пошти без розкриття вашої справжної адреси.</string>
-    <string name="list_stats">%1$d активних · %2$d всього</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Не вдалося завантажити маски</string>
     <string name="create_email_subtitle">Налаштуйте нову замасковану адресу</string>
     <string name="create_email_preview_label">Попередній перегляд</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Увійти з Fastmail</string>
     <string name="error_network">Немає з\'єднання. Перевірте своє підключення до Інтернету й спробуйте знову.</string>
     <string name="error_auth">Fastmail відхилив токен. Увійдіть ще раз.</string>
-    <string name="list_copied">Скопійовано в буфер обміну</string>
     <string name="list_copy_action">Копіювати адресу</string>
     <string name="list_archived_snackbar">Маска архівована</string>
     <string name="list_undo">Скасувати</string>
@@ -236,4 +235,18 @@
     <string name="logout_confirm_title">Вийти?</string>
     <string name="logout_confirm_message">Щоб увійти знову, знадобиться ваш API-токен Fastmail.</string>
     <string name="error_no_app_for_link">Немає застосунку для відкриття цього посилання.</string>
+    <string name="list_copied_value">Скопійовано: %1$s</string>
+    <string name="settings_export_failed_write">Не вдалося зберегти файл експорту. Звільніть місце й повторіть спробу.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d активна</item>
+        <item quantity="few">%d активні</item>
+        <item quantity="many">%d активних</item>
+        <item quantity="other">%d активних</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">усього %d</item>
+        <item quantity="few">усього %d</item>
+        <item quantity="many">усього %d</item>
+        <item quantity="other">усього %d</item>
+    </plurals>
 </resources>
