@@ -115,7 +115,7 @@ fun SettingsScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
     val extras = FastMaskExtras.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val exportFailedMessage = stringResource(R.string.settings_export_failed)
+    val exportWriteFailedMessage = stringResource(R.string.settings_export_failed_write)
     val exportChooserTitle = stringResource(R.string.settings_export_title)
     val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
     val scope = rememberCoroutineScope()
@@ -126,7 +126,8 @@ fun SettingsScreen(
                 is SettingsEvent.LoggedOut -> onLogout()
                 is SettingsEvent.GoToSignIn -> onSignInFromDemo()
                 is SettingsEvent.OpenPro -> onNavigateToPro(event.source)
-                is SettingsEvent.ExportFailed -> snackbarHostState.showSnackbar(exportFailedMessage)
+                is SettingsEvent.ExportFailed ->
+                    snackbarHostState.showSnackbar(context.getString(event.messageRes))
                 is SettingsEvent.ShareCsv -> {
                     withContext(Dispatchers.IO) {
                         runCatching {
@@ -154,7 +155,11 @@ fun SettingsScreen(
                         }
                         context.startActivity(Intent.createChooser(send, exportChooserTitle))
                     }.onFailure {
-                        snackbarHostState.showSnackbar(exportFailedMessage)
+                        // Distinct from the fetch failure above: the masks were
+                        // downloaded fine and writing the file is what broke
+                        // (no space, cache evicted). "Try again" is the wrong
+                        // advice here — the user has to free something up.
+                        snackbarHostState.showSnackbar(exportWriteFailedMessage)
                     }
                 }
             }

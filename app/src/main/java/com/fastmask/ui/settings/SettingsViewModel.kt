@@ -1,7 +1,9 @@
 package com.fastmask.ui.settings
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
@@ -11,6 +13,7 @@ import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.usecase.ExportMasksUseCase
+import com.fastmask.ui.common.UiErrors
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
@@ -168,7 +171,18 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             exportMasksUseCase()
                 .onSuccess { csv -> _events.send(SettingsEvent.ShareCsv(csv)) }
-                .onFailure { _events.send(SettingsEvent.ExportFailed) }
+                .onFailure { error ->
+                    // The export first fetches every mask over the network, so
+                    // most failures here are the same ones the rest of the app
+                    // already names precisely. A single "Export failed" left
+                    // the user unable to tell "retry in a moment" from
+                    // "you are offline".
+                    _events.send(
+                        SettingsEvent.ExportFailed(
+                            UiErrors.messageRes(error, R.string.settings_export_failed)
+                        )
+                    )
+                }
             _uiState.update { it.copy(exportInFlight = false) }
         }
     }
@@ -185,5 +199,7 @@ sealed class SettingsEvent {
     data object GoToSignIn : SettingsEvent()
     data class OpenPro(val source: String) : SettingsEvent()
     data class ShareCsv(val csv: String) : SettingsEvent()
-    data object ExportFailed : SettingsEvent()
+
+    /** @param messageRes the localized reason, already resolved by [UiErrors]. */
+    data class ExportFailed(@StringRes val messageRes: Int) : SettingsEvent()
 }

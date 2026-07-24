@@ -1,5 +1,6 @@
 package com.fastmask.ui.settings
 
+import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.Accent
@@ -23,10 +24,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -137,13 +143,43 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `failed export surfaces an error event`() = runTest {
+    fun `failed export surfaces an error event with the generic reason`() = runTest {
         proRepository.statusFlow.value = ProStatus.PRO
         maskRepository.failure = RuntimeException("boom")
         val vm = viewModel()
         vm.onExportClick()
         advanceUntilIdle()
 
-        assertEquals(SettingsEvent.ExportFailed, vm.events.first())
+        assertEquals(
+            SettingsEvent.ExportFailed(R.string.settings_export_failed),
+            vm.events.first(),
+        )
+    }
+
+    // The export fetches every mask over the network first, so it must name the
+    // same causes the rest of the app names — "Export failed. Try again." on an
+    // offline device told the user to do the one thing that cannot work.
+    @Test
+    fun `export failure reports the network cause`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        maskRepository.failure = IOException("offline")
+        val vm = viewModel()
+        vm.onExportClick()
+        advanceUntilIdle()
+
+        assertEquals(SettingsEvent.ExportFailed(R.string.error_network), vm.events.first())
+    }
+
+    @Test
+    fun `export failure reports rate limiting`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        maskRepository.failure = HttpException(
+            Response.error<Unit>(429, "".toResponseBody("application/json".toMediaType()))
+        )
+        val vm = viewModel()
+        vm.onExportClick()
+        advanceUntilIdle()
+
+        assertEquals(SettingsEvent.ExportFailed(R.string.error_rate_limit), vm.events.first())
     }
 }
