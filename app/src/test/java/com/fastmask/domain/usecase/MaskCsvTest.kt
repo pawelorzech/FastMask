@@ -78,6 +78,24 @@ class MaskCsvTest {
     }
 
     @Test
+    fun `leading-whitespace formula is neutralized (importers that trim first)`() {
+        // A field starting with spaces before the formula lead must still be
+        // neutralized: some importers strip leading whitespace before evaluating.
+        val csv = MaskCsv.build(
+            listOf(mask("a", description = "  =HYPERLINK(\"http://evil\")"))
+        )
+        // Apostrophe prepended even though the first char is a space.
+        assertTrue(csv.contains("\"'  =HYPERLINK(\"\"http://evil\"\")\""))
+    }
+
+    @Test
+    fun `benign leading-whitespace text is not altered`() {
+        val csv = MaskCsv.build(listOf(mask("a", description = " just a note")))
+        assertTrue(csv.contains(" just a note"))
+        assertTrue(!csv.contains("' just a note"))
+    }
+
+    @Test
     fun `timestamps are exported as ISO instants`() {
         val csv = MaskCsv.build(
             listOf(mask("a", createdAt = Instant.parse("2026-01-02T03:04:05Z")))
