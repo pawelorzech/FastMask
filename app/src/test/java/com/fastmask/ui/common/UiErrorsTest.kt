@@ -33,6 +33,27 @@ class UiErrorsTest {
         assertEquals(R.string.error_auth, UiErrors.messageRes(httpException(403), fallback))
     }
 
+    // isRetryable decides whether the login screen preserves the pasted token.
+    // It must agree with messageRes: every case answered with a "try again"
+    // message is retryable, and an auth rejection never is.
+    @Test
+    fun `transport and server failures are retryable`() {
+        assertEquals(true, UiErrors.isRetryable(IOException("x")))
+        assertEquals(true, UiErrors.isRetryable(UnknownHostException("dns")))
+        assertEquals(true, UiErrors.isRetryable(httpException(429)))
+        assertEquals(true, UiErrors.isRetryable(httpException(500)))
+        assertEquals(true, UiErrors.isRetryable(httpException(503)))
+    }
+
+    @Test
+    fun `auth rejections and unknown throwables are not retryable`() {
+        assertEquals(false, UiErrors.isRetryable(httpException(401)))
+        assertEquals(false, UiErrors.isRetryable(httpException(403)))
+        assertEquals(false, UiErrors.isRetryable(httpException(400)))
+        assertEquals(false, UiErrors.isRetryable(RuntimeException("boom")))
+        assertEquals(false, UiErrors.isRetryable(null))
+    }
+
     @Test
     fun `server errors and unknown throwables use the caller fallback`() {
         assertEquals(fallback, UiErrors.messageRes(RuntimeException("boom"), fallback))
