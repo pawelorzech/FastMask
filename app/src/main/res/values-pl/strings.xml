@@ -225,4 +225,6 @@
     <string name="app_lock_locked_subtitle">Zablokowano. Odblokuj, aby kontynuować.</string>
     <string name="app_lock_unlock">Odblokuj</string>
     <string name="app_lock_prompt_title">Odblokuj FastMask</string>
+    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
+    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
 </resources>

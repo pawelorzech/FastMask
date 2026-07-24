@@ -35,9 +35,19 @@ class UiErrorsTest {
 
     @Test
     fun `server errors and unknown throwables use the caller fallback`() {
-        assertEquals(fallback, UiErrors.messageRes(httpException(500), fallback))
-        assertEquals(fallback, UiErrors.messageRes(httpException(429), fallback))
         assertEquals(fallback, UiErrors.messageRes(RuntimeException("boom"), fallback))
         assertEquals(fallback, UiErrors.messageRes(null, fallback))
+    }
+
+    @Test
+    fun `429 maps to rate limit error`() {
+        assertEquals(R.string.error_rate_limit, UiErrors.messageRes(httpException(429), fallback))
+    }
+
+    @Test
+    fun `5xx maps to server error`() {
+        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(500), fallback))
+        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(502), fallback))
+        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(503), fallback))
     }
 }

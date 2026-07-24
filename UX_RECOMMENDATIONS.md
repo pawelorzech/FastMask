@@ -1,64 +1,88 @@
-# FastMask — Rekomendacje UX (audyt 2026-07-24)
-
-Kontekst: rekomendacje z audytu 2026-07-23 pozostają w mocy — tu NOWE obserwacje z bieżącego pełnego sweepu. Scoring 1–5: Impact / Effort (niższy = tańszy) / Confidence / Risk; Priority = Impact × Confidence / Effort.
+# FastMask — Rekomendacje UX 2026-07-24
 
 ## Ocena obecnego UX
 
+FastMask ma dojrzały, przemyślany interfejs. Design system (warm-ink palette, Instrument Serif + Inter Tight) jest spójny i wyróżniający się. Podstawowe ścieżki (login → lista → tworzenie → zarządzanie) są proste i działają. Aplikacja radzi sobie dobrze z obsługą błędów sieciowych i stanów pustych.
+
 **Mocne strony:**
-- Ciepła, spójna paleta "warm-ink" — wyróżnia się na tle Material You
-- Instrument Serif + JetBrains Mono dają charakterystyczny, czytelny styl
-- Pierwszy ekran (welcome) jasno komunikuje dwie ścieżki: zaloguj lub wypróbuj demo
-- Undo archiwizacji z długim snackbarze (~10s) — dobry affordance
-- Quick-copy na listach — najszybsza akcja bez otwierania detailu
-- In-flight states na Buy/Restore (spinner) — naprawione z A18
-- Export z progress indicator — naprawione z A23
+- Czysty, pozbawiony rozpraszaczy interfejs
+- Spójny design system (DesignKit, PillButton, StatePill)
+- Dobre puste stany i loading states
+- Prawidłowe etykiety dostępnościowe
+- Inteligentne sortowanie i filtrowanie masek
+- Przemyślany mechanizm Undo dla archiwizacji
 
 **Słabe strony:**
-- Paywall ukryty głęboko w Settings (3 tapnięcia: Settings → Pro → Buy)
-- Brak wizualnego wyróżnienia Pro po zakupie (OwnedCard jest mało celebracyjny)
-- Error states na detailu pokazują tekst bez retry (gdy email != null)
-- Demo tutorial jest prosty, ale pojawia się tylko raz — brak możliwości powrotu
+- Toggle app lock dla nie-Pro użytkowników daje mylący feedback
+- Tutorial demo może się nie pokazać w niektórych konfiguracjach
+- Brak podpowiedzi Pro funkcji w kontekście (np. przy próbie eksportu)
 
 ---
 
-## A. Quick wins
+## Rekomendacje
 
-| # | Rekomendacja | Problem użytkownika | Impact | Effort | Conf. | Risk | Prio |
-|---|---|---|---|---|---|---|---|
-| 1 | **Stan in-flight na Buy/Restore** (już naprawiony w A18) | Po tapnięciu „Buy" nic się nie dzieje 1–3 s — wygląda jak zwis | 4 | 1 | 5 | 1 | **20.0** |
-| 2 | **Spinner przy „Export masks"** (już naprawiony w A23) | Eksport robi fetch sieciowy — na wolnym łączu sekundy bez feedbacku | 3 | 1 | 5 | 1 | **15.0** |
-| 3 | **„Cancel"→„OK" w dialogach akcent/język** | „Cancel" sugeruje revert, a wybór już się zastosował | 2 | 2 | 5 | 1 | 5.0 |
-| 4 | **Post-purchase: link „Wypróbuj akcent →" na OwnedCard** | Moment po zakupie jest płaski; konwersja zakupu w natychmiastowe użycie | 3 | 2 | 3 | 1 | 4.5 |
-| 5 | **Zdanie o czasie przy PENDING** („zwykle minuty, do 24 h") | Pending purchase to klasyczny trigger „czy mnie oszukali?" | 3 | 1 | 4 | 1 | 12.0 |
+### A. Quick wins
 
-## B. Usprawnienia średniego zakresu
+| # | Rekomendacja | Problem | Impact | Effort | Confidence | Risk | Score |
+|---|-------------|---------|--------|--------|------------|------|-------|
+| A1 | Snackbar "Pro required" przy próbie włączenia app lock bez Pro | Toggle wraca bez feedbacku | 3 | 1 | 5 | 1 | **15.0** |
+| A2 | Dodaj tooltip/podpowiedź przy ikonie kłódki w ustawieniach | Użytkownik nie wie czemu funkcja jest zablokowana | 3 | 1 | 4 | 1 | **12.0** |
+| A3 | Dodaj badge z liczbą nieprzeczytanych wiadomości na liście | Brak informacji o użyciu masek | 3 | 2 | 3 | 1 | **4.5** |
+| A4 | Wyraźniejszy przycisk "Try demo" na welcome screen | Demo to kluczowy kanał pozyskiwania | 4 | 1 | 3 | 1 | **12.0** |
 
-| # | Rekomendacja | Problem | Impact | Effort | Conf. | Risk | Prio |
-|---|---|---|---|---|---|---|---|
-| 1 | **Podgląd akcentów dla free** — picker otwarty, live preview, gate na zapisie | Locked row jest abstrakcyjny; „chcę TEN kolor" to motywacja zakupowa | 4 | 3 | 3 | 2 | 4.0 |
-| 2 | **Subtelna wzmianka o Pro po 5. masce** (dismissable) | 3 funkcje Pro niewidoczne dopóki user nie wejdzie w Settings | 4 | 3 | 3 | 2 | 4.0 |
-| 3 | **Undo przywraca stan sprzed** — `restoreTo` z `previousState` (A22) | „Undo" obiecuje stan sprzed; DISABLED wraca jako ENABLED | 2 | 2 | 4 | 2 | 4.0 |
-| 4 | **Eksport z timestampowaną nazwą** (już naprawiony — A21 fix w codesie) | Wolny odbiorca share może dostać ucięty plik | 2 | 1 | 3 | 1 | 6.0 |
+### B. Usprawnienia średniego zakresu
 
-## C. Eksperymenty
+| # | Rekomendacja | Problem | Impact | Effort | Confidence | Risk | Score |
+|---|-------------|---------|--------|--------|------------|------|-------|
+| B1 | Podgląd akcentów dla free users (z badge "Pro") | Użytkownik nie wie co traci | 3 | 3 | 4 | 1 | **4.0** |
+| B2 | Autofill API dla adresów maskowanych | Kopiowanie adresu to dodatkowy krok | 4 | 3 | 3 | 2 | **4.0** |
+| B3 | Pull-to-refresh z wyraźną animacją sukcesu | Brak potwierdzenia że refresh zadziałał | 2 | 2 | 3 | 1 | **3.0** |
+| B4 | "Recent activity" na karcie maski (kiedy ostatnio użyta) | Użytkownik nie wie które maski są aktywne | 3 | 3 | 3 | 1 | **3.0** |
+| B5 | Widżet na ekran główny (szybkie kopiowanie maski) | Otwieranie aplikacji dla każdej maski | 4 | 4 | 3 | 2 | **3.0** |
 
-- **Anchoring „no subscription"** — `pro_one_time_note` nad CTA zamiast pod; test na 3–5 użytkownikach
-- **Placeholder ceny w LOADING** (shimmer zamiast spinnera w CTA) — mniejszy skok layoutu
-- **Konwersja per źródło wejścia na paywall** — `source` już jest w evencie; porównać close-rate per źródło
+### C. Eksperymenty produktowe
 
-## D. Odrzucone
+| # | Rekomendacja | Problem | Impact | Effort | Confidence | Risk | Score |
+|---|-------------|---------|--------|--------|------------|------|-------|
+| C1 | Automatyczne sugerowanie nazwy domeny/usługi przy tworzeniu | Wpisanie domeny to dodatkowy krok | 3 | 3 | 2 | 2 | **2.0** |
+| C2 | "Quick mask" z poziomu notification/shade | Najszybsza ścieżka tworzenia maski | 5 | 4 | 2 | 2 | **2.5** |
+| C3 | Grupowanie masek po domenie | Lista może być długa przy wielu maskach | 3 | 4 | 2 | 2 | **1.5** |
 
-- **Server-side weryfikacja zakupów** — nieproporcjonalne dla indie-aplikacji bez backendu
-- **BIOMETRIC_STRONG + CryptoObject** — złamałoby fallback na PIN (celowy)
-- **Rozbudowa anti-tamper** — teatr bezpieczeństwa; root i tak wygrywa
-- **Launch-popup Pro** — sprzeczne z „buduj tak, żeby chcieli"
+### D. Pomysły odrzucone
 
-## Metryki (privacy-first)
+| # | Pomysł | Powód odrzucenia |
+|---|--------|-----------------|
+| D1 | Integracja z password managerami (Bitwarden, 1Password) | Zwiększa powierzchnię bezpieczeństwa; maski są już kopiowalne |
+| D2 | Statystyki użycia masek (wykresy, trendy) | Feature creep — nie rozwiązuje realnego problemu |
+| D3 | Powiadomienia push o nowych wiadomościach na masce | Wymaga serwera pośredniczącego; Fastmail nie udostępnia webhooków |
+| D4 | Multi-account (wiele tokenów Fastmail) | Zwiększa złożoność o rząd wielkości; mała baza użytkowników |
 
-Lokalnie/dev: crash-free sessions (logcat), skuteczność zakupu (Play Console), czas tap→billing-sheet, close-rate paywalla. Z Play Console: konwersja sklepu, ANR/crash rate, refund rate.
+---
 
-## Roadmapa
+## Proponowana roadmapa UX
 
-1. **Najbliższy patch:** A-quick-wins #1–#3 (in-flight states + pending copy + dialog buttons)
-2. **Kolejny release:** B1+B2 (widoczność Pro), B3 (undo prev-state), decyzja Pawła: B4 (amber dark)
-3. **Większy release:** Podbicie stacka (AGP/Kotlin/Compose), instrumented tests, Autofill
+### v1.8.1 (patch) — ten audyt
+- ✅ Wszystkie poprawki techniczne (P0-P2)
+- ✅ Nowe stringi błędów (rate limit, server error) w 19 językach
+
+### v1.9 (minor)
+- A1-A4: Quick wins (snackbar, tooltip, badge, demo button)
+- B3: Pull-to-refresh feedback
+
+### v2.0 (major)
+- B1: Podgląd akcentów
+- B2: Autofill API
+- B5: Widżet
+- Eksperymenty C1-C3 do walidacji
+
+---
+
+## Metryki sukcesu
+
+| Metryka | Cel | Sposób pomiaru |
+|---------|-----|----------------|
+| Crash-free rate | >99.5% | Google Play Console |
+| Czas do pierwszej maski | <30s dla nowego użytkownika | Manualne testy |
+| Pro conversion z demo | >5% | Licznik demo→login→Pro (lokalny) |
+| Otwarcia z widżetu | >10% aktywnych użytkowników | Google Play Console (po dodaniu widżetu) |
+| Porzucenie formularza tworzenia | <20% | Analityka lokalna (debug) |

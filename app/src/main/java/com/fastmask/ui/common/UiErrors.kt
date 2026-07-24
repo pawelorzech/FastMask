@@ -24,6 +24,8 @@ object UiErrors {
         throwable is IOException -> R.string.error_network
         throwable is HttpException && (throwable.code() == 401 || throwable.code() == 403) ->
             R.string.error_auth
+        throwable is HttpException && throwable.code() == 429 -> R.string.error_rate_limit
+        throwable is HttpException && throwable.code() in 500..599 -> R.string.error_server
         else -> fallback
     }
 }

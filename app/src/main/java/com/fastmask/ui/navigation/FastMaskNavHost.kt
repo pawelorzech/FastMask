@@ -203,9 +203,20 @@ fun FastMaskNavHost(
                         // Hand the archived id + pre-archive state back to the
                         // list, then pop. State is written FIRST so the list's
                         // id-triggered latch never observes a torn pair.
-                        navController.previousBackStackEntry?.savedStateHandle?.let {
-                            it[KEY_ARCHIVED_STATE] = previousState.name
-                            it[KEY_ARCHIVED_ID] = id
+                        val backEntry = navController.previousBackStackEntry
+                        if (backEntry != null) {
+                            backEntry.savedStateHandle[KEY_ARCHIVED_STATE] = previousState.name
+                            backEntry.savedStateHandle[KEY_ARCHIVED_ID] = id
+                        } else {
+                            // Edge case: detail reached via deep-link with no list entry
+                            // on the back stack. Write to the current back stack entry's
+                            // SavedStateHandle so the data survives configuration changes.
+                            navController.currentBackStackEntry
+                                ?.savedStateHandle
+                                ?.apply {
+                                    set(KEY_ARCHIVED_STATE, previousState.name)
+                                    set(KEY_ARCHIVED_ID, id)
+                                }
                         }
                         navController.popBackStack()
                     },

@@ -1,5 +1,7 @@
 package com.fastmask.di
 
+import android.util.Log
+import com.fastmask.BuildConfig
 import com.fastmask.data.analytics.LogMonetizationAnalytics
 import com.fastmask.data.billing.BillingDataSource
 import com.fastmask.data.billing.PlayBillingDataSource
@@ -11,6 +13,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,7 +45,13 @@ abstract class BillingModule {
         @Provides
         @Singleton
         @ApplicationScope
-        fun provideApplicationScope(): CoroutineScope =
-            CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        fun provideApplicationScope(): CoroutineScope {
+            val handler = CoroutineExceptionHandler { _, throwable ->
+                if (BuildConfig.DEBUG) {
+                    Log.e("FastMask", "Uncaught exception in application scope", throwable)
+                }
+            }
+            return CoroutineScope(SupervisorJob() + Dispatchers.Default + handler)
+        }
     }
 }

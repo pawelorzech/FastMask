@@ -1,30 +1,38 @@
 package com.fastmask
 
 import android.app.Application
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import com.fastmask.data.local.SettingsDataStore
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class FastMaskApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Restore saved language after super.onCreate() but before any Activity starts.
-        // We read directly from DataStore here since Hilt injection happens during super.onCreate().
         restoreSavedLanguage()
     }
 
     private fun restoreSavedLanguage() {
-        try {
-            val savedLanguageCode = SettingsDataStore.getLanguageBlocking(this)
-            if (savedLanguageCode != null) {
-                val localeList = LocaleListCompat.forLanguageTags(savedLanguageCode)
-                AppCompatDelegate.setApplicationLocales(localeList)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        scope.launch {
+            try {
+                val savedLanguageCode = SettingsDataStore.getLanguageBlocking(this@FastMaskApplication)
+                if (savedLanguageCode != null) {
+                    val localeList = LocaleListCompat.forLanguageTags(savedLanguageCode)
+                    AppCompatDelegate.setApplicationLocales(localeList)
+                }
+            } catch (e: Exception) {
+                if (BuildConfig.DEBUG) {
+                    Log.w("FastMask", "Failed to restore saved language", e)
+                }
             }
-        } catch (e: Exception) {
-            // If reading fails, use system default locale
         }
     }
 }
