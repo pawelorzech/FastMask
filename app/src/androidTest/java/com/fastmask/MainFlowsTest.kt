@@ -162,14 +162,16 @@ class MainFlowsTest {
             .performScrollTo()
             .performClick()
 
-        // Wait on the FAB, which only exists on the list. "Masked" would match
-        // as a substring while still on the create screen — and the create
-        // screen lingers: it awaits the full Long snackbar (~10 s) before
-        // navigating back, so the timeout has to cover that.
-        awaitContentDescription(string(R.string.email_list_create_description), 25_000)
-        composeRule.waitUntil(timeoutMillis = 20_000) {
+        // Wait on the FAB, which only exists on the list. ("Masked" would match
+        // as a substring while still on the create screen.) The return is now
+        // immediate — the create screen no longer waits out its snackbar.
+        awaitContentDescription(string(R.string.email_list_create_description), 10_000)
+        composeRule.waitUntil(timeoutMillis = 15_000) {
             filterCount(R.string.filter_all) == totalBefore + 1
         }
+
+        // The confirmation now lands on the list, naming the new address.
+        awaitText("@")
     }
 
     // --- archive + undo ---------------------------------------------------

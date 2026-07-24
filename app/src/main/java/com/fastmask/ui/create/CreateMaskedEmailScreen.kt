@@ -25,10 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
@@ -54,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
-import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DashedDesignCard
 import com.fastmask.ui.components.DemoBanner
@@ -71,12 +66,13 @@ import com.fastmask.ui.theme.JetBrainsMono
 @Composable
 fun CreateMaskedEmailScreen(
     onNavigateBack: () -> Unit,
+    /** The mask exists; hand its address to the list, which reports it there. */
+    onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
     val extras = FastMaskExtras.current
 
     // Guard against losing typed-but-uncreated input on back / swipe.
@@ -92,32 +88,24 @@ fun CreateMaskedEmailScreen(
         )
     }
 
-    val createdMessageTemplate = stringResource(R.string.create_email_created)
-    val copyAction = stringResource(R.string.create_email_copy_action)
     val backDesc = stringResource(R.string.navigate_back)
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                is CreateMaskedEmailEvent.Created -> {
-                    val msg = createdMessageTemplate.replace("%s", event.email)
-                    val result = snackbarHostState.showSnackbar(
-                        message = msg,
-                        actionLabel = copyAction,
-                        duration = SnackbarDuration.Long,
-                    )
-                    if (result == SnackbarResult.ActionPerformed) {
-                        copyToClipboard(context, event.email)
-                    }
-                    onNavigateBack()
-                }
+                // Leave immediately. This used to await the confirmation
+                // snackbar before navigating, and showSnackbar suspends for its
+                // full Long duration (~10 s) unless the action is tapped — so
+                // the form sat there looking frozen after a successful create.
+                // The list shows the confirmation instead, with the same Copy
+                // action, which is also where the new mask now is.
+                is CreateMaskedEmailEvent.Created -> onCreated(event.email)
             }
         }
     }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { paddingValues ->
         Column(
             modifier = Modifier
