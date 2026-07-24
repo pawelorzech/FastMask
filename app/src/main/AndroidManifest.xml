@@ -25,6 +25,13 @@
         </intent>
     </queries>
 
+    <!--
+      allowBackup="false" disables backup outright, which makes
+      fullBackupContent and dataExtractionRules inert on their own. They are
+      kept deliberately, not by oversight: they exclude the encrypted token
+      preferences, so flipping allowBackup back on cannot silently start
+      shipping the Fastmail API token to cloud backup or device transfer.
+    -->
     <application
         android:name=".FastMaskApplication"
         android:allowBackup="false"

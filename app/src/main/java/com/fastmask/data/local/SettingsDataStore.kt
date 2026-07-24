@@ -23,7 +23,10 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(na
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val languageKey = stringPreferencesKey("language_code")
+    // Single definition, shared with the companion's static reader — the key
+    // used to be declared twice with the same literal, so a rename on one side
+    // would have silently orphaned the other's stored value.
+    private val languageKey = LANGUAGE_KEY
     private val appModeKey = stringPreferencesKey("app_mode")
     private val tutorialCompletedKey = booleanPreferencesKey("tutorial_completed")
 
@@ -113,6 +116,11 @@ class SettingsDataStore @Inject constructor(
     }
 
     companion object {
+        /**
+         * Owns the language key for both readers: the injected instance above
+         * and the static [getLanguageBlocking] below, which
+         * [com.fastmask.FastMaskApplication] calls before the Hilt graph exists.
+         */
         private val LANGUAGE_KEY = stringPreferencesKey("language_code")
 
         fun getLanguageBlocking(context: Context): String? {

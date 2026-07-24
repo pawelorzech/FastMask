@@ -243,4 +243,50 @@ class MaskedEmailListViewModelTest {
         assertEquals(null, viewModel.uiState.value.errorRes)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
     }
+
+    // The two entry points used to guard on separate flags. A silent refresh
+    // does not raise isLoading while the list has data, so a pull-to-refresh
+    // arriving mid-refresh passed its own guard and ran a second concurrent
+    // fetch whose result raced the first.
+    @Test
+    fun `pull-to-refresh during a silent refresh does not start a second fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle() // init load → getCalls == 1
+
+        viewModel.refreshMaskedEmails() // silent, keeps isLoading false
+        viewModel.loadMaskedEmails()    // user pull-to-refresh in the same frame
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    @Test
+    fun `a silent refresh during a pull-to-refresh does not start a second fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.loadMaskedEmails()
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    // A user-initiated load must still report failure even with data on
+    // screen — unlike the silent refresh, the user is waiting on this one.
+    @Test
+    fun `pull-to-refresh surfaces an error even with cached data`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline now")
+        viewModel.loadMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
+    }
 }
