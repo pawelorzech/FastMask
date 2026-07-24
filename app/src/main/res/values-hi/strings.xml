@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">लॉक किया गया। जारी रखने के लिए अनलॉक करें।</string>
     <string name="app_lock_unlock">अनलॉक करें</string>
     <string name="app_lock_prompt_title">FastMask अनलॉक करें</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">बहुत अधिक अनुरोध। थोड़ी देर रुककर दोबारा कोशिश करें।</string>
+    <string name="error_server">Fastmail सर्वर अस्थायी रूप से अनुपलब्ध है। थोड़ी देर बाद कोशिश करें।</string>
+    <string name="email_list_no_matches">कोई परिणाम नहीं</string>
+    <string name="email_list_no_matches_sub">आपकी खोज या फ़िल्टर से कोई मास्क मेल नहीं खाता।</string>
+    <string name="create_email_error_prefix_length">उपसर्ग 64 वर्णों से अधिक नहीं हो सकता</string>
+    <string name="create_email_error_prefix_chars">केवल छोटे अक्षर, अंक और अंडरस्कोर की अनुमति है</string>
+    <string name="discard_changes_title">बदलाव छोड़ें?</string>
+    <string name="discard_changes_message">आपके बदलाव सहेजे नहीं गए हैं और खो जाएंगे।</string>
+    <string name="discard_changes_confirm">छोड़ें</string>
+    <string name="discard_changes_cancel">संपादन जारी रखें</string>
+    <string name="logout_confirm_title">साइन आउट करें?</string>
+    <string name="logout_confirm_message">दोबारा साइन इन करने के लिए आपको अपना Fastmail API टोकन चाहिए होगा।</string>
+    <string name="error_no_app_for_link">इस लिंक को खोलने के लिए कोई ऐप उपलब्ध नहीं है।</string>
 </resources>

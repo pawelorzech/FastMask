@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Bloqueado. Desbloqueie para continuar.</string>
     <string name="app_lock_unlock">Desbloquear</string>
     <string name="app_lock_prompt_title">Desbloquear FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Demasiados pedidos. Aguarde um momento e tente novamente.</string>
+    <string name="error_server">O servidor do Fastmail está temporariamente indisponível. Tente novamente em breve.</string>
+    <string name="email_list_no_matches">Sem resultados</string>
+    <string name="email_list_no_matches_sub">Nenhuma máscara corresponde à sua pesquisa ou filtro.</string>
+    <string name="create_email_error_prefix_length">O prefixo deve ter no máximo 64 caracteres</string>
+    <string name="create_email_error_prefix_chars">Só são permitidas letras minúsculas, números e sublinhados</string>
+    <string name="discard_changes_title">Descartar alterações?</string>
+    <string name="discard_changes_message">As suas alterações não foram guardadas e serão perdidas.</string>
+    <string name="discard_changes_confirm">Descartar</string>
+    <string name="discard_changes_cancel">Continuar a editar</string>
+    <string name="logout_confirm_title">Terminar sessão?</string>
+    <string name="logout_confirm_message">Vai precisar do seu token de API do Fastmail para iniciar sessão novamente.</string>
+    <string name="error_no_app_for_link">Nenhuma aplicação disponível para abrir esta ligação.</string>
 </resources>

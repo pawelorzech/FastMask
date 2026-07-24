@@ -150,7 +150,7 @@
     <string name="welcome_signin_cta">Aanmelden met Fastmail</string>
     <string name="welcome_demo_cta">Demo proberen</string>
     <string name="welcome_tagline">Een rustige plek voor uw gemaskeerde adressen.</string>
-    <string name="welcome_privacy_note">Privacy-first · open source</string>
+    <string name="welcome_privacy_note">Privacy voorop · open source</string>
     <string name="demo_banner_text">Demo-modus — wijzigingen worden niet opgeslagen</string>
     <string name="demo_banner_signin">Aanmelden</string>
     <string name="tutorial_step_1_title">Uw gemaskeerde e-mails</string>
@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Vergrendeld. Ontgrendel om verder te gaan.</string>
     <string name="app_lock_unlock">Ontgrendelen</string>
     <string name="app_lock_prompt_title">FastMask ontgrendelen</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Te veel verzoeken. Wacht even en probeer het opnieuw.</string>
+    <string name="error_server">De Fastmail-server is tijdelijk niet beschikbaar. Probeer het zo opnieuw.</string>
+    <string name="email_list_no_matches">Geen resultaten</string>
+    <string name="email_list_no_matches_sub">Geen maskers komen overeen met je zoekopdracht of filter.</string>
+    <string name="create_email_error_prefix_length">Het voorvoegsel mag maximaal 64 tekens bevatten</string>
+    <string name="create_email_error_prefix_chars">Alleen kleine letters, cijfers en liggende streepjes zijn toegestaan</string>
+    <string name="discard_changes_title">Wijzigingen verwerpen?</string>
+    <string name="discard_changes_message">Je wijzigingen zijn niet opgeslagen en gaan verloren.</string>
+    <string name="discard_changes_confirm">Verwerpen</string>
+    <string name="discard_changes_cancel">Verder bewerken</string>
+    <string name="logout_confirm_title">Uitloggen?</string>
+    <string name="logout_confirm_message">Je hebt je Fastmail API-token nodig om opnieuw in te loggen.</string>
+    <string name="error_no_app_for_link">Geen app beschikbaar om deze link te openen.</string>
 </resources>
