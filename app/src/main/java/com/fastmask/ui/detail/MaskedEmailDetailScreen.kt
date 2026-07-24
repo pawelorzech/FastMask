@@ -1,6 +1,7 @@
 package com.fastmask.ui.detail
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
@@ -82,7 +84,18 @@ fun MaskedEmailDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Unsaved edits guard: trimmed compare mirrors the save logic.
+    val loadedEmail = uiState.email
+    val isDirty = loadedEmail != null && (
+        uiState.editedDescription.trim() != (loadedEmail.description ?: "") ||
+            uiState.editedForDomain.trim() != (loadedEmail.forDomain ?: "") ||
+            uiState.editedUrl.trim() != (loadedEmail.url ?: "")
+        )
+    val onBack = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
+    BackHandler(enabled = isDirty) { showDiscardDialog = true }
     val scope = rememberCoroutineScope()
     val extras = FastMaskExtras.current
 
@@ -117,6 +130,17 @@ fun MaskedEmailDetailScreen(
         )
     }
 
+    if (showDiscardDialog) {
+        ConfirmDialog(
+            title = stringResource(R.string.discard_changes_title),
+            message = stringResource(R.string.discard_changes_message),
+            confirmText = stringResource(R.string.discard_changes_confirm),
+            dismissText = stringResource(R.string.discard_changes_cancel),
+            onConfirm = { showDiscardDialog = false; onNavigateBack() },
+            onDismiss = { showDiscardDialog = false },
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -137,7 +161,7 @@ fun MaskedEmailDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PillIconButton(onClick = onNavigateBack, contentDescription = backDesc) {
+                PillIconButton(onClick = onBack, contentDescription = backDesc) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
