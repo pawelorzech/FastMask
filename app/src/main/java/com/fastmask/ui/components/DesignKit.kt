@@ -170,14 +170,21 @@ fun PillIconButton(
     val tone = tint ?: MaterialTheme.colorScheme.onBackground
     // Outer 48dp box = accessible touch target (a11y minimum); the visible
     // 40dp pill stays unchanged inside it.
+    val label = contentDescription
     Box(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
-            .clickable(role = Role.Button, onClickLabel = contentDescription) {
+            .clickable(role = Role.Button, onClickLabel = label) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onClick()
-            },
+            }
+            // onClickLabel alone only names the ACTION ("double tap to
+            // Settings"); the control itself stayed anonymous, so TalkBack
+            // announced every icon button in the app — back, settings, copy,
+            // archive — as a bare "Button". The inner Icon deliberately passes
+            // contentDescription = null, so the name has to live here.
+            .semantics { this.contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Box(

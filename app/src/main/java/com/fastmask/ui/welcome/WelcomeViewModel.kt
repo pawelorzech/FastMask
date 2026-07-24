@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.repository.DemoSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -15,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
+    private val demoSession: DemoSession,
 ) : ViewModel() {
 
     // Channel-backed one-time events: buffered delivery survives windows with
@@ -38,6 +40,10 @@ class WelcomeViewModel @Inject constructor(
      */
     fun enterDemoMode() {
         viewModelScope.launch(writeErrorHandler) {
+            // Start from the seed list: the demo repository is a singleton, so
+            // without this a second demo in the same process reopens the first
+            // one's edits.
+            demoSession.reset()
             settingsDataStore.setAppMode(AppMode.DEMO)
             settingsDataStore.setTutorialCompleted(false)
             _events.send(WelcomeEvent.EnterDemo)

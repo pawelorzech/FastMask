@@ -5,6 +5,7 @@ import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
 import com.fastmask.data.repository.MaskedEmailRepositoryDispatcher
 import com.fastmask.data.repository.MaskedEmailRepositoryImpl
 import com.fastmask.domain.repository.AuthRepository
+import com.fastmask.domain.repository.DemoSession
 import com.fastmask.domain.repository.MaskedEmailRepository
 import dagger.Binds
 import dagger.Module
@@ -55,4 +56,9 @@ abstract class RepositoryModule {
     abstract fun bindMaskedEmailRepository(
         dispatcher: MaskedEmailRepositoryDispatcher
     ): MaskedEmailRepository
+
+    /** Same singleton as the @Named("demo") binding, exposed for its reset. */
+    @Binds
+    @Singleton
+    abstract fun bindDemoSession(impl: DemoMaskedEmailRepositoryImpl): DemoSession
 }

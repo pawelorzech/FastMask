@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -92,7 +94,19 @@ fun DesignInput(
                         keyboardOptions = keyboardOptions,
                         keyboardActions = keyboardActions,
                         interactionSource = interaction,
-                        modifier = Modifier.fillMaxWidth(),
+                        // The visible label is a separate Text above the box,
+                        // which gives the field itself no accessible name —
+                        // TalkBack announced every form input as a bare "Edit
+                        // box". Naming it here covers each caller at once.
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (label != null) {
+                                    Modifier.semantics { contentDescription = label }
+                                } else {
+                                    Modifier
+                                }
+                            ),
                     )
                     if (value.isEmpty() && placeholder != null) {
                         Text(

@@ -17,7 +17,9 @@ android {
         versionCode = 19
         versionName = "1.8.2"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Hilt needs its own Application in instrumented tests; HiltTestRunner
+        // swaps FastMaskApplication for HiltTestApplication.
+        testInstrumentationRunner = "com.fastmask.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -194,10 +196,20 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("io.mockk:mockk:1.13.9")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // AndroidX Test 1.6.x / Espresso 3.6.x: the 3.5.1 line calls
+    // InputManager.getInstance(), removed in Android 16 (API 36) — every
+    // instrumented test died in Espresso.onIdle before reaching an assertion.
+    // Test-only dependencies, so nothing ships to users.
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test:core-ktx:1.7.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    // Instrumented tests exercise the real Hilt graph, so they need the test
+    // Application and the generated test components.
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.50")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.50")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
