@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Đã khóa. Mở khóa để tiếp tục.</string>
     <string name="app_lock_unlock">Mở khóa</string>
     <string name="app_lock_prompt_title">Mở khóa FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Quá nhiều yêu cầu. Vui lòng đợi một lát rồi thử lại.</string>
+    <string name="error_server">Máy chủ Fastmail tạm thời không khả dụng. Vui lòng thử lại sau giây lát.</string>
+    <string name="email_list_no_matches">Không có kết quả</string>
+    <string name="email_list_no_matches_sub">Không có mặt nạ nào khớp với tìm kiếm hoặc bộ lọc của bạn.</string>
+    <string name="create_email_error_prefix_length">Tiền tố tối đa 64 ký tự</string>
+    <string name="create_email_error_prefix_chars">Chỉ cho phép chữ thường, số và dấu gạch dưới</string>
+    <string name="discard_changes_title">Hủy thay đổi?</string>
+    <string name="discard_changes_message">Các chỉnh sửa chưa được lưu và sẽ bị mất.</string>
+    <string name="discard_changes_confirm">Hủy</string>
+    <string name="discard_changes_cancel">Tiếp tục chỉnh sửa</string>
+    <string name="logout_confirm_title">Đăng xuất?</string>
+    <string name="logout_confirm_message">Bạn sẽ cần mã API Fastmail để đăng nhập lại.</string>
+    <string name="error_no_app_for_link">Không có ứng dụng nào để mở liên kết này.</string>
 </resources>

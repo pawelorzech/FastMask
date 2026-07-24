@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">ล็อกแล้ว ปลดล็อกเพื่อดำเนินการต่อ</string>
     <string name="app_lock_unlock">ปลดล็อก</string>
     <string name="app_lock_prompt_title">ปลดล็อก FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">มีคำขอมากเกินไป โปรดรอสักครู่แล้วลองใหม่</string>
+    <string name="error_server">เซิร์ฟเวอร์ Fastmail ไม่พร้อมใช้งานชั่วคราว โปรดลองใหม่ในอีกสักครู่</string>
+    <string name="email_list_no_matches">ไม่พบรายการ</string>
+    <string name="email_list_no_matches_sub">ไม่มีมาสก์ที่ตรงกับการค้นหาหรือตัวกรองของคุณ</string>
+    <string name="create_email_error_prefix_length">คำนำหน้าต้องยาวไม่เกิน 64 อักขระ</string>
+    <string name="create_email_error_prefix_chars">ใช้ได้เฉพาะตัวพิมพ์เล็ก ตัวเลข และขีดล่างเท่านั้น</string>
+    <string name="discard_changes_title">ละทิ้งการเปลี่ยนแปลงหรือไม่</string>
+    <string name="discard_changes_message">การแก้ไขของคุณยังไม่ได้บันทึกและจะสูญหาย</string>
+    <string name="discard_changes_confirm">ละทิ้ง</string>
+    <string name="discard_changes_cancel">แก้ไขต่อ</string>
+    <string name="logout_confirm_title">ออกจากระบบหรือไม่</string>
+    <string name="logout_confirm_message">คุณจะต้องใช้โทเค็น Fastmail API เพื่อเข้าสู่ระบบอีกครั้ง</string>
+    <string name="error_no_app_for_link">ไม่มีแอปสำหรับเปิดลิงก์นี้</string>
 </resources>

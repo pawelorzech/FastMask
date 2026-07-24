@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Terkunci. Buka untuk melanjutkan.</string>
     <string name="app_lock_unlock">Buka</string>
     <string name="app_lock_prompt_title">Buka FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.</string>
+    <string name="error_server">Server Fastmail sementara tidak tersedia. Coba lagi sebentar lagi.</string>
+    <string name="email_list_no_matches">Tidak ada hasil</string>
+    <string name="email_list_no_matches_sub">Tidak ada masker yang cocok dengan pencarian atau filter Anda.</string>
+    <string name="create_email_error_prefix_length">Awalan maksimal 64 karakter</string>
+    <string name="create_email_error_prefix_chars">Hanya huruf kecil, angka, dan garis bawah yang diizinkan</string>
+    <string name="discard_changes_title">Buang perubahan?</string>
+    <string name="discard_changes_message">Perubahan Anda belum disimpan dan akan hilang.</string>
+    <string name="discard_changes_confirm">Buang</string>
+    <string name="discard_changes_cancel">Lanjutkan mengedit</string>
+    <string name="logout_confirm_title">Keluar?</string>
+    <string name="logout_confirm_message">Anda memerlukan token API Fastmail untuk masuk kembali.</string>
+    <string name="error_no_app_for_link">Tidak ada aplikasi untuk membuka tautan ini.</string>
 </resources>

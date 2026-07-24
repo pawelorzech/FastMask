@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">مقفول. فتح للمتابعة.</string>
     <string name="app_lock_unlock">فتح</string>
     <string name="app_lock_prompt_title">فتح FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">طلبات كثيرة جدًا. انتظر قليلاً ثم أعد المحاولة.</string>
+    <string name="error_server">خادم Fastmail غير متاح مؤقتًا. حاول مرة أخرى بعد قليل.</string>
+    <string name="email_list_no_matches">لا نتائج</string>
+    <string name="email_list_no_matches_sub">لا توجد عناوين مقنَّعة تطابق بحثك أو عامل التصفية.</string>
+    <string name="create_email_error_prefix_length">يجب ألا يزيد البادئة عن 64 حرفًا</string>
+    <string name="create_email_error_prefix_chars">يُسمح بالأحرف الصغيرة والأرقام والشرطة السفلية فقط</string>
+    <string name="discard_changes_title">تجاهل التغييرات؟</string>
+    <string name="discard_changes_message">لم يتم حفظ تعديلاتك وسيتم فقدانها.</string>
+    <string name="discard_changes_confirm">تجاهل</string>
+    <string name="discard_changes_cancel">متابعة التحرير</string>
+    <string name="logout_confirm_title">تسجيل الخروج؟</string>
+    <string name="logout_confirm_message">ستحتاج إلى رمز Fastmail API لتسجيل الدخول مرة أخرى.</string>
+    <string name="error_no_app_for_link">لا يوجد تطبيق لفتح هذا الرابط.</string>
 </resources>

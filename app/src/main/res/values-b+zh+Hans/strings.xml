@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">已锁定。解锁继续。</string>
     <string name="app_lock_unlock">解锁</string>
     <string name="app_lock_prompt_title">解锁 FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">请求过于频繁，请稍候再试。</string>
+    <string name="error_server">Fastmail 服务器暂时不可用，请稍后再试。</string>
+    <string name="email_list_no_matches">无匹配结果</string>
+    <string name="email_list_no_matches_sub">没有符合搜索或筛选条件的掩码地址。</string>
+    <string name="create_email_error_prefix_length">前缀不能超过 64 个字符</string>
+    <string name="create_email_error_prefix_chars">仅允许小写字母、数字和下划线</string>
+    <string name="discard_changes_title">放弃更改？</string>
+    <string name="discard_changes_message">你的修改尚未保存，将会丢失。</string>
+    <string name="discard_changes_confirm">放弃</string>
+    <string name="discard_changes_cancel">继续编辑</string>
+    <string name="logout_confirm_title">退出登录？</string>
+    <string name="logout_confirm_message">重新登录时需要你的 Fastmail API 令牌。</string>
+    <string name="error_no_app_for_link">没有可打开此链接的应用。</string>
 </resources>

@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Заблокировано. Разблокируйте для продолжения.</string>
     <string name="app_lock_unlock">Разблокировать</string>
     <string name="app_lock_prompt_title">Разблокировать FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Слишком много запросов. Подождите немного и повторите попытку.</string>
+    <string name="error_server">Сервер Fastmail временно недоступен. Повторите попытку чуть позже.</string>
+    <string name="email_list_no_matches">Ничего не найдено</string>
+    <string name="email_list_no_matches_sub">Ни одна маска не соответствует поиску или фильтру.</string>
+    <string name="create_email_error_prefix_length">Префикс не должен превышать 64 символа</string>
+    <string name="create_email_error_prefix_chars">Допустимы только строчные буквы, цифры и подчёркивания</string>
+    <string name="discard_changes_title">Отменить изменения?</string>
+    <string name="discard_changes_message">Изменения не сохранены и будут потеряны.</string>
+    <string name="discard_changes_confirm">Отменить</string>
+    <string name="discard_changes_cancel">Продолжить редактирование</string>
+    <string name="logout_confirm_title">Выйти?</string>
+    <string name="logout_confirm_message">Чтобы войти снова, понадобится ваш API-токен Fastmail.</string>
+    <string name="error_no_app_for_link">Нет приложения для открытия этой ссылки.</string>
 </resources>

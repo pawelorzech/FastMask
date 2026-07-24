@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Verrouillé. Déverrouiller pour continuer.</string>
     <string name="app_lock_unlock">Déverrouiller</string>
     <string name="app_lock_prompt_title">Déverrouiller FastMask</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Trop de requêtes. Patientez un instant et réessayez.</string>
+    <string name="error_server">Le serveur Fastmail est temporairement indisponible. Réessayez sous peu.</string>
+    <string name="email_list_no_matches">Aucun résultat</string>
+    <string name="email_list_no_matches_sub">Aucun alias ne correspond à votre recherche ou à votre filtre.</string>
+    <string name="create_email_error_prefix_length">Le préfixe doit contenir 64 caractères maximum</string>
+    <string name="create_email_error_prefix_chars">Seuls les lettres minuscules, les chiffres et les tirets bas sont autorisés</string>
+    <string name="discard_changes_title">Abandonner les modifications ?</string>
+    <string name="discard_changes_message">Vos modifications n\'ont pas été enregistrées et seront perdues.</string>
+    <string name="discard_changes_confirm">Abandonner</string>
+    <string name="discard_changes_cancel">Continuer l\'édition</string>
+    <string name="logout_confirm_title">Se déconnecter ?</string>
+    <string name="logout_confirm_message">Vous aurez besoin de votre jeton d\'API Fastmail pour vous reconnecter.</string>
+    <string name="error_no_app_for_link">Aucune application ne peut ouvrir ce lien.</string>
 </resources>

@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">ロック中。続行するにはロック解除してください。</string>
     <string name="app_lock_unlock">ロック解除</string>
     <string name="app_lock_prompt_title">FastMask をロック解除</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">リクエストが多すぎます。少し待ってからもう一度お試しください。</string>
+    <string name="error_server">Fastmail のサーバーが一時的に利用できません。しばらくしてからお試しください。</string>
+    <string name="email_list_no_matches">該当なし</string>
+    <string name="email_list_no_matches_sub">検索条件またはフィルターに一致するマスクはありません。</string>
+    <string name="create_email_error_prefix_length">プレフィックスは 64 文字以内で入力してください</string>
+    <string name="create_email_error_prefix_chars">使用できるのは小文字・数字・アンダースコアのみです</string>
+    <string name="discard_changes_title">変更を破棄しますか？</string>
+    <string name="discard_changes_message">編集内容は保存されていないため失われます。</string>
+    <string name="discard_changes_confirm">破棄</string>
+    <string name="discard_changes_cancel">編集を続ける</string>
+    <string name="logout_confirm_title">サインアウトしますか？</string>
+    <string name="logout_confirm_message">再度サインインするには Fastmail の API トークンが必要です。</string>
+    <string name="error_no_app_for_link">このリンクを開けるアプリがありません。</string>
 </resources>

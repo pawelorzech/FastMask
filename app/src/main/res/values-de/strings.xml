@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Gesperrt. Entsperre zum Fortfahren.</string>
     <string name="app_lock_unlock">Entsperren</string>
     <string name="app_lock_prompt_title">FastMask entsperren</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Zu viele Anfragen. Warte kurz und versuche es erneut.</string>
+    <string name="error_server">Der Fastmail-Server ist vorübergehend nicht erreichbar. Versuche es gleich erneut.</string>
+    <string name="email_list_no_matches">Keine Treffer</string>
+    <string name="email_list_no_matches_sub">Keine Masken entsprechen deiner Suche oder deinem Filter.</string>
+    <string name="create_email_error_prefix_length">Das Präfix darf höchstens 64 Zeichen lang sein</string>
+    <string name="create_email_error_prefix_chars">Nur Kleinbuchstaben, Ziffern und Unterstriche sind erlaubt</string>
+    <string name="discard_changes_title">Änderungen verwerfen?</string>
+    <string name="discard_changes_message">Deine Änderungen wurden nicht gespeichert und gehen verloren.</string>
+    <string name="discard_changes_confirm">Verwerfen</string>
+    <string name="discard_changes_cancel">Weiter bearbeiten</string>
+    <string name="logout_confirm_title">Abmelden?</string>
+    <string name="logout_confirm_message">Zum erneuten Anmelden brauchst du deinen Fastmail-API-Token.</string>
+    <string name="error_no_app_for_link">Keine App zum Öffnen dieses Links verfügbar.</string>
 </resources>

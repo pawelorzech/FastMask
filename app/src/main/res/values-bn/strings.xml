@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">লক করা। চালিয়ে যেতে আনলক করুন।</string>
     <string name="app_lock_unlock">আনলক করুন</string>
     <string name="app_lock_prompt_title">FastMask আনলক করুন</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">অনেক বেশি অনুরোধ। কিছুক্ষণ পরে আবার চেষ্টা করুন।</string>
+    <string name="error_server">Fastmail সার্ভার সাময়িকভাবে অনুপলব্ধ। একটু পরে আবার চেষ্টা করুন।</string>
+    <string name="email_list_no_matches">কোনো ফলাফল নেই</string>
+    <string name="email_list_no_matches_sub">আপনার সার্চ বা ফিল্টারের সঙ্গে কোনো মাস্ক মেলেনি।</string>
+    <string name="create_email_error_prefix_length">প্রিফিক্স ৬৪ অক্ষরের বেশি হতে পারবে না</string>
+    <string name="create_email_error_prefix_chars">শুধু ছোট হাতের অক্ষর, সংখ্যা ও আন্ডারস্কোর ব্যবহার করা যাবে</string>
+    <string name="discard_changes_title">পরিবর্তন বাতিল করবেন?</string>
+    <string name="discard_changes_message">আপনার সম্পাদনা সংরক্ষণ করা হয়নি এবং হারিয়ে যাবে।</string>
+    <string name="discard_changes_confirm">বাতিল করুন</string>
+    <string name="discard_changes_cancel">সম্পাদনা চালিয়ে যান</string>
+    <string name="logout_confirm_title">সাইন আউট করবেন?</string>
+    <string name="logout_confirm_message">আবার সাইন ইন করতে আপনার Fastmail API টোকেন লাগবে।</string>
+    <string name="error_no_app_for_link">এই লিঙ্কটি খোলার মতো কোনো অ্যাপ নেই।</string>
 </resources>

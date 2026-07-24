@@ -223,6 +223,17 @@
     <string name="app_lock_locked_subtitle">Kilitli. Devam etmek için açın.</string>
     <string name="app_lock_unlock">Aç</string>
     <string name="app_lock_prompt_title">FastMask\'ı Aç</string>
-    <string name="error_rate_limit">Too many requests. Wait a moment and try again.</string>
-    <string name="error_server">Fastmail server is temporarily unavailable. Try again shortly.</string>
+    <string name="error_rate_limit">Çok fazla istek. Biraz bekleyip tekrar deneyin.</string>
+    <string name="error_server">Fastmail sunucusu geçici olarak kullanılamıyor. Birazdan tekrar deneyin.</string>
+    <string name="email_list_no_matches">Sonuç yok</string>
+    <string name="email_list_no_matches_sub">Aramanız veya filtrenizle eşleşen maske yok.</string>
+    <string name="create_email_error_prefix_length">Ön ek en fazla 64 karakter olabilir</string>
+    <string name="create_email_error_prefix_chars">Yalnızca küçük harf, rakam ve alt çizgi kullanılabilir</string>
+    <string name="discard_changes_title">Değişiklikler atılsın mı?</string>
+    <string name="discard_changes_message">Düzenlemeleriniz kaydedilmedi ve kaybolacak.</string>
+    <string name="discard_changes_confirm">At</string>
+    <string name="discard_changes_cancel">Düzenlemeye devam et</string>
+    <string name="logout_confirm_title">Oturum kapatılsın mı?</string>
+    <string name="logout_confirm_message">Yeniden oturum açmak için Fastmail API belirtecinize ihtiyacınız olacak.</string>
+    <string name="error_no_app_for_link">Bu bağlantıyı açacak bir uygulama yok.</string>
 </resources>
