@@ -8,6 +8,7 @@ import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
+    private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
@@ -131,18 +133,43 @@ class MaskedEmailListViewModel @Inject constructor(
                                     it.searchQuery,
                                     it.selectedFilter,
                                 ),
+                                // A successful fetch is by definition current.
+                                cachedAt = null,
                             )
                         }
                     },
                     onFailure = { error ->
+                        // Nothing on screen and no network: fall back to the
+                        // last good snapshot rather than an empty error state.
+                        // The most common thing a user opens this app to do is
+                        // read back an address they already created, and that
+                        // should not require a connection.
+                        val cached = if (_uiState.value.emails.isEmpty()) {
+                            getCachedMaskedEmailsUseCase()
+                        } else {
+                            null
+                        }
                         _uiState.update {
-                            if (userInitiated || it.emails.isEmpty()) {
-                                it.copy(
+                            when {
+                                cached != null && cached.masks.isNotEmpty() -> it.copy(
+                                    isLoading = false,
+                                    emails = cached.masks.sortedByDescending { email ->
+                                        email.lastMessageAt ?: email.createdAt
+                                    },
+                                    filteredEmails = filterEmails(
+                                        cached.masks, it.searchQuery, it.selectedFilter,
+                                    ),
+                                    // Shown, never hidden: presenting stale
+                                    // masks as current would be a quiet lie
+                                    // about which addresses still exist.
+                                    cachedAt = cached.cachedAt,
+                                    errorRes = null,
+                                )
+                                userInitiated || it.emails.isEmpty() -> it.copy(
                                     isLoading = false,
                                     errorRes = UiErrors.messageRes(error, R.string.error_load_emails),
                                 )
-                            } else {
-                                it.copy(isLoading = false)
+                                else -> it.copy(isLoading = false)
                             }
                         }
                     },
@@ -204,6 +231,8 @@ data class MaskedEmailListUiState(
     val emails: List<MaskedEmail> = emptyList(),
     val filteredEmails: List<MaskedEmail> = emptyList(),
     val searchQuery: String = "",
+    /** Non-null when the list is a cached snapshot taken at this instant. */
+    val cachedAt: java.time.Instant? = null,
     val selectedFilter: EmailFilter = EmailFilter.ALL,
     val errorRes: Int? = null
 )

@@ -5,7 +5,9 @@ import com.fastmask.data.api.MaskedEmailCreate
 import com.fastmask.data.api.MaskedEmailDto
 import com.fastmask.data.api.MaskedEmailState
 import com.fastmask.data.api.MaskedEmailUpdate
+import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -18,17 +20,23 @@ import javax.inject.Singleton
 @Singleton
 class MaskedEmailRepositoryImpl @Inject constructor(
     private val jmapApi: JmapApi,
-    private val tokenStorage: TokenStorage
+    private val tokenStorage: TokenStorage,
+    private val cache: MaskedEmailCache,
 ) : MaskedEmailRepository {
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
         val token = tokenStorage.getToken()
             ?: return Result.failure(IllegalStateException("Not authenticated"))
 
-        return jmapApi.getMaskedEmails(token).map { dtos ->
-            dtos.map { it.toDomain() }
-        }
+        return jmapApi.getMaskedEmails(token)
+            .map { dtos -> dtos.map { it.toDomain() } }
+            // Write through on every success, so the newest good answer is
+            // always what an offline read gets. A cache write failure must not
+            // fail the fetch — MaskedEmailCache swallows its own errors.
+            .onSuccess { cache.write(it) }
     }
+
+    override suspend fun cachedMaskedEmails(): CachedMasks? = cache.read()
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val token = tokenStorage.getToken()

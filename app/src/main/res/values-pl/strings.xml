@@ -251,4 +251,5 @@
         <item quantity="many">łącznie %d</item>
         <item quantity="other">łącznie %d</item>
     </plurals>
+    <string name="list_offline_cached">Offline · zaktualizowano %1$s</string>
 </resources>

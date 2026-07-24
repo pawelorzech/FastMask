@@ -1,6 +1,7 @@
 package com.fastmask.data.repository
 
 import com.fastmask.data.demo.INITIAL_DEMO_MASKS
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -44,6 +45,9 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
         return Result.success(state.value)
     }
+
+    /** Demo data already lives in memory and is never persisted. */
+    override suspend fun cachedMaskedEmails(): CachedMasks? = null
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val newMask = buildNewMask(params)

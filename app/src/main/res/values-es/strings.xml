@@ -247,4 +247,5 @@
         <item quantity="many">%d en total</item>
         <item quantity="other">%d en total</item>
     </plurals>
+    <string name="list_offline_cached">Sin conexión · actualizado %1$s</string>
 </resources>

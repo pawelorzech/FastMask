@@ -243,4 +243,5 @@
     <plurals name="list_stats_total">
         <item quantity="other">共 %d 个</item>
     </plurals>
+    <string name="list_offline_cached">离线 · 更新于 %1$s</string>
 </resources>
