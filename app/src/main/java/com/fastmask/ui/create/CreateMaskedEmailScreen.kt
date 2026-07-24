@@ -1,11 +1,9 @@
 package com.fastmask.ui.create
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.DashedDesignCard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignInput
@@ -183,8 +183,9 @@ fun CreateMaskedEmailScreen(
                     onValueChange = viewModel::onPrefixChange,
                     label = stringResource(R.string.create_email_prefix_label),
                     placeholder = stringResource(R.string.create_email_prefix_placeholder),
-                    hint = uiState.prefixError ?: stringResource(R.string.create_email_prefix_hint),
-                    isError = uiState.prefixError != null,
+                    hint = uiState.prefixErrorRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.create_email_prefix_hint),
+                    isError = uiState.prefixErrorRes != null,
                     enabled = !uiState.isLoading,
                     mono = true,
                 )
@@ -240,7 +241,7 @@ fun CreateMaskedEmailScreen(
                     text = if (uiState.isLoading) "…" else stringResource(R.string.create_email_button),
                     onClick = viewModel::create,
                     variant = PillButtonVariant.Primary,
-                    enabled = !uiState.isLoading && uiState.prefixError == null,
+                    enabled = !uiState.isLoading && uiState.prefixErrorRes == null,
                     fullWidth = true,
                     trailing = if (uiState.isLoading) {
                         {
@@ -291,7 +292,13 @@ private fun StateSegmented(
                     .weight(1f)
                     .clip(rowShape)
                     .background(if (isSel) extras.surfaceAlt else Color.Transparent, rowShape)
-                    .clickable(enabled = enabled) { onSelect(state) }
+                    // selectable (not clickable) so TalkBack announces which
+                    // option is active — selection is otherwise color-only.
+                    .selectable(
+                        selected = isSel,
+                        enabled = enabled,
+                        role = Role.RadioButton,
+                    ) { onSelect(state) }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,
@@ -307,7 +314,3 @@ private fun StateSegmented(
     }
 }
 
-private fun copyToClipboard(context: Context, value: String) {
-    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    cm.setPrimaryClip(ClipData.newPlainText("Email", value))
-}

@@ -33,13 +33,17 @@ class CreateMaskedEmailViewModel @Inject constructor(
 
     fun onPrefixChange(prefix: String) {
         val sanitized = prefix.lowercase().filter { it.isLetterOrDigit() || it == '_' }
-        val error = when {
-            sanitized.length > 64 -> "Prefix must be 64 characters or less"
+        // Localizable string-res ids, not raw literals: these are shown to the
+        // user under a fully-translated form (isLetterOrDigit() lets through
+        // Unicode letters/digits the ASCII regex then rejects, so both branches
+        // are reachable).
+        val errorRes = when {
+            sanitized.length > 64 -> R.string.create_email_error_prefix_length
             sanitized.isNotEmpty() && !sanitized.matches(Regex("^[a-z0-9_]*$")) ->
-                "Only lowercase letters, numbers, and underscores allowed"
+                R.string.create_email_error_prefix_chars
             else -> null
         }
-        _uiState.update { it.copy(emailPrefix = sanitized.take(64), prefixError = error) }
+        _uiState.update { it.copy(emailPrefix = sanitized.take(64), prefixErrorRes = errorRes) }
     }
 
     fun onDomainChange(domain: String) {
@@ -60,7 +64,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
 
     fun create() {
         val state = _uiState.value
-        if (state.prefixError != null) return
+        if (state.prefixErrorRes != null) return
         // Guard against rapid double-tap: the button's `enabled` flips only on the
         // next recomposition, so two taps in one frame would otherwise both land
         // here and create two real masks on the Fastmail account.
@@ -104,7 +108,7 @@ data class CreateMaskedEmailUiState(
     val initialState: EmailState = EmailState.ENABLED,
     val isLoading: Boolean = false,
     val errorRes: Int? = null,
-    val prefixError: String? = null
+    val prefixErrorRes: Int? = null
 )
 
 sealed class CreateMaskedEmailEvent {
