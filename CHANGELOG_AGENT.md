@@ -45,7 +45,26 @@ Gałąź: `feature/audit-2026-07-24b` (z `main` @ `f1e89ee`, v1.8.0). Wszystkie 
 - TalkBack: kropka stanu na wierszu ogłasza stan; pole search ma etykietę; „Sign in" w demo-bannerze jako Button.
 - 4 nowe stringi wyświetlają się po angielsku poza en — **do przetłumaczenia na 19 języków**.
 
+## Batch 2 — po decyzji Pawła (SEC1, R1, B5, R4)
+
+| Plik | Zmiana | ID |
+|------|--------|----|
+| `data/billing/PurchaseSecurity.kt` (nowy) | Weryfikacja podpisu Play SHA1withRSA (java.util.Base64, testowalne na JVM) | SEC1 |
+| `data/billing/PlayBillingDataSource.kt` | `isPurchased` wymaga ważnego podpisu; klucz z `BuildConfig.PLAY_LICENSE_KEY` | SEC1 |
+| `app/build.gradle.kts` | `buildConfigField PLAY_LICENSE_KEY` z `fastmask.playLicenseKey` / env | SEC1 |
+| `~/.gradle/gradle.properties` (poza repo) | `fastmask.playLicenseKey=<Base64 RSA>` pobrany z Play Console | SEC1 |
+| `ui/theme/Color.kt` | `DarkAccentAmber #C9761F` | R1 |
+| `ui/theme/StatusColors.kt`, `Theme.kt`, `AccentColors.kt` | Dark accent = DarkAccentAmber + dark-ink on-accent; amber spójny z resztą | R1 |
+| `ui/components/ConfirmDialog.kt` (nowy) | Współdzielony dialog potwierdzenia (pill-button styling) | B5/R4 |
+| `ui/create/CreateMaskedEmailScreen.kt`, `ui/detail/MaskedEmailDetailScreen.kt` | `BackHandler` + discard-changes dialog gdy dirty | B5 |
+| `ui/settings/SettingsScreen.kt` | Logout confirm dialog | R4 |
+| `res/values/strings.xml` | +6 stringów dialogów (`tools:ignore`, do przetłumaczenia) | B5/R4 |
+| `test/.../PurchaseSecurityTest.kt` (nowy) | +5: valid/tampered/foreign-key/blank/malformed | SEC1 |
+
+**SEC1 weryfikacja:** release build zielony, `BuildConfig.PLAY_LICENSE_KEY` niepusty (2048-bit RSA, potwierdzone `openssl`). Pusty klucz (dev/CI) → weryfikacja pominięta z ostrzeżeniem debug. **Do manualnego QA:** realny zakup na internal testing musi wciąż odblokowywać Pro (podpis prawdziwego zakupu jest ważny); sfałszowany — nie.
+
+**Zmiana wizualna (R1):** amber FAB/pill w dark mode ma teraz ciemny tekst (jak pozostałe akcenty), nie parchment. Obejrzyj na urządzeniu.
+
 ## Czego NIE ruszano (świadomie, patrz UX_RECOMMENDATIONS.md D)
 
-- SEC1 (weryfikacja podpisu Play) — wymaga klucza RSA z Play Console; fail-closed jeśli zły klucz.
-- R1 (kontrast amber), B5 (unsaved back), R4 (logout confirm), R2/R3/R8/R9/R10 — decyzje produktowe/wizualne.
+- R2/R3/R8/R9/R10 — polish/spójność, niskie priorytety.
