@@ -57,7 +57,7 @@
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Dibuat oleh</string>
     <string name="email_detail_created">Dibuat</string>
-    <string name="email_detail_last_message">Pesan terakhir: %s</string>
+    <string name="email_detail_last_message">Pesan terakhir</string>
     <string name="email_detail_enable">Aktifkan</string>
     <string name="email_detail_disable">Nonaktifkan</string>
     <string name="email_detail_edit_title">Edit Detail</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Silakan masukkan token API Anda</string>
     <string name="login_error_failed">Login gagal</string>
     <string name="email_list_empty_sub">Buat tersamar untuk merutekan email tanpa membagikan alamat asli Anda.</string>
-    <string name="list_stats">%1$d aktif · %2$d total</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Gagal memuat tersamar</string>
     <string name="create_email_subtitle">Konfigurasi alamat tersamar baru</string>
     <string name="create_email_preview_label">Pratinjau</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Masuk dengan Fastmail</string>
     <string name="error_network">Tidak ada koneksi. Periksa koneksi internet Anda dan coba lagi.</string>
     <string name="error_auth">Fastmail menolak token. Masuk kembali.</string>
-    <string name="list_copied">Disalin ke papan klip</string>
     <string name="list_copy_action">Salin alamat</string>
     <string name="list_archived_snackbar">Topeng telah diarsipkan</string>
     <string name="list_undo">Batalkan</string>
@@ -236,4 +235,12 @@
     <string name="logout_confirm_title">Keluar?</string>
     <string name="logout_confirm_message">Anda memerlukan token API Fastmail untuk masuk kembali.</string>
     <string name="error_no_app_for_link">Tidak ada aplikasi untuk membuka tautan ini.</string>
+    <string name="list_copied_value">%1$s disalin</string>
+    <string name="settings_export_failed_write">Tidak dapat menyimpan berkas ekspor. Kosongkan sebagian ruang lalu coba lagi.</string>
+    <plurals name="list_stats_active">
+        <item quantity="other">%d aktif</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="other">%d total</item>
+    </plurals>
 </resources>

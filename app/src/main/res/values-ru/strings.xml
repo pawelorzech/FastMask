@@ -57,7 +57,7 @@
     <string name="email_detail_status">Статус:</string>
     <string name="email_detail_created_by">Создано</string>
     <string name="email_detail_created">Создано</string>
-    <string name="email_detail_last_message">Последнее сообщение: %s</string>
+    <string name="email_detail_last_message">Последнее сообщение</string>
     <string name="email_detail_enable">Включить</string>
     <string name="email_detail_disable">Отключить</string>
     <string name="email_detail_edit_title">Редактировать</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Пожалуйста, введите ваш API токен</string>
     <string name="login_error_failed">Не удалось войти</string>
     <string name="email_list_empty_sub">Создайте маску для перенаправления почты без раскрытия вашего реального адреса.</string>
-    <string name="list_stats">%1$d активных · %2$d всего</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Не удалось загрузить маски</string>
     <string name="create_email_subtitle">Настроить новый защищённый адрес</string>
     <string name="create_email_preview_label">Предпросмотр</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Войти с помощью Fastmail</string>
     <string name="error_network">Нет соединения. Проверьте подключение к Интернету и повторите попытку.</string>
     <string name="error_auth">Fastmail отклонил токен. Войдите снова.</string>
-    <string name="list_copied">Скопировано в буфер обмена</string>
     <string name="list_copy_action">Копировать адрес</string>
     <string name="list_archived_snackbar">Маска архивирована</string>
     <string name="list_undo">Отменить</string>
@@ -236,4 +235,18 @@
     <string name="logout_confirm_title">Выйти?</string>
     <string name="logout_confirm_message">Чтобы войти снова, понадобится ваш API-токен Fastmail.</string>
     <string name="error_no_app_for_link">Нет приложения для открытия этой ссылки.</string>
+    <string name="list_copied_value">Скопировано: %1$s</string>
+    <string name="settings_export_failed_write">Не удалось сохранить файл экспорта. Освободите место и повторите попытку.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d активная</item>
+        <item quantity="few">%d активные</item>
+        <item quantity="many">%d активных</item>
+        <item quantity="other">%d активных</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">всего %d</item>
+        <item quantity="few">всего %d</item>
+        <item quantity="many">всего %d</item>
+        <item quantity="other">всего %d</item>
+    </plurals>
 </resources>

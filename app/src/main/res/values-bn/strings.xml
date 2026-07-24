@@ -57,7 +57,7 @@
     <string name="email_detail_status">অবস্থা:</string>
     <string name="email_detail_created_by">তৈরি করেছেন</string>
     <string name="email_detail_created">তৈরি</string>
-    <string name="email_detail_last_message">শেষ বার্তা: %s</string>
+    <string name="email_detail_last_message">শেষ বার্তা</string>
     <string name="email_detail_enable">সক্রিয় করুন</string>
     <string name="email_detail_disable">নিষ্ক্রিয় করুন</string>
     <string name="email_detail_edit_title">বিবরণ সম্পাদনা করুন</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">আপনার API টোকেন দিন</string>
     <string name="login_error_failed">লগইন ব্যর্থ</string>
     <string name="email_list_empty_sub">আপনার আসল ঠিকানা শেয়ার না করে মেইল রুট করতে একটি মাস্ক তৈরি করুন।</string>
-    <string name="list_stats">%1$d সক্রিয় · %2$d মোট</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">মাস্ক লোড করা যায়নি</string>
     <string name="create_email_subtitle">নতুন মাস্কড ঠিকানা কনফিগার করুন</string>
     <string name="create_email_preview_label">প্রিভিউ</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Fastmail দিয়ে সাইন ইন করুন</string>
     <string name="error_network">কোনো সংযোগ নেই। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।</string>
     <string name="error_auth">Fastmail টোকেন প্রত্যাখ্যান করেছে। আবার সাইন ইন করুন।</string>
-    <string name="list_copied">ক্লিপবোর্ডে অনুলিপি করা হয়েছে</string>
     <string name="list_copy_action">ঠিকানা অনুলিপি করুন</string>
     <string name="list_archived_snackbar">মাস্ক আর্কাইভ করা হয়েছে</string>
     <string name="list_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
@@ -236,4 +235,14 @@
     <string name="logout_confirm_title">সাইন আউট করবেন?</string>
     <string name="logout_confirm_message">আবার সাইন ইন করতে আপনার Fastmail API টোকেন লাগবে।</string>
     <string name="error_no_app_for_link">এই লিঙ্কটি খোলার মতো কোনো অ্যাপ নেই।</string>
+    <string name="list_copied_value">%1$s কপি করা হয়েছে</string>
+    <string name="settings_export_failed_write">এক্সপোর্ট ফাইল সংরক্ষণ করা যায়নি। কিছু জায়গা খালি করে আবার চেষ্টা করুন।</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">সক্রিয়: %d</item>
+        <item quantity="other">সক্রিয়: %d</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">মোট: %d</item>
+        <item quantity="other">মোট: %d</item>
+    </plurals>
 </resources>

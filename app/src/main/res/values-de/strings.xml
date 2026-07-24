@@ -57,7 +57,7 @@
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Erstellt von</string>
     <string name="email_detail_created">Erstellt</string>
-    <string name="email_detail_last_message">Letzte Nachricht: %s</string>
+    <string name="email_detail_last_message">Letzte Nachricht</string>
     <string name="email_detail_enable">Aktivieren</string>
     <string name="email_detail_disable">Deaktivieren</string>
     <string name="email_detail_edit_title">Details bearbeiten</string>
@@ -128,7 +128,7 @@
     <string name="login_error_empty_token">Bitte geben Sie Ihr API-Token ein</string>
     <string name="login_error_failed">Anmeldung fehlgeschlagen</string>
     <string name="email_list_empty_sub">Erstellen Sie eine Maske, um E-Mails weiterzuleiten, ohne Ihre echte Adresse zu teilen.</string>
-    <string name="list_stats">%1$d aktiv · %2$d insgesamt</string>
+    <string name="list_stats">%1$s · %2$s</string>
     <string name="error_load_emails_short">Masken konnten nicht geladen werden</string>
     <string name="create_email_subtitle">Konfigurieren Sie eine neue maskierte Adresse</string>
     <string name="create_email_preview_label">Vorschau</string>
@@ -171,7 +171,6 @@
     <string name="settings_signin_with_fastmail">Mit Fastmail anmelden</string>
     <string name="error_network">Keine Verbindung. Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.</string>
     <string name="error_auth">Fastmail hat das Token abgelehnt. Melden Sie sich erneut an.</string>
-    <string name="list_copied">In die Zwischenablage kopiert</string>
     <string name="list_copy_action">Adresse kopieren</string>
     <string name="list_archived_snackbar">Maske archiviert</string>
     <string name="list_undo">Rückgängig</string>
@@ -236,4 +235,14 @@
     <string name="logout_confirm_title">Abmelden?</string>
     <string name="logout_confirm_message">Zum erneuten Anmelden brauchst du deinen Fastmail-API-Token.</string>
     <string name="error_no_app_for_link">Keine App zum Öffnen dieses Links verfügbar.</string>
+    <string name="list_copied_value">%1$s kopiert</string>
+    <string name="settings_export_failed_write">Die Exportdatei konnte nicht gespeichert werden. Gib Speicher frei und versuche es erneut.</string>
+    <plurals name="list_stats_active">
+        <item quantity="one">%d aktiv</item>
+        <item quantity="other">%d aktiv</item>
+    </plurals>
+    <plurals name="list_stats_total">
+        <item quantity="one">%d gesamt</item>
+        <item quantity="other">%d gesamt</item>
+    </plurals>
 </resources>
