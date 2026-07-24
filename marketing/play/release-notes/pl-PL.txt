@@ -1,8 +1,8 @@
-Nowości w 1.8.0
+Nowości w 1.8.1
 
-• Cofnięcie archiwizacji maski działa niezawodnie i przywraca poprzedni stan
-• Zakupy dokończone w tle odblokowują Pro bez restartu aplikacji
-• Kolory akcentów Pro są czytelne w ciemnym motywie
-• Wyraźny postęp przy zakupie, przywracaniu i eksporcie CSV
-• Dostępność: lepsza obsługa czytnika ekranu w Ustawieniach, poprawki RTL
+• Bezpieczniejsza weryfikacja zakupów
+• Potwierdzenie przed wylogowaniem i ostrzeżenie przed utratą niezapisanych zmian
+• Czytelniejszy stan „brak wyników" przy wyszukiwaniu i filtrowaniu
+• Mniej usterek brzegowych: brak utraty edycji, brak zablokowanych przycisków, stabilniej przy słabym łączu
+• Lepszy kontrast w ciemnym motywie i etykiety dla czytnika ekranu
 • Nadal zero śledzenia, bez reklam i subskrypcji

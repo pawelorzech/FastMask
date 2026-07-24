@@ -1,11 +1,9 @@
 package com.fastmask.ui.create
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,17 +30,22 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DashedDesignCard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignInput
@@ -73,6 +78,19 @@ fun CreateMaskedEmailScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val extras = FastMaskExtras.current
+
+    // Guard against losing typed-but-uncreated input on back / swipe.
+    val isDirty = uiState.emailPrefix.isNotEmpty() || uiState.forDomain.isNotEmpty() ||
+        uiState.description.isNotEmpty() || uiState.url.isNotEmpty()
+    var showDiscardDialog by remember { mutableStateOf(false) }
+    val onBack = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
+    BackHandler(enabled = isDirty) { showDiscardDialog = true }
+    if (showDiscardDialog) {
+        DiscardChangesDialog(
+            onConfirm = { showDiscardDialog = false; onNavigateBack() },
+            onDismiss = { showDiscardDialog = false },
+        )
+    }
 
     val createdMessageTemplate = stringResource(R.string.create_email_created)
     val copyAction = stringResource(R.string.create_email_copy_action)
@@ -115,7 +133,7 @@ fun CreateMaskedEmailScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PillIconButton(onClick = onNavigateBack, contentDescription = backDesc) {
+                PillIconButton(onClick = onBack, contentDescription = backDesc) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
@@ -183,8 +201,9 @@ fun CreateMaskedEmailScreen(
                     onValueChange = viewModel::onPrefixChange,
                     label = stringResource(R.string.create_email_prefix_label),
                     placeholder = stringResource(R.string.create_email_prefix_placeholder),
-                    hint = uiState.prefixError ?: stringResource(R.string.create_email_prefix_hint),
-                    isError = uiState.prefixError != null,
+                    hint = uiState.prefixErrorRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.create_email_prefix_hint),
+                    isError = uiState.prefixErrorRes != null,
                     enabled = !uiState.isLoading,
                     mono = true,
                 )
@@ -240,7 +259,7 @@ fun CreateMaskedEmailScreen(
                     text = if (uiState.isLoading) "…" else stringResource(R.string.create_email_button),
                     onClick = viewModel::create,
                     variant = PillButtonVariant.Primary,
-                    enabled = !uiState.isLoading && uiState.prefixError == null,
+                    enabled = !uiState.isLoading && uiState.prefixErrorRes == null,
                     fullWidth = true,
                     trailing = if (uiState.isLoading) {
                         {
@@ -264,6 +283,18 @@ fun CreateMaskedEmailScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DiscardChangesDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    ConfirmDialog(
+        title = stringResource(R.string.discard_changes_title),
+        message = stringResource(R.string.discard_changes_message),
+        confirmText = stringResource(R.string.discard_changes_confirm),
+        dismissText = stringResource(R.string.discard_changes_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 @Composable
@@ -291,7 +322,13 @@ private fun StateSegmented(
                     .weight(1f)
                     .clip(rowShape)
                     .background(if (isSel) extras.surfaceAlt else Color.Transparent, rowShape)
-                    .clickable(enabled = enabled) { onSelect(state) }
+                    // selectable (not clickable) so TalkBack announces which
+                    // option is active — selection is otherwise color-only.
+                    .selectable(
+                        selected = isSel,
+                        enabled = enabled,
+                        role = Role.RadioButton,
+                    ) { onSelect(state) }
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,
@@ -307,7 +344,3 @@ private fun StateSegmented(
     }
 }
 
-private fun copyToClipboard(context: Context, value: String) {
-    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    cm.setPrimaryClip(ClipData.newPlainText("Email", value))
-}

@@ -1,6 +1,7 @@
 package com.fastmask.ui.detail
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
@@ -82,7 +84,18 @@ fun MaskedEmailDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Unsaved edits guard: trimmed compare mirrors the save logic.
+    val loadedEmail = uiState.email
+    val isDirty = loadedEmail != null && (
+        uiState.editedDescription.trim() != (loadedEmail.description ?: "") ||
+            uiState.editedForDomain.trim() != (loadedEmail.forDomain ?: "") ||
+            uiState.editedUrl.trim() != (loadedEmail.url ?: "")
+        )
+    val onBack = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
+    BackHandler(enabled = isDirty) { showDiscardDialog = true }
     val scope = rememberCoroutineScope()
     val extras = FastMaskExtras.current
 
@@ -117,6 +130,17 @@ fun MaskedEmailDetailScreen(
         )
     }
 
+    if (showDiscardDialog) {
+        ConfirmDialog(
+            title = stringResource(R.string.discard_changes_title),
+            message = stringResource(R.string.discard_changes_message),
+            confirmText = stringResource(R.string.discard_changes_confirm),
+            dismissText = stringResource(R.string.discard_changes_cancel),
+            onConfirm = { showDiscardDialog = false; onNavigateBack() },
+            onDismiss = { showDiscardDialog = false },
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -137,14 +161,22 @@ fun MaskedEmailDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                PillIconButton(onClick = onNavigateBack, contentDescription = backDesc) {
+                PillIconButton(onClick = onBack, contentDescription = backDesc) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
                 }
-                if (uiState.email != null && !uiState.isDeleting && !uiState.isUpdating) {
+                if (uiState.isDeleting) {
+                    // Archiving is in flight — the delete button is hidden, so
+                    // show progress here instead of leaving the bar looking dead.
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = extras.status.deleted.content,
+                        strokeWidth = 2.dp,
+                    )
+                } else if (uiState.email != null && !uiState.isUpdating) {
                     PillIconButton(
                         onClick = { showDeleteDialog = true },
                         contentDescription = deleteDesc,
@@ -161,7 +193,10 @@ fun MaskedEmailDetailScreen(
 
             when {
                 uiState.isLoading && uiState.email == null -> CenteredLoading()
-                uiState.errorRes != null && uiState.email == null -> ErrorMessage(stringResource(uiState.errorRes!!))
+                uiState.errorRes != null && uiState.email == null -> ErrorMessage(
+                    message = stringResource(uiState.errorRes!!),
+                    onRetry = { viewModel.loadEmail() },
+                )
                 uiState.email != null -> DetailContent(
                     uiState = uiState,
                     onDescriptionChange = viewModel::onDescriptionChange,
@@ -335,10 +370,13 @@ private fun DetailContent(
 
         Spacer(Modifier.height(16.dp))
 
+        // Trim before comparing so the Save button's enabled state matches the
+        // ViewModel's save guard (which trims): otherwise a whitespace-only edit
+        // enables Save but the tap is a silent no-op.
         val hasChanges = (
-            uiState.editedDescription != (email.description ?: "") ||
-                uiState.editedForDomain != (email.forDomain ?: "") ||
-                uiState.editedUrl != (email.url ?: "")
+            uiState.editedDescription.trim() != (email.description ?: "") ||
+                uiState.editedForDomain.trim() != (email.forDomain ?: "") ||
+                uiState.editedUrl.trim() != (email.url ?: "")
             )
 
         PillButton(
@@ -429,7 +467,7 @@ private fun CenteredLoading() {
 }
 
 @Composable
-private fun ErrorMessage(message: String) {
+private fun ErrorMessage(message: String, onRetry: () -> Unit) {
     val extras = FastMaskExtras.current
     Column(
         modifier = Modifier
@@ -449,6 +487,14 @@ private fun ErrorMessage(message: String) {
             style = MaterialTheme.typography.bodySmall,
             color = extras.inkMuted,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+        Spacer(Modifier.height(20.dp))
+        // Retry instead of a dead end: the list error state already offers this,
+        // and loadEmail() is fully re-runnable.
+        PillButton(
+            text = stringResource(R.string.error_retry),
+            onClick = onRetry,
+            variant = PillButtonVariant.Secondary,
         )
     }
 }

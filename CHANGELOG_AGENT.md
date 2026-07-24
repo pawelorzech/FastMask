@@ -1,114 +1,70 @@
-# CHANGELOG_AGENT.md — 2026-07-24
+# CHANGELOG_AGENT.md — 2026-07-24 (pass B)
 
-## Zmienione pliki
+Gałąź: `feature/audit-2026-07-24b` (z `main` @ `f1e89ee`, v1.8.0). Wszystkie fixy potwierdzone: `testDebugUnitTest` 109/109 PASS · `lintDebug` 0 errors · `assembleRelease` SUCCESS.
 
-### Build & Config
-| Plik | Zmiana |
-|------|--------|
-| `gradle.properties` | Dodano `org.gradle.java.home` — fix dla JDK 26 niekompatybilności z Kotlin 1.9.22 |
+## Zmienione pliki (kod produkcyjny)
 
-### Source — fixes
-| Plik | Zmiana |
-|------|--------|
-| `app/src/main/java/com/fastmask/ui/pro/ProScreen.kt` | Dodano `resolveActivity` check przed `startActivity` dla linków privacy/terms (P2: crash na urządzeniach bez przeglądarki) |
-| `app/src/main/java/com/fastmask/ui/navigation/FastMaskNavHost.kt` | Fallback na `currentBackStackEntry` gdy `previousBackStackEntry` jest null (P2: utrata undo po deep-linku) |
-| `app/src/main/java/com/fastmask/ui/list/MaskedEmailListScreen.kt` | 30s cooldown na refresh (P2: unikanie nadmiarowych zapytań API); guard `pendingUndo == null` (P2: drugie szybkie archiwum nie nadpisuje undo); import `mutableLongStateOf` |
-| `app/src/main/java/com/fastmask/ui/components/DesignInput.kt` | Uproszczony martwy `when` → `if`; `Spacer(padding)` → `Spacer(width)` |
-| `app/src/main/java/com/fastmask/di/BillingModule.kt` | Dodano `CoroutineExceptionHandler` do `ApplicationScope` (P2: ochrona przed crash z tła) |
-| `app/src/main/java/com/fastmask/FastMaskApplication.kt` | Blocking DataStore read przeniesiony na IO dispatcher (P2: główny wątek blokowany w `onCreate`) |
-| `app/src/main/java/com/fastmask/ui/common/UiErrors.kt` | Dodano mapowanie HTTP 429 → `error_rate_limit`, 5xx → `error_server` (P3) |
+| Plik | Zmiana | ID |
+|------|--------|----|
+| `data/api/JmapApi.kt` | `@Volatile` na `cachedSession` i `cachedAccountId` | CC4 |
+| `data/repository/ProRepositoryImpl.kt` | `handlePurchases(fromBuyFlow=true)` emituje event terminalny na gałęziach „brak SKU" i `FREE` (spinner buy nie wisi) | CC2 |
+| `domain/usecase/ExportMasksUseCase.kt` | Neutralizacja CSV na pierwszym nie-białym znaku (`trimStart().firstOrNull()`) | SEC2 |
+| `ui/list/MaskedEmailListViewModel.kt` | `CoroutineExceptionHandler` na zapisie tutorialu; synchroniczny `refreshInFlight` + guard `isLoading` na `loadMaskedEmails` | CC1, CC5 |
+| `ui/settings/SettingsViewModel.kt` | `CoroutineExceptionHandler` na 5 zapisach DataStore/logout | CC1 |
+| `ui/components/DemoBanner.kt` | `CoroutineExceptionHandler` na `exitDemoMode`; „Sign in" → 48dp tap-target + `Role.Button` | CC1, R6 |
+| `ui/detail/MaskedEmailDetailViewModel.kt` | `loadEmail(resetEdits: Boolean)`; reload po save/toggle nie kasuje pól edytowanych | CC3 |
+| `ui/detail/MaskedEmailDetailScreen.kt` | `hasChanges` liczony na `.trim()`; spinner przy `isDeleting`; retry w błędzie ładowania | B7, B6, B3 |
+| `ui/create/CreateMaskedEmailViewModel.kt` | `prefixError: String?` → `prefixErrorRes: Int?` (i18n) | B2 |
+| `ui/create/CreateMaskedEmailScreen.kt` | Użycie współdzielonego `copyToClipboard` (sensitive flag); resolve `prefixErrorRes`; segmented `selectable(Role.RadioButton)`; usunięto lokalny `copyToClipboard` | SEC3, B2, R7 |
+| `ui/list/MaskedEmailListScreen.kt` | `StateDot` z `contentDescription` (helper `stateContentDescription`); `NoMatchesBlock`; label semantyczny search | B1, B4, R5 |
+| `ui/components/DesignKit.kt` | `StateDot` przyjmuje opcjonalny `contentDescription` → semantyka a11y | B1 |
+| `res/values/strings.xml` | +4 stringi (`create_email_error_prefix_length/_chars`, `email_list_no_matches/_sub`) z `tools:ignore="MissingTranslation"`; dodano `xmlns:tools` | B2, B4 |
 
-### Resources
-| Plik | Zmiana |
-|------|--------|
-| `app/src/main/res/values/strings.xml` | Dodano `error_rate_limit`, `error_server` |
-| `app/src/main/res/values-*/strings.xml` | Dodano `error_rate_limit`, `error_server` (19 języków, en placeholder) |
+## Zmienione pliki (testy)
 
-### Tests
-| Plik | Zmiana |
-|------|--------|
-| `app/src/test/java/com/fastmask/ui/common/UiErrorsTest.kt` | Dodano testy dla 429 i 5xx; zaktualizowano test "server errors use fallback" |
-| `app/src/test/java/com/fastmask/ui/detail/MaskedEmailDetailViewModelTest.kt` | Dodano `@file:OptIn(ExperimentalCoroutinesApi::class)` |
-| `app/src/test/java/com/fastmask/ui/list/MaskedEmailListViewModelTest.kt` | Dodano `@file:OptIn(ExperimentalCoroutinesApi::class)` |
-| `app/src/test/java/com/fastmask/ui/auth/LoginViewModelTest.kt` | Dodano `@file:OptIn(ExperimentalCoroutinesApi::class)` |
+| Plik | Dodane testy |
+|------|--------------|
+| `test/.../MaskCsvTest.kt` | +2: neutralizacja z wiodącą spacją; benign whitespace nietknięty (SEC2) |
+| `test/.../CreateMaskedEmailViewModelTest.kt` | +2: unicode→`prefix_chars`, >64→`prefix_length` (B2); `@file:OptIn` (zero nowych warningów); update `prefixError`→`prefixErrorRes` |
+| `test/.../MaskedEmailDetailViewModelTest.kt` | +2: edycja przetrwa reload po toggle; initial load seeduje pola (CC3) |
+| `test/.../MaskedEmailListViewModelTest.kt` | +1: dwa refresh/klatka = jeden fetch (CC5) |
+| `test/.../ProRepositoryImplTest.kt` | +1: buy-flow OK bez SKU emituje event terminalny (CC2) |
 
----
+## Zmiany zachowania (do świadomości)
 
-## Wykonane poprawki (szczegóły)
+- **Logout/exitDemo przy błędzie zapisu:** jeśli `DataStore.edit`/`logout` rzuci (dysk/korupcja), korutyna jest przerwana i event nawigacyjny **nie** odpala — user zostaje na miejscu zamiast crashować lub nawigować na niespójnym stanie. Wcześniej: crash.
+- **Detail edit + reload:** po zapisie/toggle pola edycji nie są już przeładowywane z serwera. Jeśli serwer znormalizował wartość (np. trim), UI pokaże wersję użytkownika (równą po trim) do następnego pełnego wejścia na ekran. Kosmetyczne, samonaprawialne.
+- **Buy-flow edge (OK bez naszego SKU):** pokazuje teraz stan „nieudane" zamiast wisieć — rzadka ścieżka Play.
+- **Pusty stan listy:** przy aktywnym filtrze/wyszukiwaniu bez wyników pokazuje „No matches" zamiast „Create a mask…".
 
-### C1 — P0: Java 26 incompatibility
-- **Przyczyna:** Kotlin 1.9.22 nie parsuje wersji Java > 21
-- **Objaw:** `java.lang.IllegalArgumentException: 26.0.1`
-- **Poprawka:** `gradle.properties` → `org.gradle.java.home=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`
-- **Weryfikacja:** `./gradlew assembleDebug` → SUCCESS bez ręcznego `JAVA_HOME`
+## Potencjalne regresje / do manualnego QA
 
-### C2 — P2: Crash na brak przeglądarki (privacy/terms)
-- **Przyczyna:** `Intent(ACTION_VIEW)` bez `resolveActivity` check
-- **Objaw:** `ActivityNotFoundException` → crash aplikacji
-- **Poprawka:** Sprawdzenie `intent.resolveActivity(context.packageManager) != null`
+- Buy-flow na realnym urządzeniu (internal testing): potwierdź że spinner znika we wszystkich wynikach (Completed/Pending/Cancelled/Failed/edge).
+- Detail: wpisz zmianę, tapnij toggle stanu — sprawdź że wpisany tekst nie znika.
+- Lista: filtr „Disabled/Deleted" bez trafień → „No matches"; puste konto → „Create a mask".
+- TalkBack: kropka stanu na wierszu ogłasza stan; pole search ma etykietę; „Sign in" w demo-bannerze jako Button.
+- 4 nowe stringi wyświetlają się po angielsku poza en — **do przetłumaczenia na 19 języków**.
 
-### C3 — P2: Nadmiarowe odświeżanie sieci
-- **Przyczyna:** Każdy ON_RESUME → `refreshMaskedEmails()` bez limitu
-- **Objaw:** Każde wysunięcie notification shade → zapytanie API
-- **Poprawka:** 30-sekundowy cooldown (`lastRefreshTime`)
+## Batch 2 — po decyzji Pawła (SEC1, R1, B5, R4)
 
-### C4 — P2: Utrata undo przy deep-link
-- **Przyczyna:** `previousBackStackEntry` może być null
-- **Objaw:** Archiwizacja przez deep-link → brak undo snackbara na liście
-- **Poprawka:** Fallback na `currentBackStackEntry.savedStateHandle`
+| Plik | Zmiana | ID |
+|------|--------|----|
+| `data/billing/PurchaseSecurity.kt` (nowy) | Weryfikacja podpisu Play SHA1withRSA (java.util.Base64, testowalne na JVM) | SEC1 |
+| `data/billing/PlayBillingDataSource.kt` | `isPurchased` wymaga ważnego podpisu; klucz z `BuildConfig.PLAY_LICENSE_KEY` | SEC1 |
+| `app/build.gradle.kts` | `buildConfigField PLAY_LICENSE_KEY` z `fastmask.playLicenseKey` / env | SEC1 |
+| `~/.gradle/gradle.properties` (poza repo) | `fastmask.playLicenseKey=<Base64 RSA>` pobrany z Play Console | SEC1 |
+| `ui/theme/Color.kt` | `DarkAccentAmber #C9761F` | R1 |
+| `ui/theme/StatusColors.kt`, `Theme.kt`, `AccentColors.kt` | Dark accent = DarkAccentAmber + dark-ink on-accent; amber spójny z resztą | R1 |
+| `ui/components/ConfirmDialog.kt` (nowy) | Współdzielony dialog potwierdzenia (pill-button styling) | B5/R4 |
+| `ui/create/CreateMaskedEmailScreen.kt`, `ui/detail/MaskedEmailDetailScreen.kt` | `BackHandler` + discard-changes dialog gdy dirty | B5 |
+| `ui/settings/SettingsScreen.kt` | Logout confirm dialog | R4 |
+| `res/values/strings.xml` | +6 stringów dialogów (`tools:ignore`, do przetłumaczenia) | B5/R4 |
+| `test/.../PurchaseSecurityTest.kt` (nowy) | +5: valid/tampered/foreign-key/blank/malformed | SEC1 |
 
-### C5 — P2: Race condition na podwójne archiwum
-- **Przyczyna:** `pendingUndo` to pojedynczy slot
-- **Objaw:** Drugie szybkie archiwum nadpisuje undo dla pierwszej maski
-- **Poprawka:** Guard `pendingUndo == null` przed zapisaniem
+**SEC1 weryfikacja:** release build zielony, `BuildConfig.PLAY_LICENSE_KEY` niepusty (2048-bit RSA, potwierdzone `openssl`). Pusty klucz (dev/CI) → weryfikacja pominięta z ostrzeżeniem debug. **Do manualnego QA:** realny zakup na internal testing musi wciąż odblokowywać Pro (podpis prawdziwego zakupu jest ważny); sfałszowany — nie.
 
-### C6 — P2: Martwy kod w DesignInput
-- **Przyczyna:** `when` z identycznymi gałęziami
-- **Objaw:** Mylący kod — sugeruje różne zachowanie dla error/non-error
-- **Poprawka:** Prosty `if (hint != null) hint else null`
+**Zmiana wizualna (R1):** amber FAB/pill w dark mode ma teraz ciemny tekst (jak pozostałe akcenty), nie parchment. Obejrzyj na urządzeniu.
 
-### C7 — P2: Brak CoroutineExceptionHandler
-- **Przyczyna:** `ApplicationScope` bez handlera wyjątków
-- **Objaw:** Dowolny nieobsłużony wyjątek w scope → crash
-- **Poprawka:** Dodano handler z `Log.e` w debug mode
+## Czego NIE ruszano (świadomie, patrz UX_RECOMMENDATIONS.md D)
 
-### C8 — P2: Blokujący IO w Application.onCreate
-- **Przyczyna:** `runBlocking` na głównym wątku podczas startu aplikacji
-- **Objaw:** Wydłużony cold start; flagowane przez Play Vitals
-- **Poprawka:** Przeniesiono do `CoroutineScope(IO).launch`
-
-### C9 — P3: Ostrzeżenia ExperimentalCoroutinesApi
-- **Przyczyna:** Użycie `backgroundScope` / `launch` w `runTest` bez opt-in
-- **Objaw:** 22 warningi podczas `./gradlew test`
-- **Poprawka:** `@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)` w 3 plikach
-
-### C10 — P3: Ograniczone mapowanie błędów HTTP
-- **Przyczyna:** Tylko IOException i 401/403 miały dedykowane komunikaty
-- **Objaw:** 429/5xx pokazywały generic fallback
-- **Poprawka:** Dodano `error_rate_limit` i `error_server` z placeholderami EN w 19 językach
-
-### C11 — P3: Antipattern Spacer
-- **Przyczyna:** `Spacer(Modifier.padding(start = 8.dp))` zamiast `.width(8.dp)`
-- **Objaw:** Semantycznie niepoprawny kod (padding na zero-size komponencie)
-- **Poprawka:** `Spacer(Modifier.width(8.dp))` + dodano import
-
----
-
-## Potencjalne regresje
-
-| Ryzyko | Poziom | Mitigacja |
-|--------|--------|-----------|
-| C8: Język nieodtworzony przed pierwszym Activity | Niskie | Splash screen maskuje opóźnienie; `AppCompatDelegate.setApplicationLocales` działa nawet jeśli wywołane później |
-| C3: Zbyt rzadkie odświeżanie | Niskie | 30s cooldown to konserwatywny limit; pull-to-refresh zawsze działa natychmiast |
-| C5: Zablokowanie undo przy szybkim użyciu | Niskie | Poprawka chroni undo pierwszej maski; drugie archiwum czeka na konsumpcję pierwszego undo |
-
----
-
-## Wymagane manualne QA
-
-- [ ] Sprawdź cooldown refresh: archiwizuj maskę na detail → wróć na listę → maska powinna zniknąć po ~250ms (refresh na RESUME)
-- [ ] Sprawdź deep-link: otwórz detail maski przez zewnętrzny link → archiwizuj → sprawdź czy snackbar działa na liście
-- [ ] Sprawdź podwójne archiwum: archiwizuj 2 maski szybko → pierwsza powinna mieć undo
-- [ ] Sprawdź linki privacy/terms na Pro screen
-- [ ] Sprawdź błędy 429 i 5xx (wymaga mock API)
-- [ ] Sprawdź przywracanie języka po restarcie z czyszczonymi danymi
+- R2/R3/R8/R9/R10 — polish/spójność, niskie priorytety.

@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+
 package com.fastmask.ui.create
 
 import com.fastmask.domain.model.EmailState
@@ -6,6 +8,7 @@ import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import com.fastmask.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -43,7 +46,7 @@ class CreateMaskedEmailViewModelTest {
         viewModel.onPrefixChange("My.Shop-Name!")
 
         assertEquals("myshopname", viewModel.uiState.value.emailPrefix)
-        assertNull(viewModel.uiState.value.prefixError)
+        assertNull(viewModel.uiState.value.prefixErrorRes)
     }
 
     @Test
@@ -53,6 +56,32 @@ class CreateMaskedEmailViewModelTest {
         viewModel.onPrefixChange("shop_2026")
 
         assertEquals("shop_2026", viewModel.uiState.value.emailPrefix)
+    }
+
+    @Test
+    fun `unicode-letter prefix surfaces a localizable char error`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository())
+
+        // 'é' passes isLetterOrDigit() (so it survives the filter) but fails the
+        // ASCII regex → the char-validation message must fire, as a string res.
+        viewModel.onPrefixChange("café")
+
+        assertEquals(
+            R.string.create_email_error_prefix_chars,
+            viewModel.uiState.value.prefixErrorRes,
+        )
+    }
+
+    @Test
+    fun `over-long prefix surfaces a localizable length error`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository())
+
+        viewModel.onPrefixChange("a".repeat(65))
+
+        assertEquals(
+            R.string.create_email_error_prefix_length,
+            viewModel.uiState.value.prefixErrorRes,
+        )
     }
 
     // --- params construction -----------------------------------------------

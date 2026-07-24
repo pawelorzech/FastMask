@@ -52,7 +52,10 @@ object MaskCsv {
      * (OWASP CSV-injection mitigation — leading apostrophe).
      */
     private fun String.csvEscaped(): String {
-        val neutralized = if (firstOrNull() in FORMULA_LEAD_CHARS) "'$this" else this
+        // Inspect the first NON-whitespace char: some spreadsheet importers trim
+        // leading whitespace before evaluating a cell, so `" =HYPERLINK(...)"`
+        // would otherwise slip past a first-char-only check and execute.
+        val neutralized = if (trimStart().firstOrNull() in FORMULA_LEAD_CHARS) "'$this" else this
         return if (neutralized.any { it == ',' || it == '"' || it == '\n' || it == '\r' }) {
             "\"${neutralized.replace("\"", "\"\"")}\""
         } else {

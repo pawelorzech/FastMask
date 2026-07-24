@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App Name -->
     <string name="app_name">FastMask</string>
 
@@ -34,6 +34,9 @@
     <string name="email_list_create_description">Create new masked address</string>
     <string name="email_list_empty">Nothing here yet.</string>
     <string name="email_list_empty_sub">Create a mask to route mail without sharing your real address.</string>
+    <!-- Shown when masks exist but none match the active search/filter (pending translation). -->
+    <string name="email_list_no_matches" tools:ignore="MissingTranslation">No matches</string>
+    <string name="email_list_no_matches_sub" tools:ignore="MissingTranslation">No masks match your search or filter.</string>
     <string name="list_copied">Copied to clipboard</string>
     <string name="list_copy_action">Copy address</string>
     <string name="list_archived_snackbar">Mask archived</string>
@@ -67,7 +70,17 @@
     <string name="create_email_created">Created: %s</string>
     <string name="create_email_copy_action">Copy</string>
     <string name="create_email_error_failed">Could not create mask</string>
+    <!-- Prefix field validation errors (pending translation). -->
+    <string name="create_email_error_prefix_length" tools:ignore="MissingTranslation">Prefix must be 64 characters or less</string>
+    <string name="create_email_error_prefix_chars" tools:ignore="MissingTranslation">Only lowercase letters, numbers, and underscores allowed</string>
     <string name="navigate_back">Back</string>
+    <!-- Confirmation dialogs (pending translation). -->
+    <string name="discard_changes_title" tools:ignore="MissingTranslation">Discard changes?</string>
+    <string name="discard_changes_message" tools:ignore="MissingTranslation">Your edits haven\'t been saved and will be lost.</string>
+    <string name="discard_changes_confirm" tools:ignore="MissingTranslation">Discard</string>
+    <string name="discard_changes_cancel" tools:ignore="MissingTranslation">Keep editing</string>
+    <string name="logout_confirm_title" tools:ignore="MissingTranslation">Sign out?</string>
+    <string name="logout_confirm_message" tools:ignore="MissingTranslation">You\'ll need your Fastmail API token to sign back in.</string>
 
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Mask</string>

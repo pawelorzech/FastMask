@@ -14,8 +14,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.8.0"
+        versionCode = 18
+        versionName = "1.8.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,6 +26,17 @@ android {
         // Pro entry point hidden (existing Pro owners keep their entitlement).
         // See Plans/monetization.md § Rollback.
         buildConfigField("boolean", "MONETIZATION_ENABLED", "true")
+
+        // Base64 RSA public key from Play Console (Monetization setup →
+        // Licensing), used to verify purchase signatures (see PurchaseSecurity).
+        // Provided out-of-source via the `fastmask.playLicenseKey` Gradle
+        // property (e.g. ~/.gradle/gradle.properties) or FASTMASK_PLAY_LICENSE_KEY
+        // env. Empty by default so dev/CI builds work; a release build MUST set
+        // it, otherwise purchase signatures are not verified.
+        val playLicenseKey = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
+            ?: (project.findProperty("fastmask.playLicenseKey") as String?)
+            ?: ""
+        buildConfigField("String", "PLAY_LICENSE_KEY", "\"$playLicenseKey\"")
     }
 
     signingConfigs {

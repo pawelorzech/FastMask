@@ -46,6 +46,12 @@ val DarkArchivedInk = Color(0xFFE5A480)
 val DarkPendingBg = Color(0xFF3D3011)
 val DarkPendingInk = Color(0xFFE6C576)
 
-// Accent (amber, on-accent always parchment for legibility)
+// Accent (amber). Light theme: deep burnt-amber with parchment on-accent text.
 val AccentAmber = Color(0xFFA8530F)
 val OnAccent = Color(0xFFFAF7F1)
+// Dark theme: brightened amber so it stays legible as a FOREGROUND (cursor, icon
+// tints, preview prefix, links) on dark surfaces — the deep #A8530F lands at
+// ~3.4:1 on DarkBg, below AA 4.5:1 for small text. This value is ~5.3:1 on
+// DarkBg / ~4.9:1 on DarkSurface, and pairs with dark ink (LightInk) as
+// on-accent text on fills (~5:1), matching how the other dark accents work.
+val DarkAccentAmber = Color(0xFFC9761F)

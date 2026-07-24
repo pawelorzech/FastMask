@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -78,10 +80,20 @@ fun StateDot(
     state: EmailState,
     modifier: Modifier = Modifier,
     size: Dp = 10.dp,
+    // When set, exposes the mask's state to TalkBack — the dot otherwise conveys
+    // state by color alone, invisible to screen readers and hard to tell apart
+    // for colorblind users. Pass null where a text label already sits beside it.
+    contentDescription: String? = null,
 ) {
     val pair = pairFor(state)
+    val semanticsModifier = if (contentDescription != null) {
+        Modifier.semantics { this.contentDescription = contentDescription }
+    } else {
+        Modifier
+    }
     Box(
         modifier = modifier
+            .then(semanticsModifier)
             .size(size + 6.dp)
             .clip(CircleShape)
             .background(pair.container),

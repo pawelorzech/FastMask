@@ -45,7 +45,13 @@ class MaskedEmailDetailViewModel @Inject constructor(
         loadEmail()
     }
 
-    fun loadEmail() {
+    /**
+     * @param resetEdits when true (initial load / retry) the editable fields are
+     *   (re)seeded from the server value. The reload triggered AFTER a save or a
+     *   state toggle passes false: overwriting `edited*` there would drop any
+     *   keystrokes the user typed while the network call was in flight.
+     */
+    fun loadEmail(resetEdits: Boolean = true) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorRes = null) }
 
@@ -58,9 +64,9 @@ class MaskedEmailDetailViewModel @Inject constructor(
                                 isLoading = false,
                                 isUpdating = false,
                                 email = email,
-                                editedDescription = email.description ?: "",
-                                editedForDomain = email.forDomain ?: "",
-                                editedUrl = email.url ?: ""
+                                editedDescription = if (resetEdits) email.description ?: "" else it.editedDescription,
+                                editedForDomain = if (resetEdits) email.forDomain ?: "" else it.editedForDomain,
+                                editedUrl = if (resetEdits) email.url ?: "" else it.editedUrl
                             )
                         }
                     } else {
@@ -116,7 +122,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
             updateMaskedEmailUseCase(emailId, UpdateMaskedEmailParams(state = newState)).fold(
                 onSuccess = {
-                    loadEmail()
+                    loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
@@ -156,7 +162,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
             updateMaskedEmailUseCase(emailId, params).fold(
                 onSuccess = {
-                    loadEmail()
+                    loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
