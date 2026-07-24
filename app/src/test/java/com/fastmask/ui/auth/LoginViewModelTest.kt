@@ -17,6 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
+import java.io.IOException
 
 class LoginViewModelTest {
 
@@ -44,7 +45,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `token is cleared from state after failed login`() = runTest {
+    fun `token is cleared from state after an auth rejection`() = runTest {
         val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(401))))
         viewModel.onTokenChange("fmu1-secret-token")
 
@@ -52,6 +53,43 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         assertEquals("", viewModel.uiState.value.token)
+    }
+
+    // A retryable failure keeps the token: the error message tells the user to
+    // try again, and the field is masked, so wiping it would force a full
+    // re-paste of a ~40-character secret just to press the button twice.
+    @Test
+    fun `token is retained after a network failure`() = runTest {
+        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(IOException("offline"))))
+        viewModel.onTokenChange("fmu1-secret-token")
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("fmu1-secret-token", viewModel.uiState.value.token)
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+    }
+
+    @Test
+    fun `token is retained after a server error`() = runTest {
+        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(503))))
+        viewModel.onTokenChange("fmu1-secret-token")
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("fmu1-secret-token", viewModel.uiState.value.token)
+    }
+
+    @Test
+    fun `token is retained after rate limiting`() = runTest {
+        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(429))))
+        viewModel.onTokenChange("fmu1-secret-token")
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("fmu1-secret-token", viewModel.uiState.value.token)
     }
 
     // --- input handling ----------------------------------------------------
