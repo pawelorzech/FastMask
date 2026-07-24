@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FastMask" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
-    </style>
-
+    <!--
+      Only the splash is overridden here. Theme.FastMask no longer needs an
+      API-31 variant: the window attributes that used to be duplicated in both
+      files (statusBarColor, navigationBarColor, windowLightStatusBar) are gone,
+      so the base definition applies on every API level.
+    -->
     <style name="Theme.FastMask.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>

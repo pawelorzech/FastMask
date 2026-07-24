@@ -3,7 +3,10 @@ package com.fastmask.ui.lock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,6 +34,11 @@ fun LockScreen(onUnlockClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // The only screen without a Scaffold, so nothing else applies the
+            // system-bar insets for it. With edge-to-edge enforced from API 35
+            // the unlock button could otherwise sit under the navigation bar on
+            // a short screen or at a large font scale.
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

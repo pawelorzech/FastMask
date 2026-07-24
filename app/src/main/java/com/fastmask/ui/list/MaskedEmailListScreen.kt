@@ -112,6 +112,8 @@ fun MaskedEmailListScreen(
     justArchivedId: String? = null,
     justArchivedState: EmailState? = null,
     onArchivedConsumed: () -> Unit = {},
+    justCreatedEmail: String? = null,
+    onCreatedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -156,6 +158,32 @@ fun MaskedEmailListScreen(
         if (result == SnackbarResult.ActionPerformed) {
             viewModel.restoreMask(archivedId, previousState)
         }
+    }
+
+    // A mask was just created; confirm it here, where it now appears, with the
+    // same Copy action the create screen used to offer. Latched before
+    // consuming for the same reason as the undo snackbar above: consuming
+    // writes null, which would otherwise cancel this effect mid-snackbar.
+    val createdMessageTemplate = stringResource(R.string.create_email_created)
+    val copyAction = stringResource(R.string.create_email_copy_action)
+    var pendingCreated by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(justCreatedEmail) {
+        if (justCreatedEmail != null && pendingCreated == null) {
+            pendingCreated = justCreatedEmail
+            onCreatedConsumed()
+        }
+    }
+    LaunchedEffect(pendingCreated) {
+        val email = pendingCreated ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = createdMessageTemplate.replace("%s", email),
+            actionLabel = copyAction,
+            duration = SnackbarDuration.Long,
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            copyToClipboard(context, email)
+        }
+        pendingCreated = null
     }
 
     val appMode by viewModel.appMode.collectAsState()
