@@ -74,6 +74,13 @@
     <string name="create_email_error_prefix_length" tools:ignore="MissingTranslation">Prefix must be 64 characters or less</string>
     <string name="create_email_error_prefix_chars" tools:ignore="MissingTranslation">Only lowercase letters, numbers, and underscores allowed</string>
     <string name="navigate_back">Back</string>
+    <!-- Confirmation dialogs (pending translation). -->
+    <string name="discard_changes_title" tools:ignore="MissingTranslation">Discard changes?</string>
+    <string name="discard_changes_message" tools:ignore="MissingTranslation">Your edits haven\'t been saved and will be lost.</string>
+    <string name="discard_changes_confirm" tools:ignore="MissingTranslation">Discard</string>
+    <string name="discard_changes_cancel" tools:ignore="MissingTranslation">Keep editing</string>
+    <string name="logout_confirm_title" tools:ignore="MissingTranslation">Sign out?</string>
+    <string name="logout_confirm_message" tools:ignore="MissingTranslation">You\'ll need your Fastmail API token to sign back in.</string>
 
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Mask</string>
