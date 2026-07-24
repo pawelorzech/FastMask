@@ -596,7 +596,6 @@ private fun LanguagePickerDialog(
     onSelect: (Language?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val extras = FastMaskExtras.current
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
