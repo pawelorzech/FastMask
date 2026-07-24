@@ -2,6 +2,7 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
@@ -17,8 +18,9 @@ class AuthRepositoryImplTest {
     private val jmapApi = mockk<JmapApi>(relaxed = true)
     private val settings = mockk<SettingsDataStore>(relaxed = true)
     private val exportCache = mockk<ExportCache>(relaxed = true)
+    private val maskCache = mockk<MaskedEmailCache>(relaxed = true)
 
-    private val repository = AuthRepositoryImpl(tokenStorage, jmapApi, settings, exportCache)
+    private val repository = AuthRepositoryImpl(tokenStorage, jmapApi, settings, exportCache, maskCache)
 
     /**
      * A CSV export holds every mask in plaintext under cacheDir. Ageing it out

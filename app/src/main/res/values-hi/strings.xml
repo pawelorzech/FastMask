@@ -245,4 +245,5 @@
         <item quantity="one">कुल: %d</item>
         <item quantity="other">कुल: %d</item>
     </plurals>
+    <string name="list_offline_cached">ऑफ़लाइन · अपडेट %1$s</string>
 </resources>

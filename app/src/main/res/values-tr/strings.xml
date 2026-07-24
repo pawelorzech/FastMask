@@ -245,4 +245,5 @@
         <item quantity="one">toplam %d</item>
         <item quantity="other">toplam %d</item>
     </plurals>
+    <string name="list_offline_cached">Çevrimdışı · güncellendi %1$s</string>
 </resources>

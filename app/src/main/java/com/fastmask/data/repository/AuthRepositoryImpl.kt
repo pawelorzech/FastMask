@@ -2,6 +2,7 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
@@ -15,6 +16,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val jmapApi: JmapApi,
     private val settingsDataStore: SettingsDataStore,
     private val exportCache: ExportCache,
+    private val maskCache: MaskedEmailCache,
 ) : AuthRepository {
 
     override suspend fun login(token: String): Result<Unit> {
@@ -31,6 +33,9 @@ class AuthRepositoryImpl @Inject constructor(
         // is exactly when the account's data should stop being on the device —
         // so drop it now rather than let it outlive the session.
         exportCache.clear()
+        // The offline snapshot is the whole mask list at rest; it must not
+        // survive the account it belongs to.
+        maskCache.clear()
         // Clear demo flag and tutorial state so the next session starts fresh.
         settingsDataStore.setAppMode(AppMode.REAL)
         settingsDataStore.setTutorialCompleted(false)

@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -208,6 +209,18 @@ fun MaskedEmailListScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 // Demo mode banner (auto-hides in REAL mode).
                 DemoBanner(onSignInClick = onSignInFromBanner)
+
+                // The list is a cached snapshot — say so. Showing masks that
+                // may since have been deleted or renamed without marking them
+                // stale would quietly misinform.
+                uiState.cachedAt?.let { cachedAt ->
+                    OfflineBanner(
+                        text = stringResource(
+                            R.string.list_offline_cached,
+                            RelativeTime.format(context, cachedAt),
+                        ),
+                    )
+                }
 
                 // Header
                 Column(
@@ -760,6 +773,31 @@ private fun CreateFab(
             text = label,
             color = extras.onAccent,
             style = MaterialTheme.typography.labelLarge,
+        )
+    }
+}
+
+@Composable
+private fun OfflineBanner(text: String) {
+    val extras = FastMaskExtras.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.CloudOff,
+            contentDescription = null,
+            tint = extras.inkMuted,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MonoSmallStyle,
+            color = extras.inkMuted,
         )
     }
 }
