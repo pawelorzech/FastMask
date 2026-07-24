@@ -204,7 +204,23 @@ class MainActivity : AppCompatActivity() {
         outState.putString(KEY_PROCESS_TOKEN, processToken)
     }
 
+    /**
+     * True while a system unlock prompt is on screen.
+     *
+     * Two paths ask for one: the [LaunchedEffect] that fires when the gate
+     * appears, and the LockScreen button. Without the guard a tap landing while
+     * the automatic prompt was already up called `authenticate()` twice, which
+     * cancels the first prompt.
+     *
+     * Released by `onFinished` on EVERY terminal outcome — including a cancel
+     * or a lockout — so the retry button can never be left dead. That is the
+     * whole risk in this guard, and it is why the release is not conditional.
+     */
+    private var unlockPromptShowing = false
+
     private fun requestUnlock() {
+        if (unlockPromptShowing) return
+        unlockPromptShowing = true
         showUnlockPrompt(
             activity = this,
             title = getString(R.string.app_lock_prompt_title),
@@ -212,6 +228,7 @@ class MainActivity : AppCompatActivity() {
             // Device can no longer authenticate at all (screen lock removed) —
             // unlock rather than brick; equivalent to a device without a lock.
             onUnavailable = { locked.value = false },
+            onFinished = { unlockPromptShowing = false },
         )
     }
 
