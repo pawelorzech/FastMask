@@ -251,11 +251,29 @@ class PlayBillingDataSource @Inject constructor(
 
     private fun Purchase.toBillingPurchase() = BillingPurchase(
         productIds = products,
-        isPurchased = purchaseState == Purchase.PurchaseState.PURCHASED,
+        // A purchase counts as PURCHASED only if Play's signature verifies —
+        // a forged/replayed purchase on a hooked billing service must never
+        // unlock Pro. When no license key is configured (dev/CI builds), the
+        // check is skipped so those builds keep working; a release build with
+        // the key set enforces it. See PurchaseSecurity + build.gradle.kts.
+        isPurchased = purchaseState == Purchase.PurchaseState.PURCHASED && isSignatureValid(),
         isPending = purchaseState == Purchase.PurchaseState.PENDING,
         isAcknowledged = isAcknowledged,
         purchaseToken = purchaseToken,
     )
+
+    private fun Purchase.isSignatureValid(): Boolean {
+        val key = BuildConfig.PLAY_LICENSE_KEY
+        if (key.isBlank()) {
+            // No key configured — cannot verify. Loud in debug so it's caught
+            // before release; permissive so dev/CI builds still function.
+            if (BuildConfig.DEBUG) {
+                Log.w("FastMaskBilling", "PLAY_LICENSE_KEY unset — purchase signature NOT verified")
+            }
+            return true
+        }
+        return PurchaseSecurity.verify(key, originalJson, signature)
+    }
 
     private fun BillingResult.toErrorCode(): BillingErrorCode {
         if (BuildConfig.DEBUG) {
