@@ -220,8 +220,10 @@ Play zgłasza dla `19 (1.8.2)` trzy rekomendacje, których ten przebieg **nie** 
 
 | Pozycja | Kategoria | Uwaga |
 |---|---|---|
-| „Edge-to-edge may not display for all users" | User experience | targetSdk 36 wymusza edge-to-edge; aplikacja woła `enableEdgeToEdge()`, ale Play widzi problem — wymaga sprawdzenia na urządzeniu |
-| „Your app uses deprecated APIs or parameters for edge-to-edge" | User experience | Prawdopodobnie `statusBarColor` / `navigationBarColor` w `themes.xml`, przestarzałe od API 35 |
-| „Improve your app's memory and performance with R8 optimization" | Technical quality | Sugestia pełnego trybu R8 |
+| „Edge-to-edge may not display for all users" | User experience | **Zamknięte.** Tekst rekomendacji okazał się ogólną poradą („obsłuż insety, ewentualnie wołaj `enableEdgeToEdge()`" — aplikacja już to robi). Realną luką był `LockScreen`: jedyny ekran bez `Scaffold`, więc bez obsługi insetów. Dodano `windowInsetsPadding(safeDrawing)` |
+| „Your app uses deprecated APIs or parameters for edge-to-edge" | User experience | **Zamknięte.** Play nazwał `Window.setStatusBarColor`, `Window.setNavigationBarColor`, `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`. Usunięto odpowiadające im atrybuty z obu motywów; reszta pochodzi z wnętrza `enableEdgeToEdge()` i nie jest w naszej gestii bez podbicia `androidx.activity` |
+| „Improve your app's memory and performance with R8 optimization" | Technical quality | **Otwarte.** Sugestia pełnego trybu R8 — nie user-facing |
 
-Do tego nadal otwarte: **E3** (podwójny `BiometricPrompt`) i **manualne QA na urządzeniu** — D1 pozostaje potwierdzone regułami Androida i zmergowanym manifestem, ale nie tapnięciem na telefonie. Teraz jest to możliwe: 1.8.2 jest na testach wewnętrznych.
+**Uwaga metodyczna do rekomendacji Play:** sekcja „These start in the following places" podała `com.fastmask.data.api.JmapRequest.<clinit>`, `okhttp3.internal.platform.Platform.<clinit>` i `D0.O.t`. Żadne z nich nie ma nic wspólnego z paskami systemowymi — to artefakt analizy statycznej na zminifikowanym bytecodzie. Przypisania winy w tych rekomendacjach nie należy traktować dosłownie; wiarygodna jest lista API, nie lista miejsc.
+
+Naprawione w commicie `1b37eef` (patrz `UX_RECOMMENDATIONS.md` §E). Do tego nadal otwarte: **E3** (podwójny `BiometricPrompt`) i **manualne QA na urządzeniu** — D1 pozostaje potwierdzone regułami Androida i zmergowanym manifestem, ale nie tapnięciem na telefonie. Teraz jest to możliwe: 1.8.2 jest na testach wewnętrznych.

@@ -104,15 +104,19 @@ Skrót na ekranie głównym tworzący maskę i od razu kopiujący ją do schowka
 
 ## E. Nowe pozycje po pass D
 
-### E1. Powrót po utworzeniu maski czeka na wygaśnięcie snackbara
+### ~~E1. Powrót po utworzeniu maski czeka na wygaśnięcie snackbara~~ ✅ naprawione
 **Problem użytkownika.** Po tapnięciu „Utwórz maskę" ekran tworzenia zostaje na widoku aż snackbar zniknie (`SnackbarDuration.Long`, ~10 s) albo do tapnięcia „Kopiuj" — bo `showSnackbar` zawiesza, a dopiero po nim leci `onNavigateBack()`. Wygląda jak zawieszenie.
 **Rozwiązanie.** Wrócić na listę od razu i pokazać snackbar z akcją „Kopiuj" **tam**. Adres jest znany, więc akcja działa równie dobrze.
 **Ryzyko.** Trzeba przenieść komunikat między ekranami — ten sam mechanizm, który już obsługuje undo po archiwizacji.
 **Impact 3 · Effort 2 · Confidence 4 · Risk 2 → Priority 6,0**
 
-### E2. Trzy rekomendacje Play dla 1.8.2
-Play zgłasza dla wydanego builda: „Edge-to-edge may not display for all users", „deprecated APIs or parameters for edge-to-edge" (prawdopodobnie `statusBarColor`/`navigationBarColor` w `themes.xml`, przestarzałe od API 35) oraz sugestię pełnego trybu R8. Pierwsze dwie są user-facing i warte sprawdzenia na urządzeniu — teraz możliwe przez testy wewnętrzne.
-**Impact 3 · Effort 2 · Confidence 3 · Risk 2 → Priority 4,5**
+### ~~E2. Rekomendacje Play dla 1.8.2 — edge-to-edge~~ ✅ naprawione (R8 pozostaje otwarte)
+Play nazwał konkretnie trzy przestarzałe API: `Window.setStatusBarColor`, `Window.setNavigationBarColor` i `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`. Miejsca wywołań, które podawał, to szum po obfuskacji — realne źródła to `enableEdgeToEdge()` (wewnętrzne w bibliotece, dla zgodności z API < 35) oraz **motyw tej aplikacji**.
+
+Usunięto `statusBarColor`, `navigationBarColor` i `windowLightStatusBar` z obu plików motywu; wariant API-31 istniał wyłącznie po to, żeby je powtórzyć, więc też zniknął. Naprawiono też `LockScreen` — jedyny ekran bez `Scaffold`, a więc bez obsługi insetów. Zweryfikowane na API 36 w obu motywach.
+
+**Pozostaje otwarte:** sugestia pełnego trybu R8 (kategoria „Technical quality", nie user-facing).
+**Impact 2 · Effort 2 · Confidence 3 · Risk 2 → Priority 3,0**
 
 ## Roadmapa
 
