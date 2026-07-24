@@ -1,9 +1,9 @@
-Nowości w 1.8.2
+Nowości w 1.9.0
 
-• Naprawione linki do kontaktu, polityki prywatności i regulaminu — na Androidzie 11+ nie otwierały się wcale
-• Komunikaty i potwierdzenia przetłumaczone na wszystkie 20 języków
-• Nieudane logowanie nie kasuje już wklejonego tokenu
-• Kopiowanie pokazuje, który adres trafił do schowka
-• Nieudany eksport CSV mówi, co poszło nie tak
-• Poprawne formy liczby mnogiej w liczniku masek
+• Lista masek działa offline — pokazuje ostatnie dane z oznaczeniem, kiedy je pobrano
+• Czytnik ekranu nazywa wreszcie przyciski i pola formularzy
+• Po utworzeniu maski wracasz na listę od razu, bez czekania
+• Poprawione wyświetlanie przy krawędziach ekranu na Androidzie 15 i 16
+• Tryb demo zawsze zaczyna od tej samej, czystej listy
+• Eksport CSV nie zostaje na urządzeniu po wylogowaniu
 • Nadal zero śledzenia, bez reklam i subskrypcji

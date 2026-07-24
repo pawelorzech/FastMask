@@ -1,9 +1,9 @@
-What's new in 1.8.2
+What's new in 1.9.0
 
-• Fixed the contact, privacy policy and terms links — they did nothing on Android 11+
-• Messages and confirmations translated into all 20 languages
-• A failed sign-in no longer clears the token you pasted
-• Copying tells you which address went to the clipboard
-• A failed CSV export now says what went wrong
-• Correct plural forms in the mask counter
+• The mask list works offline — it shows your last data, marked with when it was fetched
+• Screen readers now name the buttons and form fields
+• Creating a mask returns you to the list immediately, with no wait
+• Better edge-to-edge display on Android 15 and 16
+• Demo mode always starts from the same clean list
+• The CSV export no longer stays on the device after you sign out
 • Still zero tracking, no ads, no subscriptions

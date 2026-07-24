@@ -3,6 +3,25 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] — 2026-07-25
+
+Backlog after the fourth audit pass. 124 → 143 unit tests, plus the app's first 12 instrumented tests.
+
+### Added
+- **The mask list works offline.** The last successful fetch is kept as an encrypted snapshot (Keystore-backed, the same protection the API token gets) and shown when there is no network, labelled "Offline · updated X ago". It is dropped on sign-out. Cache failures are soft: a missing or corrupt snapshot behaves exactly as before this existed.
+- First instrumented tests: welcome → demo, create, archive with undo, search, settings, and screen-reader labelling, driven through the real Activity and navigation graph.
+
+### Fixed
+- **Screen readers announced every icon button as a bare "Button"** — back, settings, copy, archive. The shared component named the click action but never the control itself.
+- **Screen readers announced every form field as a bare "Edit box"**: the visible label is a separate element with no semantic link to the input.
+- **"Try demo" after a sign-out reopened the previous demo's edits** instead of the pristine seed list, contradicting the documented behaviour.
+- Creating a mask kept the form on screen for the full confirmation snackbar (~10 s) before returning to the list. The confirmation, with its Copy action, now appears on the list where the new mask is.
+- Deprecated edge-to-edge window attributes removed (`statusBarColor`, `navigationBarColor`, `windowLightStatusBar`), which Google Play flagged on 1.8.2. The lock screen — the only screen without a Scaffold — now applies system-bar insets.
+- A second unlock prompt can no longer cancel the first one.
+- A CSV export no longer outlives the sign-out that should have ended access to it.
+- Pull-to-refresh arriving during a background refresh no longer starts a second, racing fetch.
+- The stored Pro proof is refreshed when the purchase token changes while the entitlement holds.
+
 ## [1.8.2] — 2026-07-24
 
 Fourth audit pass (see `AUDIT_REPORT.md`, `CHANGELOG_AGENT.md`) — 7 fixes plus 3 UX quick wins, no P0. 114 → 124 unit tests.
