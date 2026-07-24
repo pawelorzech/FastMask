@@ -27,19 +27,25 @@ Siedem commitów. Wersja podbita do **1.8.2 (versionCode 19)**.
 | `ui/common/UiErrors.kt` | Nowe `isRetryable(Throwable)` — ta sama tabela co `messageRes`, żeby nie mogły się rozjechać | D3 |
 | `ui/welcome/WelcomeViewModel.kt` | `CoroutineExceptionHandler` na `enterDemoMode()` | D4 |
 | `build.gradle.kts` | Bramka `gradle.taskGraph.whenReady` — podpisany release bez klucza licencyjnego jest odrzucany | D5 |
-| `res/values/strings.xml` | Nowy `error_no_app_for_link`; usunięte **10** atrybutów `tools:ignore="MissingTranslation"` | D1, D2 |
-| `res/values-*/strings.xml` (19 plików) | 247 uzupełnionych/poprawionych tłumaczeń | D2 |
+| `ui/list/MaskedEmailListScreen.kt` | Snackbar kopiowania nazywa adres; nagłówek listy używa `pluralStringResource` | A1, A3 |
+| `ui/settings/SettingsViewModel.kt` | `ExportFailed(messageRes)` — przyczyna przez `UiErrors` zamiast jednego komunikatu | A2 |
+| `ui/settings/SettingsScreen.kt` | Osobny komunikat dla błędu **zapisu** pliku eksportu | A2 |
+| `res/values/strings.xml` | Nowe `error_no_app_for_link`, `list_copied_value`, `settings_export_failed_write`, 2× `<plurals>`; `list_stats` → format `%1$s · %2$s`; usunięty `list_copied`; usunięte **10** `tools:ignore="MissingTranslation"` | D1, D2, A1–A3 |
+| `res/values-*/strings.xml` (19 plików) | 247 tłumaczeń (D2) + 3 stringi i 2 plurals × 19 (A1–A3) + usunięty zbędny `%s` w 18 lokalach (D7) | D2, D7, A1–A3 |
 | `CLAUDE.md` | SDK 35 → 36 (drift dokumentacji) | D6 |
+| `app/build.gradle.kts` | versionCode 18 → 19, versionName 1.8.1 → 1.8.2 | release |
+| `marketing/play/release-notes/{pl-PL,en-US}.txt` | Notatki 1.8.2, obie w limicie 500 znaków Play | release |
 
-## Dodane testy (+7, łącznie 121)
+## Dodane testy (+10, łącznie 124)
 
 | Plik | Testy | Co pokrywa |
 |---|---|---|
-| `i18n/TranslationCompletenessTest.kt` **(nowy)** | 2 | Brak klucza w dowolnym lokalu; angielskie zdanie ocalałe w tłumaczeniu. Krótkie etykiety (OK, URL, Status) świadomie wyłączone — w tych językach naprawdę są identyczne |
+| `i18n/TranslationCompletenessTest.kt` **(nowy)** | 3 | Brak klucza w dowolnym lokalu; angielskie zdanie ocalałe w tłumaczeniu; niezgodność argumentów formatujących. Krótkie etykiety (OK, URL, Status) świadomie wyłączone z drugiego testu — w tych językach naprawdę są identyczne |
 | `ui/common/UiErrorsTest.kt` | +2 | `isRetryable` dla transportu/5xx/429 vs 401/403/nieznane |
 | `ui/auth/LoginViewModelTest.kt` | +3, 1 przemianowany | Token zachowany przy IOException, 503 i 429; czyszczony przy 401 |
+| `ui/settings/SettingsViewModelTest.kt` | +2, 1 zaktualizowany | `ExportFailed` niesie przyczynę: sieć, rate limit, fallback |
 
-**Test i18n został sprawdzony negatywnie:** po celowym usunięciu `logout_confirm_message` z `values-pl` i podmianie `discard_changes_message` na tekst angielski oba testy zafailowały; po przywróceniu przechodzą.
+**Wszystkie trzy testy i18n sprawdzone negatywnie** — celowo przywróciłem każdy z bugów, przeciw którym stoją (usunięty klucz w `values-pl`, angielskie zdanie w `values-pl`, `%s` z powrotem w `values-de`). Każdy failuje; po przywróceniu stanu przechodzą.
 
 ## Zmiany zachowania (widoczne dla użytkownika)
 
@@ -48,6 +54,8 @@ Siedem commitów. Wersja podbita do **1.8.2 (versionCode 19)**.
 3. **19 języków dostaje przetłumaczone** komunikaty walidacji prefiksu, pusty stan „brak wyników" oraz dialogi potwierdzenia wylogowania i odrzucenia zmian.
 4. **Wejście w tryb demo nie wywala aplikacji** przy błędzie zapisu DataStore (zostajesz na ekranie powitalnym).
 5. **Build:** `assembleRelease`/`bundleRelease` z keystore, ale bez klucza licencyjnego, teraz **failuje** zamiast po cichu wypuścić APK bez weryfikacji podpisu zakupu.
+6. **18 języków nie pokazuje już surowego `%s`** na ekranie szczegółów maski (D7).
+7. **Snackbar kopiowania nazywa adres**, nieudany eksport CSV podaje przyczynę, licznik masek ma poprawne formy liczby mnogiej (A1–A3).
 
 ## Świadoma rewizja wcześniejszej decyzji
 
@@ -74,4 +82,6 @@ Jeśli uznasz, że higiena sekretu ma pierwszeństwo nad wygodą — cofnięcie 
 3. **Logowanie w trybie samolotowym** — błąd sieci, token **zostaje** w polu, przycisk działa po włączeniu sieci.
 4. **Logowanie błędnym tokenem** — 401, pole **czyszczone**.
 5. **Przełącz język na polski** → wyloguj się i odrzuć zmiany w edycji maski — oba dialogi po polsku.
-6. **Zakup Pro w internal testing** na buildzie z realnym kluczem licencyjnym (nietknięte tym przebiegiem, ale D5 zmienia proces budowania).
+6. **Niemiecki / rosyjski → szczegóły maski** — etykieta „Letzte Nachricht" bez `%s` (D7).
+7. **Polski → lista masek** — licznik odmienia się: 1 aktywna, 2 aktywne, 5 aktywnych (A3).
+8. **Zakup Pro w internal testing** na buildzie z realnym kluczem licencyjnym (nietknięte tym przebiegiem, ale D5 zmienia proces budowania).
