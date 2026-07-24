@@ -2,6 +2,7 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
@@ -34,6 +35,9 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> =
         current().getMaskedEmails()
+
+    override suspend fun cachedMaskedEmails(): CachedMasks? =
+        current().cachedMaskedEmails()
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> =
         current().createMaskedEmail(params)

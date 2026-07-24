@@ -2,6 +2,7 @@ package com.fastmask.testutil
 
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.AuthRepository
@@ -32,7 +33,11 @@ fun mask(
 class FakeMaskedEmailRepository(
     var emails: List<MaskedEmail> = emptyList(),
     var failure: Throwable? = null,
+    /** Snapshot an offline read returns; null means "nothing cached". */
+    var cached: CachedMasks? = null,
 ) : MaskedEmailRepository {
+
+    override suspend fun cachedMaskedEmails(): CachedMasks? = cached
 
     var getCalls = 0
     var createCalls = 0

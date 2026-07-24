@@ -243,4 +243,5 @@
     <plurals name="list_stats_total">
         <item quantity="other">%d total</item>
     </plurals>
+    <string name="list_offline_cached">Luring · diperbarui %1$s</string>
 </resources>

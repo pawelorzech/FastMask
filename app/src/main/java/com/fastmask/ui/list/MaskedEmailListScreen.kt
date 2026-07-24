@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -111,6 +112,8 @@ fun MaskedEmailListScreen(
     justArchivedId: String? = null,
     justArchivedState: EmailState? = null,
     onArchivedConsumed: () -> Unit = {},
+    justCreatedEmail: String? = null,
+    onCreatedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -155,6 +158,32 @@ fun MaskedEmailListScreen(
         if (result == SnackbarResult.ActionPerformed) {
             viewModel.restoreMask(archivedId, previousState)
         }
+    }
+
+    // A mask was just created; confirm it here, where it now appears, with the
+    // same Copy action the create screen used to offer. Latched before
+    // consuming for the same reason as the undo snackbar above: consuming
+    // writes null, which would otherwise cancel this effect mid-snackbar.
+    val createdMessageTemplate = stringResource(R.string.create_email_created)
+    val copyAction = stringResource(R.string.create_email_copy_action)
+    var pendingCreated by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(justCreatedEmail) {
+        if (justCreatedEmail != null && pendingCreated == null) {
+            pendingCreated = justCreatedEmail
+            onCreatedConsumed()
+        }
+    }
+    LaunchedEffect(pendingCreated) {
+        val email = pendingCreated ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = createdMessageTemplate.replace("%s", email),
+            actionLabel = copyAction,
+            duration = SnackbarDuration.Long,
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            copyToClipboard(context, email)
+        }
+        pendingCreated = null
     }
 
     val appMode by viewModel.appMode.collectAsState()
@@ -208,6 +237,18 @@ fun MaskedEmailListScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 // Demo mode banner (auto-hides in REAL mode).
                 DemoBanner(onSignInClick = onSignInFromBanner)
+
+                // The list is a cached snapshot — say so. Showing masks that
+                // may since have been deleted or renamed without marking them
+                // stale would quietly misinform.
+                uiState.cachedAt?.let { cachedAt ->
+                    OfflineBanner(
+                        text = stringResource(
+                            R.string.list_offline_cached,
+                            RelativeTime.format(context, cachedAt),
+                        ),
+                    )
+                }
 
                 // Header
                 Column(
@@ -760,6 +801,31 @@ private fun CreateFab(
             text = label,
             color = extras.onAccent,
             style = MaterialTheme.typography.labelLarge,
+        )
+    }
+}
+
+@Composable
+private fun OfflineBanner(text: String) {
+    val extras = FastMaskExtras.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.CloudOff,
+            contentDescription = null,
+            tint = extras.inkMuted,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MonoSmallStyle,
+            color = extras.inkMuted,
         )
     }
 }

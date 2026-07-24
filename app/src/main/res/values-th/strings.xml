@@ -243,4 +243,5 @@
     <plurals name="list_stats_total">
         <item quantity="other">ทั้งหมด: %d</item>
     </plurals>
+    <string name="list_offline_cached">ออฟไลน์ · อัปเดต %1$s</string>
 </resources>

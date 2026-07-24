@@ -8,6 +8,7 @@ import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
+    private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val settingsDataStore: SettingsDataStore,
 ) : ViewModel() {
@@ -79,88 +81,101 @@ class MaskedEmailListViewModel @Inject constructor(
         loadMaskedEmails()
     }
 
-    fun loadMaskedEmails() {
-        // Skip if a load is already running (pull-to-refresh, retry, and the
-        // restore success path all funnel here) — a second concurrent fetch just
-        // wastes a call and can flicker the last-writer-wins result.
-        if (_uiState.value.isLoading) return
-        // Set synchronously (before the coroutine is dispatched) so the guard in
-        // refreshMaskedEmails() sees the in-flight load immediately.
-        _uiState.update { it.copy(isLoading = true, errorRes = null) }
-        viewModelScope.launch {
-            getMaskedEmailsUseCase().fold(
-                onSuccess = { emails ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            emails = emails.sortedByDescending { email -> email.lastMessageAt ?: email.createdAt },
-                            filteredEmails = filterEmails(
-                                emails,
-                                it.searchQuery,
-                                it.selectedFilter
-                            )
-                        )
-                    }
-                },
-                onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorRes = UiErrors.messageRes(error, R.string.error_load_emails)
-                        )
-                    }
-                }
-            )
+    /**
+     * True from the moment either entry point is called until its fetch
+     * settles. Set synchronously, before the coroutine is dispatched, so two
+     * calls in the same frame cannot both start a request.
+     *
+     * One flag for BOTH entry points on purpose: they used to guard
+     * separately, and a silent refresh does not raise `isLoading` when the
+     * list already has data — so a pull-to-refresh landing mid-refresh saw
+     * `isLoading == false`, passed its own guard, and ran a second concurrent
+     * fetch whose result raced the first (last writer wins).
+     */
+    private var fetchInFlight = false
+
+    /**
+     * Explicit, user-visible load: pull-to-refresh, the error-state retry, and
+     * the reload after a successful undo. Always shows the spinner, and always
+     * surfaces a failure — the user asked for this and is waiting on it.
+     */
+    fun loadMaskedEmails() = fetch(userInitiated = true)
+
+    /**
+     * Silent on-resume refresh. Shows the spinner only when there is nothing on
+     * screen yet, and swallows a failure when there is — replacing good data
+     * with an error banner because a background refresh failed is worse than
+     * showing slightly stale masks.
+     */
+    fun refreshMaskedEmails() = fetch(userInitiated = false)
+
+    private fun fetch(userInitiated: Boolean) {
+        if (fetchInFlight) return
+        fetchInFlight = true
+
+        val hadData = _uiState.value.emails.isNotEmpty()
+        if (userInitiated || !hadData) {
+            _uiState.update { it.copy(isLoading = true, errorRes = null) }
         }
-    }
 
-    // Guards a soft refresh WITHOUT flipping isLoading (which would show the
-    // pull-to-refresh spinner on a silent on-resume refresh). Set synchronously
-    // before launch so two same-frame refresh() calls can't both start a fetch.
-    private var refreshInFlight = false
-
-    fun refreshMaskedEmails() {
-        // The init load is already in flight on first entry — the on-resume
-        // refresh would duplicate the network call the user is waiting on.
-        if (_uiState.value.isLoading || refreshInFlight) return
-        refreshInFlight = true
         viewModelScope.launch {
             try {
-            // Don't show loading if we already have data (soft refresh)
-            if (_uiState.value.emails.isEmpty()) {
-                _uiState.update { it.copy(isLoading = true, errorRes = null) }
-            }
-
-            getMaskedEmailsUseCase().fold(
-                onSuccess = { emails ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            emails = emails.sortedByDescending { email -> email.lastMessageAt ?: email.createdAt },
-                            filteredEmails = filterEmails(
-                                emails,
-                                it.searchQuery,
-                                it.selectedFilter
-                            )
-                        )
-                    }
-                },
-                onFailure = { error ->
-                    // Only show error if we have no data
-                    if (_uiState.value.emails.isEmpty()) {
+                getMaskedEmailsUseCase().fold(
+                    onSuccess = { emails ->
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                errorRes = UiErrors.messageRes(error, R.string.error_load_emails)
+                                emails = emails.sortedByDescending { email ->
+                                    email.lastMessageAt ?: email.createdAt
+                                },
+                                filteredEmails = filterEmails(
+                                    emails,
+                                    it.searchQuery,
+                                    it.selectedFilter,
+                                ),
+                                // A successful fetch is by definition current.
+                                cachedAt = null,
                             )
                         }
-                    } else {
-                        _uiState.update { it.copy(isLoading = false) }
-                    }
-                }
-            )
+                    },
+                    onFailure = { error ->
+                        // Nothing on screen and no network: fall back to the
+                        // last good snapshot rather than an empty error state.
+                        // The most common thing a user opens this app to do is
+                        // read back an address they already created, and that
+                        // should not require a connection.
+                        val cached = if (_uiState.value.emails.isEmpty()) {
+                            getCachedMaskedEmailsUseCase()
+                        } else {
+                            null
+                        }
+                        _uiState.update {
+                            when {
+                                cached != null && cached.masks.isNotEmpty() -> it.copy(
+                                    isLoading = false,
+                                    emails = cached.masks.sortedByDescending { email ->
+                                        email.lastMessageAt ?: email.createdAt
+                                    },
+                                    filteredEmails = filterEmails(
+                                        cached.masks, it.searchQuery, it.selectedFilter,
+                                    ),
+                                    // Shown, never hidden: presenting stale
+                                    // masks as current would be a quiet lie
+                                    // about which addresses still exist.
+                                    cachedAt = cached.cachedAt,
+                                    errorRes = null,
+                                )
+                                userInitiated || it.emails.isEmpty() -> it.copy(
+                                    isLoading = false,
+                                    errorRes = UiErrors.messageRes(error, R.string.error_load_emails),
+                                )
+                                else -> it.copy(isLoading = false)
+                            }
+                        }
+                    },
+                )
             } finally {
-                refreshInFlight = false
+                fetchInFlight = false
             }
         }
     }
@@ -216,6 +231,8 @@ data class MaskedEmailListUiState(
     val emails: List<MaskedEmail> = emptyList(),
     val filteredEmails: List<MaskedEmail> = emptyList(),
     val searchQuery: String = "",
+    /** Non-null when the list is a cached snapshot taken at this instant. */
+    val cachedAt: java.time.Instant? = null,
     val selectedFilter: EmailFilter = EmailFilter.ALL,
     val errorRes: Int? = null
 )

@@ -243,4 +243,5 @@
     <plurals name="list_stats_total">
         <item quantity="other">전체 %d</item>
     </plurals>
+    <string name="list_offline_cached">오프라인 · %1$s 업데이트</string>
 </resources>

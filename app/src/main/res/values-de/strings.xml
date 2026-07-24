@@ -245,4 +245,5 @@
         <item quantity="one">%d gesamt</item>
         <item quantity="other">%d gesamt</item>
     </plurals>
+    <string name="list_offline_cached">Offline · aktualisiert %1$s</string>
 </resources>

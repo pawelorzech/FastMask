@@ -245,4 +245,5 @@
         <item quantity="one">%d totaal</item>
         <item quantity="other">%d totaal</item>
     </plurals>
+    <string name="list_offline_cached">Offline · bijgewerkt %1$s</string>
 </resources>
