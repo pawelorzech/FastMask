@@ -282,7 +282,10 @@ fun MaskedEmailListScreen(
                         )
                     }
                     uiState.filteredEmails.isEmpty() -> {
-                        EmptyBlock()
+                        // Masks exist but none match the search/filter → don't
+                        // show the "create your first mask" empty state, which
+                        // wrongly implies the account is empty.
+                        if (uiState.emails.isEmpty()) EmptyBlock() else NoMatchesBlock()
                     }
                     else -> {
                         val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
@@ -401,13 +404,18 @@ private fun SearchField(
         )
         Spacer(Modifier.width(10.dp))
         Box(modifier = Modifier.weight(1f)) {
+            val searchLabel = stringResource(R.string.email_list_search_placeholder)
             BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(extras.accent),
-                modifier = Modifier.fillMaxWidth(),
+                // Visual-only placeholder gives TalkBack nothing to announce for
+                // this field — label it explicitly.
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = searchLabel },
             )
             if (query.isEmpty()) {
                 Text(
@@ -511,6 +519,15 @@ private fun FilterPill(
     }
 }
 
+// Reuses the already-translated state labels so TalkBack announces a mask's
+// state (Active / Off / Archived / Pending) that the colored dot conveys visually.
+private fun stateContentDescription(state: EmailState): Int = when (state) {
+    EmailState.ENABLED -> R.string.state_enabled
+    EmailState.DISABLED -> R.string.state_disabled
+    EmailState.DELETED -> R.string.state_deleted
+    EmailState.PENDING -> R.string.state_pending
+}
+
 @Composable
 private fun MaskRow(
     email: MaskedEmail,
@@ -532,7 +549,10 @@ private fun MaskRow(
                 .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StateDot(state = email.state)
+            StateDot(
+                state = email.state,
+                contentDescription = stringResource(stateContentDescription(email.state)),
+            )
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(
@@ -604,6 +624,31 @@ private fun EmptyBlock() {
         Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.email_list_empty_sub),
+            style = MaterialTheme.typography.bodySmall,
+            color = extras.inkMuted,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun NoMatchesBlock() {
+    val extras = FastMaskExtras.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp, vertical = 80.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
+    ) {
+        Text(
+            text = stringResource(R.string.email_list_no_matches),
+            style = MaterialTheme.typography.headlineMedium,
+            color = extras.inkSoft,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.email_list_no_matches_sub),
             style = MaterialTheme.typography.bodySmall,
             color = extras.inkMuted,
             textAlign = TextAlign.Center,

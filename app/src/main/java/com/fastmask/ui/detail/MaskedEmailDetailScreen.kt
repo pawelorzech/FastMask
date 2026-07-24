@@ -144,7 +144,15 @@ fun MaskedEmailDetailScreen(
                         modifier = Modifier.size(18.dp),
                     )
                 }
-                if (uiState.email != null && !uiState.isDeleting && !uiState.isUpdating) {
+                if (uiState.isDeleting) {
+                    // Archiving is in flight — the delete button is hidden, so
+                    // show progress here instead of leaving the bar looking dead.
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = extras.status.deleted.content,
+                        strokeWidth = 2.dp,
+                    )
+                } else if (uiState.email != null && !uiState.isUpdating) {
                     PillIconButton(
                         onClick = { showDeleteDialog = true },
                         contentDescription = deleteDesc,
@@ -161,7 +169,10 @@ fun MaskedEmailDetailScreen(
 
             when {
                 uiState.isLoading && uiState.email == null -> CenteredLoading()
-                uiState.errorRes != null && uiState.email == null -> ErrorMessage(stringResource(uiState.errorRes!!))
+                uiState.errorRes != null && uiState.email == null -> ErrorMessage(
+                    message = stringResource(uiState.errorRes!!),
+                    onRetry = { viewModel.loadEmail() },
+                )
                 uiState.email != null -> DetailContent(
                     uiState = uiState,
                     onDescriptionChange = viewModel::onDescriptionChange,
@@ -335,10 +346,13 @@ private fun DetailContent(
 
         Spacer(Modifier.height(16.dp))
 
+        // Trim before comparing so the Save button's enabled state matches the
+        // ViewModel's save guard (which trims): otherwise a whitespace-only edit
+        // enables Save but the tap is a silent no-op.
         val hasChanges = (
-            uiState.editedDescription != (email.description ?: "") ||
-                uiState.editedForDomain != (email.forDomain ?: "") ||
-                uiState.editedUrl != (email.url ?: "")
+            uiState.editedDescription.trim() != (email.description ?: "") ||
+                uiState.editedForDomain.trim() != (email.forDomain ?: "") ||
+                uiState.editedUrl.trim() != (email.url ?: "")
             )
 
         PillButton(
@@ -429,7 +443,7 @@ private fun CenteredLoading() {
 }
 
 @Composable
-private fun ErrorMessage(message: String) {
+private fun ErrorMessage(message: String, onRetry: () -> Unit) {
     val extras = FastMaskExtras.current
     Column(
         modifier = Modifier
@@ -449,6 +463,14 @@ private fun ErrorMessage(message: String) {
             style = MaterialTheme.typography.bodySmall,
             color = extras.inkMuted,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+        Spacer(Modifier.height(20.dp))
+        // Retry instead of a dead end: the list error state already offers this,
+        // and loadEmail() is fully re-runnable.
+        PillButton(
+            text = stringResource(R.string.error_retry),
+            onClick = onRetry,
+            variant = PillButtonVariant.Secondary,
         )
     }
 }
