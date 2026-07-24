@@ -243,4 +243,5 @@
     <plurals name="list_stats_total">
         <item quantity="other">%d tổng</item>
     </plurals>
+    <string name="list_offline_cached">Ngoại tuyến · cập nhật %1$s</string>
 </resources>

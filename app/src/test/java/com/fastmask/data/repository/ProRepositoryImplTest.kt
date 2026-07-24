@@ -257,4 +257,43 @@ class ProRepositoryImplTest {
 
         assertEquals(RestoreResult.UNAVAILABLE, repo.restore())
     }
+
+    // --- proof digest freshness ---
+
+    // The store write used to be gated on the status changing alone, so a
+    // re-purchase after a refund (PRO -> PRO, new token) left the persisted
+    // proof digest derived from a purchase the account no longer holds.
+    @Test
+    fun `a new purchase token rewrites the stored proof even when status holds at PRO`() = runTest {
+        billing.purchasesResponse = BillingResponse.Ok(listOf(billingPurchase(token = "token-one")))
+        val repo = repository()
+        advanceUntilIdle()
+        repo.refresh()
+        advanceUntilIdle()
+        assertEquals(ProStatus.PRO, repo.proStatus.value)
+
+        // Same entitlement, different purchase — e.g. a re-purchase after a refund.
+        billing.purchasesResponse = BillingResponse.Ok(listOf(billingPurchase(token = "token-two")))
+        repo.refresh()
+        advanceUntilIdle()
+
+        assertEquals(ProStatus.PRO, repo.proStatus.value)
+        coVerify { store.write(ProStatus.PRO, "token-two") }
+    }
+
+    // The common case — the same entitlement reconciled on every app resume —
+    // must stay free of DataStore writes.
+    @Test
+    fun `re-reconciling the same purchase does not rewrite the store`() = runTest {
+        billing.purchasesResponse = BillingResponse.Ok(listOf(billingPurchase(token = "token-one")))
+        val repo = repository()
+        advanceUntilIdle()
+
+        repo.refresh()
+        repo.refresh()
+        repo.refresh()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { store.write(ProStatus.PRO, "token-one") }
+    }
 }

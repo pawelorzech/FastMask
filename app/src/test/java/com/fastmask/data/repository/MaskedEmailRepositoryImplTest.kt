@@ -3,11 +3,13 @@ package com.fastmask.data.repository
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.api.MaskedEmailDto
 import com.fastmask.data.api.MaskedEmailState
+import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.EmailState
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -20,7 +22,8 @@ class MaskedEmailRepositoryImplTest {
 
     private val jmapApi = mockk<JmapApi>()
     private val tokenStorage = mockk<TokenStorage>()
-    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage)
+    private val cache = mockk<MaskedEmailCache>(relaxed = true)
+    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache)
 
     private fun dto(
         createdAt: String? = null,
@@ -88,5 +91,30 @@ class MaskedEmailRepositoryImplTest {
 
         assertTrue(result.isFailure)
         // No stubbing for jmapApi.getMaskedEmails — a call would throw MockKException.
+    }
+
+    // --- offline cache write-through (B1) ----------------------------------
+
+    @Test
+    fun `a successful fetch is written through to the cache`() = runTest {
+        every { tokenStorage.getToken() } returns "token"
+        coEvery { jmapApi.getMaskedEmails("token") } returns Result.success(listOf(dto()))
+
+        val result = repo.getMaskedEmails()
+
+        assertTrue(result.isSuccess)
+        verify { cache.write(match { it.single().id == "m1" }, any()) }
+    }
+
+    /** A failed fetch must not overwrite a good snapshot with nothing. */
+    @Test
+    fun `a failed fetch leaves the cache untouched`() = runTest {
+        every { tokenStorage.getToken() } returns "token"
+        coEvery { jmapApi.getMaskedEmails("token") } returns
+            Result.failure(java.io.IOException("offline"))
+
+        repo.getMaskedEmails()
+
+        verify(exactly = 0) { cache.write(any(), any()) }
     }
 }

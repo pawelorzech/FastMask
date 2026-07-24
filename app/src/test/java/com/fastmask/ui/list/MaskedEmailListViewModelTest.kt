@@ -5,7 +5,9 @@ package com.fastmask.ui.list
 import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
@@ -36,6 +38,7 @@ class MaskedEmailListViewModelTest {
     private fun vm(repo: FakeMaskedEmailRepository) =
         MaskedEmailListViewModel(
             GetMaskedEmailsUseCase(repo),
+            GetCachedMaskedEmailsUseCase(repo),
             UpdateMaskedEmailUseCase(repo),
             settings,
         )
@@ -242,5 +245,137 @@ class MaskedEmailListViewModelTest {
         // Old data stays, no error banner over a working list.
         assertEquals(null, viewModel.uiState.value.errorRes)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
+    }
+
+    // The two entry points used to guard on separate flags. A silent refresh
+    // does not raise isLoading while the list has data, so a pull-to-refresh
+    // arriving mid-refresh passed its own guard and ran a second concurrent
+    // fetch whose result raced the first.
+    @Test
+    fun `pull-to-refresh during a silent refresh does not start a second fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle() // init load → getCalls == 1
+
+        viewModel.refreshMaskedEmails() // silent, keeps isLoading false
+        viewModel.loadMaskedEmails()    // user pull-to-refresh in the same frame
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    @Test
+    fun `a silent refresh during a pull-to-refresh does not start a second fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.loadMaskedEmails()
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    // A user-initiated load must still report failure even with data on
+    // screen — unlike the silent refresh, the user is waiting on this one.
+    @Test
+    fun `pull-to-refresh surfaces an error even with cached data`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline now")
+        viewModel.loadMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
+    }
+
+    // --- offline cache (B1) ------------------------------------------------
+
+    private val cachedAt: Instant = Instant.parse("2026-07-24T09:00:00Z")
+
+    /**
+     * The commonest reason to open this app is to read back an address you
+     * already created. That must not require a connection.
+     */
+    @Test
+    fun `an offline first load falls back to the cached snapshot`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            failure = IOException("offline"),
+            cached = CachedMasks(listOf(mask("cached1"), mask("cached2")), cachedAt),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf("cached1", "cached2"), state.emails.map { it.id }.sorted())
+        // Marked stale rather than passed off as current.
+        assertEquals(cachedAt, state.cachedAt)
+        // No error banner over a usable list.
+        assertEquals(null, state.errorRes)
+    }
+
+    @Test
+    fun `an offline load with no cache still reports the network error`() = runTest {
+        val repo = FakeMaskedEmailRepository(failure = IOException("offline"), cached = null)
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(null, viewModel.uiState.value.cachedAt)
+    }
+
+    @Test
+    fun `an empty cache is not treated as a usable snapshot`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            failure = IOException("offline"),
+            cached = CachedMasks(emptyList(), cachedAt),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(null, viewModel.uiState.value.cachedAt)
+    }
+
+    /** A later successful fetch must drop the stale marker. */
+    @Test
+    fun `a successful fetch clears the cached marker`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            failure = IOException("offline"),
+            cached = CachedMasks(listOf(mask("cached1")), cachedAt),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+        assertEquals(cachedAt, viewModel.uiState.value.cachedAt)
+
+        repo.failure = null
+        repo.emails = listOf(mask("fresh1"))
+        viewModel.loadMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(listOf("fresh1"), viewModel.uiState.value.emails.map { it.id })
+        assertEquals(null, viewModel.uiState.value.cachedAt)
+    }
+
+    /** With masks already on screen a background failure changes nothing. */
+    @Test
+    fun `a silent refresh failure does not swap good data for the cache`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("live1")),
+            cached = CachedMasks(listOf(mask("cached1")), cachedAt),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline now")
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(listOf("live1"), viewModel.uiState.value.emails.map { it.id })
+        assertEquals(null, viewModel.uiState.value.cachedAt)
     }
 }

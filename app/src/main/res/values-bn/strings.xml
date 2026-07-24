@@ -245,4 +245,5 @@
         <item quantity="one">মোট: %d</item>
         <item quantity="other">মোট: %d</item>
     </plurals>
+    <string name="list_offline_cached">অফলাইন · আপডেট %1$s</string>
 </resources>

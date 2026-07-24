@@ -253,4 +253,5 @@
         <item quantity="many">الإجمالي: %d</item>
         <item quantity="other">الإجمالي: %d</item>
     </plurals>
+    <string name="list_offline_cached">دون اتصال · آخر تحديث %1$s</string>
 </resources>

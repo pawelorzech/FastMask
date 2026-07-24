@@ -249,4 +249,5 @@
         <item quantity="many">усього %d</item>
         <item quantity="other">усього %d</item>
     </plurals>
+    <string name="list_offline_cached">Офлайн · оновлено %1$s</string>
 </resources>

@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FastMask" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
-    </style>
+    <!--
+      No statusBarColor / navigationBarColor / windowLightStatusBar here.
+
+      Window.setStatusBarColor and setNavigationBarColor are deprecated in
+      Android 15 and ignored from API 35 — Play names both on this app's
+      release. enableEdgeToEdge() in MainActivity configures the bars at
+      runtime on every supported API level, so these attributes were redundant
+      rather than broken: the runtime call already overrode them, including
+      windowLightStatusBar, which was hardcoded true and would otherwise have
+      put dark icons on a dark background. Verified on API 36 in both themes —
+      dark icons on light, light icons on dark.
+    -->
+    <style name="Theme.FastMask" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
     <style name="Theme.FastMask.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>

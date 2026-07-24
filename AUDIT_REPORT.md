@@ -149,3 +149,81 @@ Czego **nie** dało się zweryfikować w tym środowisku:
 4. **Realny ruch JMAP.** Brak tokenu Fastmail — warstwa sieciowa testowana tylko na fake'ach.
 5. **Jakość tłumaczeń.** Wszystkie tłumaczenia (13 stringów z D2 + 3 z A1/A2 + 2 plurals z A3) wykonałem samodzielnie. Są poprawne znaczeniowo i gramatycznie, ale **nie sprawdził ich native speaker** — dla 19 języków to realne ryzyko drobnych nienaturalności, zwłaszcza w bn, th, hi, vi. Paweł świadomie zaakceptował to ryzyko; punkt wyjścia był gorszy (te same stringi były w 100% po angielsku).
 6. **Brak testów instrumentowanych.** Konfiguracja `androidTest` istnieje, testów UI nie ma; `connectedAndroidTest` nie było uruchamiane (brak emulatora w sesji).
+
+---
+
+# Aneks — backlog po v1.8.2 (2026-07-25, pass D)
+
+**Gałąź:** `feature/backlog-e1-e7` (z `main` @ `74e20cf`) · **niezmergowana**
+**Zakres:** domknięcie pozycji E1–E7 z §3.3 oraz rekomendacji B1 i B3 z `UX_RECOMMENDATIONS.md`
+
+## D.1 Stan
+
+| Metryka | Po pass C | Po pass D |
+|---|---|---|
+| Testy jednostkowe | 124 PASS | **143 PASS** |
+| Testy instrumentowane | brak | **12 PASS** (Pixel 9a, API 36) |
+| `lintDebug` errory | 0 | 0 |
+| `assembleDebug` / `assembleRelease` | SUCCESS | SUCCESS |
+
+## D.2 Zamknięte pozycje E1–E7
+
+| ID | Co zrobiono |
+|----|-------------|
+| E1 | Zunifikowano dwie zduplikowane ścieżki ładowania listy w jedno `fetch()` z jedną flagą in-flight. Osobne flagi powodowały, że pull-to-refresh w trakcie cichego odświeżania startował drugi równoległy fetch (ciche odświeżanie nie podnosi `isLoading`, gdy lista ma dane) |
+| E2 | `delete()` czyści `isDeleting` po wysłaniu eventu — stan zgodny z rzeczywistością, bez migotania przycisku |
+| E4 | Klucz języka miał dwie deklaracje z tym samym literałem; `companion` jest teraz jedynym właścicielem |
+| E5 | **Bez zmiany kodu.** `allowBackup="false"` faktycznie unieważnia `fullBackupContent`, ale reguły wykluczają zaszyfrowane prefy z tokenem — chronią, gdyby ktoś backup włączył. Udokumentowane w manifeście zamiast usunięte |
+| E6 | Eksport CSV przeżywał wylogowanie w `cacheDir`. Wydzielono `ExportCache` jako jedynego właściciela katalogu (zapis + wygasanie + czyszczenie), wołany z `logout()` |
+| E7 | Zapis dowodu uprawnienia następuje też, gdy status zostaje PRO, a zmienia się token zakupu (odkup po zwrocie). Warunek na tokenie utrzymuje brak zapisów w przypadku typowym |
+
+E3 (podwójny `BiometricPrompt`) **pozostaje otwarty** — wymaga urządzenia z biometrią, którego nadal nie było.
+
+## D.3 Trzy defekty wykryte dopiero przez testy instrumentowane (B3)
+
+Cztery przebiegi przeglądu kodu ich nie znalazły. Wszystkie potwierdzone [C] i naprawione.
+
+| ID | Prio | Problem | Przyczyna źródłowa |
+|----|------|---------|--------------------|
+| **D9** | P2 | **Każdy przycisk ikonowy w aplikacji** (wstecz, ustawienia, kopiuj, archiwizuj) był dla TalkBacka bezimiennym „Button" | `PillIconButton` przyjmował parametr `contentDescription`, ale stosował go **wyłącznie** jako `onClickLabel`. To nazywa akcję („dwukrotnie dotknij, aby Ustawienia"), nie kontrolkę. Wewnętrzna ikona świadomie ma `contentDescription = null`, więc nazwy nie było nigdzie |
+| **D10** | P2 | Każde pole formularza czytane jako gołe „Edit box" | `DesignInput` renderuje etykietę jako osobny `Text` nad polem — wizualnie poprawnie, semantycznie bez powiązania |
+| **D8** | P3 | „Wypróbuj demo" po wylogowaniu otwierało **poprzednie demo z jego zmianami** | Repozytorium demo to singleton na czas procesu, nigdy nie resetowany — wbrew kontraktowi opisanemu w KDoc tej samej klasy. Dodano `DemoSession.reset()`, wołane przy wejściu w demo |
+
+D9 i D10 naprawiono w komponentach, więc pokrywają wszystkie miejsca wywołań naraz.
+
+## D.4 Cache offline (B1)
+
+Wdrożony po decyzji Pawła: **zaszyfrowany, czyszczony przy wylogowaniu**.
+
+`MaskedEmailCache` trzyma ostatni udany fetch w `EncryptedFile` na kluczu z Android Keystore — tej samej ochronie, jaką `TokenStorage` daje tokenowi API. To jedyne miejsce poza eksportem CSV, gdzie komplet masek trafia na dysk, więc nie leży jawnym tekstem; test instrumentowany sprawdza, że adresy **nie występują w bajtach pliku**.
+
+Decyzje projektowe:
+
+- `cachedMaskedEmails()` jest **osobnym wywołaniem**, nie cichym fallbackiem w `getMaskedEmails()`. To drugie znaczy „powiedz, co mówi serwer" — odpowiadanie starymi danymi pozwoliłoby podać nieaktualne maski jako aktualne.
+- Fallback działa **tylko** gdy ekran jest pusty i fetch padł. Nieudane odświeżanie w tle przy dobrych danych nie zmienia nic.
+- Lista pokazuje „Offline · zaktualizowano X temu" zawsze, gdy to snapshot, w 20 językach.
+- Każda awaria cache'u jest miękka: brak / nieczytelny / uszkodzony → „brak cache", czyli dokładnie zachowanie sprzed tej zmiany.
+
+## D.5 Zgodność targetSdk w Play (zgłoszone przez Pawła)
+
+Play zgłosił: „highest non-compliant target API level is Android 15 (API level 35)".
+
+**To nie było zadanie kodowe.** `targetSdk = 36` wszedł w commicie `1febc93` (v1.7.3, versionCode 16) i każdy późniejszy build jest zgodny. Niezgodny był artefakt **wiszący na ścieżce testów wewnętrznych**: `15 (1.7.2)` z 19 lipca, sprzed bumpu.
+
+Naprawione promocją buildu `19 (1.8.2)` — tego samego, który jest na produkcji — na testy wewnętrzne. Ścieżka pokazuje teraz `Latest release: 19 (1.8.2)`.
+
+**Wniosek na przyszłość:** ostrzeżenia Play o targetSdk dotyczą **wszystkich aktywnych ścieżek**, nie tylko produkcji. Stare buildy na testach wewnętrznych/zamkniętych liczą się do zgodności.
+
+## D.6 Nowe pozycje otwarte
+
+Play zgłasza dla `19 (1.8.2)` trzy rekomendacje, których ten przebieg **nie** ruszał:
+
+| Pozycja | Kategoria | Uwaga |
+|---|---|---|
+| „Edge-to-edge may not display for all users" | User experience | **Zamknięte.** Tekst rekomendacji okazał się ogólną poradą („obsłuż insety, ewentualnie wołaj `enableEdgeToEdge()`" — aplikacja już to robi). Realną luką był `LockScreen`: jedyny ekran bez `Scaffold`, więc bez obsługi insetów. Dodano `windowInsetsPadding(safeDrawing)` |
+| „Your app uses deprecated APIs or parameters for edge-to-edge" | User experience | **Zamknięte.** Play nazwał `Window.setStatusBarColor`, `Window.setNavigationBarColor`, `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES`. Usunięto odpowiadające im atrybuty z obu motywów; reszta pochodzi z wnętrza `enableEdgeToEdge()` i nie jest w naszej gestii bez podbicia `androidx.activity` |
+| „Improve your app's memory and performance with R8 optimization" | Technical quality | **Otwarte.** Sugestia pełnego trybu R8 — nie user-facing |
+
+**Uwaga metodyczna do rekomendacji Play:** sekcja „These start in the following places" podała `com.fastmask.data.api.JmapRequest.<clinit>`, `okhttp3.internal.platform.Platform.<clinit>` i `D0.O.t`. Żadne z nich nie ma nic wspólnego z paskami systemowymi — to artefakt analizy statycznej na zminifikowanym bytecodzie. Przypisania winy w tych rekomendacjach nie należy traktować dosłownie; wiarygodna jest lista API, nie lista miejsc.
+
+Naprawione w commicie `1b37eef` (patrz `UX_RECOMMENDATIONS.md` §E). Do tego nadal otwarte: **E3** (podwójny `BiometricPrompt`) i **manualne QA na urządzeniu** — D1 pozostaje potwierdzone regułami Androida i zmergowanym manifestem, ale nie tapnięciem na telefonie. Teraz jest to możliwe: 1.8.2 jest na testach wewnętrznych.

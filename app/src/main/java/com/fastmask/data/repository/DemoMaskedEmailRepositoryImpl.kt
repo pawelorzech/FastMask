@@ -1,10 +1,12 @@
 package com.fastmask.data.repository
 
 import com.fastmask.data.demo.INITIAL_DEMO_MASKS
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.repository.DemoSession
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -26,13 +28,26 @@ import javax.inject.Singleton
  * filter chip in the UI has content to show.
  */
 @Singleton
-class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository {
+class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository, DemoSession {
 
     private val state = MutableStateFlow(INITIAL_DEMO_MASKS)
+
+    /**
+     * Entering demo mode starts from the seed list again. Without this the
+     * singleton kept the previous demo's edits for the whole process lifetime,
+     * so "Try demo" after a sign-out reopened a half-used demo — contradicting
+     * the contract described above.
+     */
+    override fun reset() {
+        state.value = INITIAL_DEMO_MASKS
+    }
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
         return Result.success(state.value)
     }
+
+    /** Demo data already lives in memory and is never persisted. */
+    override suspend fun cachedMaskedEmails(): CachedMasks? = null
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val newMask = buildNewMask(params)

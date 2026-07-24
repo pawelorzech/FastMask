@@ -28,6 +28,7 @@ import com.fastmask.ui.welcome.WelcomeScreen
 private const val TRANSITION_DURATION_MS = 220
 private const val KEY_ARCHIVED_ID = "archived_mask_id"
 private const val KEY_ARCHIVED_STATE = "archived_mask_state"
+private const val KEY_CREATED_EMAIL = "created_mask_email"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -108,6 +109,12 @@ fun FastMaskNavHost(
                 val justArchivedState by entry.savedStateHandle
                     .getStateFlow<String?>(KEY_ARCHIVED_STATE, null)
                     .collectAsState()
+                // Set by the create screen, so the "mask created — copy"
+                // confirmation appears on the list rather than holding the
+                // form open until the snackbar times out.
+                val justCreatedEmail by entry.savedStateHandle
+                    .getStateFlow<String?>(KEY_CREATED_EMAIL, null)
+                    .collectAsState()
                 MaskedEmailListScreen(
                     onNavigateToCreate = {
                         navController.navigate(NavRoutes.CREATE_EMAIL) { launchSingleTop = true }
@@ -131,6 +138,8 @@ fun FastMaskNavHost(
                         entry.savedStateHandle[KEY_ARCHIVED_ID] = null
                         entry.savedStateHandle[KEY_ARCHIVED_STATE] = null
                     },
+                    justCreatedEmail = justCreatedEmail,
+                    onCreatedConsumed = { entry.savedStateHandle[KEY_CREATED_EMAIL] = null },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable
                 )
@@ -178,6 +187,13 @@ fun FastMaskNavHost(
             composable(NavRoutes.CREATE_EMAIL) {
                 CreateMaskedEmailScreen(
                     onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onCreated = { email ->
+                        // Hand the address to the list entry, then leave at
+                        // once — the confirmation belongs where the new mask is.
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle?.set(KEY_CREATED_EMAIL, email)
                         navController.popBackStack()
                     },
                     onSignInFromBanner = {
