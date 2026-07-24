@@ -85,3 +85,71 @@ Jeśli uznasz, że higiena sekretu ma pierwszeństwo nad wygodą — cofnięcie 
 6. **Niemiecki / rosyjski → szczegóły maski** — etykieta „Letzte Nachricht" bez `%s` (D7).
 7. **Polski → lista masek** — licznik odmienia się: 1 aktywna, 2 aktywne, 5 aktywnych (A3).
 8. **Zakup Pro w internal testing** na buildzie z realnym kluczem licencyjnym (nietknięte tym przebiegiem, ale D5 zmienia proces budowania).
+
+---
+
+# Aneks — backlog po v1.8.2 (2026-07-25)
+
+Gałąź: `feature/backlog-e1-e7` (z `main` @ `74e20cf`). **Niezmergowana, niewydana.**
+Weryfikacja: `testDebugUnitTest` **143/143 PASS** · `connectedDebugAndroidTest` **12/12 PASS** (Pixel 9a, API 36) · `lintDebug` 0 errors · `assembleRelease` SUCCESS.
+
+| Commit | ID | Tytuł |
+|---|---|---|
+| `116907f` | E1–E7 | Fix: audit backlog E1-E7 |
+| `fdecf5d` | B3, D8–D10 | Add: instrumented tests for the main user paths |
+| `837ceab` | B1 | Add: encrypted offline cache for the mask list |
+
+## Zmienione i nowe pliki — kod produkcyjny
+
+| Plik | Zmiana | ID |
+|------|--------|----|
+| `ui/list/MaskedEmailListViewModel.kt` | Jedno `fetch()` + jedna flaga in-flight zamiast dwóch ścieżek; fallback na cache przy braku sieci; pole `cachedAt` | E1, B1 |
+| `ui/detail/MaskedEmailDetailViewModel.kt` | `isDeleting` czyszczone po wysłaniu eventu | E2 |
+| `data/local/SettingsDataStore.kt` | Jedna deklaracja klucza języka | E4 |
+| `data/local/ExportCache.kt` **(nowy)** | Właściciel `cacheDir/exports`: zapis, wygasanie po godzinie, `clear()` | E6 |
+| `data/local/MaskedEmailCache.kt` **(nowy)** | Zaszyfrowany snapshot listy (`EncryptedFile` + Keystore), DTO oddzielone od modelu domenowego | B1 |
+| `data/repository/AuthRepositoryImpl.kt` | `logout()` czyści eksport CSV i snapshot masek | E6, B1 |
+| `data/repository/MaskedEmailRepositoryImpl.kt` | Write-through do cache przy każdym udanym fetchu; `cachedMaskedEmails()` | B1 |
+| `data/repository/DemoMaskedEmailRepositoryImpl.kt` | Implementuje `DemoSession.reset()`; brak cache w demo | D8, B1 |
+| `data/repository/ProRepositoryImpl.kt` | Zapis dowodu także przy zmianie tokenu zakupu | E7 |
+| `domain/repository/DemoSession.kt` **(nowy)** | Kontrola cyklu życia danych demo | D8 |
+| `domain/model/CachedMasks.kt` **(nowy)** | Snapshot + znacznik czasu razem, żeby trudno było zapomnieć o wieku | B1 |
+| `domain/usecase/GetCachedMaskedEmailsUseCase.kt` **(nowy)** | Jawne pytanie o dane nieaktualne | B1 |
+| `ui/components/DesignKit.kt` | `PillIconButton` nadaje `contentDescription`, nie tylko `onClickLabel` | **D9** |
+| `ui/components/DesignInput.kt` | Pole tekstowe dostaje nazwę z etykiety | **D10** |
+| `ui/welcome/WelcomeViewModel.kt` | Reset danych demo przy wejściu w tryb demo | D8 |
+| `ui/settings/SettingsScreen.kt` | Eksport przez `ExportCache` zamiast logiki cache w Composable | E6 |
+| `ui/list/MaskedEmailListScreen.kt` | Pasek „Offline · zaktualizowano X temu" | B1 |
+| `AndroidManifest.xml` | Komentarz: dlaczego reguły backupu zostają przy `allowBackup=false` | E5 |
+| `res/values*/strings.xml` (20) | `list_offline_cached` w 20 językach | B1 |
+| `build.gradle.kts` | `HiltTestRunner`; AndroidX Test 1.6–1.7 / Espresso 3.7.0 (tylko test) | B3 |
+
+## Dodane testy (+7 jednostkowych, +12 instrumentowanych)
+
+| Plik | Co pokrywa |
+|---|---|
+| `androidTest/MainFlowsTest.kt` **(nowy)** | Welcome→demo, tworzenie maski, archiwizacja z undo (liczniki chipów), wyszukiwanie, ustawienia, stan maski dla czytnika ekranu |
+| `androidTest/MaskedEmailCacheTest.kt` **(nowy)** | Round-trip, brak cache, **adresy niewidoczne w bajtach pliku**, uszkodzony cache → null, nadpisanie, `clear()` |
+| `data/local/ExportCacheTest.kt` **(nowy)** | Nazwa pliku, wygasanie po godzinie vs plik sprzed 5 minut, `clear()` |
+| `data/repository/AuthRepositoryImplTest.kt` **(nowy)** | Wylogowanie czyści eksport, token, sesję, tryb demo |
+| `ui/list/MaskedEmailListViewModelTest.kt` | Wyścig dwóch ścieżek ładowania; pull-to-refresh zgłasza błąd mimo danych; 5 testów cache offline |
+| `data/repository/ProRepositoryImplTest.kt` | Nowy token przepisuje dowód; ten sam token nie generuje zapisu |
+| `data/repository/MaskedEmailRepositoryImplTest.kt` | Write-through przy sukcesie; brak zapisu przy porażce |
+
+Testy dla E1, E6 i E7 sprawdzone **negatywnie** — po przywróceniu starego warunku failują.
+
+## Zmiany zachowania (widoczne dla użytkownika)
+
+1. **Lista działa offline** — pokazuje ostatni snapshot z paskiem „Offline · zaktualizowano X temu".
+2. **TalkBack nazywa przyciski ikonowe i pola formularzy** (wcześniej „Button" / „Edit box").
+3. **„Wypróbuj demo" zaczyna od czystej listy**, także po wcześniejszym demo w tym samym uruchomieniu.
+4. **Eksport CSV nie przeżywa wylogowania.**
+5. Pull-to-refresh w trakcie odświeżania w tle nie startuje drugiego zapytania.
+
+## Do manualnego QA (1.8.2 jest na testach wewnętrznych)
+
+1. **Android 11+: Ustawienia → Kontakt** oraz **paywall → Polityka / Regulamin** — nadal niezweryfikowane na urządzeniu (D1).
+2. **Tryb samolotowy po wcześniejszym udanym wejściu** — lista pokazuje maski + pasek offline.
+3. **Wyloguj się i sprawdź, że po ponownym zalogowaniu lista ładuje się z sieci**, a nie ze starego cache'u innego konta.
+4. **TalkBack** na liście i w formularzu tworzenia.
+5. **Biometria** — E3 (podwójny prompt) nadal niepotwierdzony.

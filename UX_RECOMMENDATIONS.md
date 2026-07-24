@@ -3,6 +3,11 @@
 > Scoring 1–5: **Impact / Effort / Confidence / Risk**. `Priority = Impact × Confidence / Effort` — narzędzie pomocnicze, nie automat.
 > Znaleziska naprawione w tym przebiegu są w `AUDIT_REPORT.md §3.1`. Tu są rzeczy **niewdrożone**, wymagające Twojej decyzji.
 
+> **✅ Wdrożone po decyzji Pawła (v1.8.2 i gałąź `feature/backlog-e1-e7`):**
+> A1 (snackbar nazywa skopiowany adres), A2 (eksport podaje przyczynę błędu), A3 (`<plurals>` w liczniku) — **w produkcji od 1.8.2**.
+> B1 (cache offline, zaszyfrowany) i B3 (testy instrumentowane) — **na gałęzi, niewydane**. Szczegóły: `AUDIT_REPORT.md` §D.3–D.4.
+> Pozostałe poniżej to nadal otwarte rekomendacje.
+
 ---
 
 ## Ocena UX — stan obecny
@@ -19,20 +24,20 @@ Trzy rzeczy uważam za realnie słabe punkty — wszystkie dotyczą **pierwszych
 
 ## A. Quick wins
 
-### A1. Snackbar „skopiowano" nie mówi, **co** skopiowano
+### ~~A1. Snackbar „skopiowano" nie mówi, **co** skopiowano~~ ✅ wdrożone w 1.8.2
 **Problem użytkownika.** Przy kilku maskach o podobnych nazwach szybkie kopiowanie z listy nie potwierdza, którą maskę wzięto. Trzeba wejść w schowek albo wkleić, żeby sprawdzić.
 **Rozwiązanie.** W komunikacie pokaż skrócony adres: „Skopiowano quiet.harbor412@…".
 **Wpływ.** Usuwa krok weryfikacji z najczęstszej akcji w aplikacji.
 **Zakres.** Jeden string z parametrem + jedno miejsce wywołania. **Ryzyko:** brak. **Walidacja:** obserwacja własna.
 **Impact 3 · Effort 1 · Confidence 4 · Risk 1 → Priority 12,0**
 
-### A2. Nieudany eksport CSV nie mówi dlaczego
+### ~~A2. Nieudany eksport CSV nie mówi dlaczego~~ ✅ wdrożone w 1.8.2
 **Problem użytkownika.** `SettingsEvent.ExportFailed` daje jeden generyczny komunikat niezależnie od tego, czy padła sieć, czy zapis na dysk. Użytkownik nie wie, czy ponawiać, czy zwolnić miejsce.
 **Rozwiązanie.** Rozróżnij dwa przypadki — błąd pobierania (użyj `UiErrors.messageRes`, tak jak reszta aplikacji) i błąd zapisu pliku.
 **Zakres.** Rozszerzenie eventu o przyczynę, 2 stringi. **Ryzyko:** brak. **Walidacja:** tryb samolotowy + zapełniony dysk.
 **Impact 3 · Effort 2 · Confidence 4 · Risk 1 → Priority 6,0**
 
-### A3. Brak `<plurals>` w licznikach
+### ~~A3. Brak `<plurals>` w licznikach~~ ✅ wdrożone w 1.8.2
 **Problem użytkownika.** „1 masks" / „1 masek" zamiast „1 maska". W polskim, rosyjskim i ukraińskim liczba mnoga ma trzy formy — obecny format je łamie.
 **Rozwiązanie.** Zamień liczniki w nagłówku listy i chipach filtrów na `<plurals>`.
 **Zakres.** ~4 zasoby × 20 lokali. Niebanalne przy 20 językach, ale mechaniczne. **Ryzyko:** niskie. **Walidacja:** przełącz na PL/RU i sprawdź 1, 2, 5, 22.
@@ -47,7 +52,7 @@ Trzy rzeczy uważam za realnie słabe punkty — wszystkie dotyczą **pierwszych
 
 ## B. Średni zakres
 
-### B1. Lokalny cache masek (offline-read)
+### ~~B1. Lokalny cache masek (offline-read)~~ ✅ zbudowane, czeka na wydanie
 **Problem użytkownika.** Bez sieci lista jest pusta. Najczęstszy przypadek użycia — „potrzebuję adresu, który podałem sklepowi" — zawodzi dokładnie wtedy, gdy jesteś w terenie ze słabym zasięgiem.
 **Rozwiązanie.** Room albo serializowany DataStore z ostatnią udaną odpowiedzią; przy braku sieci pokaż dane z cache z wyraźnym znacznikiem „zaktualizowano X temu".
 **Wpływ.** Największa pojedyncza poprawa użyteczności, jaką widzę w tym produkcie.
@@ -63,7 +68,7 @@ Trzy rzeczy uważam za realnie słabe punkty — wszystkie dotyczą **pierwszych
 **Metryka:** ukończone logowania / uruchomienia aplikacji.
 **Impact 4 · Effort 3 · Confidence 3 · Risk 3 → Priority 4,0**
 
-### B3. Testy instrumentowane głównych ścieżek
+### ~~B3. Testy instrumentowane głównych ścieżek~~ ✅ zbudowane, czeka na wydanie
 **Problem.** Zero testów UI. Cztery przebiegi audytu znalazły defekty, które test E2E złapałby od razu — martwe linki (D1) i angielskie dialogi (D2) w tym.
 **Rozwiązanie.** 5–8 testów Compose: login → lista → tworzenie → szczegół → archiwizacja z undo → ustawienia.
 **Wpływ.** Nie jest to UX per se, ale jest to najskuteczniejsza dostępna ochrona jakości UX.
@@ -96,6 +101,18 @@ Skrót na ekranie głównym tworzący maskę i od razu kopiujący ją do schowka
 | **Usunięcie trybu demo** | Jedyne, co obniża próg tokenu API przed pierwszym kontaktem z produktem |
 
 ---
+
+## E. Nowe pozycje po pass D
+
+### E1. Powrót po utworzeniu maski czeka na wygaśnięcie snackbara
+**Problem użytkownika.** Po tapnięciu „Utwórz maskę" ekran tworzenia zostaje na widoku aż snackbar zniknie (`SnackbarDuration.Long`, ~10 s) albo do tapnięcia „Kopiuj" — bo `showSnackbar` zawiesza, a dopiero po nim leci `onNavigateBack()`. Wygląda jak zawieszenie.
+**Rozwiązanie.** Wrócić na listę od razu i pokazać snackbar z akcją „Kopiuj" **tam**. Adres jest znany, więc akcja działa równie dobrze.
+**Ryzyko.** Trzeba przenieść komunikat między ekranami — ten sam mechanizm, który już obsługuje undo po archiwizacji.
+**Impact 3 · Effort 2 · Confidence 4 · Risk 2 → Priority 6,0**
+
+### E2. Trzy rekomendacje Play dla 1.8.2
+Play zgłasza dla wydanego builda: „Edge-to-edge may not display for all users", „deprecated APIs or parameters for edge-to-edge" (prawdopodobnie `statusBarColor`/`navigationBarColor` w `themes.xml`, przestarzałe od API 35) oraz sugestię pełnego trybu R8. Pierwsze dwie są user-facing i warte sprawdzenia na urządzeniu — teraz możliwe przez testy wewnętrzne.
+**Impact 3 · Effort 2 · Confidence 3 · Risk 2 → Priority 4,5**
 
 ## Roadmapa
 
