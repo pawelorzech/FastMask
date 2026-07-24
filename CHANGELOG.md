@@ -3,6 +3,27 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.1] — 2026-07-24
+
+Third audit pass (see `AUDIT_REPORT.md`, `CHANGELOG_AGENT.md`) — 20 fixes, no P0/P1, all P2/P3. 101 → 114 unit tests.
+
+### Security
+- **Play purchases are now cryptographically verified** — a purchase unlocks Pro only when Google Play's signature validates against the app's RSA key, so a forged or replayed purchase on a modified device can no longer unlock Pro.
+- CSV export neutralizes formula characters even behind leading whitespace (OWASP), and a newly created mask copied from the create screen is flagged sensitive on Android 13+.
+
+### Fixed
+- Edits typed in the detail screen are no longer discarded by the reload that follows a save or state toggle.
+- The paywall's Buy button can no longer spin forever if Play returns an unusual buy-flow result.
+- A rare storage write failure (e.g. full disk) no longer crashes the app on sign-out, language change, or toggles.
+- The list no longer fires duplicate refreshes on rapid re-entry.
+
+### Changed
+- Mask state is announced to TalkBack on the list (was conveyed by color alone); search field, demo-banner "Sign in", and the create screen's state selector are properly labeled for screen readers.
+- Prompt before discarding unsaved edits (create + detail) and before signing out.
+- The list distinguishes "no masks yet" from "no matches for this search/filter".
+- Archiving shows a progress indicator; prefix validation messages are localizable.
+- Dark-theme default accent brightened so accent text meets WCAG AA contrast.
+
 ## [1.8.0] — 2026-07-23
 
 Full technical audit (see `AUDIT_REPORT.md`) plus every fix from its backlog.
