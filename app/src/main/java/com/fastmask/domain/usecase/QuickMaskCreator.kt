@@ -1,8 +1,13 @@
 package com.fastmask.domain.usecase
 
 import androidx.annotation.StringRes
+import com.fastmask.R
+import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.CreateMaskedEmailParams
+import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.QuickMaskGuard
+import com.fastmask.ui.common.UiErrors
 import javax.inject.Inject
 
 /**
@@ -32,9 +37,6 @@ sealed interface QuickMaskResult {
  * Quick-create orchestrator shared by the Quick Settings tile and the launcher
  * shortcut. Holds zero Android/TileService types so the whole decision table is
  * unit-testable.
- *
- * STUB — the implementation is written against
- * `app/src/test/java/com/fastmask/domain/usecase/QuickMaskCreatorTest.kt`.
  */
 class QuickMaskCreator @Inject constructor(
     private val authRepository: AuthRepository,
@@ -44,9 +46,34 @@ class QuickMaskCreator @Inject constructor(
 ) {
 
     /** Runs the gates, then creates one ENABLED mask with no prefix. */
-    suspend fun create(): QuickMaskResult =
-        throw NotImplementedError("QuickMaskCreator.create is not implemented yet")
+    suspend fun create(): QuickMaskResult {
+        if (!authRepository.isLoggedIn()) {
+            return QuickMaskResult.NotSignedIn
+        }
+        if (guard.appMode() == AppMode.DEMO) {
+            return QuickMaskResult.DemoMode
+        }
+        if (guard.appLockEnabled() && guard.isPro()) {
+            return QuickMaskResult.LockRequired
+        }
+
+        val params = CreateMaskedEmailParams(
+            state = EmailState.ENABLED,
+            emailPrefix = null,
+        )
+        return createMaskedEmailUseCase(params).fold(
+            onSuccess = { mask ->
+                QuickMaskResult.Created(id = mask.id, email = mask.email)
+            },
+            onFailure = { error ->
+                // Reuse the shared throwable->message mapping instead of forking it here.
+                QuickMaskResult.Failed(
+                    UiErrors.messageRes(error, R.string.create_email_error_failed)
+                )
+            }
+        )
+    }
 
     /** The notification's "Undo" action: deletes the mask just created. */
-    suspend fun undo(id: String): Boolean = false
+    suspend fun undo(id: String): Boolean = deleteMaskedEmailUseCase(id).isSuccess
 }

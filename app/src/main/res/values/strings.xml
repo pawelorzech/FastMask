@@ -252,4 +252,15 @@
         <item quantity="other">%d total</item>
     </plurals>
     <string name="list_offline_cached">Offline · updated %1$s</string>
+    <string name="quick_mask_tile_label">New mask</string>
+    <string name="shortcut_quick_mask_short">New mask</string>
+    <string name="shortcut_quick_mask_long">Create a masked address</string>
+    <string name="quick_mask_channel_name">Quick mask</string>
+    <string name="quick_mask_channel_description">Confirms a mask created from the tile or the shortcut.</string>
+    <string name="quick_mask_created_title">Mask created</string>
+    <string name="quick_mask_open">Open</string>
+    <string name="quick_mask_undo">Undo</string>
+    <string name="quick_mask_copied">%1$s copied to the clipboard</string>
+    <string name="quick_mask_undone">Mask deleted</string>
+    <string name="quick_mask_undo_failed">Could not delete the mask. Open FastMask and try again.</string>
 </resources>

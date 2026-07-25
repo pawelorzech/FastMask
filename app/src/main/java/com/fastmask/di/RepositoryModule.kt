@@ -4,9 +4,11 @@ import com.fastmask.data.repository.AuthRepositoryImpl
 import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
 import com.fastmask.data.repository.MaskedEmailRepositoryDispatcher
 import com.fastmask.data.repository.MaskedEmailRepositoryImpl
+import com.fastmask.data.repository.QuickMaskGuardImpl
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.DemoSession
 import com.fastmask.domain.repository.MaskedEmailRepository
+import com.fastmask.domain.repository.QuickMaskGuard
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -23,6 +25,12 @@ abstract class RepositoryModule {
     abstract fun bindAuthRepository(
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindQuickMaskGuard(
+        impl: QuickMaskGuardImpl
+    ): QuickMaskGuard
 
     /**
      * Real (JMAP-backed) implementation. Qualified so the dispatcher can request it

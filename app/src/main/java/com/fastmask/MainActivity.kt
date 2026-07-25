@@ -1,5 +1,6 @@
 package com.fastmask
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
@@ -21,6 +22,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.share.SharePrefill
+import com.fastmask.domain.share.SharedLinkParser
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.AuthRepository
@@ -56,10 +59,25 @@ class MainActivity : AppCompatActivity() {
 
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
+    private val pendingShare = mutableStateOf<PendingShare?>(null)
+
+    /**
+     * True once the current launch intent's share has been routed to the create
+     * screen.
+     *
+     * A configuration change re-runs [onCreate] with the SAME ACTION_SEND
+     * intent, so without this flag the share is replayed on every rotation —
+     * re-opening a create form the user had already filled in or dismissed.
+     * It is persisted in the instance state because a rotation is exactly the
+     * event that would otherwise reset it.
+     */
+    private var shareConsumed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        shareConsumed = savedInstanceState?.getBoolean(KEY_SHARE_CONSUMED) ?: false
+        pendingShare.value = if (shareConsumed) null else pendingShareFromIntent(intent)
 
         if (!BuildConfig.DEBUG) {
             window.setFlags(
@@ -187,6 +205,23 @@ class MainActivity : AppCompatActivity() {
                             LockScreen(onUnlockClick = ::requestUnlock)
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
+                            // This must stay INSIDE the unlocked branch: a pending
+                            // share waits behind the biometric gate until content
+                            // is allowed to compose, which is the whole mechanism.
+                            LaunchedEffect(pendingShare.value, startDestination) {
+                                val share: PendingShare = pendingShare.value ?: return@LaunchedEffect
+                                if (startDestination == NavRoutes.EMAIL_LIST) {
+                                    navController.navigate(NavRoutes.createEmail(share.prefill)) {
+                                        launchSingleTop = true
+                                    }
+                                }
+                                // Cleared even when the share was dropped (signed
+                                // out): a form the user cannot submit is worse
+                                // than an ignored share, and replaying it after a
+                                // later sign-in would be a surprise.
+                                shareConsumed = true
+                                pendingShare.value = null
+                            }
                             FastMaskNavHost(
                                 navController = navController,
                                 startDestination = startDestination
@@ -198,10 +233,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // Only a genuinely new share re-arms the flag; an unrelated intent must
+        // not resurrect one that was already routed.
+        val share = pendingShareFromIntent(intent) ?: return
+        shareConsumed = false
+        pendingShare.value = share
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_LOCKED, locked.value)
         outState.putString(KEY_PROCESS_TOKEN, processToken)
+        outState.putBoolean(KEY_SHARE_CONSUMED, shareConsumed)
     }
 
     /**
@@ -232,9 +278,19 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun pendingShareFromIntent(intent: Intent?): PendingShare? {
+        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") {
+            return null
+        }
+        val sharedText: String = intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
+            ?: return null
+        return PendingShare(prefill = SharedLinkParser.parse(sharedText))
+    }
+
     private companion object {
         const val KEY_LOCKED = "fastmask_locked"
         const val KEY_PROCESS_TOKEN = "fastmask_process_token"
+        const val KEY_SHARE_CONSUMED = "fastmask_share_consumed"
 
         /**
          * Identifies this OS process. A saved-instance bundle whose token does
@@ -243,4 +299,6 @@ class MainActivity : AppCompatActivity() {
          */
         val processToken: String = java.util.UUID.randomUUID().toString()
     }
+
+    private data class PendingShare(val prefill: SharePrefill?)
 }

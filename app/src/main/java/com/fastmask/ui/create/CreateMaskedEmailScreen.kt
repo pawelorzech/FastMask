@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DashedDesignCard
 import com.fastmask.ui.components.DemoBanner
@@ -69,6 +70,7 @@ fun CreateMaskedEmailScreen(
     /** The mask exists; hand its address to the list, which reports it there. */
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
+    prefill: SharePrefill? = null,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -89,6 +91,10 @@ fun CreateMaskedEmailScreen(
     }
 
     val backDesc = stringResource(R.string.navigate_back)
+
+    LaunchedEffect(Unit) {
+        viewModel.applyPrefill(prefill)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -331,4 +337,3 @@ private fun StateSegmented(
         }
     }
 }
-

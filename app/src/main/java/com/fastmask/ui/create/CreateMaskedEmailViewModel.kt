@@ -35,13 +35,26 @@ class CreateMaskedEmailViewModel @Inject constructor(
     /**
      * Seeds the form from text shared into the app (ACTION_SEND).
      *
-     * STUB — see `CreateMaskedEmailViewModelTest` for the required behaviour:
-     * a null prefill is a no-op, and only the FIRST non-null prefill is
-     * applied (the screen re-delivers it on every recomposition/rotation, and
-     * re-applying would wipe what the user has typed since).
+     * A null prefill is a no-op, and only the FIRST non-null prefill is
+     * applied: the screen re-delivers its nav argument on recomposition and
+     * rotation, and re-applying it would wipe what the user has typed since.
      */
     fun applyPrefill(prefill: SharePrefill?) {
-        throw NotImplementedError("CreateMaskedEmailViewModel.applyPrefill is not implemented yet")
+        if (prefill == null) {
+            return
+        }
+        _uiState.update { state ->
+            if (state.prefilled) {
+                state
+            } else {
+                state.copy(
+                    forDomain = prefill.forDomain,
+                    url = prefill.url,
+                    description = prefill.description,
+                    prefilled = true,
+                )
+            }
+        }
     }
 
     fun onPrefixChange(prefix: String) {
