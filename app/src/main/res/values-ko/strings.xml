@@ -244,4 +244,15 @@
         <item quantity="other">전체 %d</item>
     </plurals>
     <string name="list_offline_cached">오프라인 · %1$s 업데이트</string>
+    <string name="quick_mask_tile_label">새 마스크</string>
+    <string name="shortcut_quick_mask_short">새 마스크</string>
+    <string name="shortcut_quick_mask_long">마스크 주소 생성</string>
+    <string name="quick_mask_channel_name">빠른 마스크</string>
+    <string name="quick_mask_channel_description">타일이나 바로가기로 만든 마스크를 알려줍니다.</string>
+    <string name="quick_mask_created_title">마스크 생성됨</string>
+    <string name="quick_mask_open">열기</string>
+    <string name="quick_mask_undo">실행 취소</string>
+    <string name="quick_mask_copied">%1$s이(가) 클립보드에 복사됨</string>
+    <string name="quick_mask_undone">마스크 삭제됨</string>
+    <string name="quick_mask_undo_failed">마스크를 삭제할 수 없습니다. FastMask를 열고 다시 시도하세요.</string>
 </resources>

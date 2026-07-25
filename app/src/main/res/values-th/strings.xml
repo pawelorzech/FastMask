@@ -244,4 +244,15 @@
         <item quantity="other">ทั้งหมด: %d</item>
     </plurals>
     <string name="list_offline_cached">ออฟไลน์ · อัปเดต %1$s</string>
+    <string name="quick_mask_tile_label">อีเมลซ่อนใหม่</string>
+    <string name="shortcut_quick_mask_short">อีเมลซ่อนใหม่</string>
+    <string name="shortcut_quick_mask_long">สร้างที่อยู่อีเมลซ่อน</string>
+    <string name="quick_mask_channel_name">สร้างด่วน</string>
+    <string name="quick_mask_channel_description">แจ้งยืนยันอีเมลซ่อนที่สร้างจากไทล์หรือทางลัด</string>
+    <string name="quick_mask_created_title">สร้างอีเมลซ่อนแล้ว</string>
+    <string name="quick_mask_open">เปิด</string>
+    <string name="quick_mask_undo">เลิกทำ</string>
+    <string name="quick_mask_copied">คัดลอก %1$s ไปยังคลิปบอร์ดแล้ว</string>
+    <string name="quick_mask_undone">ลบอีเมลซ่อนแล้ว</string>
+    <string name="quick_mask_undo_failed">ไม่สามารถลบอีเมลซ่อนได้ เปิด FastMask แล้วลองอีกครั้ง</string>
 </resources>

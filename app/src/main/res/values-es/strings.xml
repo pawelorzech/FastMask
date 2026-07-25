@@ -248,4 +248,15 @@
         <item quantity="other">%d en total</item>
     </plurals>
     <string name="list_offline_cached">Sin conexión · actualizado %1$s</string>
+    <string name="quick_mask_tile_label">Nueva máscara</string>
+    <string name="shortcut_quick_mask_short">Nueva máscara</string>
+    <string name="shortcut_quick_mask_long">Crear una dirección enmascarada</string>
+    <string name="quick_mask_channel_name">Máscara rápida</string>
+    <string name="quick_mask_channel_description">Confirma una máscara creada desde el mosaico o el acceso directo.</string>
+    <string name="quick_mask_created_title">Máscara creada</string>
+    <string name="quick_mask_open">Abrir</string>
+    <string name="quick_mask_undo">Deshacer</string>
+    <string name="quick_mask_copied">%1$s copiado al portapapeles</string>
+    <string name="quick_mask_undone">Máscara eliminada</string>
+    <string name="quick_mask_undo_failed">No se pudo eliminar la máscara. Abre FastMask e inténtalo de nuevo.</string>
 </resources>

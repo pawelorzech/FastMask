@@ -244,4 +244,15 @@
         <item quantity="other">全 %d</item>
     </plurals>
     <string name="list_offline_cached">オフライン · %1$s に更新</string>
+    <string name="quick_mask_tile_label">新規マスク</string>
+    <string name="shortcut_quick_mask_short">新規マスク</string>
+    <string name="shortcut_quick_mask_long">マスクアドレスを作成</string>
+    <string name="quick_mask_channel_name">クイックマスク</string>
+    <string name="quick_mask_channel_description">タイルまたはショートカットから作成したマスクを通知します。</string>
+    <string name="quick_mask_created_title">マスクを作成しました</string>
+    <string name="quick_mask_open">開く</string>
+    <string name="quick_mask_undo">取り消す</string>
+    <string name="quick_mask_copied">%1$s をクリップボードにコピーしました</string>
+    <string name="quick_mask_undone">マスクを削除しました</string>
+    <string name="quick_mask_undo_failed">マスクを削除できませんでした。FastMask を開いてもう一度お試しください。</string>
 </resources>

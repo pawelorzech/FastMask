@@ -246,4 +246,15 @@
         <item quantity="other">कुल: %d</item>
     </plurals>
     <string name="list_offline_cached">ऑफ़लाइन · अपडेट %1$s</string>
+    <string name="quick_mask_tile_label">नया मास्क</string>
+    <string name="shortcut_quick_mask_short">नया मास्क</string>
+    <string name="shortcut_quick_mask_long">मास्क्ड पता बनाएं</string>
+    <string name="quick_mask_channel_name">त्वरित मास्क</string>
+    <string name="quick_mask_channel_description">टाइल या शॉर्टकट से बनाए गए मास्क की पुष्टि करता है।</string>
+    <string name="quick_mask_created_title">मास्क बन गया</string>
+    <string name="quick_mask_open">खोलें</string>
+    <string name="quick_mask_undo">पूर्ववत् करें</string>
+    <string name="quick_mask_copied">%1$s क्लिपबोर्ड पर कॉपी किया गया</string>
+    <string name="quick_mask_undone">मास्क हटा दिया गया</string>
+    <string name="quick_mask_undo_failed">मास्क हटाया नहीं जा सका। FastMask खोलें और फिर से कोशिश करें।</string>
 </resources>
