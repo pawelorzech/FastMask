@@ -1,7 +1,6 @@
 package com.fastmask.quickmask
 
 import android.app.PendingIntent
-import android.content.Intent
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -32,6 +31,17 @@ class QuickMaskTileService : TileService() {
         tile.updateTile()
     }
 
+    /**
+     * Opens the app from the shade.
+     *
+     * `startActivityAndCollapse(Intent)` is not an option on any device: with
+     * targetSdk 34+ the platform throws UnsupportedOperationException from it,
+     * so the deprecated overload would crash the tile rather than open the app.
+     * On 34+ we hand the platform an immutable PendingIntent; below that the
+     * PendingIntent overload does not exist yet, so we start the activity
+     * directly (SystemUI binds this service, which keeps the background
+     * activity launch allowed) and let the shade close behind it.
+     */
     private fun openAppAndCollapse() {
         val launchIntent = createAppLaunchIntent(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -39,12 +49,12 @@ class QuickMaskTileService : TileService() {
                 this,
                 QUICK_MASK_OPEN_REQUEST_CODE,
                 launchIntent,
+                // Immutable: the system must not be able to rewrite where this goes.
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
             startActivityAndCollapse(pendingIntent)
         } else {
-            @Suppress("DEPRECATION")
-            startActivityAndCollapse(Intent(launchIntent))
+            startActivity(launchIntent)
         }
     }
 }
