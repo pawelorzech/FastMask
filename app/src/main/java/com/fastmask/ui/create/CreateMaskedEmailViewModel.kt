@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +31,18 @@ class CreateMaskedEmailViewModel @Inject constructor(
     // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<CreateMaskedEmailEvent>(Channel.BUFFERED)
     val events: Flow<CreateMaskedEmailEvent> = _events.receiveAsFlow()
+
+    /**
+     * Seeds the form from text shared into the app (ACTION_SEND).
+     *
+     * STUB — see `CreateMaskedEmailViewModelTest` for the required behaviour:
+     * a null prefill is a no-op, and only the FIRST non-null prefill is
+     * applied (the screen re-delivers it on every recomposition/rotation, and
+     * re-applying would wipe what the user has typed since).
+     */
+    fun applyPrefill(prefill: SharePrefill?) {
+        throw NotImplementedError("CreateMaskedEmailViewModel.applyPrefill is not implemented yet")
+    }
 
     fun onPrefixChange(prefix: String) {
         val sanitized = prefix.lowercase().filter { it.isLetterOrDigit() || it == '_' }
@@ -108,7 +121,9 @@ data class CreateMaskedEmailUiState(
     val initialState: EmailState = EmailState.ENABLED,
     val isLoading: Boolean = false,
     val errorRes: Int? = null,
-    val prefixErrorRes: Int? = null
+    val prefixErrorRes: Int? = null,
+    /** True once a share prefill has been consumed; blocks a second apply. */
+    val prefilled: Boolean = false
 )
 
 sealed class CreateMaskedEmailEvent {

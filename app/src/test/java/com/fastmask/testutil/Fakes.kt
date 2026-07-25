@@ -1,5 +1,6 @@
 package com.fastmask.testutil
 
+import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.CachedMasks
@@ -7,6 +8,7 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
+import com.fastmask.domain.repository.QuickMaskGuard
 import java.time.Instant
 
 fun mask(
@@ -43,6 +45,7 @@ class FakeMaskedEmailRepository(
     var createCalls = 0
     var updateCalls = 0
     var deleteCalls = 0
+    var lastDeleteId: String? = null
     var lastUpdateId: String? = null
     var lastUpdateParams: UpdateMaskedEmailParams? = null
     var lastCreateParams: CreateMaskedEmailParams? = null
@@ -70,6 +73,7 @@ class FakeMaskedEmailRepository(
 
     override suspend fun deleteMaskedEmail(id: String): Result<Unit> {
         deleteCalls++
+        lastDeleteId = id
         failure?.let { return Result.failure(it) }
         return Result.success(Unit)
     }
@@ -77,6 +81,12 @@ class FakeMaskedEmailRepository(
 
 class FakeAuthRepository(
     var loginResult: Result<Unit> = Result.success(Unit),
+    /**
+     * What [isLoggedIn] answers. Mirrors the real implementation's contract:
+     * a DEMO session also reports `true` (see AuthRepositoryImpl), so callers
+     * must not treat "logged in" as "has a real Fastmail token".
+     */
+    var loggedIn: Boolean = false,
 ) : AuthRepository {
     var loginCalls = 0
     var lastToken: String? = null
@@ -92,7 +102,18 @@ class FakeAuthRepository(
         loggedOut = true
     }
 
-    override fun isLoggedIn(): Boolean = false
+    override fun isLoggedIn(): Boolean = loggedIn
 
     override fun getToken(): String? = null
+}
+
+/** Preconditions for the quick-create entry points (tile / launcher shortcut). */
+class FakeQuickMaskGuard(
+    var mode: AppMode = AppMode.REAL,
+    var lockEnabled: Boolean = false,
+    var pro: Boolean = false,
+) : QuickMaskGuard {
+    override suspend fun appMode(): AppMode = mode
+    override suspend fun appLockEnabled(): Boolean = lockEnabled
+    override suspend fun isPro(): Boolean = pro
 }
