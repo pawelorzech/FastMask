@@ -34,6 +34,21 @@ internal object QuickMaskPolicy {
     }
 
     /**
+     * The notification slot a quick-create message belongs in.
+     *
+     * `notify` replaces any notification already posted under the same id, so
+     * sharing one between the two outcomes made them cannibalise each other:
+     * a failure landing after a success took down the "Mask created"
+     * notification together with its Undo action — the only route back from a
+     * mask created by mistake — and a success posted while an error was still
+     * on screen made the error vanish unread. Two ids, two independent slots.
+     *
+     * @param success whether the mask was created.
+     */
+    fun notificationId(success: Boolean): Int =
+        if (success) QUICK_MASK_CREATED_NOTIFICATION_ID else QUICK_MASK_FAILURE_NOTIFICATION_ID
+
+    /**
      * Whether an incoming launch of `QuickMaskActivity` may create a mask.
      *
      * The activity used to create one unconditionally in `onCreate`, which —

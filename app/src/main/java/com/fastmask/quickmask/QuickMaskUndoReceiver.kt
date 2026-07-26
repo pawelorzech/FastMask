@@ -14,7 +14,8 @@ class QuickMaskUndoReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val id = intent.getStringExtra(EXTRA_QUICK_MASK_ID)?.takeIf { it.isNotBlank() } ?: return
-        val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, QUICK_MASK_NOTIFICATION_ID)
+        val notificationId =
+            intent.getIntExtra(EXTRA_NOTIFICATION_ID, QUICK_MASK_CREATED_NOTIFICATION_ID)
         // goAsync, not fire-and-forget: the work runs in the singleton runner's
         // scope, but once onReceive returns without a pending result the process
         // holds no live component and becomes the first candidate for the

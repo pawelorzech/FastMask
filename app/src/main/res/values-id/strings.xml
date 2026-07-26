@@ -253,7 +253,6 @@
     <string name="quick_mask_created_body">Alamat disalin ke papan klip</string>
     <string name="quick_mask_open">Buka</string>
     <string name="quick_mask_undo">Batalkan</string>
-    <string name="quick_mask_copied">%1$s disalin ke papan klip</string>
     <string name="quick_mask_undone">Email tersamar dihapus</string>
     <string name="quick_mask_undo_failed">Tidak dapat menghapus email tersamar. Buka FastMask lalu coba lagi.</string>
 </resources>

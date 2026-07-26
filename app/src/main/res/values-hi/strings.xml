@@ -255,7 +255,6 @@
     <string name="quick_mask_created_body">पता क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="quick_mask_open">खोलें</string>
     <string name="quick_mask_undo">पूर्ववत् करें</string>
-    <string name="quick_mask_copied">%1$s क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="quick_mask_undone">मास्क हटा दिया गया</string>
     <string name="quick_mask_undo_failed">मास्क हटाया नहीं जा सका। FastMask खोलें और फिर से कोशिश करें।</string>
 </resources>

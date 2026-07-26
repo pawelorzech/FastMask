@@ -257,7 +257,6 @@
     <string name="quick_mask_created_body">Adresse copiée dans le presse-papiers</string>
     <string name="quick_mask_open">Ouvrir</string>
     <string name="quick_mask_undo">Annuler</string>
-    <string name="quick_mask_copied">%1$s copié dans le presse-papiers</string>
     <string name="quick_mask_undone">Masque supprimé</string>
     <string name="quick_mask_undo_failed">Impossible de supprimer le masque. Ouvrez FastMask et réessayez.</string>
 </resources>

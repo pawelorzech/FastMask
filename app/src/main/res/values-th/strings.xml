@@ -253,7 +253,6 @@
     <string name="quick_mask_created_body">คัดลอกที่อยู่ไปยังคลิปบอร์ดแล้ว</string>
     <string name="quick_mask_open">เปิด</string>
     <string name="quick_mask_undo">เลิกทำ</string>
-    <string name="quick_mask_copied">คัดลอก %1$s ไปยังคลิปบอร์ดแล้ว</string>
     <string name="quick_mask_undone">ลบอีเมลซ่อนแล้ว</string>
     <string name="quick_mask_undo_failed">ไม่สามารถลบอีเมลซ่อนได้ เปิด FastMask แล้วลองอีกครั้ง</string>
 </resources>

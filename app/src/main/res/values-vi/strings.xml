@@ -253,7 +253,6 @@
     <string name="quick_mask_created_body">Đã sao chép địa chỉ vào bảng nhớ tạm</string>
     <string name="quick_mask_open">Mở</string>
     <string name="quick_mask_undo">Hoàn tác</string>
-    <string name="quick_mask_copied">Đã sao chép %1$s vào bảng nhớ tạm</string>
     <string name="quick_mask_undone">Đã xóa email ẩn danh</string>
     <string name="quick_mask_undo_failed">Không thể xóa email ẩn danh. Mở FastMask rồi thử lại.</string>
 </resources>

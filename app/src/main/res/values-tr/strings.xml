@@ -255,7 +255,6 @@
     <string name="quick_mask_created_body">Adres panoya kopyalandı</string>
     <string name="quick_mask_open">Aç</string>
     <string name="quick_mask_undo">Geri al</string>
-    <string name="quick_mask_copied">%1$s panoya kopyalandı</string>
     <string name="quick_mask_undone">Maske silindi</string>
     <string name="quick_mask_undo_failed">Maske silinemedi. FastMask uygulamasını açıp tekrar deneyin.</string>
 </resources>

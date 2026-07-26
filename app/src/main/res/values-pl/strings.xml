@@ -261,7 +261,6 @@
     <string name="quick_mask_created_body">Adres skopiowany do schowka</string>
     <string name="quick_mask_open">Otwórz</string>
     <string name="quick_mask_undo">Cofnij</string>
-    <string name="quick_mask_copied">Skopiowano %1$s do schowka</string>
     <string name="quick_mask_undone">Maska usunięta</string>
     <string name="quick_mask_undo_failed">Nie udało się usunąć maski. Otwórz FastMask i spróbuj ponownie.</string>
 </resources>

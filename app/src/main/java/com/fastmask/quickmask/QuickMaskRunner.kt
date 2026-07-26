@@ -62,7 +62,7 @@ class QuickMaskRunner @Inject constructor(
             when (result) {
                 is QuickMaskResult.Created -> {
                     copyToClipboard(context, result.email)
-                    notifier.showCreated(id = result.id, email = result.email)
+                    notifier.showCreated(id = result.id)
                 }
                 QuickMaskResult.NotSignedIn -> openApp(openApp)
                 QuickMaskResult.DemoMode -> openApp(openApp)

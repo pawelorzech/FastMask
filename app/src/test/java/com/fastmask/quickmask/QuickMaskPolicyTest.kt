@@ -1,6 +1,8 @@
 package com.fastmask.quickmask
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -77,6 +79,50 @@ class QuickMaskPolicyTest {
                 postPermissionGranted = true,
             )
         )
+    }
+
+    // --- which notification slot ---------------------------------------------
+    //
+    // `notify` replaces whatever sits under the same id. Success and failure
+    // shared one, so a failed create wiped the "Mask created" notification —
+    // and the Undo action on it, the only way back from an accidental mask —
+    // while a success erased an error the user had not read yet.
+
+    @Test
+    fun `success and failure do not share a notification slot`() {
+        assertNotEquals(
+            "success and failure post under the same notification id; one replaces the other",
+            QuickMaskPolicy.notificationId(success = true),
+            QuickMaskPolicy.notificationId(success = false),
+        )
+    }
+
+    @Test
+    fun `each outcome keeps the same slot across calls`() {
+        // The Undo button carries the id it was posted with, and cancel() has to
+        // hit that exact notification; a drifting id would leave it on screen.
+        assertEquals(
+            QUICK_MASK_CREATED_NOTIFICATION_ID,
+            QuickMaskPolicy.notificationId(success = true),
+        )
+        assertEquals(
+            QUICK_MASK_FAILURE_NOTIFICATION_ID,
+            QuickMaskPolicy.notificationId(success = false),
+        )
+    }
+
+    @Test
+    fun `notification ids do not collide with the pending intent request codes`() {
+        // Different namespaces, but they are allocated from one block of
+        // literals in QuickMaskContracts; overlapping numbers there is how the
+        // next id gets "reused" by accident.
+        val ids = listOf(
+            QUICK_MASK_CREATED_NOTIFICATION_ID,
+            QUICK_MASK_FAILURE_NOTIFICATION_ID,
+            QUICK_MASK_OPEN_REQUEST_CODE,
+            QUICK_MASK_UNDO_REQUEST_CODE,
+        )
+        assertEquals("quick mask ids are not all distinct: $ids", ids.size, ids.toSet().size)
     }
 
     // --- what may create a mask ---------------------------------------------

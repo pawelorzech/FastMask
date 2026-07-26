@@ -26,10 +26,16 @@ class QuickMaskNotifier @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    fun showCreated(id: String, email: String) {
-        // The address is already on the clipboard by now, so the fallback still
-        // tells the user what they got even when notifications are unavailable.
-        postOrToast(fallbackMessage = context.getString(R.string.quick_mask_copied, email)) {
+    fun showCreated(id: String) {
+        val createdNotificationId = QuickMaskPolicy.notificationId(success = true)
+        // Same neutral wording as the notification, and for the same reason: a
+        // Toast is drawn over whatever is on screen, so spelling the address out
+        // there would undo the decision to keep it off the display entirely. The
+        // address is on the clipboard — that is where the user picks it up.
+        postOrToast(
+            notificationId = createdNotificationId,
+            fallbackMessage = context.getString(R.string.quick_mask_created_body),
+        ) {
             val openPendingIntent = PendingIntent.getActivity(
                 context,
                 QUICK_MASK_OPEN_REQUEST_CODE,
@@ -38,7 +44,7 @@ class QuickMaskNotifier @Inject constructor(
             )
             val undoIntent = Intent(context, QuickMaskUndoReceiver::class.java)
                 .putExtra(EXTRA_QUICK_MASK_ID, id)
-                .putExtra(EXTRA_NOTIFICATION_ID, QUICK_MASK_NOTIFICATION_ID)
+                .putExtra(EXTRA_NOTIFICATION_ID, createdNotificationId)
             val undoPendingIntent = PendingIntent.getBroadcast(
                 context,
                 QUICK_MASK_UNDO_REQUEST_CODE,
@@ -84,7 +90,10 @@ class QuickMaskNotifier @Inject constructor(
 
     fun showFailure(@StringRes messageRes: Int) {
         val message = context.getString(messageRes)
-        postOrToast(fallbackMessage = message) {
+        postOrToast(
+            notificationId = QuickMaskPolicy.notificationId(success = false),
+            fallbackMessage = message,
+        ) {
             NotificationCompat.Builder(context, QUICK_MASK_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_quick_mask)
                 .setContentTitle(context.getString(R.string.app_name))
@@ -111,12 +120,18 @@ class QuickMaskNotifier @Inject constructor(
     /**
      * The one place that calls `notify`. The POST_NOTIFICATIONS check is inlined
      * here on purpose — both because the permission may genuinely be missing on
-     * Android 13+ (then the user still gets the address via Toast) and because a
+     * Android 13+ (then the user still gets the message via Toast) and because a
      * check hidden behind a helper is invisible to lint's MissingPermission
      * data flow. The notification itself is only built once we know it can be
      * posted, so the fallback path allocates no PendingIntents.
+     *
+     * @param notificationId the caller's own slot — see [QuickMaskPolicy.notificationId].
      */
-    private fun postOrToast(fallbackMessage: String, buildNotification: () -> Notification) {
+    private fun postOrToast(
+        notificationId: Int,
+        fallbackMessage: String,
+        buildNotification: () -> Notification,
+    ) {
         val manager = NotificationManagerCompat.from(context)
         val postPermissionGranted = ContextCompat.checkSelfPermission(
             context,
@@ -133,7 +148,7 @@ class QuickMaskNotifier @Inject constructor(
         }
 
         ensureChannel()
-        manager.notify(QUICK_MASK_NOTIFICATION_ID, buildNotification())
+        manager.notify(notificationId, buildNotification())
     }
 
     private fun ensureChannel() {

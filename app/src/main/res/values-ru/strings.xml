@@ -259,7 +259,6 @@
     <string name="quick_mask_created_body">Адрес скопирован в буфер обмена</string>
     <string name="quick_mask_open">Открыть</string>
     <string name="quick_mask_undo">Отменить</string>
-    <string name="quick_mask_copied">Скопировано в буфер обмена: %1$s</string>
     <string name="quick_mask_undone">Маска удалена</string>
     <string name="quick_mask_undo_failed">Не удалось удалить маску. Откройте FastMask и попробуйте снова.</string>
 </resources>

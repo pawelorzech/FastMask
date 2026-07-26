@@ -255,7 +255,6 @@
     <string name="quick_mask_created_body">Adres gekopieerd naar het klembord</string>
     <string name="quick_mask_open">Openen</string>
     <string name="quick_mask_undo">Ongedaan maken</string>
-    <string name="quick_mask_copied">%1$s gekopieerd naar het klembord</string>
     <string name="quick_mask_undone">Masker verwijderd</string>
     <string name="quick_mask_undo_failed">Kan het masker niet verwijderen. Open FastMask en probeer het opnieuw.</string>
 </resources>

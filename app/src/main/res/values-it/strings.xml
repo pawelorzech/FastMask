@@ -257,7 +257,6 @@
     <string name="quick_mask_created_body">Indirizzo copiato negli appunti</string>
     <string name="quick_mask_open">Apri</string>
     <string name="quick_mask_undo">Annulla</string>
-    <string name="quick_mask_copied">%1$s copiato negli appunti</string>
     <string name="quick_mask_undone">Maschera eliminata</string>
     <string name="quick_mask_undo_failed">Impossibile eliminare la maschera. Apri FastMask e riprova.</string>
 </resources>

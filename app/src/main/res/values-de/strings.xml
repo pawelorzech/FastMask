@@ -255,7 +255,6 @@
     <string name="quick_mask_created_body">Adresse in die Zwischenablage kopiert</string>
     <string name="quick_mask_open">Öffnen</string>
     <string name="quick_mask_undo">Rückgängig</string>
-    <string name="quick_mask_copied">%1$s in die Zwischenablage kopiert</string>
     <string name="quick_mask_undone">Maske gelöscht</string>
     <string name="quick_mask_undo_failed">Die Maske konnte nicht gelöscht werden. Öffne FastMask und versuche es erneut.</string>
 </resources>

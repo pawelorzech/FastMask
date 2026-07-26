@@ -257,7 +257,6 @@
     <string name="quick_mask_created_body">Endereço copiado para a área de transferência</string>
     <string name="quick_mask_open">Abrir</string>
     <string name="quick_mask_undo">Desfazer</string>
-    <string name="quick_mask_copied">%1$s copiado para a área de transferência</string>
     <string name="quick_mask_undone">Máscara eliminada</string>
     <string name="quick_mask_undo_failed">Não foi possível eliminar a máscara. Abra o FastMask e tente novamente.</string>
 </resources>

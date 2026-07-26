@@ -263,7 +263,6 @@
     <string name="quick_mask_created_body">تم نسخ العنوان إلى الحافظة</string>
     <string name="quick_mask_open">فتح</string>
     <string name="quick_mask_undo">تراجع</string>
-    <string name="quick_mask_copied">تم نسخ %1$s إلى الحافظة</string>
     <string name="quick_mask_undone">تم حذف القناع</string>
     <string name="quick_mask_undo_failed">تعذّر حذف القناع. افتح FastMask وحاول مرة أخرى.</string>
 </resources>
