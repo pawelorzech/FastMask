@@ -311,6 +311,139 @@ class LoginViewModelTest {
         assertEquals("fmu1-8f2c1d9e4a", auth.lastToken)
     }
 
+    // --- paste with nothing usable in the clipboard ------------------------
+    //
+    // A tap that produces no text, no hint and no error is indistinguishable
+    // from a broken app, on the screen where the user is already stuck.
+
+    @Test
+    fun `pasting an empty clipboard says so instead of doing nothing`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenPasted("")
+
+        assertEquals(R.string.login_paste_empty, viewModel.uiState.value.warningRes)
+    }
+
+    /** An image or URI clip reaches the ViewModel as an empty string. */
+    @Test
+    fun `pasting a clipboard holding no text says so`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenPasted("")
+
+        assertNotNull(viewModel.uiState.value.warningRes)
+        assertNull("an empty clipboard is not a failure", viewModel.uiState.value.errorRes)
+    }
+
+    @Test
+    fun `pasting a whitespace only clipboard says so`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenPasted("\n   \t")
+
+        assertEquals(R.string.login_paste_empty, viewModel.uiState.value.warningRes)
+    }
+
+    /**
+     * A stray newline copied off the Fastmail page used to sanitize to "" and
+     * silently overwrite a token the user had typed by hand.
+     */
+    @Test
+    fun `a whitespace only clipboard does not wipe the typed token`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onTokenChange("fmu1-typed-by-hand")
+
+        viewModel.onTokenPasted("\n")
+
+        assertEquals("fmu1-typed-by-hand", viewModel.uiState.value.token)
+    }
+
+    @Test
+    fun `the empty paste hint clears once something is pasted`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onTokenPasted("")
+        assertNotNull(viewModel.uiState.value.warningRes)
+
+        viewModel.onTokenPasted("fmu1-8f2c1d9e4a")
+
+        assertNull(viewModel.uiState.value.warningRes)
+    }
+
+    // --- oversized paste ----------------------------------------------------
+
+    /**
+     * The field is single-line and masked: every accepted character becomes a
+     * glyph laid out on the main thread. A clipboard holding a copied document
+     * must not reach it.
+     */
+    @Test
+    fun `an oversized paste is capped before it reaches state`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenPasted("x".repeat(500_000))
+
+        assertEquals(TokenFormat.MAX_PASTED_CHARS, viewModel.uiState.value.token.length)
+    }
+
+    @Test
+    fun `a normal token is not truncated`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenPasted("fmu1-8f2c1d9e4a")
+
+        assertEquals("fmu1-8f2c1d9e4a", viewModel.uiState.value.token)
+    }
+
+    // --- the shape hint follows the token it describes ----------------------
+
+    /**
+     * The hint describes what is in the field. When the field is emptied by a
+     * definitive rejection, leaving it standing puts two contradictory
+     * messages on screen, one of them about content that is no longer there.
+     */
+    @Test
+    fun `the shape hint goes when an auth rejection empties the field`() = runTest {
+        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(401))))
+        viewModel.onTokenPasted("Tr0ub4dor&3")
+        assertNotNull(viewModel.uiState.value.warningRes)
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.uiState.value.token)
+        assertNull(viewModel.uiState.value.warningRes)
+        assertEquals(R.string.error_auth, viewModel.uiState.value.errorRes)
+    }
+
+    @Test
+    fun `the shape hint goes when the scope failure empties the field`() = runTest {
+        val viewModel = vm(
+            FakeAuthRepository(loginResult = Result.failure(MaskedEmailScopeMissingException()))
+        )
+        viewModel.onTokenPasted("Tr0ub4dor&3")
+        assertNotNull(viewModel.uiState.value.warningRes)
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.uiState.value.token)
+        assertNull(viewModel.uiState.value.warningRes)
+    }
+
+    /** The other half of the rule: content still there, hint still there. */
+    @Test
+    fun `the shape hint stays while a retryable failure keeps the token`() = runTest {
+        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(IOException("offline"))))
+        viewModel.onTokenPasted("Tr0ub4dor&3")
+
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals("Tr0ub4dor&3", viewModel.uiState.value.token)
+        assertNotNull(viewModel.uiState.value.warningRes)
+    }
+
     // --- missing Masked Email scope ----------------------------------------
 
     /**
@@ -399,5 +532,90 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         assertEquals(0, auth.loginCalls)
+    }
+
+    /**
+     * Leaving for the demo is a terminal transition like any other, so it drops
+     * the secret with it. The user taking this exit is the one who could not
+     * get a token to work — i.e. the likeliest to have their Fastmail
+     * *password* sitting in that field.
+     */
+    @Test
+    fun `the demo exit clears the token from state`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onTokenPasted("Tr0ub4dor&3")
+
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.uiState.value.token)
+        assertNull(viewModel.uiState.value.warningRes)
+    }
+
+    /** A write that never landed must leave the user's input to retry with. */
+    @Test
+    fun `a failed demo activation keeps the token`() = runTest {
+        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
+        val viewModel = vm(FakeAuthRepository(), demo)
+        viewModel.onTokenChange("fmu1-8f2c1d9e4a")
+
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals("fmu1-8f2c1d9e4a", viewModel.uiState.value.token)
+    }
+
+    // --- demo and login are mutually exclusive ------------------------------
+
+    /**
+     * Both buttons are gated on isLoading. Without the flag being raised
+     * synchronously, a demo tap followed by an Unlock tap in the same frame
+     * persists a real token into a session that is about to render demo data.
+     */
+    @Test
+    fun `a login tapped in the same frame as the demo exit is ignored`() = runTest {
+        val auth = FakeAuthRepository()
+        val viewModel = vm(auth)
+        viewModel.onTokenChange("fmu1-8f2c1d9e4a")
+
+        viewModel.enterDemoMode()
+        viewModel.login()
+        advanceUntilIdle()
+
+        assertEquals(0, auth.loginCalls)
+    }
+
+    @Test
+    fun `a second demo tap does not activate twice`() = runTest {
+        val demo = FakeDemoModeActivator()
+        val viewModel = vm(FakeAuthRepository(), demo)
+
+        viewModel.enterDemoMode()
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals(1, demo.activateCalls)
+    }
+
+    /** A failed activation must not leave both buttons disabled for good. */
+    @Test
+    fun `a failed demo activation releases the buttons`() = runTest {
+        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
+        val viewModel = vm(FakeAuthRepository(), demo)
+
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `a successful demo activation releases the buttons`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 }

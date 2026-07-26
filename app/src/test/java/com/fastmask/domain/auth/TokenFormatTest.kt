@@ -43,6 +43,52 @@ class TokenFormatTest {
         assertEquals("fmu1-abc123", TokenFormat.sanitize("fmu1-abc123"))
     }
 
+    // --- the paste cap -----------------------------------------------------
+    //
+    // The clipboard is the one input on this screen whose size the app does
+    // not control. Whatever survives here is handed to a single-line password
+    // field, which lays out every character as a glyph on the main thread.
+
+    @Test
+    fun `an oversized clipboard is capped`() {
+        val huge = "x".repeat(500_000)
+
+        assertEquals(TokenFormat.MAX_PASTED_CHARS, TokenFormat.sanitizePasted(huge).length)
+    }
+
+    /** The cap must leave a real token — and its headroom — untouched. */
+    @Test
+    fun `a real token survives the cap whole`() {
+        assertEquals("fmu1-8f2c1d9e4a", TokenFormat.sanitizePasted("  fmu1-8f2c1d9e4a\n"))
+    }
+
+    @Test
+    fun `the cap has room for far more than a token`() {
+        assertTrue(TokenFormat.MAX_PASTED_CHARS > 40 * 10)
+    }
+
+    /**
+     * Cleaning happens before counting: a clip padded with thousands of
+     * newlines still yields its token, which a leading-substring cap would
+     * have discarded.
+     */
+    @Test
+    fun `the cap counts characters that survive cleaning`() {
+        val padded = "\n".repeat(10_000) + "fmu1-8f2c1d9e4a"
+
+        assertEquals("fmu1-8f2c1d9e4a", TokenFormat.sanitizePasted(padded))
+    }
+
+    @Test
+    fun `a whitespace only clipboard sanitizes to nothing`() {
+        assertEquals("", TokenFormat.sanitizePasted("  \n\t "))
+    }
+
+    @Test
+    fun `an empty clipboard sanitizes to nothing`() {
+        assertEquals("", TokenFormat.sanitizePasted(""))
+    }
+
     // --- recognizing the token shape ---------------------------------------
 
     @Test

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -171,10 +173,12 @@ fun LoginScreen(
                             contentDescription = stringResource(R.string.login_paste_button),
                             enabled = !uiState.isLoading,
                             onClick = {
-                                val clipboardText = clipboardManager.getText()?.text
-                                if (!clipboardText.isNullOrEmpty()) {
-                                    viewModel.onTokenPasted(clipboardText)
-                                }
+                                // getText() is null for an empty clipboard and
+                                // for a non-text clip (an image, a URI). Both
+                                // go to the ViewModel as "" rather than being
+                                // dropped here, so the tap always produces a
+                                // visible answer.
+                                viewModel.onTokenPasted(clipboardManager.getText()?.text.orEmpty())
                             },
                         )
                         Spacer(Modifier.width(6.dp))
@@ -251,7 +255,15 @@ fun LoginScreen(
                         onClick = {
                             settingsOpenFailed = !openExternalIntent(
                                 context,
-                                Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL)),
+                                // BROWSABLE narrows the candidates to real
+                                // browsers. A bare ACTION_VIEW https intent
+                                // matches any component declaring that filter,
+                                // and the destination is the page where the
+                                // user is about to type their Fastmail
+                                // password. openExternalIntent still reports a
+                                // no-handler case, which the hint below covers.
+                                Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL))
+                                    .addCategory(Intent.CATEGORY_BROWSABLE),
                             )
                         },
                         variant = PillButtonVariant.Secondary,
@@ -280,10 +292,27 @@ fun LoginScreen(
     }
 }
 
+/** Material's minimum touch target. Two of these sit side by side in a field. */
+private val TokenFieldTouchTarget = 48.dp
+
 /**
- * A compact action inside the token field's trailing slot. Sized to the 28dp
- * touch box the field already used for show/hide so paste sits at the same
- * visual weight rather than competing with the primary button.
+ * Vertical footprint the field reserves for them — the visual weight the
+ * trailing slot had before the touch target was widened.
+ */
+private val TokenFieldSlotHeight = 28.dp
+
+/**
+ * A compact action inside the token field's trailing slot: a 20dp icon with a
+ * full 48dp touch target.
+ *
+ * The target is honest, not decorative. Aiming for Paste and hitting Show
+ * instead reveals the token in plaintext on a screen whose threat model is
+ * literally the person standing behind you, so these two must be hard to
+ * confuse. `requiredSize` inside a shorter parent buys the height for it
+ * without inflating the field: the touch box overflows into the input's own
+ * 14dp vertical padding, which is empty space, while the slot keeps reporting
+ * its original height upwards. Applying `minimumInteractiveComponentSize()`
+ * instead would push the field from 56dp to 76dp.
  */
 @Composable
 private fun TokenFieldIconButton(
@@ -294,19 +323,29 @@ private fun TokenFieldIconButton(
 ) {
     val extras = FastMaskExtras.current
     Box(
-        modifier = Modifier
-            .size(28.dp)
-            .clip(CircleShape)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(2.dp),
+        modifier = Modifier.size(width = TokenFieldTouchTarget, height = TokenFieldSlotHeight),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = if (enabled) extras.inkMuted else extras.lineStrong,
-            modifier = Modifier.size(20.dp),
-        )
+        Box(
+            modifier = Modifier
+                .requiredSize(TokenFieldTouchTarget)
+                .clip(CircleShape)
+                .clickable(
+                    enabled = enabled,
+                    // Announced as a button by TalkBack; without it both icons
+                    // read as unlabeled clickable regions.
+                    role = Role.Button,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (enabled) extras.inkMuted else extras.lineStrong,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }
 

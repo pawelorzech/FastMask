@@ -44,21 +44,53 @@ class LoginViewModel @Inject constructor(
      * Explicit "Paste" action. Never called automatically — reading the
      * clipboard is a privacy signal (Android 12+ surfaces a system toast), so
      * it happens only when the user asks for it.
+     *
+     * [raw] is whatever the clipboard held, and it may hold nothing usable:
+     * it is empty when the clipboard is empty or carries an image, and it is
+     * whitespace-only when a stray newline was copied off the Fastmail page.
+     * Both cases answer with a hint rather than a silent no-op — on the one
+     * screen where the user is already stuck getting a token, a button that
+     * visibly does nothing reads as a broken app.
      */
     fun onTokenPasted(raw: String) {
+        val pasted = TokenFormat.sanitizePasted(raw)
+        if (pasted.isEmpty()) {
+            // Deliberately leaves `token` alone: a whitespace-only clip must
+            // not wipe a token the user typed by hand.
+            _uiState.update { it.copy(errorRes = null, warningRes = R.string.login_paste_empty) }
+            return
+        }
         _uiState.update {
             it.copy(
-                token = TokenFormat.sanitize(raw),
+                token = pasted,
                 errorRes = null,
-                warningRes = if (TokenFormat.shouldWarn(raw)) R.string.login_token_warning_shape else null,
+                warningRes = if (TokenFormat.shouldWarn(pasted)) R.string.login_token_warning_shape else null,
             )
         }
     }
 
     /** Escape hatch for a user stuck on getting a token. */
     fun enterDemoMode() {
+        if (_uiState.value.isLoading) return
+        // Set synchronously, like login() does, so the two paths are mutually
+        // exclusive: both buttons are disabled while isLoading, which stops a
+        // same-frame Unlock tap from persisting a real token into what is
+        // about to become a demo session.
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch(writeErrorHandler) {
-            demoModeActivator.activate()
+            try {
+                demoModeActivator.activate()
+            } finally {
+                // Also on the failure path — the handler above swallows the
+                // exception, and a stuck spinner would disable both buttons
+                // for the rest of the screen's life.
+                _uiState.update { it.copy(isLoading = false) }
+            }
+            // Only once the mode flag is persisted, mirroring every other
+            // terminal transition on this screen: the secret leaves UI state
+            // when the screen is done with it. A failed write returns above,
+            // leaving the user's input intact to retry.
+            _uiState.update { it.copy(token = "", errorRes = null, warningRes = null) }
             _events.send(LoginEvent.EnterDemo)
         }
     }
@@ -99,6 +131,11 @@ class LoginViewModel @Inject constructor(
                                 token = "",
                                 isLoading = false,
                                 errorRes = R.string.login_error_missing_masked_email_scope,
+                                // The shape hint describes the field's content;
+                                // once that content is gone it describes
+                                // nothing, and would sit under an empty field
+                                // contradicting the error above it.
+                                warningRes = null,
                             )
                         }
                     } else {
@@ -115,6 +152,10 @@ class LoginViewModel @Inject constructor(
                                 token = if (retryable) it.token else "",
                                 isLoading = false,
                                 errorRes = UiErrors.messageRes(error, R.string.login_error_failed),
+                                // Tied to the token: the hint stays while the
+                                // content it describes is still in the field,
+                                // and goes when the field is emptied.
+                                warningRes = if (retryable) it.warningRes else null,
                             )
                         }
                     }
