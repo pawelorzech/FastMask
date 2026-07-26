@@ -75,7 +75,7 @@ Open FastMask, paste your token, and tap "Log in".
 - **Secure Storage**: Your API token is encrypted using Android's EncryptedSharedPreferences
 - **Direct Connection**: The app talks directly to Fastmail - no middleman servers
 - **No Tracking**: No analytics, no advertising ID, no profiling
-- **Crash Reports, Your Call**: Crash diagnostics go to Firebase Crashlytics so bugs get fixed — on by default, off in one tap in Settings, and never carrying your masks, token, or email address ([details](/FastMask/privacy.html))
+- **Crash Reports, Your Call**: From 1.10.0, crash diagnostics go to Firebase Crashlytics so bugs get fixed — on by default, off in one tap in Settings, and never carrying your masks, token, or email address ([details](/FastMask/privacy.html))
 - **Open Source**: [Full source code](https://github.com/pawelorzech/FastMask) available for review
 
 ---

@@ -20,12 +20,21 @@ class FakeCrashReporter : CrashReporter {
 
     val calls = mutableListOf<String>()
 
+    /**
+     * Thrown by every call, the way the real SDK fails when the default
+     * `FirebaseApp` was never initialised for this process. Nothing above this
+     * seam may let that reach app start.
+     */
+    var failure: Throwable? = null
+
     override fun setCollectionEnabled(enabled: Boolean) {
         calls += "collection=$enabled"
+        failure?.let { throw it }
     }
 
     override fun deleteUnsentReports() {
         calls += "delete"
+        failure?.let { throw it }
     }
 }
 

@@ -7,6 +7,12 @@ package com.fastmask.domain.crash
 object CrashReportingPolicy {
 
     /**
+     * Opt-out: on unless the user said otherwise. Applies to a fresh install and
+     * to every installation that updates into the version introducing the key.
+     */
+    const val DEFAULT_ENABLED = true
+
+    /**
      * @param isDebugBuild `BuildConfig.DEBUG` — development crashes must never
      *   reach the production console, whatever the user preference says.
      * @param userEnabled the opt-out preference (`true` when the user never

@@ -32,7 +32,7 @@ FastMask is provided "as is", without warranty of any kind, to the maximum exten
 
 ## 4. Privacy
 
-FastMask collects no analytics and runs no tracking. It does send crash diagnostics to Firebase Crashlytics so bugs can be fixed — on by default, switchable off at any time in Settings → *Crash reports*, and never containing your masks, token, or email address. See the [Privacy Policy](/FastMask/privacy.html) for the full detail, including how Google Play processes purchase data.
+FastMask collects no analytics and runs no tracking. From version 1.10.0 it sends crash diagnostics to Firebase Crashlytics so bugs can be fixed — on by default, switchable off at any time in Settings → *Crash reports*. See the [Privacy Policy](/FastMask/privacy.html) for the full detail, including how Google Play processes purchase data.
 
 ## 5. Changes
 

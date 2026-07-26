@@ -37,7 +37,7 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 
 ⸻ PRIVACY & SECURITY ⸻
 
-• No tracking, no analytics, no ads. There is no Google Analytics in this app, no advertising ID, no event or screen tracking, no user profiling.
+• No tracking, no analytics, no ads. There is no Google Analytics in this app, no advertising ID, no event or screen tracking, no user profiling — and nothing is sent when you simply open the app.
 • Your Fastmail API token is encrypted on-device using EncryptedSharedPreferences
 • The app talks directly to api.fastmail.com over HTTPS — no servers in the middle
 • Network Security Config pins trust to the system CA store

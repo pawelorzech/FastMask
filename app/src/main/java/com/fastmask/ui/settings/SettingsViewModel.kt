@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
-import com.fastmask.data.local.CrashReportingSettings
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
@@ -85,15 +84,18 @@ class SettingsViewModel @Inject constructor(
     // --- Crash reporting (opt-out) ---
 
     /**
-     * Initial value is the opt-out default, not `false`: the switch renders
-     * before the stored value has been read, and showing "off" would tell a
-     * user who never opted out that nothing is being collected.
+     * Seeded from storage the way [appMode] is, not from the opt-out default.
+     * This ViewModel is scoped to the Settings back-stack entry, so a plain
+     * default meant the switch painted ON for the first frames of *every* entry
+     * into Settings — showing a user who had opted out the opposite of their
+     * own choice. A read failure still falls back to the default, because "on"
+     * is the honest thing to show when the stored value is unknown.
      */
     val crashReportingEnabled: StateFlow<Boolean> =
         settingsDataStore.crashReportingEnabled.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = CrashReportingSettings.DEFAULT_ENABLED,
+            initialValue = settingsDataStore.crashReportingEnabledBlocking(),
         )
 
     /**
@@ -101,9 +103,15 @@ class SettingsViewModel @Inject constructor(
      * is synchronous, so a write that fails (full disk) still leaves collection
      * stopped for this session instead of turning the user's opt-out into a
      * silent no-op; `writeErrorHandler` keeps that failure from crashing.
+     *
+     * The SDK call is wrapped too: it is the point where Firebase initialises
+     * itself, and it runs on the main thread straight off a tap, so an SDK that
+     * cannot start would otherwise take the Settings screen down with it. The
+     * preference is still written, so the choice survives and is re-applied on
+     * the next launch.
      */
     fun onCrashReportingToggled(enabled: Boolean) {
-        crashReporting.apply(enabled)
+        runCatching { crashReporting.apply(enabled) }
         viewModelScope.launch(writeErrorHandler) {
             settingsDataStore.setCrashReportingEnabled(enabled)
         }

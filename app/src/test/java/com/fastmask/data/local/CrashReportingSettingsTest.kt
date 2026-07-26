@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.fastmask.domain.crash.CrashReportingPreference
 import com.fastmask.testutil.FakePreferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -225,5 +226,75 @@ class CrashReportingSettingsTest {
 
         assertEquals(true, store.snapshot()[crashKey])
         assertTrue(settings.enabled.first())
+    }
+
+    // --- Missing vs Unreadable ---------------------------------------------
+    //
+    // `enabled` above answers "what should the switch show", and for both of
+    // these cases the honest answer is "on". `preference` answers a different
+    // question — "did the user actually choose this?" — and the two must not be
+    // conflated: startup applies the first and must not touch the SDK on the
+    // second, or a transient read failure resurrects collection for someone who
+    // deliberately opted out.
+
+    @Test
+    fun `no stored key reports Missing, not a stored true`() = runTest {
+        val (settings, _) = settings(existingInstall())
+
+        assertEquals(CrashReportingPreference.Missing, settings.preference.first())
+    }
+
+    @Test
+    fun `a stored value reports Stored in both directions`() = runTest {
+        val (optedOut, _) = settings(preferencesOf(crashKey to false))
+        val (optedIn, _) = settings(preferencesOf(crashKey to true))
+
+        assertEquals(
+            CrashReportingPreference.Stored(enabled = false),
+            optedOut.preference.first(),
+        )
+        assertEquals(
+            CrashReportingPreference.Stored(enabled = true),
+            optedIn.preference.first(),
+        )
+    }
+
+    /**
+     * The concrete regression: an opted-out user whose preferences file is
+     * later truncated or corrupted. The old mapping produced `true` here, and
+     * startup handed that to `setCrashlyticsCollectionEnabled(true)` — silently
+     * reversing a registered objection. `Unreadable` is what keeps startup from
+     * saying anything to the SDK at all.
+     */
+    @Test
+    fun `an unreadable store reports Unreadable, not the default`() = runTest {
+        val (settings, store) = settings(preferencesOf(crashKey to false))
+        store.readFailure = IOException("preferences file unreadable")
+
+        assertEquals(CrashReportingPreference.Unreadable, settings.preference.first())
+    }
+
+    @Test
+    fun `a value of the wrong type reports Unreadable rather than an opt-in`() = runTest {
+        val corrupt = preferencesOf(stringPreferencesKey("crash_reporting_enabled") to "yes")
+        val (settings, _) = settings(corrupt)
+
+        assertEquals(CrashReportingPreference.Unreadable, settings.preference.first())
+    }
+
+    /**
+     * The two flows stay consistent for display purposes: whatever `preference`
+     * says, `enabled` is its display value, and an unknown state displays as on.
+     */
+    @Test
+    fun `the display flag matches the preference for every case`() = runTest {
+        val (missing, _) = settings()
+        val (optedOut, _) = settings(preferencesOf(crashKey to false))
+        val (unreadable, unreadableStore) = settings(preferencesOf(crashKey to false))
+        unreadableStore.readFailure = IOException("preferences file unreadable")
+
+        assertTrue(missing.enabled.first())
+        assertFalse(optedOut.enabled.first())
+        assertTrue(unreadable.enabled.first())
     }
 }

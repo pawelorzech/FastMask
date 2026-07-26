@@ -37,7 +37,7 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 
 ⸻ PRYWATNOŚĆ I BEZPIECZEŃSTWO ⸻
 
-• Bez śledzenia, bez analityki, bez reklam. Nie ma tu Google Analytics, identyfikatora reklamowego, śledzenia ekranów ani profilowania.
+• Bez śledzenia, bez analityki, bez reklam. Nie ma tu Google Analytics, identyfikatora reklamowego, śledzenia ekranów ani profilowania — samo otwarcie aplikacji niczego nie wysyła.
 • Token API Fastmaila jest szyfrowany na urządzeniu przez EncryptedSharedPreferences
 • Aplikacja łączy się bezpośrednio z api.fastmail.com przez HTTPS — żadnych pośredników
 • Network Security Config przypina zaufanie do systemowego magazynu CA

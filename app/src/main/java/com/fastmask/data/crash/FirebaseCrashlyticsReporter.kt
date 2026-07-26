@@ -17,14 +17,24 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  *
  * What Crashlytics still sends on a crash is what it derives itself: the stack
  * trace, the app version, the device model and the OS build. No analytics
- * product is enabled alongside it.
+ * product is enabled alongside it, and the session-reporting SDK that ships
+ * inside Crashlytics is switched off in the manifest
+ * (`firebase_sessions_enabled`), so nothing is sent when the app merely starts.
+ *
+ * The SDK handle is resolved lazily, per call, and never in the constructor.
+ * `FirebaseCrashlytics.getInstance()` throws `IllegalStateException` when the
+ * default `FirebaseApp` was never initialised — which happens on OEM ROMs that
+ * strip content providers, in app-cloning frameworks and during direct boot.
+ * Resolving it eagerly put that throw inside Hilt member injection, on the main
+ * thread, before `super.onCreate()`: the app could not launch at all because of
+ * a diagnostics feature the user is allowed to switch off.
  */
 class FirebaseCrashlyticsReporter(
-    private val crashlytics: FirebaseCrashlytics = FirebaseCrashlytics.getInstance(),
+    private val crashlytics: () -> FirebaseCrashlytics = { FirebaseCrashlytics.getInstance() },
 ) : CrashReporter {
 
     override fun setCollectionEnabled(enabled: Boolean) {
-        crashlytics.setCrashlyticsCollectionEnabled(enabled)
+        crashlytics().setCrashlyticsCollectionEnabled(enabled)
     }
 
     /**
@@ -33,6 +43,6 @@ class FirebaseCrashlyticsReporter(
      * awaiting it would block the settings toggle on I/O.
      */
     override fun deleteUnsentReports() {
-        crashlytics.deleteUnsentReports()
+        crashlytics().deleteUnsentReports()
     }
 }

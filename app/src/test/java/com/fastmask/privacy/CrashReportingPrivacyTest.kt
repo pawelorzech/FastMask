@@ -1,5 +1,6 @@
 package com.fastmask.privacy
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -36,8 +37,19 @@ class CrashReportingPrivacyTest {
 
     private val sourceRoot = File("src/main/java")
 
-    private fun sources(): List<File> =
-        sourceRoot.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
+    /**
+     * Every shipped source set, not just `main`. A Crashlytics call added under
+     * `src/debug/java` or `src/release/java` — or under `src/main/kotlin`, which
+     * the build accepts — was invisible to this guard while it walked
+     * `src/main/java` alone.
+     */
+    private fun sources(): List<File> = File("src").walkTopDown()
+        .filter { it.isFile && it.extension == "kt" }
+        .filterNot { file ->
+            val path = file.invariantSeparatorsPath
+            path.startsWith("src/test/") || path.startsWith("src/androidTest/")
+        }
+        .toList()
 
     /** Names that carry, or plausibly carry, something belonging to the user. */
     private val userShaped = Regex(
@@ -48,11 +60,21 @@ class CrashReportingPrivacyTest {
     private val setCustomKey = Regex("""\bsetCustomKeys?\s*\(([^)]*)\)""")
     private val crashlyticsLog = Regex("""(?i)crashlytics[\w.()\s]*\.\s*log\s*\(([^)]*)\)""")
 
-    /** Files allowed to name the Firebase SDK: the seam and its Hilt wiring. */
-    private fun isSeamFile(file: File): Boolean {
-        val path = file.invariantSeparatorsPath
-        return path.contains("/data/crash/") || path.contains("/di/")
-    }
+    /**
+     * The SDK type itself, as distinct from this app's wrapper around it.
+     * A plain `contains("FirebaseCrashlytics")` also matched
+     * `FirebaseCrashlyticsReporter`, which is why the DI module had to be
+     * exempted; the exemption then let any file under `di/` call the SDK
+     * directly. Matching the package and the bare class name instead means the
+     * README's claim — one file, and only one — is what the guard enforces.
+     */
+    private val sdkReference = Regex("""com\.google\.firebase\.crashlytics|\bFirebaseCrashlytics\b""")
+
+    /** The one file allowed to name the Firebase SDK. */
+    private val seamFile = "src/main/java/com/fastmask/data/crash/FirebaseCrashlyticsReporter.kt"
+
+    private fun isSeamFile(file: File): Boolean =
+        file.invariantSeparatorsPath == seamFile
 
     private fun violations(): List<String> = sources().flatMap { file ->
         file.readLines().withIndex().flatMap { (index, line) ->
@@ -91,19 +113,32 @@ class CrashReportingPrivacyTest {
         // nothing, so the guard also asserts there is something to guard.
         val callSites = sources().filter { it.readText().contains("Crashlytics") }
         assertTrue(
-            "no Crashlytics call site found in src/main/java — this guard would pass " +
+            "no Crashlytics call site found under src/ — this guard would pass " +
                 "vacuously; wire the reporter or delete the guard deliberately",
             callSites.isNotEmpty(),
         )
     }
 
+    /**
+     * Exactly one file, which is what README.md and the privacy policy claim.
+     * The guard used to exempt the whole `di/` package, so any new file there
+     * could have called the SDK directly while both documents kept saying
+     * otherwise.
+     */
     @Test
     fun `the firebase sdk is reachable only through the crash reporter seam`() {
-        val referencing = sources().filter { it.readText().contains("FirebaseCrashlytics") }
+        val referencing = sources().filter { sdkReference.containsMatchIn(it.readText()) }
 
         assertTrue(
             "no file references FirebaseCrashlytics — the CrashReporter seam is not implemented",
             referencing.isNotEmpty(),
+        )
+
+        val paths = referencing.map { it.invariantSeparatorsPath }
+        assertEquals(
+            "the Firebase SDK must be named in exactly one file, and that file is $seamFile",
+            listOf(seamFile),
+            paths.sorted(),
         )
 
         val outside = referencing.filterNot { isSeamFile(it) }.map { it.invariantSeparatorsPath }
@@ -115,18 +150,66 @@ class CrashReportingPrivacyTest {
     }
 
     /**
+     * `firebase-crashlytics` pulls in `firebase-sessions`, which posts a session
+     * event to Google on every cold start and every foreground — no crash
+     * involved. The privacy policy says data goes to Google "when the app
+     * crashes"; this flag is what makes that sentence true. Deleting it turns
+     * the policy into a false statement, silently.
+     */
+    @Test
+    fun `session reporting is switched off in the manifest`() {
+        val manifest = File("src/main/AndroidManifest.xml").readText()
+
+        val declaration = Regex(
+            """<meta-data\s+android:name="firebase_sessions_enabled"\s+android:value="false"\s*/>"""
+        )
+        assertTrue(
+            "src/main/AndroidManifest.xml must declare firebase_sessions_enabled=false, " +
+                "otherwise the app pings Google on every launch and the privacy policy is wrong",
+            declaration.containsMatchIn(manifest),
+        )
+    }
+
+    /**
      * Crashlytics only reports what it was switched on for. If nothing applies
      * the stored preference at startup, a user who opted out keeps being
      * reported on until they open Settings again.
+     *
+     * The assertion is on the *call*, not on the word appearing somewhere in
+     * the file. The previous version checked for the substring "CrashReporting",
+     * which the import line satisfies on its own — deleting the whole startup
+     * invocation left this test green.
      */
     @Test
     fun `the app applies the stored crash reporting preference on startup`() {
         val application = File(sourceRoot, "com/fastmask/FastMaskApplication.kt")
         assertTrue("FastMaskApplication.kt not found", application.exists())
+        val source = application.readText()
+
+        val declarationAndCall = Regex("""\bapplyCrashReportingPreference\s*\(\s*\)""")
+            .findAll(source)
+            .count()
+        assertTrue(
+            "applyCrashReportingPreference() must be declared AND called from onCreate — " +
+                "found $declarationAndCall occurrence(s)",
+            declarationAndCall >= 2,
+        )
 
         assertTrue(
-            "FastMaskApplication does not apply the crash reporting preference on start",
-            application.readText().contains("CrashReporting"),
+            "the startup path must delegate to CrashReportingStartup, which is the " +
+                "collaborator unit tests actually cover",
+            Regex("""\bcrashReportingStartup\s*\.\s*apply\s*\(""").containsMatchIn(source),
+        )
+
+        // onCreate is where it has to happen; a call left in a private method
+        // nobody invokes would satisfy the count above.
+        val onCreateBody = Regex(
+            """override fun onCreate\(\)\s*\{(.*?)\n    \}""",
+            RegexOption.DOT_MATCHES_ALL,
+        ).find(source)?.groupValues?.get(1)
+        assertTrue(
+            "onCreate() must call applyCrashReportingPreference(); body was:\n$onCreateBody",
+            onCreateBody?.contains("applyCrashReportingPreference()") == true,
         )
     }
 

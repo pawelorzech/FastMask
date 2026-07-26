@@ -4,7 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
+import com.fastmask.domain.crash.CrashReportingPolicy
+import com.fastmask.domain.crash.CrashReportingPreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -22,25 +23,51 @@ class CrashReportingSettings(
     private val dataStore: DataStore<Preferences>,
 ) {
 
-    val enabled: Flow<Boolean>
+    /**
+     * The stored preference, with "no key" and "could not read" kept apart.
+     *
+     * Collapsing the two is what let a transient DataStore failure re-enable
+     * collection for a user who had opted out: absence of the key means a fresh
+     * or upgraded install (opted in by default), while a failed read means the
+     * user's choice is simply unknown. [CrashReportingStartup] is the consumer
+     * that cares — it applies the first and skips the SDK entirely on the second.
+     */
+    val preference: Flow<CrashReportingPreference>
         get() = dataStore.data
-            // A corrupted or unreadable preferences file surfaces here as an
-            // IOException. Letting it through would kill the settings screen
-            // over a diagnostics toggle, so it degrades to the documented
-            // default; anything else (including CancellationException) is a
-            // real bug and still propagates.
-            .catch { throwable ->
-                if (throwable is IOException) emit(emptyPreferences()) else throw throwable
-            }
             .map { preferences ->
                 // Read through asMap() rather than the get operator: Preferences.Key
                 // equality is by name alone, so a value of the wrong type stored under
                 // this name would make preferences[KEY] an unchecked cast whose
                 // ClassCastException surfaces at an unpredictable point downstream.
-                // An unreadable value is not an opt-out — the user never said no.
-                val stored = preferences.asMap()[KEY]
-                if (stored is Boolean) stored else DEFAULT_ENABLED
+                when (val stored = preferences.asMap()[KEY]) {
+                    null -> CrashReportingPreference.Missing
+                    is Boolean -> CrashReportingPreference.Stored(stored)
+                    // A value we did not write, under our name. It says nothing
+                    // about what the user chose, so it is treated as unreadable
+                    // rather than as an opt-in.
+                    else -> CrashReportingPreference.Unreadable
+                }
             }
+            // A corrupted or unreadable preferences file surfaces as an
+            // IOException on the data flow. Letting it through would kill the
+            // settings screen over a diagnostics toggle, so it degrades to
+            // Unreadable; anything else (including CancellationException) is a
+            // real bug and still propagates.
+            .catch { throwable ->
+                if (throwable is IOException) {
+                    emit(CrashReportingPreference.Unreadable)
+                } else {
+                    throw throwable
+                }
+            }
+
+    /**
+     * The preference as a plain flag, for rendering the switch. Anything that
+     * drives the SDK must use [preference] instead — see the KDoc on
+     * [CrashReportingPreference.enabledOrDefault].
+     */
+    val enabled: Flow<Boolean>
+        get() = preference.map { it.enabledOrDefault }
 
     suspend fun setEnabled(enabled: Boolean) {
         // edit() touches this key only; replacing the whole Preferences object
@@ -54,7 +81,7 @@ class CrashReportingSettings(
 
         val KEY: Preferences.Key<Boolean> = booleanPreferencesKey(KEY_NAME)
 
-        /** Opt-out: on unless the user said otherwise. */
-        const val DEFAULT_ENABLED = true
+        /** Opt-out: on unless the user said otherwise. Owned by the domain policy. */
+        const val DEFAULT_ENABLED = CrashReportingPolicy.DEFAULT_ENABLED
     }
 }

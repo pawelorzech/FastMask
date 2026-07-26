@@ -3,6 +3,11 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] — Unreleased
+
+### Added
+- Crash reports. If the app crashes, the stack trace and basic device details go to Firebase Crashlytics so the bug can be fixed. On by default, switchable off in Settings → *Crash reports*.
+
 ## [1.9.0] — 2026-07-25
 
 Backlog after the fourth audit pass. 124 → 143 unit tests, plus the app's first 12 instrumented tests.

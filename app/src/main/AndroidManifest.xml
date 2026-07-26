@@ -55,6 +55,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FastMask"
         tools:targetApi="34">
+
+        <!--
+            firebase-crashlytics pulls in firebase-sessions transitively, and
+            that SDK posts a "session start" event to Google on every cold start
+            and every return to the foreground — no crash involved. That is
+            usage telemetry, which this app does not do, and it would make the
+            privacy policy's "when the app crashes" untrue.
+
+            The module cannot simply be excluded: CrashlyticsRegistrar calls
+            FirebaseSessionsDependencies.addDependency() statically at Firebase
+            component discovery, so removing the artifact breaks crash reporting
+            outright. This flag is the supported way off — LocalOverrideSettings
+            reads it from the application metadata and SessionsSettings honours
+            it ahead of any remote configuration, so no session event is ever
+            published. Crash reports are unaffected; the only loss is the
+            crash-free-users percentage in the Firebase console.
+        -->
+        <meta-data
+            android:name="firebase_sessions_enabled"
+            android:value="false" />
+
         <!-- Shares the CSV mask export (Pro) from cacheDir/exports — no storage
              permissions, receiver gets a one-off read grant. -->
         <provider

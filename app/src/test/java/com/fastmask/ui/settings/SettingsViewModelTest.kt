@@ -61,6 +61,7 @@ class SettingsViewModelTest {
         every { accent } returns flowOf(Accent.AMBER)
         every { appLockEnabled } returns flowOf(false)
         every { crashReportingEnabled } returns storedCrashReporting
+        every { crashReportingEnabledBlocking() } answers { storedCrashReporting.value }
         coJustRun { setAccent(any()) }
         coJustRun { setAppLockEnabled(any()) }
         coJustRun { setCrashReportingEnabled(any()) }
@@ -203,14 +204,32 @@ class SettingsViewModelTest {
     // --- Crash reporting (opt-out) ---
 
     /**
-     * The switch is rendered before the stored value has been read. Rendering
-     * it as "off" would tell a user who never opted out that nothing is being
-     * collected — the opposite of the truth, and the kind of thing that gets an
-     * app called out on a privacy-first promise.
+     * The switch is rendered before the asynchronous flow has emitted, so its
+     * initial value is seeded synchronously from storage — the same way
+     * `appMode` is. A plain `DEFAULT_ENABLED` seed painted the switch ON for
+     * the first frames of every entry into Settings, showing a user who had
+     * opted out the opposite of their own choice.
      */
     @Test
-    fun `the crash reporting switch reads as on before the stored value arrives`() = runTest {
+    fun `the crash reporting switch shows a stored opt-out from the very first frame`() = runTest {
         storedCrashReporting.value = false
+
+        val vm = viewModel()
+
+        assertFalse(
+            "the switch must never flash ON for someone who opted out",
+            vm.crashReportingEnabled.value,
+        )
+    }
+
+    /**
+     * The other direction, which the seed must not break: an install that never
+     * touched the switch is opted in, and showing "off" would claim nothing is
+     * collected when it is.
+     */
+    @Test
+    fun `the crash reporting switch reads as on for an untouched install`() = runTest {
+        storedCrashReporting.value = true
 
         val vm = viewModel()
 
@@ -273,6 +292,26 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
+    }
+
+    /**
+     * The SDK call happens on the main thread, straight off a tap, and it is
+     * where Firebase initialises itself — so on a device where the default
+     * `FirebaseApp` never came up it throws. Unwrapped, that took the Settings
+     * screen down. The choice must still be persisted, so the next launch
+     * re-applies it.
+     */
+    @Test
+    fun `an sdk that cannot start does not crash the settings screen`() = runTest {
+        crashReporter.failure = IllegalStateException(
+            "Default FirebaseApp is not initialized in this process"
+        )
+        val vm = viewModel()
+
+        vm.onCrashReportingToggled(false)
+        advanceUntilIdle()
+
+        coVerify { settingsDataStore.setCrashReportingEnabled(false) }
     }
 
     @Test
