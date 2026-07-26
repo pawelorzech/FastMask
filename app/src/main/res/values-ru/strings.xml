@@ -250,4 +250,15 @@
         <item quantity="other">всего %d</item>
     </plurals>
     <string name="list_offline_cached">Офлайн · обновлено %1$s</string>
+    <string name="quick_mask_tile_label">Новая маска</string>
+    <string name="shortcut_quick_mask_short">Новая маска</string>
+    <string name="shortcut_quick_mask_long">Создать маску email</string>
+    <string name="quick_mask_channel_name">Быстрая маска</string>
+    <string name="quick_mask_channel_description">Подтверждает маску, созданную из плитки или ярлыка.</string>
+    <string name="quick_mask_created_title">Маска создана</string>
+    <string name="quick_mask_created_body">Адрес скопирован в буфер обмена</string>
+    <string name="quick_mask_open">Открыть</string>
+    <string name="quick_mask_undo">Отменить</string>
+    <string name="quick_mask_undone">Маска удалена</string>
+    <string name="quick_mask_undo_failed">Не удалось удалить маску. Откройте FastMask и попробуйте снова.</string>
 </resources>

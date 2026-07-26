@@ -246,4 +246,15 @@
         <item quantity="other">মোট: %d</item>
     </plurals>
     <string name="list_offline_cached">অফলাইন · আপডেট %1$s</string>
+    <string name="quick_mask_tile_label">নতুন মাস্ক</string>
+    <string name="shortcut_quick_mask_short">নতুন মাস্ক</string>
+    <string name="shortcut_quick_mask_long">মাস্কড ঠিকানা তৈরি করুন</string>
+    <string name="quick_mask_channel_name">দ্রুত মাস্ক</string>
+    <string name="quick_mask_channel_description">টাইল বা শর্টকাট থেকে তৈরি মাস্ক নিশ্চিত করে।</string>
+    <string name="quick_mask_created_title">মাস্ক তৈরি হয়েছে</string>
+    <string name="quick_mask_created_body">ঠিকানা ক্লিপবোর্ডে কপি করা হয়েছে</string>
+    <string name="quick_mask_open">খুলুন</string>
+    <string name="quick_mask_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
+    <string name="quick_mask_undone">মাস্ক মুছে ফেলা হয়েছে</string>
+    <string name="quick_mask_undo_failed">মাস্ক মুছে ফেলা যায়নি। FastMask খুলে আবার চেষ্টা করুন।</string>
 </resources>

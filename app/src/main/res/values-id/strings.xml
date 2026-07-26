@@ -244,4 +244,15 @@
         <item quantity="other">%d total</item>
     </plurals>
     <string name="list_offline_cached">Luring · diperbarui %1$s</string>
+    <string name="quick_mask_tile_label">Email tersamar</string>
+    <string name="shortcut_quick_mask_short">Tersamar baru</string>
+    <string name="shortcut_quick_mask_long">Buat alamat tersamar</string>
+    <string name="quick_mask_channel_name">Tersamar cepat</string>
+    <string name="quick_mask_channel_description">Mengonfirmasi email tersamar yang dibuat dari ubin atau pintasan.</string>
+    <string name="quick_mask_created_title">Email tersamar dibuat</string>
+    <string name="quick_mask_created_body">Alamat disalin ke papan klip</string>
+    <string name="quick_mask_open">Buka</string>
+    <string name="quick_mask_undo">Batalkan</string>
+    <string name="quick_mask_undone">Email tersamar dihapus</string>
+    <string name="quick_mask_undo_failed">Tidak dapat menghapus email tersamar. Buka FastMask lalu coba lagi.</string>
 </resources>

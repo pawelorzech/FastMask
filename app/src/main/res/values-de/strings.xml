@@ -246,4 +246,15 @@
         <item quantity="other">%d gesamt</item>
     </plurals>
     <string name="list_offline_cached">Offline · aktualisiert %1$s</string>
+    <string name="quick_mask_tile_label">Neue Maske</string>
+    <string name="shortcut_quick_mask_short">Neue Maske</string>
+    <string name="shortcut_quick_mask_long">Maskierte Adresse erstellen</string>
+    <string name="quick_mask_channel_name">Schnelle Maske</string>
+    <string name="quick_mask_channel_description">Bestätigt eine über die Kachel oder die Verknüpfung erstellte Maske.</string>
+    <string name="quick_mask_created_title">Maske erstellt</string>
+    <string name="quick_mask_created_body">Adresse in die Zwischenablage kopiert</string>
+    <string name="quick_mask_open">Öffnen</string>
+    <string name="quick_mask_undo">Rückgängig</string>
+    <string name="quick_mask_undone">Maske gelöscht</string>
+    <string name="quick_mask_undo_failed">Die Maske konnte nicht gelöscht werden. Öffne FastMask und versuche es erneut.</string>
 </resources>

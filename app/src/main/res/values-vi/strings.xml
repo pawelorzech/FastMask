@@ -244,4 +244,15 @@
         <item quantity="other">%d tổng</item>
     </plurals>
     <string name="list_offline_cached">Ngoại tuyến · cập nhật %1$s</string>
+    <string name="quick_mask_tile_label">Email ẩn danh mới</string>
+    <string name="shortcut_quick_mask_short">Tạo email ẩn danh</string>
+    <string name="shortcut_quick_mask_long">Tạo địa chỉ email ẩn danh</string>
+    <string name="quick_mask_channel_name">Tạo nhanh</string>
+    <string name="quick_mask_channel_description">Xác nhận email ẩn danh được tạo từ ô hoặc lối tắt.</string>
+    <string name="quick_mask_created_title">Đã tạo email ẩn danh</string>
+    <string name="quick_mask_created_body">Đã sao chép địa chỉ vào bảng nhớ tạm</string>
+    <string name="quick_mask_open">Mở</string>
+    <string name="quick_mask_undo">Hoàn tác</string>
+    <string name="quick_mask_undone">Đã xóa email ẩn danh</string>
+    <string name="quick_mask_undo_failed">Không thể xóa email ẩn danh. Mở FastMask rồi thử lại.</string>
 </resources>

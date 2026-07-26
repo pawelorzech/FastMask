@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
@@ -117,7 +118,7 @@ fun FastMaskNavHost(
                     .collectAsState()
                 MaskedEmailListScreen(
                     onNavigateToCreate = {
-                        navController.navigate(NavRoutes.CREATE_EMAIL) { launchSingleTop = true }
+                        navController.navigate(NavRoutes.createEmail()) { launchSingleTop = true }
                     },
                     onNavigateToDetail = { emailId ->
                         navController.navigate(NavRoutes.emailDetail(emailId)) { launchSingleTop = true }
@@ -184,7 +185,35 @@ fun FastMaskNavHost(
                 )
             }
 
-            composable(NavRoutes.CREATE_EMAIL) {
+            composable(
+                route = NavRoutes.CREATE_EMAIL,
+                arguments = listOf(
+                    navArgument("forDomain") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument("url") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument("description") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                ),
+            ) { entry ->
+                val forDomain: String = entry.arguments?.getString("forDomain").orEmpty()
+                val url: String = entry.arguments?.getString("url").orEmpty()
+                val description: String = entry.arguments?.getString("description").orEmpty()
+                val prefill: SharePrefill? = if (forDomain.isNotBlank()) {
+                    SharePrefill(
+                        forDomain = forDomain,
+                        url = url,
+                        description = description,
+                    )
+                } else {
+                    null
+                }
                 CreateMaskedEmailScreen(
                     onNavigateBack = {
                         navController.popBackStack()
@@ -202,6 +231,7 @@ fun FastMaskNavHost(
                             launchSingleTop = true
                         }
                     },
+                    prefill = prefill,
                 )
             }
 

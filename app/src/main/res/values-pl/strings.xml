@@ -252,4 +252,15 @@
         <item quantity="other">łącznie %d</item>
     </plurals>
     <string name="list_offline_cached">Offline · zaktualizowano %1$s</string>
+    <string name="quick_mask_tile_label">Nowa maska</string>
+    <string name="shortcut_quick_mask_short">Nowa maska</string>
+    <string name="shortcut_quick_mask_long">Utwórz zamaskowany adres</string>
+    <string name="quick_mask_channel_name">Szybka maska</string>
+    <string name="quick_mask_channel_description">Potwierdza maskę utworzoną z kafelka lub skrótu.</string>
+    <string name="quick_mask_created_title">Maska utworzona</string>
+    <string name="quick_mask_created_body">Adres skopiowany do schowka</string>
+    <string name="quick_mask_open">Otwórz</string>
+    <string name="quick_mask_undo">Cofnij</string>
+    <string name="quick_mask_undone">Maska usunięta</string>
+    <string name="quick_mask_undo_failed">Nie udało się usunąć maski. Otwórz FastMask i spróbuj ponownie.</string>
 </resources>

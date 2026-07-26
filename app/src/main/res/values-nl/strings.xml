@@ -246,4 +246,15 @@
         <item quantity="other">%d totaal</item>
     </plurals>
     <string name="list_offline_cached">Offline · bijgewerkt %1$s</string>
+    <string name="quick_mask_tile_label">Nieuw masker</string>
+    <string name="shortcut_quick_mask_short">Nieuw masker</string>
+    <string name="shortcut_quick_mask_long">Gemaskeerd adres aanmaken</string>
+    <string name="quick_mask_channel_name">Snel masker</string>
+    <string name="quick_mask_channel_description">Bevestigt een masker dat via de tegel of de snelkoppeling is aangemaakt.</string>
+    <string name="quick_mask_created_title">Masker aangemaakt</string>
+    <string name="quick_mask_created_body">Adres gekopieerd naar het klembord</string>
+    <string name="quick_mask_open">Openen</string>
+    <string name="quick_mask_undo">Ongedaan maken</string>
+    <string name="quick_mask_undone">Masker verwijderd</string>
+    <string name="quick_mask_undo_failed">Kan het masker niet verwijderen. Open FastMask en probeer het opnieuw.</string>
 </resources>

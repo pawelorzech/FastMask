@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_mask"
+        android:enabled="true"
+        android:icon="@drawable/ic_quick_mask"
+        android:shortcutShortLabel="@string/shortcut_quick_mask_short"
+        android:shortcutLongLabel="@string/shortcut_quick_mask_long">
+        <!-- Own action: QuickMaskActivity only creates a mask for this one. -->
+        <intent
+            android:action="com.fastmask.action.QUICK_MASK"
+            android:targetPackage="com.fastmask"
+            android:targetClass="com.fastmask.quickmask.QuickMaskActivity" />
+        <categories android:name="com.fastmask.category.QUICK_MASK" />
+    </shortcut>
+</shortcuts>

@@ -246,4 +246,15 @@
         <item quantity="other">toplam %d</item>
     </plurals>
     <string name="list_offline_cached">Çevrimdışı · güncellendi %1$s</string>
+    <string name="quick_mask_tile_label">Yeni maske</string>
+    <string name="shortcut_quick_mask_short">Yeni maske</string>
+    <string name="shortcut_quick_mask_long">Maskeli adres oluştur</string>
+    <string name="quick_mask_channel_name">Hızlı maske</string>
+    <string name="quick_mask_channel_description">Karodan veya kısayoldan oluşturulan maskeyi bildirir.</string>
+    <string name="quick_mask_created_title">Maske oluşturuldu</string>
+    <string name="quick_mask_created_body">Adres panoya kopyalandı</string>
+    <string name="quick_mask_open">Aç</string>
+    <string name="quick_mask_undo">Geri al</string>
+    <string name="quick_mask_undone">Maske silindi</string>
+    <string name="quick_mask_undo_failed">Maske silinemedi. FastMask uygulamasını açıp tekrar deneyin.</string>
 </resources>

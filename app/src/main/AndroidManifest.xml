@@ -6,6 +6,15 @@
     <!-- Biometric app lock (Pro). com.android.vending.BILLING is merged in by
          the Play Billing library's manifest. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- Confirms a mask created from the tile or the shortcut, and carries the
+         only "Undo" button the feature has. Requested once from MainActivity,
+         when a signed-in user is looking at their masks (see
+         QuickMaskPolicy.shouldRequestNotificationPermission) — on Android 13+
+         the permission is DENIED on a fresh install, so without asking, the
+         confirmation and its Undo would never appear at all. A denial is not
+         fatal: the quick-create path falls back to a Toast, so it costs the
+         confirmation, not the mask. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
       Android 11+ (API 30) package visibility. Without these declarations
@@ -66,7 +75,57 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Keep MainActivity standard: a share must start a fresh instance
+                 so the biometric gate is re-evaluated; singleTop/singleTask
+                 could deliver into an Activity whose lock state was decided earlier. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
+
+        <!--
+          exported="false" is a security requirement, not a default.
+
+          Exported (as this was) and with no intent-filter, ANY app on the
+          device could `startActivity` it with zero permissions and zero user
+          interaction, and FastMask — a confused deputy holding the user's
+          Fastmail token — would mint a real mask on their account and
+          overwrite the clipboard, in a loop if asked.
+
+          The launcher shortcut does not need the export: the system starts
+          shortcuts through LauncherApps#startShortcut, which runs the intent
+          as the publishing package, so the caller is FastMask itself.
+          QuickMaskActivity additionally refuses to create for any intent that
+          does not carry ACTION_QUICK_MASK.
+        -->
+        <activity
+            android:name=".quickmask.QuickMaskActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMask.Invisible" />
+
+        <receiver
+            android:name=".quickmask.QuickMaskUndoReceiver"
+            android:exported="false" />
+
+        <service
+            android:name=".quickmask.QuickMaskTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_quick_mask"
+            android:label="@string/quick_mask_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

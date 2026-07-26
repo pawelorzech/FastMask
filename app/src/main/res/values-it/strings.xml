@@ -248,4 +248,15 @@
         <item quantity="other">%d in totale</item>
     </plurals>
     <string name="list_offline_cached">Offline · aggiornato %1$s</string>
+    <string name="quick_mask_tile_label">Nuova maschera</string>
+    <string name="shortcut_quick_mask_short">Nuova maschera</string>
+    <string name="shortcut_quick_mask_long">Crea un indirizzo mascherato</string>
+    <string name="quick_mask_channel_name">Maschera rapida</string>
+    <string name="quick_mask_channel_description">Conferma una maschera creata dal riquadro o dalla scorciatoia.</string>
+    <string name="quick_mask_created_title">Maschera creata</string>
+    <string name="quick_mask_created_body">Indirizzo copiato negli appunti</string>
+    <string name="quick_mask_open">Apri</string>
+    <string name="quick_mask_undo">Annulla</string>
+    <string name="quick_mask_undone">Maschera eliminata</string>
+    <string name="quick_mask_undo_failed">Impossibile eliminare la maschera. Apri FastMask e riprova.</string>
 </resources>

@@ -248,4 +248,15 @@
         <item quantity="other">%d au total</item>
     </plurals>
     <string name="list_offline_cached">Hors ligne · mis à jour %1$s</string>
+    <string name="quick_mask_tile_label">Nouveau masque</string>
+    <string name="shortcut_quick_mask_short">Nouveau masque</string>
+    <string name="shortcut_quick_mask_long">Créer une adresse masquée</string>
+    <string name="quick_mask_channel_name">Masque rapide</string>
+    <string name="quick_mask_channel_description">Confirme un masque créé depuis la tuile ou le raccourci.</string>
+    <string name="quick_mask_created_title">Masque créé</string>
+    <string name="quick_mask_created_body">Adresse copiée dans le presse-papiers</string>
+    <string name="quick_mask_open">Ouvrir</string>
+    <string name="quick_mask_undo">Annuler</string>
+    <string name="quick_mask_undone">Masque supprimé</string>
+    <string name="quick_mask_undo_failed">Impossible de supprimer le masque. Ouvrez FastMask et réessayez.</string>
 </resources>

@@ -1,9 +1,14 @@
 package com.fastmask
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -21,6 +27,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.share.ShareIntentPolicy
+import com.fastmask.domain.share.SharePrefill
+import com.fastmask.domain.share.SharedLinkParser
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.AuthRepository
@@ -28,6 +37,7 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.showUnlockPrompt
 import com.fastmask.ui.navigation.FastMaskNavHost
+import com.fastmask.quickmask.QuickMaskPolicy
 import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,12 +64,36 @@ class MainActivity : AppCompatActivity() {
 
     private var isReady = false
 
+    /**
+     * Registered as a field so it exists before the Activity is STARTED, which
+     * the Activity Result API requires. The result itself needs no handling:
+     * a grant makes the quick-create confirmation possible, a denial leaves the
+     * existing Toast fallback in place.
+     */
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
+    private val pendingShare = mutableStateOf<PendingShare?>(null)
+
+    /**
+     * True once the current launch intent's share has been routed to the create
+     * screen.
+     *
+     * A configuration change re-runs [onCreate] with the SAME ACTION_SEND
+     * intent, so without this flag the share is replayed on every rotation —
+     * re-opening a create form the user had already filled in or dismissed.
+     * It is persisted in the instance state because a rotation is exactly the
+     * event that would otherwise reset it.
+     */
+    private var shareConsumed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        shareConsumed = savedInstanceState?.getBoolean(KEY_SHARE_CONSUMED) ?: false
+        pendingShare.value = if (shareConsumed) null else pendingShareFromIntent(intent)
 
         if (!BuildConfig.DEBUG) {
             window.setFlags(
@@ -129,6 +163,7 @@ class MainActivity : AppCompatActivity() {
                 lockAtLaunch
             }
             isReady = true
+            maybeRequestNotificationPermission(signedIn = startDestination == NavRoutes.EMAIL_LIST)
 
             setContent {
                 val proStatus by proRepository.proStatus.collectAsState()
@@ -187,6 +222,23 @@ class MainActivity : AppCompatActivity() {
                             LockScreen(onUnlockClick = ::requestUnlock)
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
+                            // This must stay INSIDE the unlocked branch: a pending
+                            // share waits behind the biometric gate until content
+                            // is allowed to compose, which is the whole mechanism.
+                            LaunchedEffect(pendingShare.value, startDestination) {
+                                val share: PendingShare = pendingShare.value ?: return@LaunchedEffect
+                                if (startDestination == NavRoutes.EMAIL_LIST) {
+                                    navController.navigate(NavRoutes.createEmail(share.prefill)) {
+                                        launchSingleTop = true
+                                    }
+                                }
+                                // Cleared even when the share was dropped (signed
+                                // out): a form the user cannot submit is worse
+                                // than an ignored share, and replaying it after a
+                                // later sign-in would be a surprise.
+                                shareConsumed = true
+                                pendingShare.value = null
+                            }
                             FastMaskNavHost(
                                 navController = navController,
                                 startDestination = startDestination
@@ -198,10 +250,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // Only a genuinely new share re-arms the flag; an unrelated intent must
+        // not resurrect one that was already routed.
+        val share = pendingShareFromIntent(intent) ?: return
+        shareConsumed = false
+        pendingShare.value = share
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(KEY_LOCKED, locked.value)
         outState.putString(KEY_PROCESS_TOKEN, processToken)
+        outState.putBoolean(KEY_SHARE_CONSUMED, shareConsumed)
     }
 
     /**
@@ -232,9 +295,57 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Asks for POST_NOTIFICATIONS once, from the one screen where it means
+     * something.
+     *
+     * The permission was declared but never requested, so on Android 13+ every
+     * fresh install had it denied — and with it the quick-create confirmation,
+     * which is the only place the "Undo" action lives. Skipped while the
+     * biometric gate is up (a permission dialog on top of the lock screen is
+     * the wrong thing to look at); the next launch asks instead.
+     */
+    private suspend fun maybeRequestNotificationPermission(signedIn: Boolean) {
+        if (locked.value) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        val alreadyAsked = withContext(Dispatchers.IO) {
+            runCatching { settingsDataStore.notificationPromptShown() }.getOrDefault(true)
+        }
+        val shouldAsk = QuickMaskPolicy.shouldRequestNotificationPermission(
+            sdkInt = Build.VERSION.SDK_INT,
+            permissionGranted = granted,
+            alreadyAsked = alreadyAsked,
+            signedIn = signedIn,
+        )
+        if (!shouldAsk) return
+
+        // Recorded before the dialog resolves: whatever the user answers, the
+        // app has now had its one ask.
+        withContext(Dispatchers.IO) {
+            runCatching { settingsDataStore.setNotificationPromptShown(true) }
+        }
+        runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+    }
+
+    private fun pendingShareFromIntent(intent: Intent?): PendingShare? {
+        // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
+        // and a Spanned from the sending app makes getStringExtra return null.
+        // The type/length rules live in ShareIntentPolicy, where they are tested.
+        val sharedText: String = ShareIntentPolicy.sharedText(
+            action = intent?.action,
+            type = intent?.type,
+            text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
+        ) ?: return null
+        return PendingShare(prefill = SharedLinkParser.parse(sharedText))
+    }
+
     private companion object {
         const val KEY_LOCKED = "fastmask_locked"
         const val KEY_PROCESS_TOKEN = "fastmask_process_token"
+        const val KEY_SHARE_CONSUMED = "fastmask_share_consumed"
 
         /**
          * Identifies this OS process. A saved-instance bundle whose token does
@@ -243,4 +354,6 @@ class MainActivity : AppCompatActivity() {
          */
         val processToken: String = java.util.UUID.randomUUID().toString()
     }
+
+    private data class PendingShare(val prefill: SharePrefill?)
 }
