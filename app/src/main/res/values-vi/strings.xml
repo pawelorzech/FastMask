@@ -300,10 +300,14 @@
     <string name="hygiene_clean_title">Không có gì cần dọn</string>
     <string name="hygiene_clean_body">Mọi email ẩn danh đều có mô tả, được dùng và đang bật. Hãy quay lại sau vài lần đăng ký nữa.</string>
     <string name="hygiene_all_archived_body">Mọi email ẩn danh trong tài khoản này đã được lưu trữ nên không còn gì để xem lại.</string>
-    <string name="hygiene_confirm_disable_title">Tắt các mục đã chọn?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">Tắt %d email ẩn danh?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Chúng sẽ ngừng nhận thư. Bạn có thể bật lại bất cứ lúc nào.</string>
-    <string name="hygiene_confirm_archive_title">Lưu trữ các mục đã chọn?</string>
-    <string name="hygiene_confirm_archive_body">Chúng sẽ chuyển vào kho lưu trữ. Bạn có thể hoàn tác ngay sau đó.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">Lưu trữ %d email ẩn danh?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Chúng sẽ chuyển vào kho lưu trữ và ngừng nhận thư. Địa chỉ vẫn còn trong tài khoản của bạn, và bạn có thể hoàn tác ngay sau đó.</string>
     <string name="hygiene_confirm_cancel">Hủy</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="other">Đã tắt %d email ẩn danh</item>
@@ -315,4 +319,13 @@
     <plurals name="hygiene_bulk_failed">
         <item quantity="other">Không thể cập nhật %d email ẩn danh</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">Đã khôi phục %d email ẩn danh</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">Không thể khôi phục %d email ẩn danh</item>
+    </plurals>
+    <string name="hygiene_locked_title">Dọn dẹp email ẩn danh là tính năng Pro</string>
+    <string name="hygiene_locked_body">Mở khóa FastMask Pro để xem toàn bộ bộ sưu tập và dọn dẹp hàng loạt. Trước đó, email ẩn danh của bạn vẫn giữ nguyên.</string>
+    <string name="hygiene_locked_cta">Xem FastMask Pro</string>
 </resources>

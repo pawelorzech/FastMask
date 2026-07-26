@@ -300,10 +300,14 @@
     <string name="hygiene_clean_title">Tidak ada yang perlu dibereskan</string>
     <string name="hygiene_clean_body">Semua alamat tersamar sudah dideskripsikan, terpakai, dan aktif. Kembalilah setelah beberapa pendaftaran lagi.</string>
     <string name="hygiene_all_archived_body">Semua alamat tersamar di akun ini sudah diarsipkan, jadi tidak ada lagi yang perlu ditinjau.</string>
-    <string name="hygiene_confirm_disable_title">Nonaktifkan yang dipilih?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">Nonaktifkan %d email tersamar?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Alamat berhenti menerima surat. Kamu bisa mengaktifkannya lagi kapan saja.</string>
-    <string name="hygiene_confirm_archive_title">Arsipkan yang dipilih?</string>
-    <string name="hygiene_confirm_archive_body">Semuanya pindah ke arsip. Kamu bisa membatalkannya tepat setelah itu.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">Arsipkan %d email tersamar?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Semuanya pindah ke arsip dan berhenti menerima surat. Alamatnya tetap ada di akunmu, dan kamu bisa membatalkannya tepat setelah itu.</string>
     <string name="hygiene_confirm_cancel">Batal</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="other">%d email tersamar dinonaktifkan</item>
@@ -315,4 +319,13 @@
     <plurals name="hygiene_bulk_failed">
         <item quantity="other">%d email tersamar gagal diperbarui</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">%d email tersamar dipulihkan</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">%d email tersamar tidak bisa dipulihkan</item>
+    </plurals>
+    <string name="hygiene_locked_title">Perawatan email tersamar adalah fitur Pro</string>
+    <string name="hygiene_locked_body">Buka FastMask Pro untuk meninjau seluruh koleksimu dan membereskannya sekaligus. Sampai saat itu, email tersamarmu tidak diubah.</string>
+    <string name="hygiene_locked_cta">Lihat FastMask Pro</string>
 </resources>

@@ -306,10 +306,16 @@
     <string name="hygiene_clean_title">Düzenlenecek bir şey yok</string>
     <string name="hygiene_clean_body">Her maske tanımlı, kullanımda ve etkin. Birkaç kayıt daha sonra yine bak.</string>
     <string name="hygiene_all_archived_body">Bu hesaptaki tüm maskeler arşivlendi, dolayısıyla incelenecek bir şey kalmadı.</string>
-    <string name="hygiene_confirm_disable_title">Seçili maskeler devre dışı bırakılsın mı?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d maske devre dışı bırakılsın mı?</item>
+        <item quantity="other">%d maske devre dışı bırakılsın mı?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Posta kabul etmeyi bırakırlar. İstediğin zaman yeniden açabilirsin.</string>
-    <string name="hygiene_confirm_archive_title">Seçili maskeler arşivlensin mi?</string>
-    <string name="hygiene_confirm_archive_body">Arşive taşınırlar. Hemen ardından geri alabilirsin.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d maske arşivlensin mi?</item>
+        <item quantity="other">%d maske arşivlensin mi?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Arşive taşınır ve posta kabul etmeyi bırakırlar. Adresler hesabında kalır, hemen ardından geri alabilirsin.</string>
     <string name="hygiene_confirm_cancel">İptal</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d maske devre dışı bırakıldı</item>
@@ -324,4 +330,15 @@
         <item quantity="one">%d maske güncellenemedi</item>
         <item quantity="other">%d maske güncellenemedi</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d maske geri yüklendi</item>
+        <item quantity="other">%d maske geri yüklendi</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d maske geri yüklenemedi</item>
+        <item quantity="other">%d maske geri yüklenemedi</item>
+    </plurals>
+    <string name="hygiene_locked_title">Maske bakımı bir Pro özelliğidir</string>
+    <string name="hygiene_locked_body">Tüm koleksiyonunu gözden geçirip toplu olarak toparlamak için FastMask Pro\'yu aç. O zamana kadar maskelerine dokunulmaz.</string>
+    <string name="hygiene_locked_cta">FastMask Pro\'ya bak</string>
 </resources>

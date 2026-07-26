@@ -300,10 +300,14 @@
     <string name="hygiene_clean_title">ไม่มีอะไรต้องจัดระเบียบ</string>
     <string name="hygiene_clean_body">ทุกอีเมลซ่อนมีคำอธิบาย ถูกใช้งาน และเปิดอยู่ กลับมาดูอีกครั้งหลังสมัครใช้บริการเพิ่ม</string>
     <string name="hygiene_all_archived_body">มาสก์ทั้งหมดในบัญชีนี้ถูกเก็บถาวรแล้ว จึงไม่มีอะไรให้ตรวจสอบ</string>
-    <string name="hygiene_confirm_disable_title">ปิดใช้งานรายการที่เลือกไหม</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">ปิดใช้งาน %d รายการไหม</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">รายการเหล่านี้จะหยุดรับอีเมล คุณเปิดกลับมาได้ทุกเมื่อ</string>
-    <string name="hygiene_confirm_archive_title">เก็บรายการที่เลือกเข้าคลังไหม</string>
-    <string name="hygiene_confirm_archive_body">รายการจะย้ายไปที่คลัง คุณเลิกทำได้ทันทีหลังจากนั้น</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">เก็บ %d รายการเข้าคลังไหม</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">รายการจะย้ายไปที่คลังและหยุดรับอีเมล ที่อยู่ยังอยู่ในบัญชีของคุณ และคุณเลิกทำได้ทันทีหลังจากนั้น</string>
     <string name="hygiene_confirm_cancel">ยกเลิก</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="other">ปิดใช้งานแล้ว %d รายการ</item>
@@ -315,4 +319,13 @@
     <plurals name="hygiene_bulk_failed">
         <item quantity="other">อัปเดตไม่สำเร็จ %d รายการ</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">คืนค่า %d รายการแล้ว</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">คืนค่า %d รายการไม่สำเร็จ</item>
+    </plurals>
+    <string name="hygiene_locked_title">การดูแลอีเมลซ่อนเป็นฟีเจอร์ Pro</string>
+    <string name="hygiene_locked_body">ปลดล็อก FastMask Pro เพื่อตรวจดูทั้งคอลเลกชันและจัดการพร้อมกันทีเดียว จนกว่าจะถึงตอนนั้นอีเมลซ่อนของคุณจะไม่ถูกแตะต้อง</string>
+    <string name="hygiene_locked_cta">ดู FastMask Pro</string>
 </resources>

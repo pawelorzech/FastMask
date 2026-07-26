@@ -13,7 +13,6 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
-import com.fastmask.domain.usecase.DeleteMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetHygieneBaselineUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.SaveHygieneBaselineUseCase
@@ -103,7 +102,6 @@ class MaskHygieneViewModelTest {
         getHygieneBaselineUseCase = GetHygieneBaselineUseCase(repository),
         saveHygieneBaselineUseCase = SaveHygieneBaselineUseCase(repository),
         updateMaskedEmailUseCase = UpdateMaskedEmailUseCase(repository),
-        deleteMaskedEmailUseCase = DeleteMaskedEmailUseCase(repository),
         proRepository = proRepository,
         analytics = analytics,
         clock = clock,
@@ -270,11 +268,72 @@ class MaskHygieneViewModelTest {
         // Not even the cache is touched — a locked screen reads nothing.
         assertEquals(emptyList<String>(), repository.callLog)
         assertTrue(vm.uiState.value.report.isClean)
+        // ...and the screen knows it was refused, rather than believing it
+        // looked at an account and found nothing.
+        assertTrue(vm.uiState.value.isLocked)
         assertEquals(
             listOf(MaskHygieneEvent.OpenPro(MaskHygieneViewModel.PAYWALL_SOURCE)),
             events.received,
         )
         events.stop()
+    }
+
+    /**
+     * The other half of the paywall bounce: the user goes and does NOT buy.
+     *
+     * The hygiene destination is still on the back stack, so the same ViewModel
+     * comes back holding the report the gate emptied. Without `isLocked` the
+     * screen falls into its `totalCount == 0` branch and tells someone with two
+     * hundred masks "No masks yet" — a claim about an account it never read,
+     * with no error banner and no other way forward.
+     */
+    @Test
+    fun `bouncing off the paywall without buying leaves the screen locked not empty`() = runTest {
+        proRepository.statusFlow.value = ProStatus.FREE
+        val repository = repo(dead1, dead2, quiet, fine)
+
+        val vm = viewModel(repository)
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue("an empty report must not be mistaken for an empty account", state.isLocked)
+        assertEquals(0, state.report.totalCount)
+        assertEquals(null, state.errorRes)
+        assertFalse(state.isLoading)
+    }
+
+    /** The locked card's button is the way out, and it opens the paywall. */
+    @Test
+    fun `the locked card can reopen the paywall`() = runTest {
+        proRepository.statusFlow.value = ProStatus.FREE
+        val vm = viewModel(repo(dead1))
+        val events = record(vm.events)
+        advanceUntilIdle()
+        events.received.clear()
+
+        vm.onUnlockPro()
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf(MaskHygieneEvent.OpenPro(MaskHygieneViewModel.PAYWALL_SOURCE)),
+            events.received,
+        )
+        events.stop()
+    }
+
+    /** Buying clears the lock along with filling the report. */
+    @Test
+    fun `buying pro clears the locked state`() = runTest {
+        proRepository.statusFlow.value = ProStatus.FREE
+        val vm = viewModel(repo(dead1, dead2))
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.isLocked)
+
+        proRepository.statusFlow.value = ProStatus.PRO
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.isLocked)
+        assertEquals(2, vm.uiState.value.report.reviewedCount)
     }
 
     @Test
@@ -433,8 +492,19 @@ class MaskHygieneViewModelTest {
         assertEquals(emptyList<String>(), repository.deletes)
     }
 
+    /**
+     * The data-loss regression, stated as a test.
+     *
+     * "Archive" on this screen once called [com.fastmask.domain.usecase.DeleteMaskedEmailUseCase],
+     * which issues a JMAP `MaskedEmail/set` `destroy` — one per selected mask,
+     * in a loop, behind a dialog promising a reversible move to the archive.
+     * "Select all" on a category of two hundred would have removed two hundred
+     * working addresses from the Fastmail account permanently.
+     *
+     * Archiving is `state = deleted`: mail bounces, the address stays.
+     */
     @Test
-    fun `archiving the selection archives each selected mask exactly once`() = runTest {
+    fun `archiving soft-archives each selected mask and destroys nothing`() = runTest {
         val repository = repo(dead1, dead2, quiet, fine)
         val vm = viewModel(repository)
         advanceUntilIdle()
@@ -443,9 +513,50 @@ class MaskHygieneViewModelTest {
         vm.onBulkAction(BulkAction.ARCHIVE)
         advanceUntilIdle()
 
-        assertEquals(setOf("dead1", "dead2"), repository.deletes.toSet())
-        assertEquals(2, repository.deletes.size)
-        assertEquals(emptyList<Pair<String, UpdateMaskedEmailParams>>(), repository.updates)
+        assertEquals(2, repository.updates.size)
+        assertEquals(setOf("dead1", "dead2"), repository.updates.map { it.first }.toSet())
+        assertTrue(repository.updates.all { it.second.state == EmailState.DELETED })
+        assertEquals(
+            "archiving must never issue a JMAP destroy",
+            emptyList<String>(),
+            repository.deletes,
+        )
+        // And the addresses are still on the account, in the archived state.
+        assertEquals(4, repository.emails.size)
+        assertEquals(
+            setOf(EmailState.DELETED),
+            repository.emails.filter { it.id in setOf("dead1", "dead2") }.map { it.state }.toSet(),
+        )
+    }
+
+    /**
+     * The guard, not the symptom: bulk destruction was excluded from this
+     * feature by decision, so no action the screen can offer may reach it. This
+     * runs every [BulkAction] there is, so adding a third one without thinking
+     * fails here.
+     */
+    @Test
+    fun `no bulk action reaches the destroy path`() = runTest {
+        BulkAction.values().forEach { action ->
+            val repository = repo(dead1, dead2, quiet, fine)
+            val vm = viewModel(repository)
+            advanceUntilIdle()
+
+            vm.onSelectAll(HygieneIssue.NEVER_USED)
+            vm.onBulkAction(action)
+            advanceUntilIdle()
+
+            assertEquals(
+                "$action destroyed masks",
+                emptyList<String>(),
+                repository.deletes,
+            )
+            assertEquals(
+                "$action must leave every address on the account",
+                4,
+                repository.emails.size,
+            )
+        }
     }
 
     @Test
@@ -569,13 +680,16 @@ class MaskHygieneViewModelTest {
         vm.onSelectAll(HygieneIssue.NEVER_USED)
         vm.onBulkAction(BulkAction.ARCHIVE)
         advanceUntilIdle()
+        // Archiving is itself an update now, so only what came after it counts.
+        val updatesBeforeUndo = repository.updates.size
 
         val result = events.received.filterIsInstance<MaskHygieneEvent.BulkActionFinished>()
             .single().result
         vm.undoBulkAction(result)
         advanceUntilIdle()
 
-        val restored = repository.updates.associate { it.first to it.second.state }
+        val restored = repository.updates.drop(updatesBeforeUndo)
+            .associate { it.first to it.second.state }
         assertEquals(
             mapOf(
                 "enabled" to EmailState.ENABLED,
@@ -584,6 +698,44 @@ class MaskHygieneViewModelTest {
             ),
             restored,
         )
+        events.stop()
+    }
+
+    /**
+     * The proof the previous test could not give while the fake accepted any
+     * id: the restore actually lands on the account, because archiving left the
+     * addresses there to be restored. Had "archive" destroyed them, every one
+     * of these updates would have come back as a failure.
+     */
+    @Test
+    fun `undo after archiving puts the masks back on the account`() = runTest {
+        val enabled = mask("enabled", state = EmailState.ENABLED, createdAt = ago(60), lastMessageAt = null)
+        val disabled = mask("disabled", state = EmailState.DISABLED, createdAt = ago(60), lastMessageAt = null)
+        val repository = HygieneRepository(emails = listOf(enabled, disabled))
+        val vm = viewModel(repository)
+        val events = record(vm.events)
+        advanceUntilIdle()
+
+        vm.onSelectAll(HygieneIssue.NEVER_USED)
+        vm.onBulkAction(BulkAction.ARCHIVE)
+        advanceUntilIdle()
+        assertEquals(
+            setOf(EmailState.DELETED),
+            repository.emails.map { it.state }.toSet(),
+        )
+
+        val result = events.received.filterIsInstance<MaskHygieneEvent.BulkActionFinished>()
+            .single().result
+        vm.undoBulkAction(result)
+        advanceUntilIdle()
+
+        assertEquals(
+            mapOf("enabled" to EmailState.ENABLED, "disabled" to EmailState.DISABLED),
+            repository.emails.associate { it.id to it.state },
+        )
+        val undo = events.received.filterIsInstance<MaskHygieneEvent.UndoFinished>().single().result
+        assertTrue("undo reported failures it did not have", undo.isCompleteSuccess)
+        assertEquals(2, undo.restoredIds.size)
         events.stop()
     }
 
@@ -599,6 +751,7 @@ class MaskHygieneViewModelTest {
         vm.onSelectAll(HygieneIssue.NEVER_USED)
         vm.onBulkAction(BulkAction.ARCHIVE)
         advanceUntilIdle()
+        val updatesBeforeUndo = repository.updates.size
 
         val result = events.received.filterIsInstance<MaskHygieneEvent.BulkActionFinished>()
             .single().result
@@ -606,7 +759,71 @@ class MaskHygieneViewModelTest {
         vm.undoBulkAction(result)
         advanceUntilIdle()
 
-        assertEquals(listOf("dead1"), repository.updates.map { it.first })
+        assertEquals(
+            listOf("dead1"),
+            repository.updates.drop(updatesBeforeUndo).map { it.first },
+        )
+        events.stop()
+    }
+
+    /**
+     * The forward run has always reported "7 of 10 done · 3 failed". Undo used
+     * to collapse any number of failures into one generic "could not update"
+     * with no count at all — so the user who lost six of seven restorations was
+     * told the same thing as the user who lost one.
+     */
+    @Test
+    fun `a partially failed undo is reported with counts`() = runTest {
+        val many = (1..7).map { mask("m$it", description = "Shop $it", createdAt = ago(60), lastMessageAt = null) }
+        val repository = HygieneRepository(emails = many)
+        val vm = viewModel(repository)
+        val events = record(vm.events)
+        advanceUntilIdle()
+
+        vm.onSelectAll(HygieneIssue.NEVER_USED)
+        vm.onBulkAction(BulkAction.ARCHIVE)
+        advanceUntilIdle()
+
+        val result = events.received.filterIsInstance<MaskHygieneEvent.BulkActionFinished>()
+            .single().result
+        assertEquals(7, result.succeeded.size)
+
+        repository.failIds += setOf("m2", "m4", "m5", "m6", "m7")
+        vm.undoBulkAction(result)
+        advanceUntilIdle()
+
+        val undo = events.received.filterIsInstance<MaskHygieneEvent.UndoFinished>().single().result
+        assertEquals(7, undo.requested)
+        assertEquals(setOf("m1", "m3"), undo.restoredIds.toSet())
+        assertEquals(setOf("m2", "m4", "m5", "m6", "m7"), undo.failedIds.toSet())
+        assertFalse("five failed restorations are not a success", undo.isCompleteSuccess)
+        assertTrue(undo.isPartial)
+        events.stop()
+    }
+
+    /** Every restoration failing is still a counted outcome, not silence. */
+    @Test
+    fun `a fully failed undo reports every mask it could not restore`() = runTest {
+        val repository = repo(dead1, dead2)
+        val vm = viewModel(repository)
+        val events = record(vm.events)
+        advanceUntilIdle()
+
+        vm.onSelectAll(HygieneIssue.NEVER_USED)
+        vm.onBulkAction(BulkAction.DISABLE)
+        advanceUntilIdle()
+
+        val result = events.received.filterIsInstance<MaskHygieneEvent.BulkActionFinished>()
+            .single().result
+        repository.failIds += setOf("dead1", "dead2")
+        vm.undoBulkAction(result)
+        advanceUntilIdle()
+
+        val undo = events.received.filterIsInstance<MaskHygieneEvent.UndoFinished>().single().result
+        assertEquals(emptyList<String>(), undo.restoredIds)
+        assertEquals(setOf("dead1", "dead2"), undo.failedIds.toSet())
+        assertFalse(undo.isCompleteSuccess)
+        assertFalse(undo.isPartial)
         events.stop()
     }
 
@@ -882,6 +1099,16 @@ class MaskHygieneViewModelTest {
         override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> =
             throw UnsupportedOperationException("hygiene never creates masks")
 
+        /**
+         * Applies the update to the stored collection, exactly like the server
+         * does — and refuses an id the account no longer holds.
+         *
+         * The refusal is the point. This fake used to accept any id, which is
+         * how a bulk "archive" implemented as a JMAP `destroy` could be followed
+         * by an "undo" that updated masks the server had already thrown away,
+         * and still pass. A fake that cannot say "no such mask" cannot catch
+         * data loss.
+         */
         override suspend fun updateMaskedEmail(
             id: String,
             params: UpdateMaskedEmailParams,
@@ -892,14 +1119,32 @@ class MaskHygieneViewModelTest {
             // cancellation test would pass for the wrong reason.
             yield()
             updates += id to params
-            return if (id in failIds) Result.failure(IOException("update failed: $id"))
-            else Result.success(Unit)
+            if (id in failIds) return Result.failure(IOException("update failed: $id"))
+            val index = emails.indexOfFirst { mask -> mask.id == id }
+            if (index < 0) {
+                return Result.failure(IOException("no such mask on the account: $id"))
+            }
+            emails = emails.toMutableList().apply {
+                val current = this[index]
+                this[index] = current.copy(state = params.state ?: current.state)
+            }
+            return Result.success(Unit)
         }
 
+        /**
+         * Destroys: the address leaves the account for good, so it leaves
+         * [emails] too and every later call about it fails. Nothing in the
+         * hygiene feature is allowed to reach this — `deletes` staying empty is
+         * an assertion the tests make, not an accident.
+         */
         override suspend fun deleteMaskedEmail(id: String): Result<Unit> {
             deletes += id
-            return if (id in failIds) Result.failure(IOException("archive failed: $id"))
-            else Result.success(Unit)
+            if (id in failIds) return Result.failure(IOException("destroy failed: $id"))
+            if (emails.none { mask -> mask.id == id }) {
+                return Result.failure(IOException("no such mask on the account: $id"))
+            }
+            emails = emails.filterNot { mask -> mask.id == id }
+            return Result.success(Unit)
         }
     }
 }

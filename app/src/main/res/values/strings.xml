@@ -312,10 +312,16 @@
     <string name="hygiene_clean_title">Nothing to clean up</string>
     <string name="hygiene_clean_body">Every mask is described, used, and active. Come back after a few more signups.</string>
     <string name="hygiene_all_archived_body">Every mask in this account is archived, so there is nothing left to review.</string>
-    <string name="hygiene_confirm_disable_title">Disable selected masks?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">Disable %d mask?</item>
+        <item quantity="other">Disable %d masks?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">They stop accepting mail. You can turn them back on at any time.</string>
-    <string name="hygiene_confirm_archive_title">Archive selected masks?</string>
-    <string name="hygiene_confirm_archive_body">They move to the archive. You can undo this right after.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">Archive %d mask?</item>
+        <item quantity="other">Archive %d masks?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">They move to the archive and stop accepting mail. The addresses stay on your account, and you can undo this right after.</string>
     <string name="hygiene_confirm_cancel">Cancel</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d mask disabled</item>
@@ -330,4 +336,15 @@
         <item quantity="one">%d mask could not be updated</item>
         <item quantity="other">%d masks could not be updated</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d mask restored</item>
+        <item quantity="other">%d masks restored</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d mask could not be restored</item>
+        <item quantity="other">%d masks could not be restored</item>
+    </plurals>
+    <string name="hygiene_locked_title">Mask hygiene is a Pro feature</string>
+    <string name="hygiene_locked_body">Unlock FastMask Pro to review your whole collection and clean it up in bulk. Your masks are untouched until then.</string>
+    <string name="hygiene_locked_cta">See FastMask Pro</string>
 </resources>

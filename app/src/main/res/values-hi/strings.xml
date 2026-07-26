@@ -306,10 +306,16 @@
     <string name="hygiene_clean_title">साफ़ करने को कुछ नहीं</string>
     <string name="hygiene_clean_body">हर मास्क का विवरण है, वह इस्तेमाल में है और चालू है। कुछ और साइन-अप के बाद फिर देखिए।</string>
     <string name="hygiene_all_archived_body">इस खाते के सभी मास्क संग्रहीत हैं, इसलिए समीक्षा के लिए कुछ नहीं बचा है।</string>
-    <string name="hygiene_confirm_disable_title">चुने गए मास्क अक्षम करें?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d मास्क अक्षम करें?</item>
+        <item quantity="other">%d मास्क अक्षम करें?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">ये मेल लेना बंद कर देंगे। आप इन्हें कभी भी दोबारा चालू कर सकते हैं।</string>
-    <string name="hygiene_confirm_archive_title">चुने गए मास्क संग्रहित करें?</string>
-    <string name="hygiene_confirm_archive_body">ये संग्रह में चले जाएंगे। इसके तुरंत बाद आप पूर्ववत् कर सकते हैं।</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d मास्क संग्रहित करें?</item>
+        <item quantity="other">%d मास्क संग्रहित करें?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">ये संग्रह में चले जाएंगे और मेल लेना बंद कर देंगे। पते आपके खाते में बने रहते हैं, और इसके तुरंत बाद आप पूर्ववत् कर सकते हैं।</string>
     <string name="hygiene_confirm_cancel">रद्द करें</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d मास्क अक्षम किया गया</item>
@@ -324,4 +330,15 @@
         <item quantity="one">%d मास्क अपडेट नहीं हो सका</item>
         <item quantity="other">%d मास्क अपडेट नहीं हो सके</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d मास्क वापस लाए गए</item>
+        <item quantity="other">%d मास्क वापस लाए गए</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d मास्क वापस नहीं लाए जा सके</item>
+        <item quantity="other">%d मास्क वापस नहीं लाए जा सके</item>
+    </plurals>
+    <string name="hygiene_locked_title">मास्क की सफ़ाई एक Pro सुविधा है</string>
+    <string name="hygiene_locked_body">पूरे संग्रह की समीक्षा और एक साथ सफ़ाई के लिए FastMask Pro अनलॉक करें। तब तक आपके मास्क वैसे ही रहेंगे।</string>
+    <string name="hygiene_locked_cta">FastMask Pro देखें</string>
 </resources>

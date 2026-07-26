@@ -320,10 +320,20 @@
     <string name="hygiene_clean_title">Nie ma czego porządkować</string>
     <string name="hygiene_clean_body">Każda maska jest opisana, używana i aktywna. Zajrzyj tu po kolejnych rejestracjach.</string>
     <string name="hygiene_all_archived_body">Wszystkie maski na tym koncie są zarchiwizowane, więc nie ma już czego przeglądać.</string>
-    <string name="hygiene_confirm_disable_title">Wyłączyć zaznaczone maski?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">Wyłączyć %d maskę?</item>
+        <item quantity="few">Wyłączyć %d maski?</item>
+        <item quantity="many">Wyłączyć %d masek?</item>
+        <item quantity="other">Wyłączyć %d maski?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Przestaną przyjmować pocztę. Możesz je włączyć z powrotem w dowolnej chwili.</string>
-    <string name="hygiene_confirm_archive_title">Zarchiwizować zaznaczone maski?</string>
-    <string name="hygiene_confirm_archive_body">Trafią do archiwum. Zaraz potem możesz to cofnąć.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">Zarchiwizować %d maskę?</item>
+        <item quantity="few">Zarchiwizować %d maski?</item>
+        <item quantity="many">Zarchiwizować %d masek?</item>
+        <item quantity="other">Zarchiwizować %d maski?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Trafią do archiwum i przestaną przyjmować pocztę. Adresy zostają na Twoim koncie, a zaraz potem możesz to cofnąć.</string>
     <string name="hygiene_confirm_cancel">Anuluj</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">Wyłączono %d maskę</item>
@@ -344,4 +354,19 @@
         <item quantity="many">Nie udało się zaktualizować %d masek</item>
         <item quantity="other">Nie udało się zaktualizować %d maski</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">Przywrócono %d maskę</item>
+        <item quantity="few">Przywrócono %d maski</item>
+        <item quantity="many">Przywrócono %d masek</item>
+        <item quantity="other">Przywrócono %d maski</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">Nie udało się przywrócić %d maski</item>
+        <item quantity="few">Nie udało się przywrócić %d masek</item>
+        <item quantity="many">Nie udało się przywrócić %d masek</item>
+        <item quantity="other">Nie udało się przywrócić %d maski</item>
+    </plurals>
+    <string name="hygiene_locked_title">Higiena masek to funkcja Pro</string>
+    <string name="hygiene_locked_body">Odblokuj FastMask Pro, aby przejrzeć całą kolekcję i uporządkować ją hurtowo. Do tego czasu Twoje maski pozostają nietknięte.</string>
+    <string name="hygiene_locked_cta">Zobacz FastMask Pro</string>
 </resources>

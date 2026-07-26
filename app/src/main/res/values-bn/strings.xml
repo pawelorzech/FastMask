@@ -306,10 +306,16 @@
     <string name="hygiene_clean_title">গোছানোর কিছু নেই</string>
     <string name="hygiene_clean_body">প্রতিটি মাস্কের বিবরণ আছে, ব্যবহৃত হচ্ছে এবং সক্রিয়। আরও কয়েকটি সাইন-আপের পর ফিরে আসুন।</string>
     <string name="hygiene_all_archived_body">এই অ্যাকাউন্টের সব মাস্ক আর্কাইভ করা হয়েছে, তাই পর্যালোচনা করার মতো কিছু বাকি নেই।</string>
-    <string name="hygiene_confirm_disable_title">নির্বাচিত মাস্ক নিষ্ক্রিয় করবেন?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d টি মাস্ক নিষ্ক্রিয় করবেন?</item>
+        <item quantity="other">%d টি মাস্ক নিষ্ক্রিয় করবেন?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">এগুলো আর মেইল নেবে না। যেকোনো সময় আবার চালু করতে পারবেন।</string>
-    <string name="hygiene_confirm_archive_title">নির্বাচিত মাস্ক আর্কাইভ করবেন?</string>
-    <string name="hygiene_confirm_archive_body">এগুলো আর্কাইভে চলে যাবে। ঠিক পরেই আপনি তা ফিরিয়ে নিতে পারবেন।</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d টি মাস্ক আর্কাইভ করবেন?</item>
+        <item quantity="other">%d টি মাস্ক আর্কাইভ করবেন?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">এগুলো আর্কাইভে চলে যাবে এবং মেইল নেওয়া বন্ধ করবে। ঠিকানাগুলো আপনার অ্যাকাউন্টেই থাকবে, আর ঠিক পরেই আপনি তা ফিরিয়ে নিতে পারবেন।</string>
     <string name="hygiene_confirm_cancel">বাতিল</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d টি মাস্ক নিষ্ক্রিয় করা হয়েছে</item>
@@ -324,4 +330,15 @@
         <item quantity="one">%d টি মাস্ক আপডেট করা যায়নি</item>
         <item quantity="other">%d টি মাস্ক আপডেট করা যায়নি</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d টি মাস্ক ফিরিয়ে আনা হয়েছে</item>
+        <item quantity="other">%d টি মাস্ক ফিরিয়ে আনা হয়েছে</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d টি মাস্ক ফিরিয়ে আনা যায়নি</item>
+        <item quantity="other">%d টি মাস্ক ফিরিয়ে আনা যায়নি</item>
+    </plurals>
+    <string name="hygiene_locked_title">মাস্ক গোছানো একটি Pro সুবিধা</string>
+    <string name="hygiene_locked_body">পুরো সংগ্রহ দেখতে ও একসাথে গোছাতে FastMask Pro আনলক করুন। ততক্ষণ আপনার মাস্কে কোনো পরিবর্তন হবে না।</string>
+    <string name="hygiene_locked_cta">FastMask Pro দেখুন</string>
 </resources>

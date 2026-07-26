@@ -312,10 +312,18 @@
     <string name="hygiene_clean_title">Niente da sistemare</string>
     <string name="hygiene_clean_body">Ogni maschera è descritta, usata e attiva. Torna dopo qualche altra registrazione.</string>
     <string name="hygiene_all_archived_body">Tutte le maschere di questo account sono archiviate, quindi non resta nulla da rivedere.</string>
-    <string name="hygiene_confirm_disable_title">Disattivare le maschere selezionate?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">Disattivare %d maschera?</item>
+        <item quantity="many">Disattivare %d maschere?</item>
+        <item quantity="other">Disattivare %d maschere?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Smetteranno di accettare posta. Puoi riattivarle quando vuoi.</string>
-    <string name="hygiene_confirm_archive_title">Archiviare le maschere selezionate?</string>
-    <string name="hygiene_confirm_archive_body">Finiranno nell\'archivio. Puoi annullare subito dopo.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">Archiviare %d maschera?</item>
+        <item quantity="many">Archiviare %d maschere?</item>
+        <item quantity="other">Archiviare %d maschere?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Finiranno nell\'archivio e smetteranno di accettare posta. Gli indirizzi restano nel tuo account e puoi annullare subito dopo.</string>
     <string name="hygiene_confirm_cancel">Annulla</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d maschera disattivata</item>
@@ -333,4 +341,17 @@
         <item quantity="many">Impossibile aggiornare %d maschere</item>
         <item quantity="other">Impossibile aggiornare %d maschere</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d maschera ripristinata</item>
+        <item quantity="many">%d maschere ripristinate</item>
+        <item quantity="other">%d maschere ripristinate</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">Impossibile ripristinare %d maschera</item>
+        <item quantity="many">Impossibile ripristinare %d maschere</item>
+        <item quantity="other">Impossibile ripristinare %d maschere</item>
+    </plurals>
+    <string name="hygiene_locked_title">L\'igiene delle maschere è una funzione Pro</string>
+    <string name="hygiene_locked_body">Sblocca FastMask Pro per rivedere l\'intera collezione e ripulirla in blocco. Fino ad allora le tue maschere restano intatte.</string>
+    <string name="hygiene_locked_cta">Scopri FastMask Pro</string>
 </resources>

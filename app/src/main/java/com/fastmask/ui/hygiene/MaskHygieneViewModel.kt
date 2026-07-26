@@ -15,7 +15,6 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.ProRepository
-import com.fastmask.domain.usecase.DeleteMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetHygieneBaselineUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.SaveHygieneBaselineUseCase
@@ -42,6 +41,13 @@ import javax.inject.Inject
 /**
  * Reviews the current mask list against the review's own retained baseline and
  * owns the sequential bulk actions that clean it up.
+ *
+ * Note what is NOT injected here: [com.fastmask.domain.usecase.DeleteMaskedEmailUseCase].
+ * That use case issues a JMAP `MaskedEmail/set` `destroy`, which removes the
+ * address from the Fastmail account for good. Nothing on this screen may reach
+ * it — "Archive" here means the same soft, reversible `state = deleted` the
+ * rest of the app means by it, and the dependency is left out so the mistake
+ * cannot be made again by autocomplete.
  */
 @HiltViewModel
 class MaskHygieneViewModel @Inject constructor(
@@ -49,7 +55,6 @@ class MaskHygieneViewModel @Inject constructor(
     private val getHygieneBaselineUseCase: GetHygieneBaselineUseCase,
     private val saveHygieneBaselineUseCase: SaveHygieneBaselineUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
-    private val deleteMaskedEmailUseCase: DeleteMaskedEmailUseCase,
     private val proRepository: ProRepository,
     private val analytics: MonetizationAnalytics,
     private val clock: Clock,
@@ -179,13 +184,10 @@ class MaskHygieneViewModel @Inject constructor(
                 val failedIds: MutableList<String> = mutableListOf()
 
                 targets.forEach { mask ->
-                    val result: Result<Unit> = when (action) {
-                        BulkAction.DISABLE -> updateMaskedEmailUseCase(
-                            mask.id,
-                            UpdateMaskedEmailParams(state = EmailState.DISABLED),
-                        )
-                        BulkAction.ARCHIVE -> deleteMaskedEmailUseCase(mask.id)
-                    }
+                    val result: Result<Unit> = updateMaskedEmailUseCase(
+                        mask.id,
+                        UpdateMaskedEmailParams(state = action.targetState),
+                    )
                     result.fold(
                         onSuccess = {
                             succeeded += MaskUndoState(id = mask.id, previousState = mask.state)
@@ -212,41 +214,51 @@ class MaskHygieneViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Undo is N account mutations exactly like the run it reverses, so it is
+     * reported to the same standard: counted, and never rounded up to "done".
+     * Collapsing "6 of 7 restorations failed" into one generic error string —
+     * which is what this used to do — hides the only number that matters, and
+     * the forward direction has never been allowed to do that.
+     */
     fun undoBulkAction(result: BulkActionResult): Unit {
+        if (result.succeeded.isEmpty()) return
+
         externalScope.launch {
-            var firstFailure: Throwable? = null
+            val restoredIds: MutableList<String> = mutableListOf()
+            val failedIds: MutableList<String> = mutableListOf()
 
             result.succeeded.forEach { undoState ->
                 updateMaskedEmailUseCase(
                     undoState.id,
                     UpdateMaskedEmailParams(state = undoState.previousState),
                 ).fold(
-                    onSuccess = {
-                        Unit
-                    },
-                    onFailure = { error ->
-                        // Undo stays best-effort per mask so one failure does
-                        // not stop the rest from being restored.
-                        if (firstFailure == null) {
-                            firstFailure = error
-                        }
-                    },
+                    // Undo stays best-effort per mask so one failure does not
+                    // stop the rest from being restored.
+                    onSuccess = { restoredIds += undoState.id },
+                    onFailure = { failedIds += undoState.id },
                 )
             }
 
+            // Buffered channel, so the outcome is recorded even if the screen
+            // collecting it is already gone.
+            _events.send(
+                MaskHygieneEvent.UndoFinished(
+                    UndoResult(restoredIds = restoredIds, failedIds = failedIds),
+                )
+            )
             loadReview(requirePro = false)
+        }
+    }
 
-            val undoFailure: Throwable? = firstFailure
-            if (undoFailure != null) {
-                _uiState.update { state ->
-                    state.copy(
-                        errorRes = UiErrors.messageRes(
-                            undoFailure,
-                            R.string.email_detail_error_update,
-                        )
-                    )
-                }
-            }
+    /**
+     * The locked card's own call to action. The gate already tracked the tap
+     * that got the user here; this is a second, deliberate one.
+     */
+    fun onUnlockPro(): Unit {
+        analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = PAYWALL_SOURCE)
+        viewModelScope.launch {
+            _events.send(MaskHygieneEvent.OpenPro(PAYWALL_SOURCE))
         }
     }
 
@@ -257,11 +269,18 @@ class MaskHygieneViewModel @Inject constructor(
      */
     private suspend fun loadReview(requirePro: Boolean): Unit {
         if (requirePro && !proRepository.proStatus.value.isPro) {
+            // `isLocked` is the difference between "we did not look" and "we
+            // looked and there is nothing there". Without it the free user who
+            // bounces off the paywall WITHOUT buying pops back onto this same
+            // ViewModel, still holding the empty report the gate left, and gets
+            // told "No masks yet" about an account holding two hundred of them.
             _uiState.update { state ->
                 state.copy(
                     isLoading = false,
                     report = MaskHygieneReport.EMPTY,
+                    selectedIds = emptySet(),
                     errorRes = null,
+                    isLocked = true,
                 )
             }
             analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = PAYWALL_SOURCE)
@@ -269,7 +288,9 @@ class MaskHygieneViewModel @Inject constructor(
             return
         }
 
-        _uiState.update { state -> state.copy(isLoading = true, errorRes = null) }
+        _uiState.update { state ->
+            state.copy(isLoading = true, errorRes = null, isLocked = false)
+        }
 
         if (!hasReadBaseline) {
             retainedBaseline = getHygieneBaselineUseCase()
@@ -342,10 +363,26 @@ data class MaskHygieneUiState(
     /** True while a bulk run is in flight — also the double-tap guard. */
     val actionInFlight: Boolean = false,
     val errorRes: Int? = null,
+    /**
+     * The entry gate refused, so the empty report means "not allowed to look",
+     * not "nothing to see". The screen must say so rather than describe an
+     * account it never read.
+     */
+    val isLocked: Boolean = false,
 )
 
-/** Destructive-by-degrees, and deliberately no bulk delete. */
-enum class BulkAction { DISABLE, ARCHIVE }
+/**
+ * Destructive-by-degrees — and both degrees are reversible state changes.
+ *
+ * [ARCHIVE] is the soft, recoverable `state = deleted` the whole app means by
+ * archiving: mail bounces, the address stays on the account, undo puts it back.
+ * It is deliberately NOT a JMAP `destroy`; bulk destruction is out of scope for
+ * this feature and there is no code path to it from here.
+ */
+enum class BulkAction(val targetState: EmailState) {
+    DISABLE(EmailState.DISABLED),
+    ARCHIVE(EmailState.DELETED),
+}
 
 /** What a mask looked like before a bulk action, so undo can put it back. */
 data class MaskUndoState(val id: String, val previousState: EmailState)
@@ -364,9 +401,24 @@ data class BulkActionResult(
     val isPartial: Boolean get() = succeeded.isNotEmpty() && failedIds.isNotEmpty()
 }
 
+/**
+ * The honest outcome of an undo, held to the same standard as the run it
+ * reverses: a restoration that only half worked is never reported as done.
+ */
+data class UndoResult(
+    val restoredIds: List<String> = emptyList(),
+    val failedIds: List<String> = emptyList(),
+) {
+    val requested: Int get() = restoredIds.size + failedIds.size
+    val isCompleteSuccess: Boolean get() = failedIds.isEmpty() && restoredIds.isNotEmpty()
+    val isPartial: Boolean get() = restoredIds.isNotEmpty() && failedIds.isNotEmpty()
+}
+
 sealed class MaskHygieneEvent {
     /** @param source paywall funnel entry point, never user data. */
     data class OpenPro(val source: String) : MaskHygieneEvent()
 
     data class BulkActionFinished(val result: BulkActionResult) : MaskHygieneEvent()
+
+    data class UndoFinished(val result: UndoResult) : MaskHygieneEvent()
 }

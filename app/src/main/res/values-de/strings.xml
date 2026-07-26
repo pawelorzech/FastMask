@@ -306,10 +306,16 @@
     <string name="hygiene_clean_title">Nichts aufzuräumen</string>
     <string name="hygiene_clean_body">Jede Maske ist beschrieben, genutzt und aktiv. Schau nach ein paar weiteren Anmeldungen wieder vorbei.</string>
     <string name="hygiene_all_archived_body">Alle Masken in diesem Konto sind archiviert, es gibt also nichts mehr zu prüfen.</string>
-    <string name="hygiene_confirm_disable_title">Ausgewählte Masken deaktivieren?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d Maske deaktivieren?</item>
+        <item quantity="other">%d Masken deaktivieren?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Sie nehmen dann keine Post mehr an. Du kannst sie jederzeit wieder aktivieren.</string>
-    <string name="hygiene_confirm_archive_title">Ausgewählte Masken archivieren?</string>
-    <string name="hygiene_confirm_archive_body">Sie wandern ins Archiv. Direkt danach kannst du das rückgängig machen.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d Maske archivieren?</item>
+        <item quantity="other">%d Masken archivieren?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Sie wandern ins Archiv und nehmen keine Post mehr an. Die Adressen bleiben in deinem Konto, und direkt danach kannst du das rückgängig machen.</string>
     <string name="hygiene_confirm_cancel">Abbrechen</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d Maske deaktiviert</item>
@@ -324,4 +330,15 @@
         <item quantity="one">%d Maske konnte nicht aktualisiert werden</item>
         <item quantity="other">%d Masken konnten nicht aktualisiert werden</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d Maske wiederhergestellt</item>
+        <item quantity="other">%d Masken wiederhergestellt</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d Maske konnte nicht wiederhergestellt werden</item>
+        <item quantity="other">%d Masken konnten nicht wiederhergestellt werden</item>
+    </plurals>
+    <string name="hygiene_locked_title">Masken-Check ist eine Pro-Funktion</string>
+    <string name="hygiene_locked_body">Schalte FastMask Pro frei, um deine ganze Sammlung zu prüfen und in einem Rutsch aufzuräumen. Bis dahin bleiben deine Masken unangetastet.</string>
+    <string name="hygiene_locked_cta">FastMask Pro ansehen</string>
 </resources>

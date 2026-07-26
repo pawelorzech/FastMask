@@ -147,6 +147,34 @@ fun MaskHygieneScreen(
                         viewModel.undoBulkAction(result)
                     }
                 }
+
+                // Same honesty as the forward run: undo reports its own counts
+                // rather than one generic "could not update" for any number of
+                // masks that failed to come back.
+                is MaskHygieneEvent.UndoFinished -> {
+                    val result = event.result
+                    val message = when {
+                        result.isCompleteSuccess -> context.resources.getQuantityString(
+                            R.plurals.hygiene_undo_done,
+                            result.restoredIds.size,
+                            result.restoredIds.size,
+                        )
+
+                        result.isPartial -> context.getString(
+                            R.string.hygiene_bulk_partial,
+                            result.restoredIds.size,
+                            result.requested,
+                            result.failedIds.size,
+                        )
+
+                        else -> context.resources.getQuantityString(
+                            R.plurals.hygiene_undo_failed,
+                            result.failedIds.size,
+                            result.failedIds.size,
+                        )
+                    }
+                    snackbarHostState.showSnackbar(message = message)
+                }
             }
         }
     }
@@ -211,15 +239,19 @@ fun MaskHygieneScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp, vertical = 16.dp),
         ) {
-            MonoEyebrow(
-                text = stringResource(
-                    R.string.hygiene_summary,
-                    reviewedSummary,
-                    attentionSummary,
-                ),
-                color = extras.inkMuted,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
+            // Nothing was reviewed behind the gate, so "0 masks reviewed" would
+            // be another claim about an account the screen never read.
+            if (!uiState.isLocked) {
+                MonoEyebrow(
+                    text = stringResource(
+                        R.string.hygiene_summary,
+                        reviewedSummary,
+                        attentionSummary,
+                    ),
+                    color = extras.inkMuted,
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -259,6 +291,21 @@ fun MaskHygieneScreen(
             Spacer(modifier = Modifier.size(20.dp))
 
             when {
+                // Before every "your account looks like this" branch: the gate
+                // refused, so the empty report says nothing about the account.
+                // Coming back from the paywall without buying lands here, and
+                // the card carries the only way forward — the screen has no
+                // other affordance once `errorRes` is null.
+                uiState.isLocked -> {
+                    HygieneStateCard(
+                        modifier = Modifier.weight(1f),
+                        title = stringResource(R.string.hygiene_locked_title),
+                        body = stringResource(R.string.hygiene_locked_body),
+                        actionText = stringResource(R.string.hygiene_locked_cta),
+                        onAction = viewModel::onUnlockPro,
+                    )
+                }
+
                 uiState.isLoading && report.isClean -> {
                     Box(
                         modifier = Modifier
@@ -378,14 +425,26 @@ fun MaskHygieneScreen(
         }
     }
 
-    pendingAction?.let { action ->
+    // The count lives in the bottom bar, which the dialog covers. Without it in
+    // the title, "Select all" on a category of two hundred is confirmed with no
+    // number anywhere on screen — a bulk change made without a conscious one.
+    val pendingCount = uiState.selectedIds.size
+    // A confirmation about nothing is not a confirmation. If the selection is
+    // gone by the time the dialog would appear, the request goes with it rather
+    // than lingering to pop up over the next selection.
+    LaunchedEffect(pendingCount) {
+        if (pendingCount == 0) pendingActionName = null
+    }
+    pendingAction?.takeIf { pendingCount > 0 }?.let { action ->
         ConfirmDialog(
-            title = stringResource(
+            title = pluralStringResource(
                 if (action == BulkAction.DISABLE) {
-                    R.string.hygiene_confirm_disable_title
+                    R.plurals.hygiene_confirm_disable_title
                 } else {
-                    R.string.hygiene_confirm_archive_title
+                    R.plurals.hygiene_confirm_archive_title
                 },
+                pendingCount,
+                pendingCount,
             ),
             message = stringResource(
                 if (action == BulkAction.DISABLE) {
@@ -452,6 +511,8 @@ private fun HygieneStateCard(
     title: String,
     body: String,
     modifier: Modifier = Modifier,
+    actionText: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -474,6 +535,14 @@ private fun HygieneStateCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = FastMaskExtras.current.inkSoft,
                 )
+                if (actionText != null && onAction != null) {
+                    Spacer(modifier = Modifier.size(4.dp))
+                    PillButton(
+                        text = actionText,
+                        onClick = onAction,
+                        variant = PillButtonVariant.Primary,
+                    )
+                }
             }
         }
     }

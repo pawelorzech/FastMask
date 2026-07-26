@@ -300,10 +300,14 @@
     <string name="hygiene_clean_title">整理するものはありません</string>
     <string name="hygiene_clean_body">すべてのマスクに説明があり、使われていて、有効です。登録が増えたらまた見てください。</string>
     <string name="hygiene_all_archived_body">このアカウントのマスクはすべてアーカイブ済みで、確認するものは残っていません。</string>
-    <string name="hygiene_confirm_disable_title">選択したマスクを無効にしますか？</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">%d 件のマスクを無効にしますか？</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">メールを受け取らなくなります。いつでも有効に戻せます。</string>
-    <string name="hygiene_confirm_archive_title">選択したマスクをアーカイブしますか？</string>
-    <string name="hygiene_confirm_archive_body">アーカイブに移動します。直後なら取り消せます。</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">%d 件のマスクをアーカイブしますか？</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">アーカイブに移動し、メールを受け取らなくなります。アドレスはアカウントに残り、直後なら取り消せます。</string>
     <string name="hygiene_confirm_cancel">キャンセル</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="other">%d 件のマスクを無効にしました</item>
@@ -315,4 +319,13 @@
     <plurals name="hygiene_bulk_failed">
         <item quantity="other">%d 件のマスクを更新できませんでした</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">%d 件のマスクを元に戻しました</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">%d 件のマスクを元に戻せませんでした</item>
+    </plurals>
+    <string name="hygiene_locked_title">マスクの整理は Pro の機能です</string>
+    <string name="hygiene_locked_body">FastMask Pro を購入すると、コレクション全体を確認してまとめて整理できます。それまでマスクはそのままです。</string>
+    <string name="hygiene_locked_cta">FastMask Pro を見る</string>
 </resources>

@@ -330,10 +330,24 @@
     <string name="hygiene_clean_title">لا شيء يحتاج إلى ترتيب</string>
     <string name="hygiene_clean_body">كل قناع موصوف ومستخدم ونشط. عُد بعد بضعة تسجيلات جديدة.</string>
     <string name="hygiene_all_archived_body">كل الأقنعة في هذا الحساب مؤرشفة، فلم يبقَ شيء للمراجعة.</string>
-    <string name="hygiene_confirm_disable_title">تعطيل الأقنعة المحددة؟</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="zero">تعطيل %d قناع؟</item>
+        <item quantity="one">تعطيل %d قناع؟</item>
+        <item quantity="two">تعطيل %d قناعين؟</item>
+        <item quantity="few">تعطيل %d أقنعة؟</item>
+        <item quantity="many">تعطيل %d قناعًا؟</item>
+        <item quantity="other">تعطيل %d قناع؟</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">ستتوقف عن استقبال البريد. يمكنك إعادة تفعيلها في أي وقت.</string>
-    <string name="hygiene_confirm_archive_title">أرشفة الأقنعة المحددة؟</string>
-    <string name="hygiene_confirm_archive_body">ستنتقل إلى الأرشيف. يمكنك التراجع مباشرة بعد ذلك.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="zero">أرشفة %d قناع؟</item>
+        <item quantity="one">أرشفة %d قناع؟</item>
+        <item quantity="two">أرشفة %d قناعين؟</item>
+        <item quantity="few">أرشفة %d أقنعة؟</item>
+        <item quantity="many">أرشفة %d قناعًا؟</item>
+        <item quantity="other">أرشفة %d قناع؟</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">ستنتقل إلى الأرشيف وتتوقف عن استقبال البريد. تبقى العناوين في حسابك، ويمكنك التراجع مباشرة بعد ذلك.</string>
     <string name="hygiene_confirm_cancel">إلغاء</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="zero">تم تعطيل %d قناع</item>
@@ -360,4 +374,23 @@
         <item quantity="many">تعذّر تحديث %d قناعًا</item>
         <item quantity="other">تعذّر تحديث %d قناع</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="zero">تمت استعادة %d قناع</item>
+        <item quantity="one">تمت استعادة %d قناع</item>
+        <item quantity="two">تمت استعادة %d قناعين</item>
+        <item quantity="few">تمت استعادة %d أقنعة</item>
+        <item quantity="many">تمت استعادة %d قناعًا</item>
+        <item quantity="other">تمت استعادة %d قناع</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="zero">تعذّرت استعادة %d قناع</item>
+        <item quantity="one">تعذّرت استعادة %d قناع</item>
+        <item quantity="two">تعذّرت استعادة %d قناعين</item>
+        <item quantity="few">تعذّرت استعادة %d أقنعة</item>
+        <item quantity="many">تعذّرت استعادة %d قناعًا</item>
+        <item quantity="other">تعذّرت استعادة %d قناع</item>
+    </plurals>
+    <string name="hygiene_locked_title">ترتيب الأقنعة ميزة Pro</string>
+    <string name="hygiene_locked_body">فعّل FastMask Pro لمراجعة مجموعتك كاملة وتنظيفها دفعة واحدة. أقنعتك تبقى كما هي حتى ذلك الحين.</string>
+    <string name="hygiene_locked_cta">اطّلع على FastMask Pro</string>
 </resources>

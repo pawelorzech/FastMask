@@ -306,10 +306,16 @@
     <string name="hygiene_clean_title">Niets op te ruimen</string>
     <string name="hygiene_clean_body">Elk masker is omschreven, in gebruik en actief. Kom terug na een paar nieuwe aanmeldingen.</string>
     <string name="hygiene_all_archived_body">Alle maskers in dit account zijn gearchiveerd, dus er valt niets meer te controleren.</string>
-    <string name="hygiene_confirm_disable_title">Geselecteerde maskers uitschakelen?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d masker uitschakelen?</item>
+        <item quantity="other">%d maskers uitschakelen?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Ze nemen dan geen post meer aan. Je kunt ze altijd weer inschakelen.</string>
-    <string name="hygiene_confirm_archive_title">Geselecteerde maskers archiveren?</string>
-    <string name="hygiene_confirm_archive_body">Ze gaan naar het archief. Je kunt dit er direct na ongedaan maken.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d masker archiveren?</item>
+        <item quantity="other">%d maskers archiveren?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Ze gaan naar het archief en nemen geen post meer aan. De adressen blijven in je account staan en je kunt dit er direct na ongedaan maken.</string>
     <string name="hygiene_confirm_cancel">Annuleren</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d masker uitgeschakeld</item>
@@ -324,4 +330,15 @@
         <item quantity="one">%d masker kon niet worden bijgewerkt</item>
         <item quantity="other">%d maskers konden niet worden bijgewerkt</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d masker hersteld</item>
+        <item quantity="other">%d maskers hersteld</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d masker kon niet worden hersteld</item>
+        <item quantity="other">%d maskers konden niet worden hersteld</item>
+    </plurals>
+    <string name="hygiene_locked_title">Maskerhygiëne is een Pro-functie</string>
+    <string name="hygiene_locked_body">Ontgrendel FastMask Pro om je hele verzameling te bekijken en in één keer op te ruimen. Tot die tijd blijven je maskers ongemoeid.</string>
+    <string name="hygiene_locked_cta">Bekijk FastMask Pro</string>
 </resources>

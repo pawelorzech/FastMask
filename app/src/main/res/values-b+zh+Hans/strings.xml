@@ -300,10 +300,14 @@
     <string name="hygiene_clean_title">无需整理</string>
     <string name="hygiene_clean_body">每个隐藏邮箱都有备注、在使用且已启用。再注册几次后回来看看。</string>
     <string name="hygiene_all_archived_body">此账户中的所有隐藏邮箱都已归档，没有需要查看的内容了。</string>
-    <string name="hygiene_confirm_disable_title">禁用所选隐藏邮箱？</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">禁用 %d 个隐藏邮箱？</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">它们将停止接收邮件。你可以随时重新启用。</string>
-    <string name="hygiene_confirm_archive_title">存档所选隐藏邮箱？</string>
-    <string name="hygiene_confirm_archive_body">它们会移入存档。之后可以立即撤销。</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">存档 %d 个隐藏邮箱？</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">它们会移入存档并停止接收邮件。地址仍保留在你的账户中，之后可以立即撤销。</string>
     <string name="hygiene_confirm_cancel">取消</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="other">已禁用 %d 个隐藏邮箱</item>
@@ -315,4 +319,13 @@
     <plurals name="hygiene_bulk_failed">
         <item quantity="other">%d 个隐藏邮箱无法更新</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">已恢复 %d 个隐藏邮箱</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">%d 个隐藏邮箱无法恢复</item>
+    </plurals>
+    <string name="hygiene_locked_title">隐藏邮箱整理是 Pro 功能</string>
+    <string name="hygiene_locked_body">解锁 FastMask Pro 即可查看整个集合并批量整理。在此之前，你的隐藏邮箱不会有任何变化。</string>
+    <string name="hygiene_locked_cta">了解 FastMask Pro</string>
 </resources>

@@ -312,10 +312,18 @@
     <string name="hygiene_clean_title">Rien à ranger</string>
     <string name="hygiene_clean_body">Chaque masque est décrit, utilisé et actif. Revenez après quelques inscriptions de plus.</string>
     <string name="hygiene_all_archived_body">Tous les masques de ce compte sont archivés, il n\'y a donc plus rien à passer en revue.</string>
-    <string name="hygiene_confirm_disable_title">Désactiver les masques sélectionnés ?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">Désactiver %d masque ?</item>
+        <item quantity="many">Désactiver %d masques ?</item>
+        <item quantity="other">Désactiver %d masques ?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Ils cesseront d\'accepter le courrier. Vous pourrez les réactiver à tout moment.</string>
-    <string name="hygiene_confirm_archive_title">Archiver les masques sélectionnés ?</string>
-    <string name="hygiene_confirm_archive_body">Ils partiront dans les archives. Vous pourrez annuler juste après.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">Archiver %d masque ?</item>
+        <item quantity="many">Archiver %d masques ?</item>
+        <item quantity="other">Archiver %d masques ?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Ils partiront dans les archives et cesseront d\'accepter le courrier. Les adresses restent sur votre compte et vous pourrez annuler juste après.</string>
     <string name="hygiene_confirm_cancel">Annuler</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">%d masque désactivé</item>
@@ -333,4 +341,17 @@
         <item quantity="many">%d masques n\'ont pas pu être mis à jour</item>
         <item quantity="other">%d masques n\'ont pas pu être mis à jour</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d masque restauré</item>
+        <item quantity="many">%d masques restaurés</item>
+        <item quantity="other">%d masques restaurés</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d masque n\'a pas pu être restauré</item>
+        <item quantity="many">%d masques n\'ont pas pu être restaurés</item>
+        <item quantity="other">%d masques n\'ont pas pu être restaurés</item>
+    </plurals>
+    <string name="hygiene_locked_title">L\'hygiène des masques est une fonction Pro</string>
+    <string name="hygiene_locked_body">Débloquez FastMask Pro pour passer en revue toute votre collection et la nettoyer en une fois. D\'ici là, vos masques restent intacts.</string>
+    <string name="hygiene_locked_cta">Voir FastMask Pro</string>
 </resources>

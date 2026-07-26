@@ -318,10 +318,20 @@
     <string name="hygiene_clean_title">Наводити лад не потрібно</string>
     <string name="hygiene_clean_body">Усі маски описані, використовуються й активні. Завітайте сюди після нових реєстрацій.</string>
     <string name="hygiene_all_archived_body">Усі маски в цьому обліковому записі архівовані, тож переглядати нічого.</string>
-    <string name="hygiene_confirm_disable_title">Вимкнути вибрані маски?</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">Вимкнути %d маску?</item>
+        <item quantity="few">Вимкнути %d маски?</item>
+        <item quantity="many">Вимкнути %d масок?</item>
+        <item quantity="other">Вимкнути %d маски?</item>
+    </plurals>
     <string name="hygiene_confirm_disable_body">Вони перестануть приймати пошту. Увімкнути їх назад можна будь-коли.</string>
-    <string name="hygiene_confirm_archive_title">Архівувати вибрані маски?</string>
-    <string name="hygiene_confirm_archive_body">Вони перемістяться до архіву. Одразу після цього дію можна скасувати.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">Архівувати %d маску?</item>
+        <item quantity="few">Архівувати %d маски?</item>
+        <item quantity="many">Архівувати %d масок?</item>
+        <item quantity="other">Архівувати %d маски?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Вони перемістяться до архіву й перестануть приймати пошту. Адреси залишаються у вашому обліковому записі, і одразу після цього дію можна скасувати.</string>
     <string name="hygiene_confirm_cancel">Скасувати</string>
     <plurals name="hygiene_bulk_done_disabled">
         <item quantity="one">Вимкнено %d маску</item>
@@ -342,4 +352,19 @@
         <item quantity="many">Не вдалося оновити %d масок</item>
         <item quantity="other">Не вдалося оновити %d маски</item>
     </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">Відновлено %d маску</item>
+        <item quantity="few">Відновлено %d маски</item>
+        <item quantity="many">Відновлено %d масок</item>
+        <item quantity="other">Відновлено %d маски</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">Не вдалося відновити %d маску</item>
+        <item quantity="few">Не вдалося відновити %d маски</item>
+        <item quantity="many">Не вдалося відновити %d масок</item>
+        <item quantity="other">Не вдалося відновити %d маски</item>
+    </plurals>
+    <string name="hygiene_locked_title">Гігієна масок — функція Pro</string>
+    <string name="hygiene_locked_body">Відкрийте FastMask Pro, щоб переглянути всю колекцію та впорядкувати її гуртом. До того часу ваші маски лишаються недоторканими.</string>
+    <string name="hygiene_locked_cta">Переглянути FastMask Pro</string>
 </resources>
