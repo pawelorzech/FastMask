@@ -16,23 +16,31 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * enforces that this stays the only file naming the SDK.
  *
  * What Crashlytics still sends on a crash is what it derives itself: the stack
- * trace, the app version, the device model and the OS build. No analytics
- * product is enabled alongside it, and the session-reporting SDK that ships
- * inside Crashlytics is switched off in the manifest
+ * trace, the app and OS version, the device model, and device state it reads at
+ * the moment of the crash (free memory and disk, battery, orientation, and
+ * more). The set is Google's to define, which is why the privacy policy names a
+ * category and links to Firebase rather than pretending to enumerate it. No
+ * analytics product is enabled alongside it, and the session-reporting SDK that
+ * ships inside Crashlytics is switched off in the manifest
  * (`firebase_sessions_enabled`).
  *
  * A report only leaves on a real crash, but the SDK is not silent at startup
- * while collection is on: `FirebaseCrashlytics.init` unconditionally calls
+ * while collection is on: `FirebaseCrashlytics.init` calls
  * `SettingsController.loadSettingsData`, which fetches Crashlytics' own remote
  * config (carrying the installation ID, device model and OS build), and
  * `IdManager` registers the Firebase installation. Both are gated on
- * `DataCollectionArbiter` — with collection off the config fetch never runs,
- * because `waitForDataCollectionPermission()` never resolves. The one thing
- * that is not gated is `IdManager.getInstallIds()` on session open: it still
- * calls `FirebaseInstallationsApi.getId()`, which is a local read once the
- * installation is registered but will retry registration if it never
- * completed. [setCollectionEnabled] is therefore what the privacy docs mean by
- * "switching it off stops the startup traffic".
+ * `DataCollectionArbiter`, verified in 19.2.1 bytecode:
+ *
+ *  - the config fetch waits on `waitForDataCollectionPermission()`, which never
+ *    resolves once collection is off;
+ *  - `IdManager.getInstallIds()` branches on
+ *    `isAutomaticDataCollectionEnabled()` and returns
+ *    `InstallIds.createWithoutFid(...)` — a locally generated value — without
+ *    ever touching `FirebaseInstallationsApi`.
+ *
+ * So an opt-out leaves no residual registration, and [setCollectionEnabled] is
+ * the whole of what the privacy docs mean by "switching it off stops the
+ * startup traffic". Re-verify both branches when the Firebase BOM moves.
  *
  * The SDK handle is resolved lazily, per call, and never in the constructor.
  * `FirebaseCrashlytics.getInstance()` throws `IllegalStateException` when the

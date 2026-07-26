@@ -9,6 +9,7 @@ import com.fastmask.domain.crash.CrashReportingPreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import java.io.IOException
 
 /**
@@ -32,6 +33,25 @@ class CrashReportingSettings(
      * user's choice is simply unknown. [CrashReportingStartup] is the consumer
      * that cares — it applies the first and skips the SDK entirely on the second.
      */
+    /**
+     * The last definite answer this store produced, for callers that need a
+     * value synchronously.
+     *
+     * It exists so [SettingsDataStore.crashReportingEnabledBlocking] can seed
+     * the settings switch without blocking the main thread on I/O. Startup
+     * reads the preference off the main thread on every launch, so by the time
+     * anyone can open Settings this is populated and `runBlocking` is skipped
+     * entirely; the blocking read stays as the fallback for the window before
+     * that first read lands.
+     *
+     * [CrashReportingPreference.Unreadable] is deliberately not memoised: it
+     * means "we do not know", and caching it would freeze a transient failure
+     * into every later read.
+     */
+    @Volatile
+    var lastKnown: CrashReportingPreference? = null
+        private set
+
     val preference: Flow<CrashReportingPreference>
         get() = dataStore.data
             .map { preferences ->
@@ -58,6 +78,11 @@ class CrashReportingSettings(
                     emit(CrashReportingPreference.Unreadable)
                 } else {
                     throw throwable
+                }
+            }
+            .onEach { resolved ->
+                if (resolved != CrashReportingPreference.Unreadable) {
+                    lastKnown = resolved
                 }
             }
 

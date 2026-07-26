@@ -43,8 +43,8 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 • Network Security Config pins trust to the system CA store
 • Release builds log nothing about your network traffic
 • Screens are FLAG_SECURE — the token never leaks to screenshots or screen recording
-• Crash reports: on by default, off in one tap (Settings → Crash reports). A crash sends Firebase Crashlytics the stack trace, device model and app version — never your addresses, descriptions, domains, API token or email. While it's on, the SDK also checks in with Google at startup; the toggle stops that too.
-• Open source under MIT license — verify everything for yourself. The Crashlytics SDK is called from exactly one file, and a test fails the build if that ever changes.
+• Crash reports: on by default, off in one tap (Settings → Crash reports). A crash sends Firebase Crashlytics technical diagnostics about the app and the device — never your addresses, descriptions, domains, API token or email. While it's on, the SDK also checks in with Google at startup; the toggle stops that too.
+• Open source under MIT license — verify everything for yourself. The Crashlytics SDK is called from exactly one file, there is no way to pass data into a report, and a test fails the build if either ever changes.
 
 ⸻ LANGUAGES ⸻
 
@@ -82,7 +82,7 @@ Released under the MIT License. Pull requests welcome.
 
 **Crash reports — on by default, off in one tap**
 
-• New: if the app crashes, it can send the stack trace, device model and app version to Firebase Crashlytics so the bug gets fixed
+• New: if the app crashes, it can send technical diagnostics about the app and the device to Firebase Crashlytics so the bug gets fixed
 • Never sends your masks, descriptions, domains, token or email
 • Still no analytics and no ad tracking
 • Don't want it? Settings → Crash reports → off. Stops right away.

@@ -1,9 +1,8 @@
-What's new in 1.9.0
+What's new in 1.10.0
 
-• The mask list works offline — it shows your last data, marked with when it was fetched
-• Screen readers now name the buttons and form fields
-• Creating a mask returns you to the list immediately, with no wait
-• Better edge-to-edge display on Android 15 and 16
-• Demo mode always starts from the same clean list
-• The CSV export no longer stays on the device after you sign out
+• Create a mask without opening the app — share a page from the browser, use the quick settings tile, or long-press the icon. The address lands on your clipboard.
+• The confirmation notification offers Open and Undo
+• The sign-in screen walks you through creating the API token, and says plainly when a token lacks the Masked Email permission
+• New: crash reports. If the app crashes, technical diagnostics go to Firebase Crashlytics so the bug gets fixed — never your masks, descriptions, domains, token or email
+• Don't want them? Settings → Crash reports → off. Stops right away.
 • Still zero tracking, no ads, no subscriptions

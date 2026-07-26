@@ -43,8 +43,8 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Network Security Config przypina zaufanie do systemowego magazynu CA
 • Wydania Release nie logują żadnego ruchu sieciowego
 • Ekrany mają FLAG_SECURE — token nie trafia do zrzutów ani nagrań ekranu
-• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem (Ustawienia → Raporty o awariach). Awaria wysyła do Firebase Crashlytics ślad stosu, model urządzenia i wersję aplikacji — nigdy Twoich masek, opisów, domen, tokenu API ani adresu e‑mail. Dopóki jest włączone, SDK melduje się też u Google przy starcie; przełącznik zatrzymuje i to.
-• Open source na licencji MIT — wszystko możesz sam zweryfikować. SDK Crashlytics jest wołane z dokładnie jednego pliku, a test wywala build, gdyby to się kiedyś zmieniło.
+• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem (Ustawienia → Raporty o awariach). Awaria wysyła do Firebase Crashlytics diagnostykę techniczną aplikacji i urządzenia — nigdy Twoich masek, opisów, domen, tokenu API ani adresu e‑mail. Dopóki jest włączone, SDK melduje się też u Google przy starcie; przełącznik zatrzymuje i to.
+• Open source na licencji MIT — wszystko możesz sam zweryfikować. SDK Crashlytics jest wołane z dokładnie jednego pliku, nie ma czym przekazać do raportu żadnych danych, a test wywala build, gdyby któreś z tego się zmieniło.
 
 ⸻ JĘZYKI ⸻
 
@@ -82,7 +82,7 @@ Licencja MIT. Pull requesty mile widziane.
 
 **Raporty o awariach — domyślnie włączone, wyłączasz jednym dotknięciem**
 
-• Nowość: gdy aplikacja się wywali, może wysłać ślad stosu, model urządzenia i wersję aplikacji do Firebase Crashlytics, żeby błąd dało się naprawić
+• Nowość: gdy aplikacja się wywali, może wysłać diagnostykę techniczną aplikacji i urządzenia do Firebase Crashlytics, żeby błąd dało się naprawić
 • Nigdy nie wysyła Twoich masek, opisów, domen, tokenu ani e‑maila
 • Nadal bez analityki i bez śledzenia reklamowego
 • Nie chcesz? Ustawienia → Raporty o awariach → wyłącz. Działa od razu.

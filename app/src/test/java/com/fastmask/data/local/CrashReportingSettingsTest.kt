@@ -297,4 +297,54 @@ class CrashReportingSettingsTest {
         assertFalse(optedOut.enabled.first())
         assertTrue(unreadable.enabled.first())
     }
+
+    // --- Synchronous snapshot ----------------------------------------------
+
+    /**
+     * `SettingsDataStore.crashReportingEnabledBlocking()` seeds the settings
+     * switch from this, so that entering Settings does not `runBlocking` on the
+     * main thread for a value the startup pass already read.
+     */
+    @Test
+    fun `the snapshot is empty until something reads the store`() {
+        val (settings, _) = settings(preferencesOf(crashKey to false))
+
+        assertNull(settings.lastKnown)
+    }
+
+    @Test
+    fun `reading the preference fills the snapshot`() = runTest {
+        val (settings, _) = settings(preferencesOf(crashKey to false))
+
+        settings.preference.first()
+
+        assertEquals(CrashReportingPreference.Stored(enabled = false), settings.lastKnown)
+    }
+
+    @Test
+    fun `a write updates the snapshot on the next read`() = runTest {
+        val (settings, _) = settings(preferencesOf(crashKey to false))
+        settings.preference.first()
+
+        settings.setEnabled(true)
+        settings.preference.first()
+
+        assertEquals(CrashReportingPreference.Stored(enabled = true), settings.lastKnown)
+    }
+
+    /**
+     * "Could not read" is not an answer, so it must not be cached: a transient
+     * failure would otherwise keep answering for every later synchronous read
+     * in the process, including one taken after the store recovered.
+     */
+    @Test
+    fun `an unreadable store does not overwrite the snapshot`() = runTest {
+        val (settings, store) = settings(preferencesOf(crashKey to false))
+        settings.preference.first()
+
+        store.readFailure = IOException("preferences file unreadable")
+        assertEquals(CrashReportingPreference.Unreadable, settings.preference.first())
+
+        assertEquals(CrashReportingPreference.Stored(enabled = false), settings.lastKnown)
+    }
 }

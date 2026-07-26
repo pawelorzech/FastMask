@@ -1,9 +1,11 @@
 package com.fastmask.privacy
 
+import com.fastmask.domain.crash.CrashReporter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import java.lang.reflect.Method
 
 /**
  * A build-time guard on the promise the app makes on its store listing and in
@@ -28,7 +30,14 @@ import java.io.File
  *    url, prefix, account, username);
  *  - any reference to the Firebase Crashlytics SDK outside the one file that
  *    owns the seam, so new call sites cannot appear in a ViewModel or a
- *    repository where user data is in scope.
+ *    repository where user data is in scope;
+ *  - any method on [CrashReporter], or on its implementation, beyond the two
+ *    data-free switches — scanning call sites is worthless if the interface
+ *    grows a channel to call, and it was verified that adding one passed every
+ *    other guard here;
+ *  - any analytics, profiling or advertising dependency, declared or
+ *    transitive, because "no Google Analytics" is claimed in four documents and
+ *    was enforced by nothing.
  *
  * Allowed, for the record: app version, screen name, HTTP status code — values
  * that describe the app, not the person using it.
@@ -146,6 +155,146 @@ class CrashReportingPrivacyTest {
             "the Firebase SDK must stay behind CrashReporter, but it is named in:\n" +
                 outside.joinToString("\n").prependIndent("  "),
             outside.isEmpty(),
+        )
+    }
+
+    /**
+     * The guards above police *where* the SDK is named and *what* the visible
+     * call sites pass. Neither notices the failure mode that matters most: a
+     * new method on the seam itself.
+     *
+     * This was not hypothetical. Adding `fun note(value: String)` to
+     * [CrashReporter], implementing it in the one allowed file as
+     * `crashlytics().log(value)`, and calling it from a ViewModel with a mask
+     * address left the entire suite green — the SDK stayed in its file, and the
+     * argument was named `value`, which no "user-shaped" regex can be expected
+     * to catch. The address went to Google anyway.
+     *
+     * So the shape of the seam is asserted directly, not the spelling of its
+     * call sites. The interface exists to have no data channel; if a signature
+     * changes, that is a privacy decision and it has to be made here, in this
+     * list, next to the policy sentences it would invalidate.
+     */
+    @Test
+    fun `the crash reporter seam exposes no way to pass data`() {
+        val signature = { method: Method ->
+            "${method.name}(${method.parameterTypes.joinToString { it.simpleName }})"
+        }
+
+        val declared = CrashReporter::class.java.declaredMethods
+            .filterNot { it.isSynthetic || it.isBridge }
+            .map(signature)
+            .sorted()
+
+        assertEquals(
+            "CrashReporter must stay two data-free switches. Anything that takes a " +
+                "String, an object, or a lambda is a channel into a crash report, and " +
+                "the privacy policy, the README and the store listing all promise there " +
+                "is none. If this is a deliberate change, update those three documents " +
+                "first, then this list.",
+            listOf("deleteUnsentReports()", "setCollectionEnabled(boolean)"),
+            declared,
+        )
+    }
+
+    /**
+     * The same promise one layer down. [CrashReporter] is what the Hilt module
+     * hands out, so an extra public method on the implementation is not
+     * reachable through the graph today — but the module could be changed to
+     * expose the concrete type, and then only this assertion stands between a
+     * `fun log(...)` and Google.
+     */
+    @Test
+    fun `the seam implementation declares nothing beyond the interface`() {
+        val source = File(seamFile).readText()
+
+        val declaredFunctions = Regex("""\bfun\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(""")
+            .findAll(source)
+            .map { it.groupValues[1] }
+            .toSortedSet()
+
+        assertEquals(
+            "$seamFile must declare exactly the two CrashReporter overrides — every " +
+                "other function there is a potential path from app data to the SDK",
+            sortedSetOf("deleteUnsentReports", "setCollectionEnabled"),
+            declaredFunctions,
+        )
+    }
+
+    /**
+     * README, the privacy policy and both store listings say the same thing:
+     * no Google Analytics, no advertising or attribution SDK, no profiling.
+     * Nothing enforced it. `implementation("com.google.firebase:firebase-analytics")`
+     * is one line, it is what every Firebase guide suggests next to Crashlytics,
+     * it switches on event collection and the advertising ID, and the whole
+     * suite would have stayed green.
+     *
+     * The check is on the build file rather than on a resolved configuration
+     * because a unit test cannot resolve one — but a direct declaration is
+     * exactly how this artefact gets in, and the classpath probe below covers
+     * what a build-file scan cannot see.
+     */
+    @Test
+    fun `no analytics or profiling dependency is declared`() {
+        val buildFile = File("build.gradle.kts")
+        assertTrue("app/build.gradle.kts not found", buildFile.exists())
+
+        // Deliberately not a blanket "firebase-" match: firebase-crashlytics and
+        // firebase-bom belong here, and a guard that fails on them would be
+        // deleted rather than understood.
+        val forbidden = listOf(
+            "firebase-analytics",
+            "firebase-perf",
+            "firebase-inappmessaging",
+            "firebase-config",
+            "firebase-ml",
+            "play-services-measurement",
+            "play-services-ads",
+            "google-analytics",
+        )
+
+        val declared = buildFile.readLines().withIndex().flatMap { (index, line) ->
+            if (line.trimStart().startsWith("//")) {
+                emptyList()
+            } else {
+                forbidden.filter { line.contains(it) }.map { "build.gradle.kts:${index + 1}: $it" }
+            }
+        }
+
+        assertTrue(
+            "the app claims no analytics, no advertising SDK and no profiling in " +
+                "README.md, docs/privacy.md and both store listings; these " +
+                "dependencies contradict that:\n" +
+                declared.joinToString("\n").prependIndent("  "),
+            declared.isEmpty(),
+        )
+    }
+
+    /**
+     * The transitive half of the guard above: a dependency can arrive without a
+     * line in the build file. These classes exist only in the real analytics
+     * implementations — `firebase-measurement-connector`, which Crashlytics
+     * does pull in, ships the interop interfaces and none of these.
+     */
+    @Test
+    fun `no analytics implementation is on the classpath`() {
+        val forbiddenClasses = listOf(
+            "com.google.firebase.analytics.FirebaseAnalytics",
+            "com.google.android.gms.measurement.internal.AppMeasurementService",
+            "com.google.firebase.perf.FirebasePerformance",
+            "com.google.android.gms.ads.identifier.AdvertisingIdClient",
+        )
+
+        val present = forbiddenClasses.filter { name ->
+            runCatching { Class.forName(name, false, javaClass.classLoader) }.isSuccess
+        }
+
+        assertTrue(
+            "an analytics or advertising SDK reached the classpath transitively:\n" +
+                present.joinToString("\n").prependIndent("  ") +
+                "\nCheck the dependency that pulled it in, or update the documents that " +
+                "promise it is not there.",
+            present.isEmpty(),
         )
     }
 
