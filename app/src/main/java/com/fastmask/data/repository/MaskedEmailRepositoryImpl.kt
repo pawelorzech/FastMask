@@ -7,6 +7,7 @@ import com.fastmask.data.api.MaskedEmailState
 import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
+import com.fastmask.domain.hygiene.HygieneBaseline
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -37,6 +38,12 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     }
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = cache.read()
+
+    override suspend fun hygieneBaseline(): HygieneBaseline? = cache.readHygieneBaseline()
+
+    override suspend fun saveHygieneBaseline(baseline: HygieneBaseline) {
+        cache.writeHygieneBaseline(baseline)
+    }
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val token = tokenStorage.getToken()

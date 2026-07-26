@@ -266,4 +266,79 @@
     <string name="quick_mask_undo">Ongedaan maken</string>
     <string name="quick_mask_undone">Masker verwijderd</string>
     <string name="quick_mask_undo_failed">Kan het masker niet verwijderen. Open FastMask en probeer het opnieuw.</string>
+    <string name="hygiene_title">Maskerhygiëne</string>
+    <string name="hygiene_open">Maskers nakijken</string>
+    <string name="hygiene_back">Terug</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d masker nagekeken</item>
+        <item quantity="other">%d maskers nagekeken</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d vraagt aandacht</item>
+        <item quantity="other">%d vragen aandacht</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d masker</item>
+        <item quantity="other">%d maskers</item>
+    </plurals>
+    <string name="hygiene_select_all">Alles selecteren</string>
+    <string name="hygiene_clear_selection">Wissen</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d geselecteerd</item>
+        <item quantity="other">%d geselecteerd</item>
+    </plurals>
+    <string name="hygiene_action_disable">Uitschakelen</string>
+    <string name="hygiene_action_archive">Archiveren</string>
+    <string name="hygiene_undo">Ongedaan maken</string>
+    <string name="hygiene_last_message">Laatste bericht %1$s</string>
+    <string name="hygiene_created">Aangemaakt %1$s</string>
+    <string name="hygiene_issue_new_title">Nieuwe activiteit</string>
+    <string name="hygiene_issue_new_body">Hier kwam post binnen sinds je laatste controle.</string>
+    <string name="hygiene_issue_never_title">Nooit gebruikt</string>
+    <string name="hygiene_issue_never_body">Een tijd geleden aangemaakt en nooit één bericht ontvangen.</string>
+    <string name="hygiene_issue_dormant_title">Slapend</string>
+    <string name="hygiene_issue_dormant_body">Nemen nog steeds post aan, maar zijn al maanden stil. Je kunt ze uitschakelen.</string>
+    <string name="hygiene_issue_undescribed_title">Niet te plaatsen</string>
+    <string name="hygiene_issue_undescribed_body">Zonder omschrijving en zonder domein is niet te zien waarvoor ze dienen.</string>
+    <string name="hygiene_empty_title">Nog geen maskers</string>
+    <string name="hygiene_empty_body">Maak een paar gemaskeerde adressen aan, dan laat dit overzicht zien wat aandacht vraagt.</string>
+    <string name="hygiene_clean_title">Niets op te ruimen</string>
+    <string name="hygiene_clean_body">Elk masker is omschreven, in gebruik en actief. Kom terug na een paar nieuwe aanmeldingen.</string>
+    <string name="hygiene_all_archived_body">Alle maskers in dit account zijn gearchiveerd, dus er valt niets meer te controleren.</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d masker uitschakelen?</item>
+        <item quantity="other">%d maskers uitschakelen?</item>
+    </plurals>
+    <string name="hygiene_confirm_disable_body">Ze nemen dan geen post meer aan. Je kunt ze altijd weer inschakelen.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d masker archiveren?</item>
+        <item quantity="other">%d maskers archiveren?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Ze gaan naar het archief en nemen geen post meer aan. De adressen blijven in je account staan en je kunt dit er direct na ongedaan maken.</string>
+    <string name="hygiene_confirm_cancel">Annuleren</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d masker uitgeschakeld</item>
+        <item quantity="other">%d maskers uitgeschakeld</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d masker gearchiveerd</item>
+        <item quantity="other">%d maskers gearchiveerd</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%1$d van %2$d klaar · %3$d mislukt</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">%d masker kon niet worden bijgewerkt</item>
+        <item quantity="other">%d maskers konden niet worden bijgewerkt</item>
+    </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d masker hersteld</item>
+        <item quantity="other">%d maskers hersteld</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d masker kon niet worden hersteld</item>
+        <item quantity="other">%d maskers konden niet worden hersteld</item>
+    </plurals>
+    <string name="hygiene_locked_title">Maskerhygiëne is een Pro-functie</string>
+    <string name="hygiene_locked_body">Ontgrendel FastMask Pro om je hele verzameling te bekijken en in één keer op te ruimen. Tot die tijd blijven je maskers ongemoeid.</string>
+    <string name="hygiene_locked_cta">Bekijk FastMask Pro</string>
 </resources>

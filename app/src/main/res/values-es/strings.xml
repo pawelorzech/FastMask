@@ -268,4 +268,90 @@
     <string name="quick_mask_undo">Deshacer</string>
     <string name="quick_mask_undone">Máscara eliminada</string>
     <string name="quick_mask_undo_failed">No se pudo eliminar la máscara. Abre FastMask e inténtalo de nuevo.</string>
+    <string name="hygiene_title">Higiene de máscaras</string>
+    <string name="hygiene_open">Revisar máscaras</string>
+    <string name="hygiene_back">Volver</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d máscara revisada</item>
+        <item quantity="many">%d máscaras revisadas</item>
+        <item quantity="other">%d máscaras revisadas</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d necesita atención</item>
+        <item quantity="many">%d necesitan atención</item>
+        <item quantity="other">%d necesitan atención</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d máscara</item>
+        <item quantity="many">%d máscaras</item>
+        <item quantity="other">%d máscaras</item>
+    </plurals>
+    <string name="hygiene_select_all">Seleccionar todo</string>
+    <string name="hygiene_clear_selection">Limpiar</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d seleccionada</item>
+        <item quantity="many">%d seleccionadas</item>
+        <item quantity="other">%d seleccionadas</item>
+    </plurals>
+    <string name="hygiene_action_disable">Deshabilitar</string>
+    <string name="hygiene_action_archive">Archivar</string>
+    <string name="hygiene_undo">Deshacer</string>
+    <string name="hygiene_last_message">Último mensaje %1$s</string>
+    <string name="hygiene_created">Creada %1$s</string>
+    <string name="hygiene_issue_new_title">Actividad nueva</string>
+    <string name="hygiene_issue_new_body">Han recibido correo desde tu última revisión.</string>
+    <string name="hygiene_issue_never_title">Nunca usadas</string>
+    <string name="hygiene_issue_never_body">Se crearon hace tiempo y nunca recibieron ni un solo mensaje.</string>
+    <string name="hygiene_issue_dormant_title">En reposo</string>
+    <string name="hygiene_issue_dormant_body">Siguen aceptando correo, pero llevan meses en silencio. Puedes deshabilitarlas.</string>
+    <string name="hygiene_issue_undescribed_title">Sin identificar</string>
+    <string name="hygiene_issue_undescribed_body">Sin descripción y sin dominio, no hay forma de saber para qué sirven.</string>
+    <string name="hygiene_empty_title">Aún no hay máscaras</string>
+    <string name="hygiene_empty_body">Crea unas cuantas direcciones enmascaradas y esta revisión mostrará qué necesita atención.</string>
+    <string name="hygiene_clean_title">Nada que ordenar</string>
+    <string name="hygiene_clean_body">Todas las máscaras están descritas, en uso y activas. Vuelve tras unos cuantos registros más.</string>
+    <string name="hygiene_all_archived_body">Todas las máscaras de esta cuenta están archivadas, así que no queda nada por revisar.</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">¿Deshabilitar %d máscara?</item>
+        <item quantity="many">¿Deshabilitar %d máscaras?</item>
+        <item quantity="other">¿Deshabilitar %d máscaras?</item>
+    </plurals>
+    <string name="hygiene_confirm_disable_body">Dejarán de aceptar correo. Puedes volver a activarlas cuando quieras.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">¿Archivar %d máscara?</item>
+        <item quantity="many">¿Archivar %d máscaras?</item>
+        <item quantity="other">¿Archivar %d máscaras?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Pasarán al archivo y dejarán de aceptar correo. Las direcciones siguen en tu cuenta y puedes deshacerlo justo después.</string>
+    <string name="hygiene_confirm_cancel">Cancelar</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d máscara deshabilitada</item>
+        <item quantity="many">%d máscaras deshabilitadas</item>
+        <item quantity="other">%d máscaras deshabilitadas</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d máscara archivada</item>
+        <item quantity="many">%d máscaras archivadas</item>
+        <item quantity="other">%d máscaras archivadas</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%1$d de %2$d hechas · %3$d con error</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">No se pudo actualizar %d máscara</item>
+        <item quantity="many">No se pudieron actualizar %d máscaras</item>
+        <item quantity="other">No se pudieron actualizar %d máscaras</item>
+    </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d máscara restaurada</item>
+        <item quantity="many">%d máscaras restauradas</item>
+        <item quantity="other">%d máscaras restauradas</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">No se pudo restaurar %d máscara</item>
+        <item quantity="many">No se pudieron restaurar %d máscaras</item>
+        <item quantity="other">No se pudieron restaurar %d máscaras</item>
+    </plurals>
+    <string name="hygiene_locked_title">La higiene de máscaras es una función Pro</string>
+    <string name="hygiene_locked_body">Desbloquea FastMask Pro para revisar toda tu colección y limpiarla en bloque. Hasta entonces, tus máscaras no se tocan.</string>
+    <string name="hygiene_locked_cta">Ver FastMask Pro</string>
 </resources>

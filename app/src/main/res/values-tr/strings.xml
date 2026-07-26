@@ -266,4 +266,79 @@
     <string name="quick_mask_undo">Geri al</string>
     <string name="quick_mask_undone">Maske silindi</string>
     <string name="quick_mask_undo_failed">Maske silinemedi. FastMask uygulamasını açıp tekrar deneyin.</string>
+    <string name="hygiene_title">Maske bakımı</string>
+    <string name="hygiene_open">Maskeleri gözden geçir</string>
+    <string name="hygiene_back">Geri</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d maske gözden geçirildi</item>
+        <item quantity="other">%d maske gözden geçirildi</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d tanesi ilgi bekliyor</item>
+        <item quantity="other">%d tanesi ilgi bekliyor</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d maske</item>
+        <item quantity="other">%d maske</item>
+    </plurals>
+    <string name="hygiene_select_all">Tümünü seç</string>
+    <string name="hygiene_clear_selection">Temizle</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d seçildi</item>
+        <item quantity="other">%d seçildi</item>
+    </plurals>
+    <string name="hygiene_action_disable">Devre dışı bırak</string>
+    <string name="hygiene_action_archive">Arşivle</string>
+    <string name="hygiene_undo">Geri al</string>
+    <string name="hygiene_last_message">Son mesaj %1$s</string>
+    <string name="hygiene_created">Oluşturulma %1$s</string>
+    <string name="hygiene_issue_new_title">Yeni etkinlik</string>
+    <string name="hygiene_issue_new_body">Son incelemenden bu yana bunlara posta geldi.</string>
+    <string name="hygiene_issue_never_title">Hiç kullanılmadı</string>
+    <string name="hygiene_issue_never_body">Bir süre önce oluşturuldu ve tek bir mesaj bile almadı.</string>
+    <string name="hygiene_issue_dormant_title">Uykuda</string>
+    <string name="hygiene_issue_dormant_body">Hâlâ posta kabul ediyor ama aylardır sessiz. Kapatmayı düşünebilirsin.</string>
+    <string name="hygiene_issue_undescribed_title">Tanımlanamıyor</string>
+    <string name="hygiene_issue_undescribed_body">Açıklaması ve alan adı yok, bu yüzden ne için kullanıldıkları anlaşılmıyor.</string>
+    <string name="hygiene_empty_title">Henüz maske yok</string>
+    <string name="hygiene_empty_body">Birkaç maskeli adres oluştur, bu inceleme neyin ilgi beklediğini gösterecek.</string>
+    <string name="hygiene_clean_title">Düzenlenecek bir şey yok</string>
+    <string name="hygiene_clean_body">Her maske tanımlı, kullanımda ve etkin. Birkaç kayıt daha sonra yine bak.</string>
+    <string name="hygiene_all_archived_body">Bu hesaptaki tüm maskeler arşivlendi, dolayısıyla incelenecek bir şey kalmadı.</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="one">%d maske devre dışı bırakılsın mı?</item>
+        <item quantity="other">%d maske devre dışı bırakılsın mı?</item>
+    </plurals>
+    <string name="hygiene_confirm_disable_body">Posta kabul etmeyi bırakırlar. İstediğin zaman yeniden açabilirsin.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="one">%d maske arşivlensin mi?</item>
+        <item quantity="other">%d maske arşivlensin mi?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">Arşive taşınır ve posta kabul etmeyi bırakırlar. Adresler hesabında kalır, hemen ardından geri alabilirsin.</string>
+    <string name="hygiene_confirm_cancel">İptal</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d maske devre dışı bırakıldı</item>
+        <item quantity="other">%d maske devre dışı bırakıldı</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d maske arşivlendi</item>
+        <item quantity="other">%d maske arşivlendi</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%2$d maskeden %1$d tanesi tamam · %3$d başarısız</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">%d maske güncellenemedi</item>
+        <item quantity="other">%d maske güncellenemedi</item>
+    </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="one">%d maske geri yüklendi</item>
+        <item quantity="other">%d maske geri yüklendi</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="one">%d maske geri yüklenemedi</item>
+        <item quantity="other">%d maske geri yüklenemedi</item>
+    </plurals>
+    <string name="hygiene_locked_title">Maske bakımı bir Pro özelliğidir</string>
+    <string name="hygiene_locked_body">Tüm koleksiyonunu gözden geçirip toplu olarak toparlamak için FastMask Pro\'yu aç. O zamana kadar maskelerine dokunulmaz.</string>
+    <string name="hygiene_locked_cta">FastMask Pro\'ya bak</string>
 </resources>

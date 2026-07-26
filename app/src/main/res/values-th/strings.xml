@@ -264,4 +264,68 @@
     <string name="quick_mask_undo">เลิกทำ</string>
     <string name="quick_mask_undone">ลบอีเมลซ่อนแล้ว</string>
     <string name="quick_mask_undo_failed">ไม่สามารถลบอีเมลซ่อนได้ เปิด FastMask แล้วลองอีกครั้ง</string>
+    <string name="hygiene_title">ดูแลอีเมลซ่อน</string>
+    <string name="hygiene_open">ตรวจดูอีเมลซ่อน</string>
+    <string name="hygiene_back">กลับ</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="other">ตรวจดูแล้ว %d รายการ</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="other">%d รายการต้องดูแล</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="other">%d รายการ</item>
+    </plurals>
+    <string name="hygiene_select_all">เลือกทั้งหมด</string>
+    <string name="hygiene_clear_selection">ล้าง</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="other">เลือกแล้ว %d</item>
+    </plurals>
+    <string name="hygiene_action_disable">ปิดใช้งาน</string>
+    <string name="hygiene_action_archive">เก็บเข้าคลัง</string>
+    <string name="hygiene_undo">เลิกทำ</string>
+    <string name="hygiene_last_message">ข้อความล่าสุด %1$s</string>
+    <string name="hygiene_created">สร้างเมื่อ %1$s</string>
+    <string name="hygiene_issue_new_title">มีความเคลื่อนไหวใหม่</string>
+    <string name="hygiene_issue_new_body">มีอีเมลเข้ามาตั้งแต่การตรวจสอบครั้งล่าสุดของคุณ</string>
+    <string name="hygiene_issue_never_title">ไม่เคยถูกใช้</string>
+    <string name="hygiene_issue_never_body">สร้างไว้นานแล้วและยังไม่เคยได้รับข้อความเลยสักฉบับ</string>
+    <string name="hygiene_issue_dormant_title">หลับใหล</string>
+    <string name="hygiene_issue_dormant_body">ยังรับอีเมลอยู่ แต่เงียบมาหลายเดือน ลองปิดใช้งานดูได้</string>
+    <string name="hygiene_issue_undescribed_title">ระบุไม่ได้</string>
+    <string name="hygiene_issue_undescribed_body">ไม่มีคำอธิบายและไม่มีโดเมน จึงไม่มีทางรู้ว่าใช้ทำอะไร</string>
+    <string name="hygiene_empty_title">ยังไม่มีอีเมลซ่อน</string>
+    <string name="hygiene_empty_body">สร้างอีเมลซ่อนสักสองสามรายการ แล้วหน้านี้จะบอกว่าอะไรต้องดูแล</string>
+    <string name="hygiene_clean_title">ไม่มีอะไรต้องจัดระเบียบ</string>
+    <string name="hygiene_clean_body">ทุกอีเมลซ่อนมีคำอธิบาย ถูกใช้งาน และเปิดอยู่ กลับมาดูอีกครั้งหลังสมัครใช้บริการเพิ่ม</string>
+    <string name="hygiene_all_archived_body">มาสก์ทั้งหมดในบัญชีนี้ถูกเก็บถาวรแล้ว จึงไม่มีอะไรให้ตรวจสอบ</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">ปิดใช้งาน %d รายการไหม</item>
+    </plurals>
+    <string name="hygiene_confirm_disable_body">รายการเหล่านี้จะหยุดรับอีเมล คุณเปิดกลับมาได้ทุกเมื่อ</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">เก็บ %d รายการเข้าคลังไหม</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">รายการจะย้ายไปที่คลังและหยุดรับอีเมล ที่อยู่ยังอยู่ในบัญชีของคุณ และคุณเลิกทำได้ทันทีหลังจากนั้น</string>
+    <string name="hygiene_confirm_cancel">ยกเลิก</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="other">ปิดใช้งานแล้ว %d รายการ</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="other">เก็บเข้าคลังแล้ว %d รายการ</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">สำเร็จ %1$d จาก %2$d · ล้มเหลว %3$d</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="other">อัปเดตไม่สำเร็จ %d รายการ</item>
+    </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">คืนค่า %d รายการแล้ว</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">คืนค่า %d รายการไม่สำเร็จ</item>
+    </plurals>
+    <string name="hygiene_locked_title">การดูแลอีเมลซ่อนเป็นฟีเจอร์ Pro</string>
+    <string name="hygiene_locked_body">ปลดล็อก FastMask Pro เพื่อตรวจดูทั้งคอลเลกชันและจัดการพร้อมกันทีเดียว จนกว่าจะถึงตอนนั้นอีเมลซ่อนของคุณจะไม่ถูกแตะต้อง</string>
+    <string name="hygiene_locked_cta">ดู FastMask Pro</string>
 </resources>

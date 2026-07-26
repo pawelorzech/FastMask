@@ -264,4 +264,68 @@
     <string name="quick_mask_undo">실행 취소</string>
     <string name="quick_mask_undone">마스크 삭제됨</string>
     <string name="quick_mask_undo_failed">마스크를 삭제할 수 없습니다. FastMask를 열고 다시 시도하세요.</string>
+    <string name="hygiene_title">마스크 정리</string>
+    <string name="hygiene_open">마스크 점검</string>
+    <string name="hygiene_back">뒤로</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="other">마스크 %d개 확인함</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="other">%d개 확인 필요</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="other">%d개</item>
+    </plurals>
+    <string name="hygiene_select_all">모두 선택</string>
+    <string name="hygiene_clear_selection">선택 해제</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="other">%d개 선택됨</item>
+    </plurals>
+    <string name="hygiene_action_disable">비활성화</string>
+    <string name="hygiene_action_archive">보관</string>
+    <string name="hygiene_undo">실행 취소</string>
+    <string name="hygiene_last_message">마지막 메시지 %1$s</string>
+    <string name="hygiene_created">생성 %1$s</string>
+    <string name="hygiene_issue_new_title">새 활동</string>
+    <string name="hygiene_issue_new_body">마지막으로 점검한 이후 메일을 받은 마스크입니다.</string>
+    <string name="hygiene_issue_never_title">사용한 적 없음</string>
+    <string name="hygiene_issue_never_body">만든 지 꽤 지났지만 메시지를 한 통도 받지 않았습니다.</string>
+    <string name="hygiene_issue_dormant_title">휴면 상태</string>
+    <string name="hygiene_issue_dormant_body">여전히 메일을 받지만 몇 달째 조용합니다. 꺼두어도 좋습니다.</string>
+    <string name="hygiene_issue_undescribed_title">확인 불가</string>
+    <string name="hygiene_issue_undescribed_body">설명도 도메인도 없어 어디에 쓰는지 알 수 없습니다.</string>
+    <string name="hygiene_empty_title">아직 마스크가 없습니다</string>
+    <string name="hygiene_empty_body">마스크 주소를 몇 개 만들면 여기에서 무엇을 살펴봐야 하는지 알려줍니다.</string>
+    <string name="hygiene_clean_title">정리할 것이 없습니다</string>
+    <string name="hygiene_clean_body">모든 마스크에 설명이 있고 사용 중이며 활성 상태입니다. 가입을 몇 번 더 한 뒤 다시 확인해 보세요.</string>
+    <string name="hygiene_all_archived_body">이 계정의 마스크가 모두 보관되어 검토할 항목이 없습니다.</string>
+    <plurals name="hygiene_confirm_disable_title">
+        <item quantity="other">마스크 %d개를 비활성화할까요?</item>
+    </plurals>
+    <string name="hygiene_confirm_disable_body">메일을 더 이상 받지 않습니다. 언제든 다시 켤 수 있습니다.</string>
+    <plurals name="hygiene_confirm_archive_title">
+        <item quantity="other">마스크 %d개를 보관할까요?</item>
+    </plurals>
+    <string name="hygiene_confirm_archive_body">보관함으로 옮겨지고 메일을 더 이상 받지 않습니다. 주소는 계정에 그대로 남으며, 바로 뒤에 실행을 취소할 수 있습니다.</string>
+    <string name="hygiene_confirm_cancel">취소</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="other">마스크 %d개를 비활성화했습니다</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="other">마스크 %d개를 보관했습니다</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%2$d개 중 %1$d개 완료 · %3$d개 실패</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="other">마스크 %d개를 업데이트하지 못했습니다</item>
+    </plurals>
+    <plurals name="hygiene_undo_done">
+        <item quantity="other">마스크 %d개를 되돌렸습니다</item>
+    </plurals>
+    <plurals name="hygiene_undo_failed">
+        <item quantity="other">마스크 %d개를 되돌리지 못했습니다</item>
+    </plurals>
+    <string name="hygiene_locked_title">마스크 정리는 Pro 기능입니다</string>
+    <string name="hygiene_locked_body">FastMask Pro를 잠금 해제하면 전체 목록을 검토하고 한 번에 정리할 수 있습니다. 그때까지 마스크는 그대로 유지됩니다.</string>
+    <string name="hygiene_locked_cta">FastMask Pro 보기</string>
 </resources>
