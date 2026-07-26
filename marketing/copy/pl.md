@@ -43,7 +43,7 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Network Security Config przypina zaufanie do systemowego magazynu CA
 • Wydania Release nie logują żadnego ruchu sieciowego
 • Ekrany mają FLAG_SECURE — token nie trafia do zrzutów ani nagrań ekranu
-• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem. Gdy aplikacja się wywali, wysyła do Google Firebase Crashlytics ślad stosu, model urządzenia, wersję Androida i wersję aplikacji — żeby dało się znaleźć i naprawić błąd. Nigdy nie wysyła Twoich masek, opisów, przypisanych domen, tokenu API, adresu e‑mail ani treści wiadomości. Sam raport wychodzi tylko przy realnej awarii — ale dopóki raportowanie jest włączone, SDK przy starcie aplikacji rejestruje też instalację u Google i pobiera własną konfigurację, wysyłając identyfikator instalacji, model urządzenia i wersję Androida, bez żadnej awarii. Nie chcesz tego? Ustawienia → Raporty o awariach → wyłącz. Jedno i drugie ustaje od razu, a to, co czekało w kolejce, zostaje skasowane.
+• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem (Ustawienia → Raporty o awariach). Awaria wysyła do Firebase Crashlytics ślad stosu, model urządzenia i wersję aplikacji — nigdy Twoich masek, opisów, domen, tokenu API ani adresu e‑mail. Dopóki jest włączone, SDK melduje się też u Google przy starcie; przełącznik zatrzymuje i to.
 • Open source na licencji MIT — wszystko możesz sam zweryfikować. SDK Crashlytics jest wołane z dokładnie jednego pliku, a test wywala build, gdyby to się kiedyś zmieniło.
 
 ⸻ JĘZYKI ⸻
