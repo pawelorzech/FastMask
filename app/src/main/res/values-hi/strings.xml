@@ -223,6 +223,8 @@
     <string name="settings_app_lock">ऐप लॉक</string>
     <string name="settings_app_lock_description">ऐप खोलते समय अनलॉक की आवश्यकता है</string>
     <string name="settings_app_lock_unavailable">पहले सिस्टम सेटिंग्स में स्क्रीन लॉक या फिंगरप्रिंट सेट करें।</string>
+    <string name="settings_crash_reporting">क्रैश रिपोर्ट</string>
+    <string name="settings_crash_reporting_description">गड़बड़ियाँ ठीक करने के लिए क्रैश रिपोर्ट Google Firebase को भेजी जाती हैं। इनमें आपके मास्क, ई-मेल या लॉगिन कभी शामिल नहीं होते। इसे कभी भी बंद किया जा सकता है।</string>
     <string name="settings_export_title">मास्क निर्यात करें</string>
     <string name="settings_export_description">सभी मास्क को CSV फाइल के रूप में साझा करें</string>
     <string name="settings_export_failed">निर्यात विफल। फिर से कोशिश करें।</string>

@@ -7,16 +7,17 @@ import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
+import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.usecase.ExportMasksUseCase
-import com.fastmask.ui.common.UiErrors
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
+import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -40,6 +41,7 @@ class SettingsViewModel @Inject constructor(
     private val proRepository: ProRepository,
     private val exportMasksUseCase: ExportMasksUseCase,
     private val analytics: MonetizationAnalytics,
+    private val crashReporting: CrashReportingController,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -79,6 +81,41 @@ class SettingsViewModel @Inject constructor(
         initialValue = false,
     )
 
+    // --- Crash reporting (opt-out) ---
+
+    /**
+     * Seeded from storage the way [appMode] is, not from the opt-out default.
+     * This ViewModel is scoped to the Settings back-stack entry, so a plain
+     * default meant the switch painted ON for the first frames of *every* entry
+     * into Settings — showing a user who had opted out the opposite of their
+     * own choice. A read failure still falls back to the default, because "on"
+     * is the honest thing to show when the stored value is unknown.
+     */
+    val crashReportingEnabled: StateFlow<Boolean> =
+        settingsDataStore.crashReportingEnabled.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = settingsDataStore.crashReportingEnabledBlocking(),
+        )
+
+    /**
+     * Applies the choice before persisting it, deliberately. The reporter call
+     * is synchronous, so a write that fails (full disk) still leaves collection
+     * stopped for this session instead of turning the user's opt-out into a
+     * silent no-op; `writeErrorHandler` keeps that failure from crashing.
+     *
+     * The SDK call is wrapped too: it is the point where Firebase initialises
+     * itself, and it runs on the main thread straight off a tap, so an SDK that
+     * cannot start would otherwise take the Settings screen down with it. The
+     * preference is still written, so the choice survives and is re-applied on
+     * the next launch.
+     */
+    fun onCrashReportingToggled(enabled: Boolean) {
+        runCatching { crashReporting.apply(enabled) }
+        viewModelScope.launch(writeErrorHandler) {
+            settingsDataStore.setCrashReportingEnabled(enabled)
+        }
+    }
 
     init {
         loadCurrentLanguage()

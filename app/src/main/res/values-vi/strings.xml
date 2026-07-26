@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Khóa ứng dụng</string>
     <string name="settings_app_lock_description">Yêu cầu mở khóa khi mở ứng dụng</string>
     <string name="settings_app_lock_unavailable">Trước tiên, hãy thiết lập khóa màn hình hoặc vân tay trong cài đặt hệ thống.</string>
+    <string name="settings_crash_reporting">Báo cáo sự cố</string>
+    <string name="settings_crash_reporting_description">Gửi báo cáo sự cố tới Google Firebase để lỗi được khắc phục. Không bao giờ chứa địa chỉ, e-mail hay thông tin đăng nhập của bạn. Có thể tắt bất cứ lúc nào.</string>
     <string name="settings_export_title">Xuất địa chỉ</string>
     <string name="settings_export_description">Chia sẻ tất cả các địa chỉ dưới dạng tệp CSV</string>
     <string name="settings_export_failed">Xuất không thành công. Hãy thử lại.</string>

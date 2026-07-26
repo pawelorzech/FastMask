@@ -225,6 +225,8 @@
     <string name="settings_app_lock">Blokada aplikacji</string>
     <string name="settings_app_lock_description">Wymagaj odblokowania przy otwarciu aplikacji</string>
     <string name="settings_app_lock_unavailable">Najpierw ustaw blokadę ekranu lub odcisk palca w ustawieniach systemu.</string>
+    <string name="settings_crash_reporting">Raporty awarii</string>
+    <string name="settings_crash_reporting_description">Wysyłaj raporty awarii do Google Firebase, żeby błędy trafiały do poprawki. Nigdy nie zawierają Twoich masek, adresu e-mail ani danych logowania. Możesz to wyłączyć w każdej chwili.</string>
     <string name="settings_export_title">Eksportuj maski</string>
     <string name="settings_export_description">Udostępnij wszystkie maski jako plik CSV</string>
     <string name="settings_export_failed">Eksport nie powiódł się. Spróbuj ponownie.</string>

@@ -223,6 +223,8 @@
     <string name="settings_app_lock">অ্যাপ লক</string>
     <string name="settings_app_lock_description">অ্যাপ খোলার সময় আনলক প্রয়োজন</string>
     <string name="settings_app_lock_unavailable">প্রথমে সিস্টেম সেটিংসে একটি স্ক্রীন লক বা ফিঙ্গারপ্রিন্ট সেট করুন।</string>
+    <string name="settings_crash_reporting">ক্র্যাশ রিপোর্ট</string>
+    <string name="settings_crash_reporting_description">ত্রুটি সারানোর জন্য Google Firebase-এ ক্র্যাশ রিপোর্ট পাঠানো হয়। এতে আপনার মাস্ক, ই-মেইল বা লগইন তথ্য কখনও থাকে না। যেকোনো সময় বন্ধ করা যায়।</string>
     <string name="settings_export_title">মাস্ক রপ্তানি করুন</string>
     <string name="settings_export_description">সমস্ত মাস্ক CSV ফাইল হিসাবে শেয়ার করুন</string>
     <string name="settings_export_failed">রপ্তানি ব্যর্থ। আবার চেষ্টা করুন।</string>

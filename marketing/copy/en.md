@@ -5,8 +5,8 @@
 (38 chars)
 
 ## Short description (max 80 chars)
-**Manage Fastmail masked email addresses. Open-source, private, no tracking.**
-(76 chars)
+**Manage Fastmail masked email addresses. Open-source, private, no ad tracking.**
+(77 chars)
 
 ## Full description (max 4000 chars)
 
@@ -25,7 +25,7 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 • One-tap copy to clipboard with subtle haptic feedback
 • Search and filter by Active / Off / Archived
 • Quick stats: how many messages each mask has received, when the last one arrived
-• Settings screen with language picker, contact link, and logout
+• Settings screen with language picker, crash-report switch, contact link, and logout
 
 ⸻ DESIGN ⸻
 
@@ -37,13 +37,14 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 
 ⸻ PRIVACY & SECURITY ⸻
 
-• Zero tracking. Zero analytics. Zero third-party SDKs.
+• No tracking, no analytics, no ads. There is no Google Analytics in this app, no advertising ID, no event or screen tracking, no user profiling.
 • Your Fastmail API token is encrypted on-device using EncryptedSharedPreferences
 • The app talks directly to api.fastmail.com over HTTPS — no servers in the middle
 • Network Security Config pins trust to the system CA store
 • Release builds log nothing about your network traffic
 • Screens are FLAG_SECURE — the token never leaks to screenshots or screen recording
-• Open source under MIT license — verify everything for yourself
+• Crash reports: on by default, off in one tap (Settings → Crash reports). A crash sends Firebase Crashlytics technical diagnostics about the app and the device — never your addresses, descriptions, domains, API token or email. While it's on, the SDK also checks in with Google at startup; the toggle stops that too.
+• Open source under MIT license — verify everything for yourself. The Crashlytics SDK is called from exactly one file, there is no way to pass data into a report, and a test fails the build if either ever changes.
 
 ⸻ LANGUAGES ⸻
 
@@ -76,6 +77,18 @@ Released under the MIT License. Pull requests welcome.
 • Same calm, private, zero-tracking app you'd expect
 
 (287 chars)
+
+## What's new (max 500 chars) — crash reporting release
+
+**Crash reports — on by default, off in one tap**
+
+• New: if the app crashes, it can send technical diagnostics about the app and the device to Firebase Crashlytics so the bug gets fixed
+• Never sends your masks, descriptions, domains, token or email
+• Still no analytics and no ad tracking
+• Don't want it? Settings → Crash reports → off. Stops right away.
+• Full detail in the updated privacy policy
+
+(392 chars, full field)
 
 ## Category, tags, contact
 

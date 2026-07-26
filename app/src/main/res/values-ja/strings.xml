@@ -223,6 +223,8 @@
     <string name="settings_app_lock">アプリロック</string>
     <string name="settings_app_lock_description">アプリを開く際にアンロックが必要</string>
     <string name="settings_app_lock_unavailable">システム設定でスクリーンロックまたは指紋認証をまず設定してください。</string>
+    <string name="settings_crash_reporting">クラッシュレポート</string>
+    <string name="settings_crash_reporting_description">不具合の修正のため、クラッシュレポートを Google Firebase に送信します。マスクやメールアドレス、ログイン情報が含まれることはありません。いつでもオフにできます。</string>
     <string name="settings_export_title">マスクをエクスポート</string>
     <string name="settings_export_description">すべてのマスクをCSVファイルとして共有</string>
     <string name="settings_export_failed">エクスポートに失敗しました。もう一度試してください。</string>

@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Bloqueo de aplicación</string>
     <string name="settings_app_lock_description">Requerir desbloqueo al abrir la app</string>
     <string name="settings_app_lock_unavailable">Primero configura un bloqueo de pantalla o huella dactilar en los ajustes del sistema.</string>
+    <string name="settings_crash_reporting">Informes de fallos</string>
+    <string name="settings_crash_reporting_description">Enviar informes de fallos a Google Firebase para corregir errores. Nunca incluyen tus máscaras, tu correo ni tus datos de acceso. Se puede desactivar cuando quieras.</string>
     <string name="settings_export_title">Exportar máscaras</string>
     <string name="settings_export_description">Comparte todas las máscaras como archivo CSV</string>
     <string name="settings_export_failed">La exportación falló. Intenta de nuevo.</string>

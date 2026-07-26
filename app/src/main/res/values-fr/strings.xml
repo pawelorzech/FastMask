@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Verrouillage de l\'app</string>
     <string name="settings_app_lock_description">Exiger un déverrouillage à l\'ouverture de l\'app</string>
     <string name="settings_app_lock_unavailable">Configurez d\'abord un verrouillage d\'écran ou une empreinte dans les paramètres système.</string>
+    <string name="settings_crash_reporting">Rapports de plantage</string>
+    <string name="settings_crash_reporting_description">Envoyer les rapports de plantage à Google Firebase pour corriger les bugs. Ils n\'incluent jamais vos masques, votre e-mail ni vos identifiants. Désactivable à tout moment.</string>
     <string name="settings_export_title">Exporter les masques</string>
     <string name="settings_export_description">Partager tous les masques sous forme de fichier CSV</string>
     <string name="settings_export_failed">L\'export a échoué. Réessayez.</string>

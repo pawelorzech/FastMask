@@ -223,6 +223,8 @@
     <string name="settings_app_lock">App-Sperre</string>
     <string name="settings_app_lock_description">Entsperrung erforderlich, wenn die App geöffnet wird</string>
     <string name="settings_app_lock_unavailable">Richte zuerst eine Bildschirmsperre oder einen Fingerabdruck in den Systemeinstellungen ein.</string>
+    <string name="settings_crash_reporting">Absturzberichte</string>
+    <string name="settings_crash_reporting_description">Absturzberichte an Google Firebase senden, damit Fehler behoben werden. Masken, E-Mail-Adresse und Zugangsdaten sind nie enthalten. Jederzeit abschaltbar.</string>
     <string name="settings_export_title">Masken exportieren</string>
     <string name="settings_export_description">Alle Masken als CSV-Datei freigeben</string>
     <string name="settings_export_failed">Export fehlgeschlagen. Versuche es erneut.</string>

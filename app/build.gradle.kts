@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     kotlin("kapt")
 }
 
@@ -14,8 +16,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 36
-        versionCode = 20
-        versionName = "1.9.0"
+        versionCode = 21
+        versionName = "1.10.0"
 
         // Hilt needs its own Application in instrumented tests; HiltTestRunner
         // swaps FastMaskApplication for HiltTestApplication.
@@ -58,6 +60,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Nothing to symbolicate without R8, and a debug build must not
+            // reach Crashlytics' upload endpoint on every assemble. Runtime
+            // collection is disabled separately and unconditionally by
+            // CrashReportingPolicy, whatever the user preference says.
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                mappingFileUploadEnabled = false
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -184,6 +195,12 @@ dependencies {
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase Crashlytics — crash diagnostics only. Google Analytics is
+    // deliberately NOT on the graph: this app reports that it crashed, never
+    // what its user did. The BOM pins the SDK versions as a matched set.
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")

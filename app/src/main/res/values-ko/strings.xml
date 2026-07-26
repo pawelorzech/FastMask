@@ -223,6 +223,8 @@
     <string name="settings_app_lock">앱 잠금</string>
     <string name="settings_app_lock_description">앱을 열 때 잠금 해제 필요</string>
     <string name="settings_app_lock_unavailable">먼저 시스템 설정에서 화면 잠금 또는 지문을 설정하세요.</string>
+    <string name="settings_crash_reporting">충돌 보고서</string>
+    <string name="settings_crash_reporting_description">버그 수정을 위해 충돌 보고서를 Google Firebase로 보냅니다. 마스크, 이메일, 로그인 정보는 절대 포함되지 않습니다. 언제든지 끌 수 있습니다.</string>
     <string name="settings_export_title">마스크 내보내기</string>
     <string name="settings_export_description">모든 마스크를 CSV 파일로 공유</string>
     <string name="settings_export_failed">내보내기 실패. 다시 시도하세요.</string>

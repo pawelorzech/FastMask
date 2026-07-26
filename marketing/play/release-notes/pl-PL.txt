@@ -1,9 +1,8 @@
-Nowości w 1.9.0
+Nowości w 1.10.0
 
-• Lista masek działa offline — pokazuje ostatnie dane z oznaczeniem, kiedy je pobrano
-• Czytnik ekranu nazywa wreszcie przyciski i pola formularzy
-• Po utworzeniu maski wracasz na listę od razu, bez czekania
-• Poprawione wyświetlanie przy krawędziach ekranu na Androidzie 15 i 16
-• Tryb demo zawsze zaczyna od tej samej, czystej listy
-• Eksport CSV nie zostaje na urządzeniu po wylogowaniu
+• Maska bez otwierania aplikacji — udostępnij stronę z przeglądarki, użyj kafelka w szybkich ustawieniach albo przytrzymaj ikonę. Adres ląduje w schowku.
+• Powiadomienie z potwierdzeniem ma przyciski Otwórz i Cofnij
+• Ekran logowania prowadzi przez tworzenie tokenu API i wprost mówi, gdy token nie ma uprawnienia Masked Email
+• Nowość: raporty o awariach. Gdy aplikacja się wywali, diagnostyka techniczna trafia do Firebase Crashlytics, żeby błąd dało się naprawić — nigdy Twoje maski, opisy, domeny, token ani e-mail
+• Nie chcesz? Ustawienia → Raporty o awariach → wyłącz. Działa od razu.
 • Nadal zero śledzenia, bez reklam i subskrypcji

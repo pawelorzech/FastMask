@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Блокування застосунку</string>
     <string name="settings_app_lock_description">Вимагати розблокування при відкритті застосунку</string>
     <string name="settings_app_lock_unavailable">Спочатку встановіть блокування екрана або відбиток пальця в системних параметрах.</string>
+    <string name="settings_crash_reporting">Звіти про збої</string>
+    <string name="settings_crash_reporting_description">Надсилати звіти про збої до Google Firebase, щоб помилки виправляли швидше. Вони ніколи не містять ваших масок, пошти чи даних для входу. Можна вимкнути будь-коли.</string>
     <string name="settings_export_title">Експортувати маски</string>
     <string name="settings_export_description">Поділіться всіма масками як файлом CSV</string>
     <string name="settings_export_failed">Експорт не вдався. Спробуйте ще раз.</string>

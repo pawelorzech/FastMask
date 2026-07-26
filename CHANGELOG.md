@@ -3,6 +3,16 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] — Unreleased
+
+### Added
+- **A mask without opening the app.** A share target (share a page from the browser), a quick settings tile and a long-press app shortcut each create a mask and copy it to the clipboard. The confirmation notification offers *Open* and *Undo*; the address itself stays out of the notification and the toast.
+- **Token setup wizard on the sign-in screen.** Numbered steps, a direct link to Fastmail's API token settings, a paste button, and a warning when the pasted text does not look like a Fastmail token. A token that authenticates but lacks the *Masked Email* permission now says exactly that instead of failing generically.
+- Crash reports. If the app crashes, technical diagnostics go to Firebase Crashlytics so the bug can be fixed. On by default, switchable off in Settings → *Crash reports*.
+
+### Build
+- `versionCode` 20 → 21, `versionName` "1.9.0" → "1.10.0".
+
 ## [1.9.0] — 2026-07-25
 
 Backlog after the fourth audit pass. 124 → 143 unit tests, plus the app's first 12 instrumented tests.

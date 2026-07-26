@@ -223,6 +223,8 @@
     <string name="settings_app_lock">应用锁</string>
     <string name="settings_app_lock_description">打开应用时需要解锁</string>
     <string name="settings_app_lock_unavailable">先在系统设置中设置屏幕锁定或指纹。</string>
+    <string name="settings_crash_reporting">崩溃报告</string>
+    <string name="settings_crash_reporting_description">向 Google Firebase 发送崩溃报告，以便修复问题。绝不包含你的掩码、邮箱或登录信息。可随时关闭。</string>
     <string name="settings_export_title">导出掩码</string>
     <string name="settings_export_description">以 CSV 文件共享所有掩码</string>
     <string name="settings_export_failed">导出失败。重试。</string>

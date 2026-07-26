@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Kunci aplikasi</string>
     <string name="settings_app_lock_description">Perlu dibuka saat membuka aplikasi</string>
     <string name="settings_app_lock_unavailable">Atur kunci layar atau sidik jari di pengaturan sistem terlebih dahulu.</string>
+    <string name="settings_crash_reporting">Laporan kerusakan</string>
+    <string name="settings_crash_reporting_description">Kirim laporan kerusakan ke Google Firebase agar bug bisa diperbaiki. Tidak pernah memuat topeng, e-mail, atau data login Anda. Bisa dimatikan kapan saja.</string>
     <string name="settings_export_title">Ekspor topeng</string>
     <string name="settings_export_description">Bagikan semua topeng sebagai file CSV</string>
     <string name="settings_export_failed">Ekspor gagal. Coba lagi.</string>

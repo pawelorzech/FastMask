@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug-only overlay. Crashlytics auto-initialises with collection enabled,
+    and FastMaskApplication can only switch it off once it has read the stored
+    preference off the main thread — so the first launch of a debug build on a
+    device has a window in which a development crash would reach the production
+    console. This flag narrows that window: it is the default Crashlytics falls
+    back to at process start.
+
+    It does not close the window entirely, and the difference matters when
+    reading this later. DataCollectionArbiter reads its own SharedPreferences
+    first and only consults the manifest when nothing is stored there — and the
+    debug build has no applicationIdSuffix, so it shares the package, and those
+    preferences, with a release build installed before it. Replacing a release
+    install that had collection on therefore starts with `true` despite this
+    flag. CrashReportingPolicy.shouldCollect() is what actually guarantees a
+    debug build never reports; it forces `false` on the first startup pass and
+    Crashlytics persists that. This flag covers the moments before that pass.
+
+    Release builds have no such overlay: there, collection genuinely defaults to
+    on and the user's opt-out is what turns it off.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+    </application>
+
+</manifest>

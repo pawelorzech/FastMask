@@ -92,3 +92,12 @@
 -keep class androidx.compose.ui.platform.** { *; }
 -keepclassmembers class * { @androidx.compose.runtime.Composable *; }
 -dontwarn androidx.compose.**
+
+# ----- Firebase Crashlytics -----
+# The Gradle plugin uploads the R8 mapping file, but a mapping can only restore
+# line numbers if R8 kept them: without SourceFile/LineNumberTable every frame
+# in the console reads "Unknown Source" and the reports are close to useless.
+# -renamesourcefileattribute replaces the real file names with a constant so the
+# kept attribute does not leak source layout back into the APK.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

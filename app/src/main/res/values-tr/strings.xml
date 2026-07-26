@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Uygulama kilidi</string>
     <string name="settings_app_lock_description">Uygulamayı açarken kilit açma gerektir</string>
     <string name="settings_app_lock_unavailable">Önce sistem ayarlarında bir ekran kilidi veya parmak izi ayarlayın.</string>
+    <string name="settings_crash_reporting">Çökme raporları</string>
+    <string name="settings_crash_reporting_description">Hataların düzeltilebilmesi için çökme raporlarını Google Firebase\'e gönderin. Maskalarınız, e-postanız veya giriş bilgileriniz asla yer almaz. İstediğiniz zaman kapatabilirsiniz.</string>
     <string name="settings_export_title">Maskaları dışa aktar</string>
     <string name="settings_export_description">Tüm maskaları CSV dosyası olarak paylaş</string>
     <string name="settings_export_failed">Dışa aktarma başarısız oldu. Tekrar deneyin.</string>

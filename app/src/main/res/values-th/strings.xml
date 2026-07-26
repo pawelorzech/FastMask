@@ -223,6 +223,8 @@
     <string name="settings_app_lock">ล็อกแอป</string>
     <string name="settings_app_lock_description">ต้องปลดล็อกเมื่อเปิดแอป</string>
     <string name="settings_app_lock_unavailable">ตั้งค่าการล็อกหน้าจอหรือลายนิ้วมือในการตั้งค่าระบบก่อน</string>
+    <string name="settings_crash_reporting">รายงานข้อขัดข้อง</string>
+    <string name="settings_crash_reporting_description">ส่งรายงานข้อขัดข้องไปยัง Google Firebase เพื่อให้แก้ไขข้อบกพร่องได้ ไม่มีที่อยู่ อีเมล หรือข้อมูลการเข้าสู่ระบบของคุณรวมอยู่ด้วย ปิดได้ทุกเมื่อ</string>
     <string name="settings_export_title">ส่งออกที่อยู่</string>
     <string name="settings_export_description">แชร์ที่อยู่ทั้งหมดเป็นไฟล์ CSV</string>
     <string name="settings_export_failed">การส่งออกล้มเหลว ลองอีกครั้ง</string>

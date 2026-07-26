@@ -7,7 +7,7 @@ permalink: /terms.html
 
 # Terms of Use
 
-**Last updated: 2026-07-19**
+**Last updated: 2026-07-26**
 
 These terms govern your use of the FastMask Android application ("FastMask", "the app"). FastMask is an unofficial, open-source client for [Fastmail](https://www.fastmail.com) masked email addresses, developed by **Paweł Orzech** (sole proprietorship "YesWas", contact: [pawel@orzech.me](mailto:pawel@orzech.me)). It is not affiliated with or endorsed by Fastmail Pty Ltd.
 
@@ -32,7 +32,7 @@ FastMask is provided "as is", without warranty of any kind, to the maximum exten
 
 ## 4. Privacy
 
-FastMask collects no analytics and runs no tracking. See the [Privacy Policy](/FastMask/privacy.html) for details, including how Google Play processes purchase data.
+FastMask collects no analytics and runs no tracking. From version 1.10.0 it sends crash diagnostics to Firebase Crashlytics so bugs can be fixed — on by default, switchable off at any time in Settings → *Crash reports*. See the [Privacy Policy](/FastMask/privacy.html) for the full detail, including how Google Play processes purchase data.
 
 ## 5. Changes
 

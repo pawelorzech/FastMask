@@ -223,6 +223,8 @@
     <string name="settings_app_lock">App-vergrendeling</string>
     <string name="settings_app_lock_description">Vereist ontgrendeling bij openen van de app</string>
     <string name="settings_app_lock_unavailable">Stel eerst een schermvergrendeling of vingerafdruk in via systeeminstellingen.</string>
+    <string name="settings_crash_reporting">Crashrapporten</string>
+    <string name="settings_crash_reporting_description">Stuur crashrapporten naar Google Firebase zodat bugs worden opgelost. Bevat nooit je maskers, e-mailadres of inloggegevens. Altijd uit te zetten.</string>
     <string name="settings_export_title">Maskers exporteren</string>
     <string name="settings_export_description">Deel alle maskers als CSV-bestand</string>
     <string name="settings_export_failed">Export mislukt. Probeer opnieuw.</string>
