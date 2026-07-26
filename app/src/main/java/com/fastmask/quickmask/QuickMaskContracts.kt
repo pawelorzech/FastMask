@@ -29,7 +29,6 @@ internal const val QUICK_MASK_OPEN_REQUEST_CODE: Int = 7_302
 internal const val QUICK_MASK_UNDO_REQUEST_CODE: Int = 7_303
 internal const val QUICK_MASK_FAILURE_NOTIFICATION_ID: Int = 7_304
 internal const val EXTRA_QUICK_MASK_ID: String = "quick_mask_id"
-internal const val EXTRA_NOTIFICATION_ID: String = "notification_id"
 
 internal fun createAppLaunchIntent(context: Context): Intent {
     val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)

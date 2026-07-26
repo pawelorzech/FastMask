@@ -27,13 +27,12 @@ class QuickMaskNotifier @Inject constructor(
 ) {
 
     fun showCreated(id: String) {
-        val createdNotificationId = QuickMaskPolicy.notificationId(success = true)
         // Same neutral wording as the notification, and for the same reason: a
         // Toast is drawn over whatever is on screen, so spelling the address out
         // there would undo the decision to keep it off the display entirely. The
         // address is on the clipboard — that is where the user picks it up.
         postOrToast(
-            notificationId = createdNotificationId,
+            notificationId = QuickMaskPolicy.notificationId(success = true),
             fallbackMessage = context.getString(R.string.quick_mask_created_body),
         ) {
             val openPendingIntent = PendingIntent.getActivity(
@@ -44,7 +43,6 @@ class QuickMaskNotifier @Inject constructor(
             )
             val undoIntent = Intent(context, QuickMaskUndoReceiver::class.java)
                 .putExtra(EXTRA_QUICK_MASK_ID, id)
-                .putExtra(EXTRA_NOTIFICATION_ID, createdNotificationId)
             val undoPendingIntent = PendingIntent.getBroadcast(
                 context,
                 QUICK_MASK_UNDO_REQUEST_CODE,
