@@ -266,4 +266,61 @@
     <string name="quick_mask_undo">पूर्ववत् करें</string>
     <string name="quick_mask_undone">मास्क हटा दिया गया</string>
     <string name="quick_mask_undo_failed">मास्क हटाया नहीं जा सका। FastMask खोलें और फिर से कोशिश करें।</string>
+    <string name="hygiene_title">मास्क की सफ़ाई</string>
+    <string name="hygiene_open">मास्क जाँचें</string>
+    <string name="hygiene_back">वापस जाएं</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d मास्क जाँचा गया</item>
+        <item quantity="other">%d मास्क जाँचे गए</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d पर ध्यान चाहिए</item>
+        <item quantity="other">%d पर ध्यान चाहिए</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d मास्क</item>
+        <item quantity="other">%d मास्क</item>
+    </plurals>
+    <string name="hygiene_select_all">सभी चुनें</string>
+    <string name="hygiene_clear_selection">चयन हटाएं</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d चुना गया</item>
+        <item quantity="other">%d चुने गए</item>
+    </plurals>
+    <string name="hygiene_action_disable">अक्षम करें</string>
+    <string name="hygiene_action_archive">संग्रहित करें</string>
+    <string name="hygiene_undo">पूर्ववत् करें</string>
+    <string name="hygiene_last_message">अंतिम संदेश %1$s</string>
+    <string name="hygiene_created">बनाया गया %1$s</string>
+    <string name="hygiene_issue_new_title">नई गतिविधि</string>
+    <string name="hygiene_issue_new_body">पिछली सफल रीफ़्रेश के बाद इन पर मेल आया है।</string>
+    <string name="hygiene_issue_never_title">कभी इस्तेमाल नहीं हुए</string>
+    <string name="hygiene_issue_never_body">काफ़ी पहले बनाए गए, पर इन पर एक भी संदेश नहीं आया।</string>
+    <string name="hygiene_issue_dormant_title">शांत पड़े</string>
+    <string name="hygiene_issue_dormant_body">ये अब भी मेल लेते हैं, पर महीनों से शांत हैं। इन्हें बंद कर सकते हैं।</string>
+    <string name="hygiene_issue_undescribed_title">पहचान नहीं हो पा रही</string>
+    <string name="hygiene_issue_undescribed_body">न विवरण है और न डोमेन, इसलिए इनका उपयोग समझना मुश्किल है।</string>
+    <string name="hygiene_empty_title">अभी कोई मास्क नहीं</string>
+    <string name="hygiene_empty_body">कुछ मास्क्ड पते बनाइए, फिर यह समीक्षा बताएगी कि किन पर ध्यान देना है।</string>
+    <string name="hygiene_clean_title">साफ़ करने को कुछ नहीं</string>
+    <string name="hygiene_clean_body">हर मास्क का विवरण है, वह इस्तेमाल में है और चालू है। कुछ और साइन-अप के बाद फिर देखिए।</string>
+    <string name="hygiene_confirm_disable_title">चुने गए मास्क अक्षम करें?</string>
+    <string name="hygiene_confirm_disable_body">ये मेल लेना बंद कर देंगे। आप इन्हें कभी भी दोबारा चालू कर सकते हैं।</string>
+    <string name="hygiene_confirm_archive_title">चुने गए मास्क संग्रहित करें?</string>
+    <string name="hygiene_confirm_archive_body">ये संग्रह में चले जाएंगे। इसके तुरंत बाद आप पूर्ववत् कर सकते हैं।</string>
+    <string name="hygiene_confirm_cancel">रद्द करें</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d मास्क अक्षम किया गया</item>
+        <item quantity="other">%d मास्क अक्षम किए गए</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d मास्क संग्रहित किया गया</item>
+        <item quantity="other">%d मास्क संग्रहित किए गए</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%2$d में से %1$d पूरे · %3$d विफल</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">%d मास्क अपडेट नहीं हो सका</item>
+        <item quantity="other">%d मास्क अपडेट नहीं हो सके</item>
+    </plurals>
 </resources>

@@ -266,4 +266,61 @@
     <string name="quick_mask_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
     <string name="quick_mask_undone">মাস্ক মুছে ফেলা হয়েছে</string>
     <string name="quick_mask_undo_failed">মাস্ক মুছে ফেলা যায়নি। FastMask খুলে আবার চেষ্টা করুন।</string>
+    <string name="hygiene_title">মাস্ক গোছানো</string>
+    <string name="hygiene_open">মাস্ক দেখে নিন</string>
+    <string name="hygiene_back">পিছনে যান</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d টি মাস্ক দেখা হয়েছে</item>
+        <item quantity="other">%d টি মাস্ক দেখা হয়েছে</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d টির যত্ন দরকার</item>
+        <item quantity="other">%d টির যত্ন দরকার</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d টি মাস্ক</item>
+        <item quantity="other">%d টি মাস্ক</item>
+    </plurals>
+    <string name="hygiene_select_all">সব নির্বাচন করুন</string>
+    <string name="hygiene_clear_selection">নির্বাচন বাতিল</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d টি নির্বাচিত</item>
+        <item quantity="other">%d টি নির্বাচিত</item>
+    </plurals>
+    <string name="hygiene_action_disable">নিষ্ক্রিয় করুন</string>
+    <string name="hygiene_action_archive">আর্কাইভ করুন</string>
+    <string name="hygiene_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
+    <string name="hygiene_last_message">শেষ বার্তা %1$s</string>
+    <string name="hygiene_created">তৈরি %1$s</string>
+    <string name="hygiene_issue_new_title">নতুন কার্যকলাপ</string>
+    <string name="hygiene_issue_new_body">শেষ সফল রিফ্রেশের পর এগুলোতে মেইল এসেছে।</string>
+    <string name="hygiene_issue_never_title">কখনও ব্যবহার হয়নি</string>
+    <string name="hygiene_issue_never_body">অনেক আগে তৈরি, কিন্তু একটিও বার্তা আসেনি।</string>
+    <string name="hygiene_issue_dormant_title">ঘুমিয়ে আছে</string>
+    <string name="hygiene_issue_dormant_body">এখনও মেইল নেয়, তবে কয়েক মাস ধরে নীরব। চাইলে বন্ধ করে দিতে পারেন।</string>
+    <string name="hygiene_issue_undescribed_title">চেনা যাচ্ছে না</string>
+    <string name="hygiene_issue_undescribed_body">বিবরণ নেই, ডোমেইনও নেই, তাই কীসের জন্য বোঝার উপায় নেই।</string>
+    <string name="hygiene_empty_title">এখনও কোনো মাস্ক নেই</string>
+    <string name="hygiene_empty_body">কয়েকটি মাস্কড ঠিকানা তৈরি করুন, তারপর এই পর্যালোচনা দেখাবে কোনটিতে নজর দিতে হবে।</string>
+    <string name="hygiene_clean_title">গোছানোর কিছু নেই</string>
+    <string name="hygiene_clean_body">প্রতিটি মাস্কের বিবরণ আছে, ব্যবহৃত হচ্ছে এবং সক্রিয়। আরও কয়েকটি সাইন-আপের পর ফিরে আসুন।</string>
+    <string name="hygiene_confirm_disable_title">নির্বাচিত মাস্ক নিষ্ক্রিয় করবেন?</string>
+    <string name="hygiene_confirm_disable_body">এগুলো আর মেইল নেবে না। যেকোনো সময় আবার চালু করতে পারবেন।</string>
+    <string name="hygiene_confirm_archive_title">নির্বাচিত মাস্ক আর্কাইভ করবেন?</string>
+    <string name="hygiene_confirm_archive_body">এগুলো আর্কাইভে চলে যাবে। ঠিক পরেই আপনি তা ফিরিয়ে নিতে পারবেন।</string>
+    <string name="hygiene_confirm_cancel">বাতিল</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d টি মাস্ক নিষ্ক্রিয় করা হয়েছে</item>
+        <item quantity="other">%d টি মাস্ক নিষ্ক্রিয় করা হয়েছে</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d টি মাস্ক আর্কাইভ করা হয়েছে</item>
+        <item quantity="other">%d টি মাস্ক আর্কাইভ করা হয়েছে</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%2$d টির মধ্যে %1$d টি সম্পন্ন · %3$d টি ব্যর্থ</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">%d টি মাস্ক আপডেট করা যায়নি</item>
+        <item quantity="other">%d টি মাস্ক আপডেট করা যায়নি</item>
+    </plurals>
 </resources>

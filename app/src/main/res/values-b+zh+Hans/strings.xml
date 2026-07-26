@@ -264,4 +264,54 @@
     <string name="quick_mask_undo">撤销</string>
     <string name="quick_mask_undone">隐藏邮箱已删除</string>
     <string name="quick_mask_undo_failed">无法删除该隐藏邮箱。请打开 FastMask 后重试。</string>
+    <string name="hygiene_title">隐藏邮箱整理</string>
+    <string name="hygiene_open">检查隐藏邮箱</string>
+    <string name="hygiene_back">返回</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="other">已检查 %d 个隐藏邮箱</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="other">%d 个需要处理</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="other">%d 个隐藏邮箱</item>
+    </plurals>
+    <string name="hygiene_select_all">全选</string>
+    <string name="hygiene_clear_selection">清除</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="other">已选 %d 个</item>
+    </plurals>
+    <string name="hygiene_action_disable">禁用</string>
+    <string name="hygiene_action_archive">存档</string>
+    <string name="hygiene_undo">撤销</string>
+    <string name="hygiene_last_message">最后消息 %1$s</string>
+    <string name="hygiene_created">创建于 %1$s</string>
+    <string name="hygiene_issue_new_title">新动态</string>
+    <string name="hygiene_issue_new_body">自上次成功刷新以来，这些邮箱收到了邮件。</string>
+    <string name="hygiene_issue_never_title">从未使用</string>
+    <string name="hygiene_issue_never_body">创建已有一段时间，却从未收到过任何一封邮件。</string>
+    <string name="hygiene_issue_dormant_title">长期沉寂</string>
+    <string name="hygiene_issue_dormant_body">仍在接收邮件，但已数月没有动静，可以考虑将其禁用。</string>
+    <string name="hygiene_issue_undescribed_title">无法辨认</string>
+    <string name="hygiene_issue_undescribed_body">既没有备注也没有域名，无从判断它们用在哪里。</string>
+    <string name="hygiene_empty_title">还没有隐藏邮箱</string>
+    <string name="hygiene_empty_body">先创建几个隐藏邮箱地址，这里就会显示哪些需要处理。</string>
+    <string name="hygiene_clean_title">无需整理</string>
+    <string name="hygiene_clean_body">每个隐藏邮箱都有备注、在使用且已启用。再注册几次后回来看看。</string>
+    <string name="hygiene_confirm_disable_title">禁用所选隐藏邮箱？</string>
+    <string name="hygiene_confirm_disable_body">它们将停止接收邮件。你可以随时重新启用。</string>
+    <string name="hygiene_confirm_archive_title">存档所选隐藏邮箱？</string>
+    <string name="hygiene_confirm_archive_body">它们会移入存档。之后可以立即撤销。</string>
+    <string name="hygiene_confirm_cancel">取消</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="other">已禁用 %d 个隐藏邮箱</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="other">已存档 %d 个隐藏邮箱</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%2$d 个中完成 %1$d 个 · %3$d 个失败</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="other">%d 个隐藏邮箱无法更新</item>
+    </plurals>
 </resources>

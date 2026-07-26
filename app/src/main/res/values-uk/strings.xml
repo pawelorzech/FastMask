@@ -270,4 +270,75 @@
     <string name="quick_mask_undo">Скасувати</string>
     <string name="quick_mask_undone">Маску видалено</string>
     <string name="quick_mask_undo_failed">Не вдалося видалити маску. Відкрийте FastMask і спробуйте ще раз.</string>
+    <string name="hygiene_title">Гігієна масок</string>
+    <string name="hygiene_open">Переглянути маски</string>
+    <string name="hygiene_back">Назад</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">переглянуто %d маску</item>
+        <item quantity="few">переглянуто %d маски</item>
+        <item quantity="many">переглянуто %d масок</item>
+        <item quantity="other">переглянуто %d маски</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d потребує уваги</item>
+        <item quantity="few">%d потребують уваги</item>
+        <item quantity="many">%d потребують уваги</item>
+        <item quantity="other">%d потребує уваги</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d маска</item>
+        <item quantity="few">%d маски</item>
+        <item quantity="many">%d масок</item>
+        <item quantity="other">%d маски</item>
+    </plurals>
+    <string name="hygiene_select_all">Вибрати всі</string>
+    <string name="hygiene_clear_selection">Очистити</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d вибрана</item>
+        <item quantity="few">%d вибрані</item>
+        <item quantity="many">%d вибрано</item>
+        <item quantity="other">%d вибрано</item>
+    </plurals>
+    <string name="hygiene_action_disable">Вимкнути</string>
+    <string name="hygiene_action_archive">Архівувати</string>
+    <string name="hygiene_undo">Скасувати</string>
+    <string name="hygiene_last_message">Останнє повідомлення %1$s</string>
+    <string name="hygiene_created">Створено %1$s</string>
+    <string name="hygiene_issue_new_title">Нова активність</string>
+    <string name="hygiene_issue_new_body">На них надходила пошта після останнього вдалого оновлення.</string>
+    <string name="hygiene_issue_never_title">Жодного разу не використані</string>
+    <string name="hygiene_issue_never_body">Створені давно й не отримали жодного повідомлення.</string>
+    <string name="hygiene_issue_dormant_title">Сплячі</string>
+    <string name="hygiene_issue_dormant_body">Досі приймають пошту, але мовчать уже кілька місяців. Їх можна вимкнути.</string>
+    <string name="hygiene_issue_undescribed_title">Невпізнані</string>
+    <string name="hygiene_issue_undescribed_body">Без опису й без домену — зрозуміти, для чого вони, неможливо.</string>
+    <string name="hygiene_empty_title">Масок ще немає</string>
+    <string name="hygiene_empty_body">Створіть кілька замаскованих адрес, і цей огляд покаже, що потребує уваги.</string>
+    <string name="hygiene_clean_title">Наводити лад не потрібно</string>
+    <string name="hygiene_clean_body">Усі маски описані, використовуються й активні. Завітайте сюди після нових реєстрацій.</string>
+    <string name="hygiene_confirm_disable_title">Вимкнути вибрані маски?</string>
+    <string name="hygiene_confirm_disable_body">Вони перестануть приймати пошту. Увімкнути їх назад можна будь-коли.</string>
+    <string name="hygiene_confirm_archive_title">Архівувати вибрані маски?</string>
+    <string name="hygiene_confirm_archive_body">Вони перемістяться до архіву. Одразу після цього дію можна скасувати.</string>
+    <string name="hygiene_confirm_cancel">Скасувати</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">Вимкнено %d маску</item>
+        <item quantity="few">Вимкнено %d маски</item>
+        <item quantity="many">Вимкнено %d масок</item>
+        <item quantity="other">Вимкнено %d маски</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">Архівовано %d маску</item>
+        <item quantity="few">Архівовано %d маски</item>
+        <item quantity="many">Архівовано %d масок</item>
+        <item quantity="other">Архівовано %d маски</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">Готово %1$d з %2$d · %3$d з помилкою</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">Не вдалося оновити %d маску</item>
+        <item quantity="few">Не вдалося оновити %d маски</item>
+        <item quantity="many">Не вдалося оновити %d масок</item>
+        <item quantity="other">Не вдалося оновити %d маски</item>
+    </plurals>
 </resources>

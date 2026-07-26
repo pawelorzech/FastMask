@@ -268,4 +268,68 @@
     <string name="quick_mask_undo">Desfazer</string>
     <string name="quick_mask_undone">Máscara eliminada</string>
     <string name="quick_mask_undo_failed">Não foi possível eliminar a máscara. Abra o FastMask e tente novamente.</string>
+    <string name="hygiene_title">Higiene das máscaras</string>
+    <string name="hygiene_open">Revisar máscaras</string>
+    <string name="hygiene_back">Voltar</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">%d máscara revisada</item>
+        <item quantity="many">%d máscaras revisadas</item>
+        <item quantity="other">%d máscaras revisadas</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d precisa de atenção</item>
+        <item quantity="many">%d precisam de atenção</item>
+        <item quantity="other">%d precisam de atenção</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d máscara</item>
+        <item quantity="many">%d máscaras</item>
+        <item quantity="other">%d máscaras</item>
+    </plurals>
+    <string name="hygiene_select_all">Selecionar tudo</string>
+    <string name="hygiene_clear_selection">Limpar</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d selecionada</item>
+        <item quantity="many">%d selecionadas</item>
+        <item quantity="other">%d selecionadas</item>
+    </plurals>
+    <string name="hygiene_action_disable">Desativar</string>
+    <string name="hygiene_action_archive">Arquivar</string>
+    <string name="hygiene_undo">Desfazer</string>
+    <string name="hygiene_last_message">Última mensagem %1$s</string>
+    <string name="hygiene_created">Criada %1$s</string>
+    <string name="hygiene_issue_new_title">Nova atividade</string>
+    <string name="hygiene_issue_new_body">Receberam mensagens desde a última atualização bem-sucedida.</string>
+    <string name="hygiene_issue_never_title">Nunca usadas</string>
+    <string name="hygiene_issue_never_body">Criadas há algum tempo e nunca receberam uma única mensagem.</string>
+    <string name="hygiene_issue_dormant_title">Adormecidas</string>
+    <string name="hygiene_issue_dormant_body">Ainda aceitam mensagens, mas estão em silêncio há meses. Considere desativá-las.</string>
+    <string name="hygiene_issue_undescribed_title">Não identificadas</string>
+    <string name="hygiene_issue_undescribed_body">Sem descrição e sem domínio, não há como saber para que servem.</string>
+    <string name="hygiene_empty_title">Ainda não há máscaras</string>
+    <string name="hygiene_empty_body">Crie alguns endereços mascarados e esta revisão mostrará o que precisa de atenção.</string>
+    <string name="hygiene_clean_title">Nada para organizar</string>
+    <string name="hygiene_clean_body">Todas as máscaras estão descritas, em uso e ativas. Volte depois de mais alguns cadastros.</string>
+    <string name="hygiene_confirm_disable_title">Desativar as máscaras selecionadas?</string>
+    <string name="hygiene_confirm_disable_body">Elas deixam de aceitar mensagens. É possível reativá-las quando quiser.</string>
+    <string name="hygiene_confirm_archive_title">Arquivar as máscaras selecionadas?</string>
+    <string name="hygiene_confirm_archive_body">Elas vão para o arquivo. É possível desfazer logo em seguida.</string>
+    <string name="hygiene_confirm_cancel">Cancelar</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">%d máscara desativada</item>
+        <item quantity="many">%d máscaras desativadas</item>
+        <item quantity="other">%d máscaras desativadas</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">%d máscara arquivada</item>
+        <item quantity="many">%d máscaras arquivadas</item>
+        <item quantity="other">%d máscaras arquivadas</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">%1$d de %2$d concluídas · %3$d com falha</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">Não foi possível atualizar %d máscara</item>
+        <item quantity="many">Não foi possível atualizar %d máscaras</item>
+        <item quantity="other">Não foi possível atualizar %d máscaras</item>
+    </plurals>
 </resources>

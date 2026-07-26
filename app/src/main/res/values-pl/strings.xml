@@ -272,4 +272,75 @@
     <string name="quick_mask_undo">Cofnij</string>
     <string name="quick_mask_undone">Maska usunięta</string>
     <string name="quick_mask_undo_failed">Nie udało się usunąć maski. Otwórz FastMask i spróbuj ponownie.</string>
+    <string name="hygiene_title">Higiena masek</string>
+    <string name="hygiene_open">Przejrzyj maski</string>
+    <string name="hygiene_back">Wstecz</string>
+    <string name="hygiene_summary">%1$s · %2$s</string>
+    <plurals name="hygiene_reviewed">
+        <item quantity="one">przejrzano %d maskę</item>
+        <item quantity="few">przejrzano %d maski</item>
+        <item quantity="many">przejrzano %d masek</item>
+        <item quantity="other">przejrzano %d maski</item>
+    </plurals>
+    <plurals name="hygiene_needs_attention">
+        <item quantity="one">%d wymaga uwagi</item>
+        <item quantity="few">%d wymagają uwagi</item>
+        <item quantity="many">%d wymaga uwagi</item>
+        <item quantity="other">%d wymaga uwagi</item>
+    </plurals>
+    <plurals name="hygiene_group_count">
+        <item quantity="one">%d maska</item>
+        <item quantity="few">%d maski</item>
+        <item quantity="many">%d masek</item>
+        <item quantity="other">%d maski</item>
+    </plurals>
+    <string name="hygiene_select_all">Zaznacz wszystkie</string>
+    <string name="hygiene_clear_selection">Wyczyść</string>
+    <plurals name="hygiene_selected_count">
+        <item quantity="one">%d zaznaczona</item>
+        <item quantity="few">%d zaznaczone</item>
+        <item quantity="many">%d zaznaczonych</item>
+        <item quantity="other">%d zaznaczonej</item>
+    </plurals>
+    <string name="hygiene_action_disable">Wyłącz</string>
+    <string name="hygiene_action_archive">Archiwizuj</string>
+    <string name="hygiene_undo">Cofnij</string>
+    <string name="hygiene_last_message">Ostatnia wiadomość %1$s</string>
+    <string name="hygiene_created">Utworzono %1$s</string>
+    <string name="hygiene_issue_new_title">Nowa aktywność</string>
+    <string name="hygiene_issue_new_body">Na te maski przyszła poczta od ostatniego udanego odświeżenia.</string>
+    <string name="hygiene_issue_never_title">Nigdy nieużyte</string>
+    <string name="hygiene_issue_never_body">Utworzone jakiś czas temu i nie przyszła na nie ani jedna wiadomość.</string>
+    <string name="hygiene_issue_dormant_title">Uśpione</string>
+    <string name="hygiene_issue_dormant_body">Nadal przyjmują pocztę, ale milczą od miesięcy. Rozważ ich wyłączenie.</string>
+    <string name="hygiene_issue_undescribed_title">Nierozpoznane</string>
+    <string name="hygiene_issue_undescribed_body">Bez opisu i bez domeny, więc nie sposób stwierdzić, do czego służą.</string>
+    <string name="hygiene_empty_title">Nie masz jeszcze masek</string>
+    <string name="hygiene_empty_body">Utwórz kilka zamaskowanych adresów, a ten przegląd pokaże, co wymaga uwagi.</string>
+    <string name="hygiene_clean_title">Nie ma czego porządkować</string>
+    <string name="hygiene_clean_body">Każda maska jest opisana, używana i aktywna. Zajrzyj tu po kolejnych rejestracjach.</string>
+    <string name="hygiene_confirm_disable_title">Wyłączyć zaznaczone maski?</string>
+    <string name="hygiene_confirm_disable_body">Przestaną przyjmować pocztę. Możesz je włączyć z powrotem w dowolnej chwili.</string>
+    <string name="hygiene_confirm_archive_title">Zarchiwizować zaznaczone maski?</string>
+    <string name="hygiene_confirm_archive_body">Trafią do archiwum. Zaraz potem możesz to cofnąć.</string>
+    <string name="hygiene_confirm_cancel">Anuluj</string>
+    <plurals name="hygiene_bulk_done_disabled">
+        <item quantity="one">Wyłączono %d maskę</item>
+        <item quantity="few">Wyłączono %d maski</item>
+        <item quantity="many">Wyłączono %d masek</item>
+        <item quantity="other">Wyłączono %d maski</item>
+    </plurals>
+    <plurals name="hygiene_bulk_done_archived">
+        <item quantity="one">Zarchiwizowano %d maskę</item>
+        <item quantity="few">Zarchiwizowano %d maski</item>
+        <item quantity="many">Zarchiwizowano %d masek</item>
+        <item quantity="other">Zarchiwizowano %d maski</item>
+    </plurals>
+    <string name="hygiene_bulk_partial">Gotowe %1$d z %2$d · %3$d nieudanych</string>
+    <plurals name="hygiene_bulk_failed">
+        <item quantity="one">Nie udało się zaktualizować %d maski</item>
+        <item quantity="few">Nie udało się zaktualizować %d masek</item>
+        <item quantity="many">Nie udało się zaktualizować %d masek</item>
+        <item quantity="other">Nie udało się zaktualizować %d maski</item>
+    </plurals>
 </resources>
