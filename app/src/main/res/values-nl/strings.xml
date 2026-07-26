@@ -252,6 +252,7 @@
     <string name="quick_mask_channel_name">Snel masker</string>
     <string name="quick_mask_channel_description">Bevestigt een masker dat via de tegel of de snelkoppeling is aangemaakt.</string>
     <string name="quick_mask_created_title">Masker aangemaakt</string>
+    <string name="quick_mask_created_body">Adres gekopieerd naar het klembord</string>
     <string name="quick_mask_open">Openen</string>
     <string name="quick_mask_undo">Ongedaan maken</string>
     <string name="quick_mask_copied">%1$s gekopieerd naar het klembord</string>

@@ -115,6 +115,25 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
+    // --- POST_NOTIFICATIONS prompt (asked at most once) ---
+
+    private val notificationPromptShownKey = booleanPreferencesKey("notification_prompt_shown")
+
+    /**
+     * True once the runtime notification prompt has been shown. Kept so the app
+     * asks a single time: a second `launch()` on a permanently denied
+     * permission returns instantly with no dialog, which would silently do
+     * nothing on every launch.
+     */
+    suspend fun notificationPromptShown(): Boolean =
+        context.settingsDataStore.data.first()[notificationPromptShownKey] ?: false
+
+    suspend fun setNotificationPromptShown(shown: Boolean) {
+        context.settingsDataStore.edit { preferences ->
+            preferences[notificationPromptShownKey] = shown
+        }
+    }
+
     companion object {
         /**
          * Owns the language key for both readers: the injected instance above

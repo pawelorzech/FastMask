@@ -258,6 +258,7 @@
     <string name="quick_mask_channel_name">Quick mask</string>
     <string name="quick_mask_channel_description">Confirms a mask created from the tile or the shortcut.</string>
     <string name="quick_mask_created_title">Mask created</string>
+    <string name="quick_mask_created_body">Address copied to the clipboard</string>
     <string name="quick_mask_open">Open</string>
     <string name="quick_mask_undo">Undo</string>
     <string name="quick_mask_copied">%1$s copied to the clipboard</string>

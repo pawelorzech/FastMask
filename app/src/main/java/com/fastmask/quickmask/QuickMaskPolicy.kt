@@ -32,4 +32,44 @@ internal object QuickMaskPolicy {
         if (!notificationsEnabled) return false
         return sdkInt < NOTIFICATION_PERMISSION_SDK || postPermissionGranted
     }
+
+    /**
+     * Whether an incoming launch of `QuickMaskActivity` may create a mask.
+     *
+     * The activity used to create one unconditionally in `onCreate`, which —
+     * combined with `exported="true"` and no intent-filter — let any app on the
+     * device drive FastMask into minting real masks on the user's Fastmail
+     * account and overwriting the clipboard, with no interaction at all. The
+     * manifest now keeps the activity unexported; this check makes "create"
+     * conditional on OUR OWN action, so an unrecognized launch degrades into
+     * opening the app instead of writing to the account.
+     *
+     * @param action the launching intent's action.
+     */
+    fun isQuickCreateLaunch(action: String?): Boolean = action == ACTION_QUICK_MASK
+
+    /**
+     * Whether to ask for POST_NOTIFICATIONS.
+     *
+     * The permission is declared and never requested, so on Android 13+ it is
+     * DENIED on a fresh install and the quick-create confirmation — the only
+     * place the "Undo" action exists — never appears. Asked at most once, and
+     * only where it means something: a signed-in user looking at their masks,
+     * not a cold welcome screen.
+     *
+     * @param sdkInt running platform level.
+     * @param permissionGranted result of `checkSelfPermission(POST_NOTIFICATIONS)`.
+     * @param alreadyAsked whether this install has already shown the prompt.
+     * @param signedIn whether there is a session to create masks in.
+     */
+    fun shouldRequestNotificationPermission(
+        sdkInt: Int,
+        permissionGranted: Boolean,
+        alreadyAsked: Boolean,
+        signedIn: Boolean,
+    ): Boolean {
+        if (sdkInt < NOTIFICATION_PERMISSION_SDK) return false
+        if (permissionGranted || alreadyAsked) return false
+        return signedIn
+    }
 }

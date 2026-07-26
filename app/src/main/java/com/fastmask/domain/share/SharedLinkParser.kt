@@ -31,10 +31,22 @@ object SharedLinkParser {
     /**
      * Extracts the first usable link from [text].
      *
+     * Takes a [CharSequence], not a String: `Intent.EXTRA_TEXT` is declared as
+     * a CharSequence and real senders (Gmail, Docs, several readers) put a
+     * `Spanned` in it, so the share path hands us whatever they wrote.
+     *
+     * Every branch of the loop below moves [index] strictly forward by at least
+     * the whole run it just examined — never by one character after a scan.
+     * That is what keeps the walk O(n): the earlier `index++` fallback rescanned
+     * the same host run once per character, which is quadratic and turned a
+     * ~300k-char share (or a long CJK article, whose letters are all
+     * `isLetterOrDigit` with no ASCII dot to stop them) into an ANR on the main
+     * thread. See the timing tests in SharedLinkParserTest.
+     *
      * @return null when [text] is null, blank, or carries no plausible link.
      */
-    fun parse(text: String?): SharePrefill? {
-        val input: String = text?.takeIf { it.isNotBlank() } ?: return null
+    fun parse(text: CharSequence?): SharePrefill? {
+        val input: CharSequence = text?.takeIf { it.isNotBlank() } ?: return null
         var index: Int = 0
 
         while (index < input.length) {
@@ -51,25 +63,33 @@ object SharedLinkParser {
                 continue
             }
 
-            val schemelessEnd: Int? = schemelessCandidateEnd(input, index)
-            if (schemelessEnd != null) {
-                val prefill: SharePrefill? =
-                    if (hasForbiddenSchemelessPrefix(input, index)) {
-                        null
-                    } else {
-                        prefillFromCandidate(
-                            rawCandidate = input.substring(index, schemelessEnd),
-                            hasScheme = false,
-                        )
-                    }
-                if (prefill != null) {
-                    return prefill
-                }
-                index = schemelessEnd
+            val runEnd: Int = hostRunEnd(input, index)
+            if (runEnd == index) {
+                // Nothing here can start a host; advance one character.
+                index++
                 continue
             }
 
-            index++
+            val schemelessEnd: Int? = schemelessCandidateEnd(input, index, runEnd)
+            if (schemelessEnd == null) {
+                // The whole run carries no dot, so no substring of it can be a
+                // host either — skip past it instead of re-scanning it.
+                index = runEnd
+                continue
+            }
+
+            val prefill: SharePrefill? = if (hasForbiddenSchemelessPrefix(input, index)) {
+                null
+            } else {
+                prefillFromCandidate(
+                    rawCandidate = input.substring(index, schemelessEnd),
+                    hasScheme = false,
+                )
+            }
+            if (prefill != null) {
+                return prefill
+            }
+            index = schemelessEnd
         }
 
         return null
@@ -100,7 +120,7 @@ object SharedLinkParser {
         return SharePrefill(forDomain = forDomain, url = url, description = forDomain)
     }
 
-    private fun schemeCandidateEnd(text: String, start: Int): Int? {
+    private fun schemeCandidateEnd(text: CharSequence, start: Int): Int? {
         val schemeLength: Int = when {
             text.regionMatches(start, "https://", 0, 8, ignoreCase = true) -> 8
             text.regionMatches(start, "http://", 0, 7, ignoreCase = true) -> 7
@@ -113,24 +133,40 @@ object SharedLinkParser {
         return end
     }
 
-    private fun schemelessCandidateEnd(text: String, start: Int): Int? {
+    /**
+     * End of the host-shaped run starting at [start], or [start] itself when no
+     * host can start there. Separate from [schemelessCandidateEnd] so the caller
+     * can skip a rejected run wholesale.
+     */
+    private fun hostRunEnd(text: CharSequence, start: Int): Int {
         if (!text[start].isLetterOrDigit()) {
-            return null
+            return start
         }
-
         var cursor: Int = start
-        var sawDot: Boolean = false
         while (cursor < text.length && isHostRunChar(text[cursor])) {
+            cursor++
+        }
+        return cursor
+    }
+
+    /**
+     * @param runEnd end of the host run, from [hostRunEnd].
+     * @return end of the candidate (host + optional port + optional path), or
+     *   null when the run holds no dot and therefore cannot be a host.
+     */
+    private fun schemelessCandidateEnd(text: CharSequence, start: Int, runEnd: Int): Int? {
+        var sawDot: Boolean = false
+        for (cursor in start until runEnd) {
             if (text[cursor] == '.') {
                 sawDot = true
+                break
             }
-            cursor++
         }
         if (!sawDot) {
             return null
         }
 
-        var end: Int = cursor
+        var end: Int = runEnd
         if (end < text.length && text[end] == ':') {
             var portCursor: Int = end + 1
             while (portCursor < text.length && text[portCursor].isDigit()) {
@@ -150,7 +186,26 @@ object SharedLinkParser {
         return end
     }
 
-    private fun hasForbiddenSchemelessPrefix(text: String, start: Int): Boolean {
+    /**
+     * Whether a bare-host candidate at [start] is really a fragment of
+     * something else.
+     *
+     * This used to reject on ':' as well, which killed the single most common
+     * shape of shared text: "Sign up here: example.com", "Rejestracja:
+     * sklep.pl". The rejection then jumped past the whole candidate, so the
+     * share target opened an EMPTY create form. A colon in prose introduces a
+     * link far more often than it hides one, and the case the ':' rule was
+     * written for — "mailto:foo@example.com" — was never caught by it anyway
+     * (the scan restarts at every character, and the run at 'e' is preceded by
+     * '@', not ':').
+     *
+     * The '/' half stays, and it keeps the backwards whitespace walk: without
+     * it "http:// spaces.example.com" — a broken link, not an endorsement of
+     * spaces.example.com — silently resolves to a DIFFERENT domain than the one
+     * shared, and "path/to/file.txt" resolves to a "domain" called file.txt.
+     * Nothing else in prose puts a slash immediately before a host.
+     */
+    private fun hasForbiddenSchemelessPrefix(text: CharSequence, start: Int): Boolean {
         var cursor: Int = start - 1
         while (cursor >= 0 && text[cursor].isWhitespace()) {
             cursor--
@@ -158,7 +213,7 @@ object SharedLinkParser {
         if (cursor < 0) {
             return false
         }
-        return text[cursor] == ':' || text[cursor] == '/'
+        return text[cursor] == '/'
     }
 
     private fun extractAuthority(candidate: String, hasScheme: Boolean): String? {

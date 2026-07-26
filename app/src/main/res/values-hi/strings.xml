@@ -252,6 +252,7 @@
     <string name="quick_mask_channel_name">त्वरित मास्क</string>
     <string name="quick_mask_channel_description">टाइल या शॉर्टकट से बनाए गए मास्क की पुष्टि करता है।</string>
     <string name="quick_mask_created_title">मास्क बन गया</string>
+    <string name="quick_mask_created_body">पता क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="quick_mask_open">खोलें</string>
     <string name="quick_mask_undo">पूर्ववत् करें</string>
     <string name="quick_mask_copied">%1$s क्लिपबोर्ड पर कॉपी किया गया</string>

@@ -1,5 +1,6 @@
 package com.fastmask.quickmask
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.graphics.drawable.Icon
 import android.os.Build
@@ -34,14 +35,25 @@ class QuickMaskTileService : TileService() {
     /**
      * Opens the app from the shade.
      *
-     * `startActivityAndCollapse(Intent)` is not an option on any device: with
-     * targetSdk 34+ the platform throws UnsupportedOperationException from it,
-     * so the deprecated overload would crash the tile rather than open the app.
-     * On 34+ we hand the platform an immutable PendingIntent; below that the
-     * PendingIntent overload does not exist yet, so we start the activity
-     * directly (SystemUI binds this service, which keeps the background
-     * activity launch allowed) and let the shade close behind it.
+     * Both branches use `startActivityAndCollapse`, because collapsing the
+     * shade is the point: a plain `startActivity` on API 26–33 leaves
+     * MainActivity running UNDER the still-expanded Quick Settings panel, which
+     * the user reads as "the tile did nothing" — and this is the path taken
+     * whenever the tile refuses to create (signed out, demo, app lock armed).
+     *
+     * The `UnsupportedOperationException` that made the Intent overload look
+     * unusable is gated on `START_ACTIVITY_NEEDS_PENDING_INTENT`, a compat
+     * change `@EnabledSince(targetSdkVersion = UPSIDE_DOWN_CAKE)` that the
+     * platform only evaluates on API 34+. Below 34 the deprecated overload is
+     * both safe and the only one that exists; on 34+ we hand the platform an
+     * immutable PendingIntent instead.
+     *
+     * Lint's StartActivityAndCollapseDeprecated is version-blind — it flags the
+     * call even inside an `SDK_INT < 34` branch, where the PendingIntent
+     * overload does not exist to migrate to (it would be a NoSuchMethodError).
+     * Suppressed here only, and only for that branch.
      */
+    @SuppressLint("StartActivityAndCollapseDeprecated")
     private fun openAppAndCollapse() {
         val launchIntent = createAppLaunchIntent(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -54,7 +66,8 @@ class QuickMaskTileService : TileService() {
             )
             startActivityAndCollapse(pendingIntent)
         } else {
-            startActivity(launchIntent)
+            @Suppress("DEPRECATION")
+            startActivityAndCollapse(launchIntent)
         }
     }
 }

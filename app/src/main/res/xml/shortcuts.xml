@@ -6,8 +6,9 @@
         android:icon="@drawable/ic_quick_mask"
         android:shortcutShortLabel="@string/shortcut_quick_mask_short"
         android:shortcutLongLabel="@string/shortcut_quick_mask_long">
+        <!-- Own action: QuickMaskActivity only creates a mask for this one. -->
         <intent
-            android:action="android.intent.action.VIEW"
+            android:action="com.fastmask.action.QUICK_MASK"
             android:targetPackage="com.fastmask"
             android:targetClass="com.fastmask.quickmask.QuickMaskActivity" />
         <categories android:name="com.fastmask.category.QUICK_MASK" />

@@ -252,6 +252,7 @@
     <string name="quick_mask_channel_name">দ্রুত মাস্ক</string>
     <string name="quick_mask_channel_description">টাইল বা শর্টকাট থেকে তৈরি মাস্ক নিশ্চিত করে।</string>
     <string name="quick_mask_created_title">মাস্ক তৈরি হয়েছে</string>
+    <string name="quick_mask_created_body">ঠিকানা ক্লিপবোর্ডে কপি করা হয়েছে</string>
     <string name="quick_mask_open">খুলুন</string>
     <string name="quick_mask_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
     <string name="quick_mask_copied">%1$s ক্লিপবোর্ডে কপি করা হয়েছে</string>

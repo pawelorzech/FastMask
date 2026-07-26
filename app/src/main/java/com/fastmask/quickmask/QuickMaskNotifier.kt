@@ -47,12 +47,25 @@ class QuickMaskNotifier @Inject constructor(
             )
 
             // Release builds mark the app FLAG_SECURE; showing the masked address
-            // on the lock screen would punch a privacy hole straight through that.
+            // on the lock screen would punch a privacy hole straight through
+            // that. Two independent measures, because either one alone leaks:
+            //
+            // - The address is NOT in the notification. VISIBILITY_PRIVATE does
+            //   not redact by default — SystemUI only redacts once the user has
+            //   turned off "Show sensitive content on the lock screen"
+            //   (Settings.Secure LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS, which
+            //   defaults to 1), so on a stock device the text would simply be
+            //   readable by anyone standing next to the phone.
+            // - VISIBILITY_SECRET (mirrored on the channel) keeps the
+            //   notification off the lock screen entirely.
+            //
+            // The address is on the clipboard, and the app itself — behind
+            // FLAG_SECURE and the biometric gate — is where it can be read.
             NotificationCompat.Builder(context, QUICK_MASK_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_quick_mask)
                 .setContentTitle(context.getString(R.string.quick_mask_created_title))
-                .setContentText(email)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setContentText(context.getString(R.string.quick_mask_created_body))
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
                 .setAutoCancel(true)
                 .setContentIntent(openPendingIntent)
                 .addAction(
@@ -76,7 +89,7 @@ class QuickMaskNotifier @Inject constructor(
                 .setSmallIcon(R.drawable.ic_quick_mask)
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText(message)
-                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
                 .setAutoCancel(true)
                 .build()
         }
@@ -131,7 +144,9 @@ class QuickMaskNotifier @Inject constructor(
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             description = context.getString(R.string.quick_mask_channel_description)
-            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+            // Caps every notification on this channel, whatever the builder
+            // asks for: nothing from quick-create reaches the lock screen.
+            lockscreenVisibility = Notification.VISIBILITY_SECRET
         }
         manager.createNotificationChannel(channel)
     }

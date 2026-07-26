@@ -258,6 +258,7 @@
     <string name="quick_mask_channel_name">Szybka maska</string>
     <string name="quick_mask_channel_description">Potwierdza maskę utworzoną z kafelka lub skrótu.</string>
     <string name="quick_mask_created_title">Maska utworzona</string>
+    <string name="quick_mask_created_body">Adres skopiowany do schowka</string>
     <string name="quick_mask_open">Otwórz</string>
     <string name="quick_mask_undo">Cofnij</string>
     <string name="quick_mask_copied">Skopiowano %1$s do schowka</string>

@@ -250,6 +250,7 @@
     <string name="quick_mask_channel_name">빠른 마스크</string>
     <string name="quick_mask_channel_description">타일이나 바로가기로 만든 마스크를 알려줍니다.</string>
     <string name="quick_mask_created_title">마스크 생성됨</string>
+    <string name="quick_mask_created_body">주소를 클립보드에 복사했습니다</string>
     <string name="quick_mask_open">열기</string>
     <string name="quick_mask_undo">실행 취소</string>
     <string name="quick_mask_copied">%1$s이(가) 클립보드에 복사됨</string>

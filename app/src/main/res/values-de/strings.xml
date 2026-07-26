@@ -252,6 +252,7 @@
     <string name="quick_mask_channel_name">Schnelle Maske</string>
     <string name="quick_mask_channel_description">Bestätigt eine über die Kachel oder die Verknüpfung erstellte Maske.</string>
     <string name="quick_mask_created_title">Maske erstellt</string>
+    <string name="quick_mask_created_body">Adresse in die Zwischenablage kopiert</string>
     <string name="quick_mask_open">Öffnen</string>
     <string name="quick_mask_undo">Rückgängig</string>
     <string name="quick_mask_copied">%1$s in die Zwischenablage kopiert</string>

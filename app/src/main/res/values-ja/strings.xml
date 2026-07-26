@@ -250,6 +250,7 @@
     <string name="quick_mask_channel_name">クイックマスク</string>
     <string name="quick_mask_channel_description">タイルまたはショートカットから作成したマスクを通知します。</string>
     <string name="quick_mask_created_title">マスクを作成しました</string>
+    <string name="quick_mask_created_body">アドレスをクリップボードにコピーしました</string>
     <string name="quick_mask_open">開く</string>
     <string name="quick_mask_undo">取り消す</string>
     <string name="quick_mask_copied">%1$s をクリップボードにコピーしました</string>

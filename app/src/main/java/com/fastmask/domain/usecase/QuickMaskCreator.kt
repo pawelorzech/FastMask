@@ -1,13 +1,10 @@
 package com.fastmask.domain.usecase
 
-import androidx.annotation.StringRes
-import com.fastmask.R
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.QuickMaskGuard
-import com.fastmask.ui.common.UiErrors
 import javax.inject.Inject
 
 /**
@@ -29,8 +26,12 @@ sealed interface QuickMaskResult {
     /** Biometric app lock is armed — the tile must not be a way around it. */
     data object LockRequired : QuickMaskResult
 
-    /** Network/API failure, already mapped through `UiErrors` for the user. */
-    data class Failed(@StringRes val messageRes: Int) : QuickMaskResult
+    /**
+     * Network/API failure. Carries the raw [cause]; turning it into a localized
+     * message is the Android caller's job (`QuickMaskRunner` → `UiErrors`), so
+     * the domain layer keeps no dependency on `R`/`ui`.
+     */
+    data class Failed(val cause: Throwable) : QuickMaskResult
 }
 
 /**
@@ -65,12 +66,7 @@ class QuickMaskCreator @Inject constructor(
             onSuccess = { mask ->
                 QuickMaskResult.Created(id = mask.id, email = mask.email)
             },
-            onFailure = { error ->
-                // Reuse the shared throwable->message mapping instead of forking it here.
-                QuickMaskResult.Failed(
-                    UiErrors.messageRes(error, R.string.create_email_error_failed)
-                )
-            }
+            onFailure = { error -> QuickMaskResult.Failed(cause = error) }
         )
     }
 

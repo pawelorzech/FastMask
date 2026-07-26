@@ -250,6 +250,7 @@
     <string name="quick_mask_channel_name">Tạo nhanh</string>
     <string name="quick_mask_channel_description">Xác nhận email ẩn danh được tạo từ ô hoặc lối tắt.</string>
     <string name="quick_mask_created_title">Đã tạo email ẩn danh</string>
+    <string name="quick_mask_created_body">Đã sao chép địa chỉ vào bảng nhớ tạm</string>
     <string name="quick_mask_open">Mở</string>
     <string name="quick_mask_undo">Hoàn tác</string>
     <string name="quick_mask_copied">Đã sao chép %1$s vào bảng nhớ tạm</string>

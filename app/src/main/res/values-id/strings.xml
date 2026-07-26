@@ -250,6 +250,7 @@
     <string name="quick_mask_channel_name">Tersamar cepat</string>
     <string name="quick_mask_channel_description">Mengonfirmasi email tersamar yang dibuat dari ubin atau pintasan.</string>
     <string name="quick_mask_created_title">Email tersamar dibuat</string>
+    <string name="quick_mask_created_body">Alamat disalin ke papan klip</string>
     <string name="quick_mask_open">Buka</string>
     <string name="quick_mask_undo">Batalkan</string>
     <string name="quick_mask_copied">%1$s disalin ke papan klip</string>

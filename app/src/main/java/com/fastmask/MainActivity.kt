@@ -1,10 +1,14 @@
 package com.fastmask
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -22,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.share.ShareIntentPolicy
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.share.SharedLinkParser
 import com.fastmask.domain.model.Accent
@@ -31,6 +37,7 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.showUnlockPrompt
 import com.fastmask.ui.navigation.FastMaskNavHost
+import com.fastmask.quickmask.QuickMaskPolicy
 import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,6 +63,15 @@ class MainActivity : AppCompatActivity() {
     lateinit var proEntitlementStore: ProEntitlementStore
 
     private var isReady = false
+
+    /**
+     * Registered as a field so it exists before the Activity is STARTED, which
+     * the Activity Result API requires. The result itself needs no handling:
+     * a grant makes the quick-create confirmation possible, a denial leaves the
+     * existing Toast fallback in place.
+     */
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
@@ -147,6 +163,7 @@ class MainActivity : AppCompatActivity() {
                 lockAtLaunch
             }
             isReady = true
+            maybeRequestNotificationPermission(signedIn = startDestination == NavRoutes.EMAIL_LIST)
 
             setContent {
                 val proStatus by proRepository.proStatus.collectAsState()
@@ -278,12 +295,50 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun pendingShareFromIntent(intent: Intent?): PendingShare? {
-        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") {
-            return null
+    /**
+     * Asks for POST_NOTIFICATIONS once, from the one screen where it means
+     * something.
+     *
+     * The permission was declared but never requested, so on Android 13+ every
+     * fresh install had it denied — and with it the quick-create confirmation,
+     * which is the only place the "Undo" action lives. Skipped while the
+     * biometric gate is up (a permission dialog on top of the lock screen is
+     * the wrong thing to look at); the next launch asks instead.
+     */
+    private suspend fun maybeRequestNotificationPermission(signedIn: Boolean) {
+        if (locked.value) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        val alreadyAsked = withContext(Dispatchers.IO) {
+            runCatching { settingsDataStore.notificationPromptShown() }.getOrDefault(true)
         }
-        val sharedText: String = intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
-            ?: return null
+        val shouldAsk = QuickMaskPolicy.shouldRequestNotificationPermission(
+            sdkInt = Build.VERSION.SDK_INT,
+            permissionGranted = granted,
+            alreadyAsked = alreadyAsked,
+            signedIn = signedIn,
+        )
+        if (!shouldAsk) return
+
+        // Recorded before the dialog resolves: whatever the user answers, the
+        // app has now had its one ask.
+        withContext(Dispatchers.IO) {
+            runCatching { settingsDataStore.setNotificationPromptShown(true) }
+        }
+        runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+    }
+
+    private fun pendingShareFromIntent(intent: Intent?): PendingShare? {
+        // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
+        // and a Spanned from the sending app makes getStringExtra return null.
+        // The type/length rules live in ShareIntentPolicy, where they are tested.
+        val sharedText: String = ShareIntentPolicy.sharedText(
+            action = intent?.action,
+            type = intent?.type,
+            text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
+        ) ?: return null
         return PendingShare(prefill = SharedLinkParser.parse(sharedText))
     }
 

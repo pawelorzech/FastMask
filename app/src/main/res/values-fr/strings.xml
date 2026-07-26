@@ -254,6 +254,7 @@
     <string name="quick_mask_channel_name">Masque rapide</string>
     <string name="quick_mask_channel_description">Confirme un masque créé depuis la tuile ou le raccourci.</string>
     <string name="quick_mask_created_title">Masque créé</string>
+    <string name="quick_mask_created_body">Adresse copiée dans le presse-papiers</string>
     <string name="quick_mask_open">Ouvrir</string>
     <string name="quick_mask_undo">Annuler</string>
     <string name="quick_mask_copied">%1$s copié dans le presse-papiers</string>

@@ -256,6 +256,7 @@
     <string name="quick_mask_channel_name">Швидка маска</string>
     <string name="quick_mask_channel_description">Підтверджує маску, створену з плитки або ярлика.</string>
     <string name="quick_mask_created_title">Маску створено</string>
+    <string name="quick_mask_created_body">Адресу скопійовано в буфер обміну</string>
     <string name="quick_mask_open">Відкрити</string>
     <string name="quick_mask_undo">Скасувати</string>
     <string name="quick_mask_copied">Скопійовано в буфер обміну: %1$s</string>

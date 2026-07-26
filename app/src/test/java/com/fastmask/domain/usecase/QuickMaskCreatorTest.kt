@@ -6,12 +6,14 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.testutil.FakeAuthRepository
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.FakeQuickMaskGuard
+import com.fastmask.ui.common.UiErrors
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.HttpException
@@ -119,44 +121,60 @@ class QuickMaskCreatorTest {
     }
 
     // --- failures: a concrete reason, never a mystery ------------------------
+    //
+    // Failed carries the raw cause, not a string resource: the domain layer
+    // must not import `com.fastmask.ui`/`R` (Clean Architecture, CLAUDE.md).
+    // The assertions below therefore check both halves of the contract — the
+    // cause is reported unchanged, AND the mapping the Android layer
+    // (QuickMaskRunner) applies to it still yields the message the user was
+    // promised. UiErrors is a pure function, so that mapping is checkable here.
+
+    private fun failureCause(result: QuickMaskResult): Throwable {
+        assertTrue("expected a failure, got $result", result is QuickMaskResult.Failed)
+        return (result as QuickMaskResult.Failed).cause
+    }
+
+    private fun messageFor(result: QuickMaskResult): Int =
+        UiErrors.messageRes(failureCause(result), R.string.create_email_error_failed)
 
     @Test
     fun `network failure reports the network message and no address`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
+        val offline = IOException("offline")
+        val repo = FakeMaskedEmailRepository(failure = offline)
 
         val result = creator(repo = repo).create()
 
-        assertEquals(QuickMaskResult.Failed(R.string.error_network), result)
+        assertEquals(QuickMaskResult.Failed(offline), result)
+        assertSame(offline, failureCause(result))
+        assertEquals(R.string.error_network, messageFor(result))
     }
 
     @Test
     fun `a rejected token reports the auth message`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = httpException(401))
 
-        assertEquals(
-            QuickMaskResult.Failed(R.string.error_auth),
-            creator(repo = repo).create(),
-        )
+        assertEquals(R.string.error_auth, messageFor(creator(repo = repo).create()))
     }
 
     @Test
     fun `rate limiting reports the rate limit message`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = httpException(429))
 
-        assertEquals(
-            QuickMaskResult.Failed(R.string.error_rate_limit),
-            creator(repo = repo).create(),
-        )
+        assertEquals(R.string.error_rate_limit, messageFor(creator(repo = repo).create()))
     }
 
     @Test
     fun `a server error reports the server message`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = httpException(503))
 
-        assertEquals(
-            QuickMaskResult.Failed(R.string.error_server),
-            creator(repo = repo).create(),
-        )
+        assertEquals(R.string.error_server, messageFor(creator(repo = repo).create()))
+    }
+
+    @Test
+    fun `an unrecognized failure falls back to the create error message`() = runTest {
+        val repo = FakeMaskedEmailRepository(failure = IllegalStateException("boom"))
+
+        assertEquals(R.string.create_email_error_failed, messageFor(creator(repo = repo).create()))
     }
 
     // --- undo ---------------------------------------------------------------

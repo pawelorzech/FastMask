@@ -250,6 +250,7 @@
     <string name="quick_mask_channel_name">快速创建</string>
     <string name="quick_mask_channel_description">确认通过磁贴或快捷方式创建的隐藏邮箱。</string>
     <string name="quick_mask_created_title">已创建隐藏邮箱</string>
+    <string name="quick_mask_created_body">地址已复制到剪贴板</string>
     <string name="quick_mask_open">打开</string>
     <string name="quick_mask_undo">撤销</string>
     <string name="quick_mask_copied">已将 %1$s 复制到剪贴板</string>
