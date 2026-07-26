@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Bloqueio do app</string>
     <string name="settings_app_lock_description">Exigir desbloqueio ao abrir o app</string>
     <string name="settings_app_lock_unavailable">Configure um bloqueio de tela ou impressão digital nas configurações do sistema primeiro.</string>
+    <string name="settings_crash_reporting">Relatórios de falhas</string>
+    <string name="settings_crash_reporting_description">Envie relatórios de falhas ao Google Firebase para que os bugs sejam corrigidos. Nunca incluem seus endereços, e-mail ou dados de login. Pode ser desativado quando quiser.</string>
     <string name="settings_export_title">Exportar endereços</string>
     <string name="settings_export_description">Compartilhe todos os endereços como arquivo CSV</string>
     <string name="settings_export_failed">Exportação falhou. Tente novamente.</string>

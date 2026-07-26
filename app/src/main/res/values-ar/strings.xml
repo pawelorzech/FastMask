@@ -223,6 +223,8 @@
     <string name="settings_app_lock">قفل التطبيق</string>
     <string name="settings_app_lock_description">أطلب فتح عند فتح التطبيق</string>
     <string name="settings_app_lock_unavailable">جهز قفل شاشة أو بصمة في إعدادات النظام أولاً.</string>
+    <string name="settings_crash_reporting">تقارير الأعطال</string>
+    <string name="settings_crash_reporting_description">إرسال تقارير الأعطال إلى Google Firebase لإصلاح الأخطاء. لا تحتوي أبداً على أقنعتك أو بريدك الإلكتروني أو بيانات تسجيل دخولك. يمكن إيقافها في أي وقت.</string>
     <string name="settings_export_title">تصدير الأقنعة</string>
     <string name="settings_export_description">شارك جميع الأقنعة في ملف CSV</string>
     <string name="settings_export_failed">فشل التصدير. حاول مرة أخرى.</string>

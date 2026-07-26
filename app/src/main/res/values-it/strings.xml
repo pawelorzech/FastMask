@@ -223,6 +223,8 @@
     <string name="settings_app_lock">Blocco app</string>
     <string name="settings_app_lock_description">Richiedi sblocco all\'apertura dell\'app</string>
     <string name="settings_app_lock_unavailable">Configura prima un blocco dello schermo o un\'impronta digitale nelle impostazioni di sistema.</string>
+    <string name="settings_crash_reporting">Rapporti di arresto anomalo</string>
+    <string name="settings_crash_reporting_description">Invia i rapporti di arresto anomalo a Google Firebase per correggere i bug. Non includono mai le tue maschere, la tua e-mail o le credenziali di accesso. Disattivabile in qualsiasi momento.</string>
     <string name="settings_export_title">Esporta maschere</string>
     <string name="settings_export_description">Condividi tutte le maschere come file CSV</string>
     <string name="settings_export_failed">Esportazione non riuscita. Riprova.</string>
