@@ -219,6 +219,8 @@
     <string name="settings_app_lock">App lock</string>
     <string name="settings_app_lock_description">Require unlock when opening the app</string>
     <string name="settings_app_lock_unavailable">Set up a screen lock or fingerprint in system settings first.</string>
+    <string name="settings_crash_reporting">Crash reports</string>
+    <string name="settings_crash_reporting_description">Send crash reports to Google Firebase so bugs get fixed. Never includes your masks, e-mail or login. Turn off any time.</string>
     <string name="settings_export_title">Export masks</string>
     <string name="settings_export_description">Share all masks as a CSV file</string>
     <string name="settings_export_failed">Export failed. Try again.</string>

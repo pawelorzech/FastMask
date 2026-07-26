@@ -4,20 +4,21 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.data.local.CrashReportingSettings
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
+import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
-import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.usecase.ExportMasksUseCase
-import com.fastmask.ui.common.UiErrors
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
+import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -81,15 +82,32 @@ class SettingsViewModel @Inject constructor(
         initialValue = false,
     )
 
-    // STUB — deliberately ignores the stored preference so the tests stay red
-    // until the crash reporting change lands.
-    val crashReportingEnabled: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
+    // --- Crash reporting (opt-out) ---
 
-    /** STUB — no persistence, no reporter call yet. */
+    /**
+     * Initial value is the opt-out default, not `false`: the switch renders
+     * before the stored value has been read, and showing "off" would tell a
+     * user who never opted out that nothing is being collected.
+     */
+    val crashReportingEnabled: StateFlow<Boolean> =
+        settingsDataStore.crashReportingEnabled.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = CrashReportingSettings.DEFAULT_ENABLED,
+        )
+
+    /**
+     * Applies the choice before persisting it, deliberately. The reporter call
+     * is synchronous, so a write that fails (full disk) still leaves collection
+     * stopped for this session instead of turning the user's opt-out into a
+     * silent no-op; `writeErrorHandler` keeps that failure from crashing.
+     */
     fun onCrashReportingToggled(enabled: Boolean) {
-        // TODO: apply immediately, then persist.
+        crashReporting.apply(enabled)
+        viewModelScope.launch(writeErrorHandler) {
+            settingsDataStore.setCrashReportingEnabled(enabled)
+        }
     }
-
 
     init {
         loadCurrentLanguage()

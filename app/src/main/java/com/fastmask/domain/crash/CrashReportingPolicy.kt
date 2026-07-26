@@ -13,5 +13,5 @@ object CrashReportingPolicy {
      *   touched the switch).
      */
     fun shouldCollect(isDebugBuild: Boolean, userEnabled: Boolean): Boolean =
-        TODO("stub — implemented by the crash reporting change")
+        !isDebugBuild && userEnabled
 }

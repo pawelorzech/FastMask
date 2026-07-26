@@ -1,6 +1,7 @@
 package com.fastmask.di
 
 import com.fastmask.BuildConfig
+import com.fastmask.data.crash.FirebaseCrashlyticsReporter
 import com.fastmask.domain.crash.CrashReporter
 import com.fastmask.domain.crash.CrashReportingController
 import dagger.Module
@@ -10,9 +11,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * STUB — satisfies the Hilt graph so the module compiles while the crash
- * reporting change is still only a set of tests. The implementer replaces
- * [provideCrashReporter] with the Firebase-backed [CrashReporter].
+ * Wires the crash reporting seam. [CrashReporter] is the only type the rest of
+ * the app sees, so the Firebase SDK stays confined to `data/crash`.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -20,8 +20,7 @@ object CrashReportingModule {
 
     @Provides
     @Singleton
-    fun provideCrashReporter(): CrashReporter =
-        TODO("stub — implemented by the crash reporting change")
+    fun provideCrashReporter(): CrashReporter = FirebaseCrashlyticsReporter()
 
     @Provides
     @Singleton

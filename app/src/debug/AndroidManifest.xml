@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Debug-only overlay. Crashlytics auto-initialises with collection enabled,
+    and FastMaskApplication can only switch it off once it has read the stored
+    preference off the main thread — so the first launch of a debug build on a
+    device has a window in which a development crash would reach the production
+    console. This flag is the default Crashlytics uses before any runtime
+    override is persisted, so the window closes at process start.
+
+    Release builds have no such overlay: there, collection genuinely defaults to
+    on and the user's opt-out is what turns it off.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+    </application>
+
+</manifest>

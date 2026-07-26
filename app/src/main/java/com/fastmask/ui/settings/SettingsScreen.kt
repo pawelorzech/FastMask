@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -105,6 +106,7 @@ fun SettingsScreen(
     val proStatus by viewModel.proStatus.collectAsState()
     val selectedAccent by viewModel.accent.collectAsState()
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
+    val crashReportingEnabled by viewModel.crashReportingEnabled.collectAsState()
     val context = LocalContext.current
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLockUnavailableDialog by remember { mutableStateOf(false) }
@@ -351,6 +353,16 @@ fun SettingsScreen(
                     leading = Icons.Outlined.Language,
                     trailing = Icons.Filled.ChevronRight,
                     onClick = { showLanguageDialog = true },
+                )
+
+                // Not gated on Pro: a privacy control every user must be able
+                // to reach, unlike the paid personalization above.
+                SettingsToggleRow(
+                    label = stringResource(R.string.settings_crash_reporting),
+                    value = stringResource(R.string.settings_crash_reporting_description),
+                    leading = Icons.Outlined.BugReport,
+                    checked = crashReportingEnabled,
+                    onToggle = viewModel::onCrashReportingToggled,
                 )
 
                 SettingsRow(

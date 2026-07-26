@@ -13,6 +13,22 @@ class CrashReportingController(
     /**
      * @param userEnabled the opt-out preference as stored (or its default).
      */
-    fun apply(userEnabled: Boolean): Unit =
-        TODO("stub — implemented by the crash reporting change")
+    fun apply(userEnabled: Boolean) {
+        // Order is load-bearing: collection stops first, then the queue is
+        // purged. Reversed, a crash landing between the two calls would be
+        // written back after the purge and uploaded despite the opt-out.
+        reporter.setCollectionEnabled(
+            CrashReportingPolicy.shouldCollect(
+                isDebugBuild = isDebugBuild,
+                userEnabled = userEnabled,
+            )
+        )
+
+        // Driven by the preference, not by the policy result: a debug build
+        // already collects nothing, but an explicit opt-out still has to drop
+        // whatever an earlier release build left queued on the device.
+        if (!userEnabled) {
+            reporter.deleteUnsentReports()
+        }
+    }
 }
