@@ -96,10 +96,7 @@ object SharedLinkParser {
     }
 
     private fun prefillFromCandidate(rawCandidate: String, hasScheme: Boolean): SharePrefill? {
-        var candidate: String = rawCandidate
-        while (candidate.isNotEmpty() && candidate.last() in trailingPunctuation) {
-            candidate = candidate.dropLast(1)
-        }
+        val candidate: String = rawCandidate.trimEnd { it in trailingPunctuation }
         if (candidate.isEmpty()) {
             return null
         }
@@ -110,12 +107,7 @@ object SharedLinkParser {
             return null
         }
 
-        val normalizedHost: String = host.lowercase(Locale.ROOT)
-        val forDomain: String = if (normalizedHost.startsWith("www.")) {
-            normalizedHost.removePrefix("www.")
-        } else {
-            normalizedHost
-        }
+        val forDomain: String = host.lowercase(Locale.ROOT).removePrefix("www.")
         val url: String = if (hasScheme) candidate else "https://$candidate"
         return SharePrefill(forDomain = forDomain, url = url, description = forDomain)
     }

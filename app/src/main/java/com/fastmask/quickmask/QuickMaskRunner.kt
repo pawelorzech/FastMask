@@ -38,7 +38,7 @@ class QuickMaskRunner @Inject constructor(
      */
     private val crashGuard = CoroutineExceptionHandler { _, throwable ->
         Log.w(TAG, "quick mask work failed", throwable)
-        notifier.showFailure(UiErrors.messageRes(throwable, R.string.create_email_error_failed))
+        notifyFailure(throwable)
     }
 
     // The shade can tear down TileService as soon as it collapses; this scope
@@ -48,40 +48,26 @@ class QuickMaskRunner @Inject constructor(
 
     fun launchCreate(openApp: (() -> Unit)? = null) {
         scope.launch {
+            // A throwable escaping the gates (storage) is the same outcome as an
+            // API rejection: no mask, and the user gets told why.
             val result = runCatching { quickMaskCreator.create() }
-                .getOrElse { throwable ->
-                    notifier.showFailure(
-                        messageRes = UiErrors.messageRes(
-                            throwable = throwable,
-                            fallback = R.string.create_email_error_failed,
-                        )
-                    )
-                    return@launch
-                }
+                .getOrElse { throwable -> QuickMaskResult.Failed(cause = throwable) }
 
             when (result) {
                 is QuickMaskResult.Created -> {
                     copyToClipboard(context, result.email)
                     notifier.showCreated(id = result.id)
                 }
-                QuickMaskResult.NotSignedIn -> openApp(openApp)
-                QuickMaskResult.DemoMode -> openApp(openApp)
-                QuickMaskResult.LockRequired -> {
-                    // The tile lives above the lock screen; if app lock is armed,
-                    // quick-create must hand off to the app's biometric gate.
-                    openApp(openApp)
-                }
-                is QuickMaskResult.Failed -> {
-                    // The domain layer reports the cause; mapping it to a
-                    // localized message happens here, in the Android layer, and
-                    // nowhere else.
-                    notifier.showFailure(
-                        messageRes = UiErrors.messageRes(
-                            throwable = result.cause,
-                            fallback = R.string.create_email_error_failed,
-                        )
-                    )
-                }
+                // Nothing was created on any of these. Signing in, leaving demo
+                // mode and passing the biometric gate all happen in the app —
+                // the tile lives above the lock screen and must not be a way
+                // around it.
+                QuickMaskResult.NotSignedIn,
+                QuickMaskResult.DemoMode,
+                QuickMaskResult.LockRequired -> handOffToApp(openApp)
+                // The domain layer reports the cause; mapping it to a localized
+                // message happens here, in the Android layer, and nowhere else.
+                is QuickMaskResult.Failed -> notifyFailure(result.cause)
             }
         }
     }
@@ -92,13 +78,14 @@ class QuickMaskRunner @Inject constructor(
      *   result through this callback: until it is finished the process keeps a
      *   live component, so the delete is not racing the low-memory killer.
      */
-    fun launchUndo(id: String, notificationId: Int, onFinished: () -> Unit = {}) {
+    fun launchUndo(id: String, onFinished: () -> Unit = {}) {
         scope.launch {
             try {
                 // Dismiss FIRST. The tap is the user's decision; leaving the
                 // notification up until the network round-trip returns (or
                 // forever, when it fails) reads as "the button did nothing".
-                notifier.cancel(notificationId)
+                // The "mask created" slot is the only one carrying an Undo.
+                notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
                 val success = runCatching { quickMaskCreator.undo(id) }.getOrDefault(false)
                 notifier.showUndoResult(success = success)
             } finally {
@@ -115,7 +102,7 @@ class QuickMaskRunner @Inject constructor(
      * codebase keeps exactly one guarded `startActivity`. A hand-off that fails
      * says so instead of disappearing — the user tapped something.
      */
-    private suspend fun openApp(openApp: (() -> Unit)?) {
+    private suspend fun handOffToApp(openApp: (() -> Unit)?) {
         withContext(Dispatchers.Main) {
             val opened = runCatching {
                 if (openApp != null) {
@@ -132,6 +119,11 @@ class QuickMaskRunner @Inject constructor(
                 notifier.showFailure(messageRes = R.string.error_generic)
             }
         }
+    }
+
+    /** The one place a quick-create throwable becomes a localized message. */
+    private fun notifyFailure(throwable: Throwable?) {
+        notifier.showFailure(UiErrors.messageRes(throwable, R.string.create_email_error_failed))
     }
 
     private companion object {
