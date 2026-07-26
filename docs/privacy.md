@@ -121,7 +121,7 @@ We may update this policy from time to time. Material changes will be announced 
 
 ## 11. Open Source
 
-FastMask is open source under the [MIT License](https://github.com/pawelorzech/FastMask/blob/main/LICENSE). You can inspect the full source code, the network security config, and the dependency list at <https://github.com/pawelorzech/FastMask>. The Crashlytics SDK is named in exactly one file (`FirebaseCrashlyticsReporter.kt`), and `CrashReportingPrivacyTest` fails the build if any other file starts calling it, if the app's crash-reporting interface gains a way to pass data into a report, or if an analytics dependency appears in the build.
+FastMask is open source under the [MIT License](https://github.com/pawelorzech/FastMask/blob/main/LICENSE). You can inspect the full source code, the network security config, and the dependency list at <https://github.com/pawelorzech/FastMask>. The Crashlytics SDK is named in exactly one file (`FirebaseCrashlyticsReporter.kt`), and `CrashReportingPrivacyTest` — which reads both the sources and the compiled classes — fails the build if any other class names the SDK, if the crash-reporting interface or that one file gains a way to pass data into a report, or if an analytics dependency appears in the build.
 
 ## 12. Contact
 

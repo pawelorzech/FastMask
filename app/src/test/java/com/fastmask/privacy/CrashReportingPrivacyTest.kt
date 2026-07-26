@@ -1,11 +1,13 @@
 package com.fastmask.privacy
 
+import com.fastmask.data.crash.FirebaseCrashlyticsReporter
 import com.fastmask.domain.crash.CrashReporter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.reflect.Method
+import java.util.zip.ZipFile
 
 /**
  * A build-time guard on the promise the app makes on its store listing and in
@@ -31,29 +33,43 @@ import java.lang.reflect.Method
  *  - any reference to the Firebase Crashlytics SDK outside the one file that
  *    owns the seam, so new call sites cannot appear in a ViewModel or a
  *    repository where user data is in scope;
- *  - any method on [CrashReporter], or on its implementation, beyond the two
- *    data-free switches — scanning call sites is worthless if the interface
- *    grows a channel to call, and it was verified that adding one passed every
- *    other guard here;
+ *  - the same rule enforced on the *compiled* classes rather than on the
+ *    sources, because a source scan only ever sees the spellings someone
+ *    thought to look for;
+ *  - any declaration on [CrashReporter], on its implementation, or in the seam
+ *    file at all, beyond the two data-free switches — scanning call sites is
+ *    worthless if the seam grows a channel to call, and it was verified that
+ *    adding one passed every other guard here;
  *  - any analytics, profiling or advertising dependency, declared or
  *    transitive, because "no Google Analytics" is claimed in four documents and
  *    was enforced by nothing.
  *
  * Allowed, for the record: app version, screen name, HTTP status code — values
  * that describe the app, not the person using it.
+ *
+ * The limit of all of this, stated so nobody has to discover it: everything
+ * here works by the SDK's name appearing somewhere — in a source file, or in a
+ * compiled class's constant pool. Reflection that assembles
+ * `"com.google.firebase.crashlytics.FirebaseCrashlytics"` at runtime out of
+ * pieces is invisible to it, and was verified to be. That is deliberate
+ * evasion, not the drift these guards exist to stop, and the phrasing in
+ * README.md and docs/privacy.md is kept to what is actually enforced: no other
+ * class may *name* the SDK.
  */
 class CrashReportingPrivacyTest {
 
     private val sourceRoot = File("src/main/java")
 
     /**
-     * Every shipped source set, not just `main`. A Crashlytics call added under
-     * `src/debug/java` or `src/release/java` — or under `src/main/kotlin`, which
-     * the build accepts — was invisible to this guard while it walked
-     * `src/main/java` alone.
+     * Every shipped source set, not just `main`, and Java as well as Kotlin. A
+     * Crashlytics call added under `src/debug/java` or `src/release/java` — or
+     * under `src/main/kotlin`, which the build accepts — was invisible to this
+     * guard while it walked `src/main/java` alone, and a `.java` file in this
+     * otherwise all-Kotlin module compiles into the same APK while matching no
+     * `*.kt` filter.
      */
     private fun sources(): List<File> = File("src").walkTopDown()
-        .filter { it.isFile && it.extension == "kt" }
+        .filter { it.isFile && (it.extension == "kt" || it.extension == "java") }
         .filterNot { file ->
             val path = file.invariantSeparatorsPath
             path.startsWith("src/test/") || path.startsWith("src/androidTest/")
@@ -197,28 +213,240 @@ class CrashReportingPrivacyTest {
         )
     }
 
+    /** Comments cannot declare anything, and prose in them trips every scanner. */
+    private fun code(source: String): String = source
+        .replace(Regex("""/\*.*?\*/""", RegexOption.DOT_MATCHES_ALL), "\n")
+        .replace(Regex("""//[^\n]*"""), "")
+
+    /**
+     * Every `fun` in a file, rendered as `receiver.name(params)`.
+     *
+     * Written as a scanner rather than as one regex because the regex it
+     * replaces — `\bfun\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(` — was the hole. It
+     * required an identifier immediately followed by `(`, so
+     * `fun CrashReporter.note(value: String)` matched nothing at all: the token
+     * after `fun ` is the *receiver*, and the guard read the file as declaring
+     * no functions. Reading receiver and parameter list explicitly means a
+     * signature can neither hide behind a receiver nor quietly grow a `String`.
+     */
+    private fun functionDeclarations(source: String): List<String> {
+        val text = code(source)
+        return Regex("""\bfun\b""").findAll(text).mapNotNull { keyword ->
+            var i = keyword.range.last + 1
+            while (i < text.length && text[i].isWhitespace()) i++
+            if (i < text.length && text[i] == '<') { // fun <T> foo(...)
+                var depth = 0
+                while (i < text.length) {
+                    if (text[i] == '<') depth++
+                    if (text[i] == '>' && --depth == 0) { i++; break }
+                    i++
+                }
+            }
+            val open = text.indexOf('(', i)
+            if (open < 0) return@mapNotNull null
+            val name = text.substring(i, open).trim()
+            var depth = 0
+            var close = open
+            while (close < text.length) {
+                if (text[close] == '(') depth++
+                if (text[close] == ')' && --depth == 0) break
+                close++
+            }
+            val params = text.substring(open + 1, minOf(close, text.length))
+                .replace(Regex("""\s+"""), " ")
+                .trim()
+            "$name($params)"
+        }.toList()
+    }
+
+    /** Every `val`/`var`, receiver included — a property setter is a channel too. */
+    private fun propertyDeclarations(source: String): List<String> =
+        Regex("""\b(?:val|var)\s+([A-Za-z_][A-Za-z0-9_.]*)""")
+            .findAll(code(source))
+            .map { it.groupValues[1] }
+            .toList()
+
+    private fun typeDeclarations(source: String): List<String> =
+        Regex("""\b(?:class|object|interface)\s+([A-Za-z_][A-Za-z0-9_]*)""")
+            .findAll(code(source))
+            .map { it.groupValues[1] }
+            .toList()
+
+    private val seamShapeFailure =
+        "$seamFile must contain exactly one class with exactly the two CrashReporter " +
+            "overrides and the SDK supplier — anything else declared there is a path " +
+            "from app data to Google. This includes extension functions and property " +
+            "setters, which the earlier version of this guard could not see: " +
+            "`fun CrashReporter.note(value: String)` in this file compiled to a static " +
+            "method on FirebaseCrashlyticsReporterKt, passed every assertion, and shipped " +
+            "mask addresses to Crashlytics. If the change is deliberate, README.md " +
+            "(\"the CrashReporter seam offers no way to pass data into a report\"), " +
+            "docs/privacy.md §11, marketing/copy/en.md and marketing/copy/pl.md all become " +
+            "false statements and have to be corrected before this list is."
+
     /**
      * The same promise one layer down. [CrashReporter] is what the Hilt module
      * hands out, so an extra public method on the implementation is not
      * reachable through the graph today — but the module could be changed to
      * expose the concrete type, and then only this assertion stands between a
      * `fun log(...)` and Google.
+     *
+     * Asserted on the whole *shape* of the file rather than on a list of
+     * function names, because names were never the only way in: an extension
+     * function hides the name behind a receiver, and a property setter has no
+     * name the old scanner recognised at all.
      */
     @Test
     fun `the seam implementation declares nothing beyond the interface`() {
         val source = File(seamFile).readText()
 
-        val declaredFunctions = Regex("""\bfun\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(""")
-            .findAll(source)
-            .map { it.groupValues[1] }
-            .toSortedSet()
+        assertEquals(
+            seamShapeFailure,
+            listOf("deleteUnsentReports()", "setCollectionEnabled(enabled: Boolean)"),
+            functionDeclarations(source).sorted(),
+        )
 
         assertEquals(
-            "$seamFile must declare exactly the two CrashReporter overrides — every " +
-                "other function there is a potential path from app data to the SDK",
-            sortedSetOf("deleteUnsentReports", "setCollectionEnabled"),
-            declaredFunctions,
+            seamShapeFailure,
+            listOf("crashlytics"),
+            propertyDeclarations(source).sorted(),
         )
+
+        assertEquals(
+            seamShapeFailure,
+            listOf("FirebaseCrashlyticsReporter"),
+            typeDeclarations(source).sorted(),
+        )
+    }
+
+    /**
+     * Neither the seam file nor the interface file may declare anything outside
+     * its type.
+     *
+     * Kotlin puts top-level functions and properties — including extension
+     * functions — into a synthesised `<FileName>Kt` class. That class existing
+     * *is* the bypass: `fun CrashReporter.note(v: String)` next to the reporter
+     * compiles to `FirebaseCrashlyticsReporterKt.note(CrashReporter, String)`,
+     * which is neither a method of the interface (so reflection on
+     * [CrashReporter] misses it) nor spelled like one (so a name scan misses
+     * it). Asserting the facade does not exist states the rule once, in the
+     * compiler's own terms, instead of guessing at spellings.
+     */
+    @Test
+    fun `neither crash reporting file declares anything at the top level`() {
+        val facades = listOf(
+            "com.fastmask.data.crash.FirebaseCrashlyticsReporterKt",
+            "com.fastmask.domain.crash.CrashReporterKt",
+        ).filter { name ->
+            runCatching { Class.forName(name, false, javaClass.classLoader) }.isSuccess
+        }
+
+        assertTrue(
+            "top-level declarations appeared in the crash reporting seam:\n" +
+                facades.joinToString("\n").prependIndent("  ") +
+                "\nA top-level or extension function there is exactly how data reaches the " +
+                "SDK while every name- and interface-based check stays green. " +
+                seamShapeFailure,
+            facades.isEmpty(),
+        )
+    }
+
+    /**
+     * The implementation as the JVM sees it, which is the only view an added
+     * method cannot dress up. A `var breadcrumb: String` with a setter that
+     * calls the SDK declares no `fun` at all; here it shows up as
+     * `setBreadcrumb(String)` and fails.
+     */
+    @Test
+    fun `the seam implementation exposes no method beyond the two switches`() {
+        val declared = FirebaseCrashlyticsReporter::class.java.declaredMethods
+            .filterNot { it.isSynthetic || it.isBridge }
+            .map { method -> "${method.name}(${method.parameterTypes.joinToString { it.simpleName }})" }
+            .sorted()
+
+        assertEquals(
+            seamShapeFailure,
+            listOf("deleteUnsentReports()", "setCollectionEnabled(boolean)"),
+            declared,
+        )
+    }
+
+    /**
+     * The "one file" promise, checked on compiled bytecode instead of on text.
+     *
+     * A source scan can only fail on spellings someone anticipated; this one
+     * asks the artefact. Every class the app ships is searched for the SDK's
+     * binary and dotted names — the forms a call site, a field type, a method
+     * descriptor or a `Class.forName` string all leave behind — and exactly one
+     * class, the seam, is allowed to contain either. That covers Java sources,
+     * files whose names or packages nobody thought of, and the extension
+     * function that started this, since `FirebaseCrashlyticsReporterKt` is a
+     * different class from `FirebaseCrashlyticsReporter`.
+     *
+     * Generated `R` classes of the Crashlytics artefact itself sit in the
+     * SDK's own package and carry the name for that reason alone; they hold int
+     * constants and nothing else.
+     */
+    @Test
+    fun `only the seam class references the crash sdk in compiled code`() {
+        val location = CrashReporter::class.java.protectionDomain?.codeSource?.location
+        assertTrue(
+            "cannot locate the compiled app classes, so this guard would pass " +
+                "vacuously — fix the lookup rather than deleting the test",
+            location != null,
+        )
+
+        val classes = compiledClasses(File(location!!.toURI()))
+        assertTrue(
+            "no compiled app classes found at $location — this guard would pass vacuously",
+            classes.isNotEmpty(),
+        )
+
+        val seamClass = "com/fastmask/data/crash/FirebaseCrashlyticsReporter"
+        val generatedResourceClass = Regex("""^com/google/firebase/.*/R(\$[A-Za-z0-9_]+)?\.class$""")
+
+        val touching = classes.filterValues { bytes ->
+            val constants = String(bytes, Charsets.ISO_8859_1)
+            constants.contains("com/google/firebase/crashlytics") ||
+                constants.contains("com.google.firebase.crashlytics")
+        }.keys.sorted()
+
+        assertTrue(
+            "no compiled class references the Crashlytics SDK — the seam is not wired, " +
+                "and this guard proves nothing",
+            touching.contains("$seamClass.class"),
+        )
+
+        val outside = touching.filterNot { name ->
+            name == "$seamClass.class" ||
+                name.startsWith("$seamClass\$") ||
+                generatedResourceClass.matches(name)
+        }
+
+        assertTrue(
+            "the Crashlytics SDK must be reachable from one class only, but these " +
+                "compiled classes reference it:\n" +
+                outside.joinToString("\n").prependIndent("  ") +
+                "\nREADME.md, docs/privacy.md §11 and both store listings say the SDK is " +
+                "called from exactly one file; while this fails, all four are false. " +
+                "Note that a Kotlin file's top-level and extension functions compile into " +
+                "a separate `<FileName>Kt` class, which is not the seam no matter which " +
+                "file they were written in.",
+            outside.isEmpty(),
+        )
+    }
+
+    /** Class name to bytes, from either a classes directory or a classes jar. */
+    private fun compiledClasses(location: File): Map<String, ByteArray> = when {
+        location.isDirectory -> location.walkTopDown()
+            .filter { it.isFile && it.extension == "class" }
+            .associate { it.toRelativeString(location).replace(File.separatorChar, '/') to it.readBytes() }
+
+        else -> ZipFile(location).use { jar ->
+            jar.entries().asSequence()
+                .filter { !it.isDirectory && it.name.endsWith(".class") }
+                .associate { entry -> entry.name to jar.getInputStream(entry).use { it.readBytes() } }
+        }
     }
 
     /**
