@@ -1,5 +1,6 @@
 package com.fastmask.data.api
 
+import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -45,11 +46,16 @@ class JmapApiTest {
         }
     }
 
-    private fun session(apiUrl: String) = JmapSession(
+    private fun session(
+        apiUrl: String,
+        primaryAccounts: Map<String, String> =
+            mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-1"),
+        accounts: Map<String, JmapAccount> = emptyMap(),
+    ) = JmapSession(
         username = "user@fastmail.com",
         apiUrl = apiUrl,
-        primaryAccounts = mapOf("https://www.fastmail.com/dev/maskedemail" to "acc-1"),
-        accounts = emptyMap(),
+        primaryAccounts = primaryAccounts,
+        accounts = accounts,
         capabilities = JsonObject(emptyMap()),
         state = "s1"
     )
@@ -309,6 +315,85 @@ class JmapApiTest {
 
         assertNull(api.getAccountId())
         assertEquals(JmapService.FASTMAIL_API_URL, api.getApiUrl())
+    }
+
+    // --- masked email scope diagnosis (regression: silent account fallback) --
+
+    /**
+     * A token granted only Mail scope authenticates fine, so `getSession`
+     * used to succeed and quietly cache the *mail* account id. Every masked
+     * address call then failed with an opaque JMAP error, several screens
+     * later, with nothing telling the user their token scope was wrong.
+     *
+     * The diagnosis belongs at login: fail here, precisely.
+     */
+    @Test
+    fun `getSession fails when the token has no masked email scope`() = runTest {
+        val service = FakeJmapService(
+            session = session(
+                apiUrl = "https://api.fastmail.com/jmap/api/",
+                primaryAccounts = mapOf("urn:ietf:params:jmap:mail" to "acc-mail"),
+            )
+        )
+        val api = JmapApi(service, json)
+
+        val result = api.getSession("tok")
+
+        assertTrue("login must not succeed on a scopeless token", result.isFailure)
+        assertTrue(
+            "expected a scope-specific failure, got: ${result.exceptionOrNull()}",
+            result.exceptionOrNull() is MaskedEmailScopeMissingException,
+        )
+    }
+
+    @Test
+    fun `a scopeless session caches no account id`() = runTest {
+        val service = FakeJmapService(
+            session = session(
+                apiUrl = "https://api.fastmail.com/jmap/api/",
+                primaryAccounts = mapOf("urn:ietf:params:jmap:mail" to "acc-mail"),
+            )
+        )
+        val api = JmapApi(service, json)
+
+        api.getSession("tok")
+
+        assertNull(api.getAccountId())
+    }
+
+    /**
+     * The consequence that matters: no masked-email request may ever be
+     * addressed to an account borrowed from another scope.
+     */
+    @Test
+    fun `masked email calls never run against a borrowed account`() = runTest {
+        val service = FakeJmapService(
+            session = session(
+                apiUrl = "https://api.fastmail.com/jmap/api/",
+                primaryAccounts = mapOf(
+                    "urn:ietf:params:jmap:mail" to "acc-mail",
+                    "urn:ietf:params:jmap:contacts" to "acc-contacts",
+                ),
+            )
+        )
+        val api = JmapApi(service, json)
+
+        val result = api.getMaskedEmails("tok")
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is MaskedEmailScopeMissingException)
+        assertEquals("no JMAP method call should have been attempted", 0, service.executeCount)
+    }
+
+    @Test
+    fun `a session that grants the scope still logs in`() = runTest {
+        val service = FakeJmapService(session = session("https://api.fastmail.com/jmap/api/"))
+        val api = JmapApi(service, json)
+
+        val result = api.getSession("tok")
+
+        assertTrue(result.isSuccess)
+        assertEquals("acc-1", api.getAccountId())
     }
 
     @Test

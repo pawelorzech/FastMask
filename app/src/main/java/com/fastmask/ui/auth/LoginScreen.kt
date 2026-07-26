@@ -70,6 +70,8 @@ fun LoginScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is LoginEvent.LoginSuccess -> onLoginSuccess()
+                // STUB: navigation for the demo exit is not wired up yet.
+                is LoginEvent.EnterDemo -> Unit
             }
         }
     }

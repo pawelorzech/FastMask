@@ -9,6 +9,7 @@ import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.QuickMaskGuard
+import com.fastmask.domain.usecase.DemoModeActivator
 import java.time.Instant
 
 fun mask(
@@ -105,6 +106,22 @@ class FakeAuthRepository(
     override fun isLoggedIn(): Boolean = loggedIn
 
     override fun getToken(): String? = null
+}
+
+/**
+ * The shared way into demo mode. Counting calls is how the tests assert that
+ * Welcome and Login run the *same* mechanism rather than two copies of it.
+ */
+class FakeDemoModeActivator(
+    /** Set to simulate a failed DataStore write. */
+    var failure: Throwable? = null,
+) : DemoModeActivator {
+    var activateCalls = 0
+
+    override suspend fun activate() {
+        activateCalls++
+        failure?.let { throw it }
+    }
 }
 
 /** Preconditions for the quick-create entry points (tile / launcher shortcut). */

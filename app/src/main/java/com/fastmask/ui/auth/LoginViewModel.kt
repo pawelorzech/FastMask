@@ -3,6 +3,7 @@ package com.fastmask.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.domain.usecase.DemoModeActivator
 import com.fastmask.domain.usecase.LoginUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val demoModeActivator: DemoModeActivator,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -31,6 +33,21 @@ class LoginViewModel @Inject constructor(
 
     fun onTokenChange(token: String) {
         _uiState.update { it.copy(token = token, errorRes = null) }
+    }
+
+    /**
+     * Explicit "Paste" action. Never called automatically — reading the
+     * clipboard is a privacy signal (Android 12+ surfaces a system toast), so
+     * it happens only when the user asks for it.
+     *
+     * STUB — see the contract in `LoginViewModelTest`.
+     */
+    fun onTokenPasted(raw: String) {
+        onTokenChange(raw)
+    }
+
+    /** Escape hatch for a user stuck on getting a token. STUB. */
+    fun enterDemoMode() {
     }
 
     fun login() {
@@ -79,9 +96,16 @@ class LoginViewModel @Inject constructor(
 data class LoginUiState(
     val token: String = "",
     val isLoading: Boolean = false,
-    val errorRes: Int? = null
+    val errorRes: Int? = null,
+    /**
+     * Soft, non-blocking hint that the field does not hold something shaped
+     * like a Fastmail token. Distinct from [errorRes]: it never prevents a
+     * login attempt, because the token format is Fastmail's to change.
+     */
+    val warningRes: Int? = null,
 )
 
 sealed class LoginEvent {
     data object LoginSuccess : LoginEvent()
+    data object EnterDemo : LoginEvent()
 }
