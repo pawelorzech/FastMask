@@ -7,6 +7,7 @@
     <string name="login_subtitle">Fastmail Maskeli E-posta Yöneticisi</string>
     <string name="login_api_token_label">API Jetonu</string>
     <string name="login_api_token_placeholder">Fastmail API jetonunuzu girin</string>
+    <string name="login_paste_button">Yapıştır</string>
     <string name="login_button">Giriş Yap</string>
     <string name="login_show_token">Jetonu göster</string>
     <string name="login_hide_token">Jetonu gizle</string>
@@ -17,6 +18,12 @@
     <string name="login_instructions_step4">4. \"Masked Email\" kapsamında yeni bir jeton oluşturun</string>
     <string name="login_instructions_step5">5. Jetonu kopyalayın ve yukarıya yapıştırın</string>
     <string name="login_instructions_full">1. Fastmail web uygulamasına giriş yapın\n2. Ayarlar > Gizlilik ve Güvenlik\'e gidin\n3. Entegrasyonlar > API Jetonları\'na tıklayın\n4. \"Masked Email\" kapsamında yeni bir jeton oluşturun\n5. Jetonu kopyalayın ve yukarıya yapıştırın</string>
+    <string name="login_open_token_settings">Fastmail jeton ayarlarını aç</string>
+    <string name="login_paste_empty">Yapıştırılacak bir şey yok — önce Fastmail\'de jetonunuzu kopyalayın.</string>
+    <string name="login_token_warning_shape">Bu bir Fastmail API jetonuna benzemiyor. Genellikle fmu1- ile başlarlar. Yine de deneyebilirsiniz.</string>
+    <string name="login_error_missing_masked_email_scope">Bu jeton çalışıyor, ancak maskeli adresleri yönetme izni yok. Fastmail\'de yeni bir jeton oluşturun ve Masked Email iznini işaretleyin.</string>
+    <string name="login_try_demo">Henüz jetonunuz yok mu? Nasıl çalıştığını görün</string>
+    <string name="login_open_browser_failed">Bu cihazda tarayıcı açılamadı.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">Maskeli E-postalar</string>

@@ -2,9 +2,7 @@ package com.fastmask.ui.welcome
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.domain.model.AppMode
-import com.fastmask.domain.repository.DemoSession
+import com.fastmask.domain.usecase.DemoModeActivator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.Channel
@@ -15,8 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    private val settingsDataStore: SettingsDataStore,
-    private val demoSession: DemoSession,
+    private val demoModeActivator: DemoModeActivator,
 ) : ViewModel() {
 
     // Channel-backed one-time events: buffered delivery survives windows with
@@ -33,19 +30,12 @@ class WelcomeViewModel @Inject constructor(
     private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
 
     /**
-     * Enter demo mode: flip the app mode flag and reset the tutorial flag so the
-     * coach marks show the first time the user lands on the list. Order matters —
-     * set [AppMode.DEMO] *before* clearing [SettingsDataStore.tutorialCompleted] so
-     * downstream observers see the new mode the moment the tutorial flag changes.
+     * Enter demo mode. The sequence itself lives in [DemoModeActivator] so the
+     * login screen's demo exit runs it too, instead of a second copy.
      */
     fun enterDemoMode() {
         viewModelScope.launch(writeErrorHandler) {
-            // Start from the seed list: the demo repository is a singleton, so
-            // without this a second demo in the same process reopens the first
-            // one's edits.
-            demoSession.reset()
-            settingsDataStore.setAppMode(AppMode.DEMO)
-            settingsDataStore.setTutorialCompleted(false)
+            demoModeActivator.activate()
             _events.send(WelcomeEvent.EnterDemo)
         }
     }

@@ -7,6 +7,7 @@
     <string name="login_subtitle">Fastmail मास्क्ड ईमेल प्रबंधक</string>
     <string name="login_api_token_label">API टोकन</string>
     <string name="login_api_token_placeholder">अपना Fastmail API टोकन दर्ज करें</string>
+    <string name="login_paste_button">पेस्ट करें</string>
     <string name="login_button">लॉग इन करें</string>
     <string name="login_show_token">टोकन दिखाएं</string>
     <string name="login_hide_token">टोकन छुपाएं</string>
@@ -17,6 +18,12 @@
     <string name="login_instructions_step4">4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं</string>
     <string name="login_instructions_step5">5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
     <string name="login_instructions_full">1. Fastmail वेब ऐप में लॉग इन करें\n2. सेटिंग्स > गोपनीयता और सुरक्षा पर जाएं\n3. इंटीग्रेशन > API टोकन पर क्लिक करें\n4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं\n5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
+    <string name="login_open_token_settings">Fastmail टोकन सेटिंग्स खोलें</string>
+    <string name="login_paste_empty">पेस्ट करने के लिए कुछ नहीं है — पहले Fastmail में अपना टोकन कॉपी करें।</string>
+    <string name="login_token_warning_shape">यह Fastmail API टोकन जैसा नहीं लगता। ये आमतौर पर fmu1- से शुरू होते हैं। आप फिर भी कोशिश कर सकते हैं।</string>
+    <string name="login_error_missing_masked_email_scope">यह टोकन काम करता है, लेकिन इसे मास्क्ड पते प्रबंधित करने की अनुमति नहीं है। Fastmail में नया टोकन बनाएं और Masked Email अनुमति चुनें।</string>
+    <string name="login_try_demo">अभी तक टोकन नहीं है? देखें यह कैसे काम करता है</string>
+    <string name="login_open_browser_failed">इस डिवाइस पर कोई ब्राउज़र नहीं खोला जा सका।</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">मास्क्ड ईमेल</string>

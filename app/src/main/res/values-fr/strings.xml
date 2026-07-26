@@ -7,6 +7,7 @@
     <string name="login_subtitle">Gestionnaire d\'emails masqués Fastmail</string>
     <string name="login_api_token_label">Jeton API</string>
     <string name="login_api_token_placeholder">Entrez votre jeton API Fastmail</string>
+    <string name="login_paste_button">Coller</string>
     <string name="login_button">Connexion</string>
     <string name="login_show_token">Afficher le jeton</string>
     <string name="login_hide_token">Masquer le jeton</string>
@@ -17,6 +18,12 @@
     <string name="login_instructions_step4">4. Créez un nouveau jeton avec la portée \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Copiez le jeton et collez-le ci-dessus</string>
     <string name="login_instructions_full">1. Connectez-vous à l\'application web Fastmail\n2. Allez dans Paramètres > Confidentialité et sécurité\n3. Cliquez sur Intégrations > Jetons API\n4. Créez un nouveau jeton avec la portée \"Masked Email\"\n5. Copiez le jeton et collez-le ci-dessus</string>
+    <string name="login_open_token_settings">Ouvrir les réglages des jetons Fastmail</string>
+    <string name="login_paste_empty">Rien à coller — copiez d\'abord votre jeton dans Fastmail.</string>
+    <string name="login_token_warning_shape">Cela ne ressemble pas à un jeton API Fastmail. Ils commencent généralement par fmu1-. Vous pouvez tout de même essayer.</string>
+    <string name="login_error_missing_masked_email_scope">Ce jeton fonctionne, mais il n\'a pas le droit de gérer les adresses masquées. Créez un nouveau jeton dans Fastmail et cochez l\'autorisation Masked Email.</string>
+    <string name="login_try_demo">Pas encore de jeton ? Découvrez comment ça marche</string>
+    <string name="login_open_browser_failed">Impossible d\'ouvrir un navigateur sur cet appareil.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">Emails masqués</string>

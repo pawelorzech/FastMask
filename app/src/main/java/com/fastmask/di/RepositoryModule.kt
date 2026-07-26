@@ -2,6 +2,7 @@ package com.fastmask.di
 
 import com.fastmask.data.repository.AuthRepositoryImpl
 import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
+import com.fastmask.data.repository.DemoModeActivatorImpl
 import com.fastmask.data.repository.MaskedEmailRepositoryDispatcher
 import com.fastmask.data.repository.MaskedEmailRepositoryImpl
 import com.fastmask.data.repository.QuickMaskGuardImpl
@@ -9,6 +10,7 @@ import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.DemoSession
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.QuickMaskGuard
+import com.fastmask.domain.usecase.DemoModeActivator
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -69,4 +71,9 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDemoSession(impl: DemoMaskedEmailRepositoryImpl): DemoSession
+
+    /** Single entry point into demo mode, shared by Welcome and Login. */
+    @Binds
+    @Singleton
+    abstract fun bindDemoModeActivator(impl: DemoModeActivatorImpl): DemoModeActivator
 }

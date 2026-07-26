@@ -97,6 +97,14 @@ fun FastMaskNavHost(
                             popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
+                    },
+                    onEnterDemo = {
+                        // Match the other authenticated/demo handoffs and clear
+                        // the stack completely so back never returns to Welcome/Login.
+                        navController.navigate(NavRoutes.EMAIL_LIST) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 )
             }

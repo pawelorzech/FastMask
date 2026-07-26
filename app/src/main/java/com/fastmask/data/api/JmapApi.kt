@@ -1,5 +1,6 @@
 package com.fastmask.data.api
 
+import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -37,9 +38,10 @@ class JmapApi @Inject constructor(
         require(isFastmailHttpsUrl(session.apiUrl)) {
             "Untrusted apiUrl in session response"
         }
+        val accountId = MaskedEmailScope.accountId(session)
+            ?: throw MaskedEmailScopeMissingException() // Mail-only tokens used to borrow another account id and fail much later with an opaque masked-email error.
         cachedSession = session
-        cachedAccountId = session.primaryAccounts["https://www.fastmail.com/dev/maskedemail"]
-            ?: session.primaryAccounts.values.firstOrNull()
+        cachedAccountId = accountId
         session
     }
 

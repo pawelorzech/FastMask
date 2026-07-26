@@ -1,6 +1,8 @@
 package com.fastmask.ui.auth
 
-import androidx.compose.foundation.background
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,14 +12,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,7 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -48,6 +58,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
 import com.fastmask.R
+import com.fastmask.ui.common.FastmailLinks
+import com.fastmask.ui.common.openExternalIntent
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
 import com.fastmask.ui.components.MonoEyebrow
@@ -60,16 +72,21 @@ import com.fastmask.ui.theme.InstrumentSerif
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onEnterDemo: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showToken by remember { mutableStateOf(false) }
+    var settingsOpenFailed by remember { mutableStateOf(false) }
     val extras = FastMaskExtras.current
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is LoginEvent.LoginSuccess -> onLoginSuccess()
+                is LoginEvent.EnterDemo -> onEnterDemo()
             }
         }
     }
@@ -129,7 +146,11 @@ fun LoginScreen(
 
             Spacer(Modifier.height(36.dp))
 
-            // Token input
+            // Token input. Paste and show/hide both live in the field's
+            // trailing slot rather than beside the field: DesignInput is a
+            // Column whose height grows when the error hint appears, so a
+            // sibling button would jump down at exactly the moment the user
+            // reaches for Paste to correct the token.
             DesignInput(
                 value = uiState.token,
                 onValueChange = viewModel::onTokenChange,
@@ -142,26 +163,46 @@ fun LoginScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { viewModel.login() }),
                 trailing = {
-                    val icon = if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
-                    val cd = stringResource(if (showToken) R.string.login_hide_token else R.string.login_show_token)
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .background(androidx.compose.ui.graphics.Color.Transparent)
-                            .padding(2.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = cd,
-                            tint = extras.inkMuted,
-                            modifier = Modifier
-                                .size(20.dp),
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Reads the clipboard ONLY from this tap. Never on
+                        // screen entry or resume — Android 12+ shows a system
+                        // toast for every clipboard read, and a privacy-first
+                        // app must not trigger one the user did not ask for.
+                        TokenFieldIconButton(
+                            icon = Icons.Filled.ContentPaste,
+                            contentDescription = stringResource(R.string.login_paste_button),
+                            enabled = !uiState.isLoading,
+                            onClick = {
+                                // getText() is null for an empty clipboard and
+                                // for a non-text clip (an image, a URI). Both
+                                // go to the ViewModel as "" rather than being
+                                // dropped here, so the tap always produces a
+                                // visible answer.
+                                viewModel.onTokenPasted(clipboardManager.getText()?.text.orEmpty())
+                            },
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        TokenFieldIconButton(
+                            icon = if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = stringResource(
+                                if (showToken) R.string.login_hide_token else R.string.login_show_token
+                            ),
+                            enabled = true,
+                            onClick = { showToken = !showToken },
                         )
                     }
                 },
                 hint = uiState.errorRes?.let { stringResource(it) },
             )
+
+            uiState.warningRes?.let { warningRes ->
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = stringResource(warningRes),
+                    color = extras.status.pending.content,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -208,8 +249,102 @@ fun LoginScreen(
                     steps.forEachIndexed { index, step ->
                         InstructionRow(index = index + 1, text = step)
                     }
+                    Spacer(Modifier.height(18.dp))
+                    PillButton(
+                        text = stringResource(R.string.login_open_token_settings),
+                        onClick = {
+                            settingsOpenFailed = !openExternalIntent(
+                                context,
+                                // BROWSABLE narrows the candidates to real
+                                // browsers. A bare ACTION_VIEW https intent
+                                // matches any component declaring that filter,
+                                // and the destination is the page where the
+                                // user is about to type their Fastmail
+                                // password. openExternalIntent still reports a
+                                // no-handler case, which the hint below covers.
+                                Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL))
+                                    .addCategory(Intent.CATEGORY_BROWSABLE),
+                            )
+                        },
+                        variant = PillButtonVariant.Secondary,
+                    )
+                    if (settingsOpenFailed) {
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            text = stringResource(R.string.login_open_browser_failed),
+                            color = extras.status.pending.content,
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
+
+            PillButton(
+                text = stringResource(R.string.login_try_demo),
+                onClick = viewModel::enterDemoMode,
+                variant = PillButtonVariant.Ghost,
+                enabled = !uiState.isLoading,
+                fullWidth = true,
+            )
+        }
+    }
+}
+
+/** Material's minimum touch target. Two of these sit side by side in a field. */
+private val TokenFieldTouchTarget = 48.dp
+
+/**
+ * Vertical footprint the field reserves for them — the visual weight the
+ * trailing slot had before the touch target was widened.
+ */
+private val TokenFieldSlotHeight = 28.dp
+
+/**
+ * A compact action inside the token field's trailing slot: a 20dp icon with a
+ * full 48dp touch target.
+ *
+ * The target is honest, not decorative. Aiming for Paste and hitting Show
+ * instead reveals the token in plaintext on a screen whose threat model is
+ * literally the person standing behind you, so these two must be hard to
+ * confuse. `requiredSize` inside a shorter parent buys the height for it
+ * without inflating the field: the touch box overflows into the input's own
+ * 14dp vertical padding, which is empty space, while the slot keeps reporting
+ * its original height upwards. Applying `minimumInteractiveComponentSize()`
+ * instead would push the field from 56dp to 76dp.
+ */
+@Composable
+private fun TokenFieldIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val extras = FastMaskExtras.current
+    Box(
+        modifier = Modifier.size(width = TokenFieldTouchTarget, height = TokenFieldSlotHeight),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .requiredSize(TokenFieldTouchTarget)
+                .clip(CircleShape)
+                .clickable(
+                    enabled = enabled,
+                    // Announced as a button by TalkBack; without it both icons
+                    // read as unlabeled clickable regions.
+                    role = Role.Button,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (enabled) extras.inkMuted else extras.lineStrong,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }
