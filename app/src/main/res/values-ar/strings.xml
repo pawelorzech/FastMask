@@ -7,6 +7,7 @@
     <string name="login_subtitle">مدير البريد المقنّع من Fastmail</string>
     <string name="login_api_token_label">رمز API</string>
     <string name="login_api_token_placeholder">أدخل رمز API الخاص بـ Fastmail</string>
+    <string name="login_paste_button">لصق</string>
     <string name="login_button">تسجيل الدخول</string>
     <string name="login_show_token">إظهار الرمز</string>
     <string name="login_hide_token">إخفاء الرمز</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">٤. أنشئ رمزاً جديداً بصلاحية \"Masked Email\"</string>
     <string name="login_instructions_step5">٥. انسخ الرمز والصقه أعلاه</string>
     <string name="login_instructions_full">١. سجّل الدخول إلى تطبيق Fastmail\n٢. انتقل إلى الإعدادات > الخصوصية والأمان\n٣. انقر على التكاملات > رموز API\n٤. أنشئ رمزاً جديداً بصلاحية \"Masked Email\"\n٥. انسخ الرمز والصقه أعلاه</string>
+    <string name="login_open_token_settings">فتح إعدادات رموز Fastmail</string>
+    <string name="login_token_warning_shape">لا يبدو هذا رمز API خاصاً بـ Fastmail. عادةً ما تبدأ هذه الرموز بـ fmu1-. يمكنك المحاولة على أي حال.</string>
+    <string name="login_error_missing_masked_email_scope">هذا الرمز يعمل، لكنه لا يملك صلاحية إدارة العناوين المقنّعة. أنشئ رمزاً جديداً في Fastmail وفعّل صلاحية Masked Email.</string>
+    <string name="login_try_demo">ليس لديك رمز بعد؟ شاهد كيف يعمل</string>
+    <string name="login_open_browser_failed">تعذّر فتح متصفح على هذا الجهاز.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">البريد المقنّع</string>

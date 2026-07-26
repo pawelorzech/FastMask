@@ -7,6 +7,7 @@
     <string name="login_subtitle">ตัวจัดการอีเมลซ่อน Fastmail</string>
     <string name="login_api_token_label">โทเค็น API</string>
     <string name="login_api_token_placeholder">ใส่โทเค็น API ของ Fastmail</string>
+    <string name="login_paste_button">วาง</string>
     <string name="login_button">เข้าสู่ระบบ</string>
     <string name="login_show_token">แสดงโทเค็น</string>
     <string name="login_hide_token">ซ่อนโทเค็น</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"</string>
     <string name="login_instructions_step5">5. คัดลอกโทเค็นและวางด้านบน</string>
     <string name="login_instructions_full">1. เข้าสู่ระบบแอป Fastmail บนเว็บ\n2. ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย\n3. คลิก การเชื่อมต่อ > โทเค็น API\n4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"\n5. คัดลอกโทเค็นและวางด้านบน</string>
+    <string name="login_open_token_settings">เปิดการตั้งค่าโทเค็นของ Fastmail</string>
+    <string name="login_token_warning_shape">ข้อความนี้ดูไม่เหมือนโทเค็น API ของ Fastmail โดยปกติจะขึ้นต้นด้วย fmu1- คุณยังลองต่อได้</string>
+    <string name="login_error_missing_masked_email_scope">โทเค็นนี้ใช้งานได้ แต่ไม่มีสิทธิ์จัดการที่อยู่อีเมลซ่อน กรุณาสร้างโทเค็นใหม่ใน Fastmail แล้วเลือกสิทธิ์ Masked Email</string>
+    <string name="login_try_demo">ยังไม่มีโทเค็นใช่ไหม ดูวิธีการทำงาน</string>
+    <string name="login_open_browser_failed">ไม่สามารถเปิดเบราว์เซอร์บนอุปกรณ์นี้ได้</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">อีเมลซ่อน</string>

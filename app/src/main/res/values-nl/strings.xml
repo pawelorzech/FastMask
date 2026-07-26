@@ -7,6 +7,7 @@
     <string name="login_subtitle">Fastmail Gemaskeerde E-mail Beheerder</string>
     <string name="login_api_token_label">API-token</string>
     <string name="login_api_token_placeholder">Voer uw Fastmail API-token in</string>
+    <string name="login_paste_button">Plakken</string>
     <string name="login_button">Inloggen</string>
     <string name="login_show_token">Token tonen</string>
     <string name="login_hide_token">Token verbergen</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">4. Maak een nieuw token met \"Masked Email\" scope</string>
     <string name="login_instructions_step5">5. Kopieer het token en plak het hierboven</string>
     <string name="login_instructions_full">1. Log in op de Fastmail web-app\n2. Ga naar Instellingen > Privacy en Beveiliging\n3. Klik op Integraties > API-tokens\n4. Maak een nieuw token met \"Masked Email\" scope\n5. Kopieer het token en plak het hierboven</string>
+    <string name="login_open_token_settings">Fastmail-tokeninstellingen openen</string>
+    <string name="login_token_warning_shape">Dit lijkt niet op een Fastmail API-token. Die beginnen meestal met fmu1-. U kunt het toch proberen.</string>
+    <string name="login_error_missing_masked_email_scope">Dit token werkt, maar heeft geen toestemming om gemaskeerde adressen te beheren. Maak een nieuw token aan in Fastmail en vink de machtiging Masked Email aan.</string>
+    <string name="login_try_demo">Nog geen token? Bekijk hoe het werkt</string>
+    <string name="login_open_browser_failed">Er kon geen browser worden geopend op dit apparaat.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">Gemaskeerde e-mails</string>

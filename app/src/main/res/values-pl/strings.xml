@@ -12,6 +12,7 @@
     <string name="login_intro">Spokojne miejsce dla ukrytych adresów. Wklej token API Fastmail, by zacząć.</string>
     <string name="login_api_token_label">Token API</string>
     <string name="login_api_token_placeholder">Wklej token API Fastmail</string>
+    <string name="login_paste_button">Wklej</string>
     <string name="login_button">Odblokuj</string>
     <string name="login_show_token">Pokaż token</string>
     <string name="login_hide_token">Ukryj token</string>
@@ -22,6 +23,11 @@
     <string name="login_instructions_step4">Utwórz token z zakresem Masked Email</string>
     <string name="login_instructions_step5">Wklej go tutaj</string>
     <string name="login_instructions_full">1. Zaloguj się do aplikacji webowej Fastmail\n2. Przejdź do Ustawienia > Prywatność i bezpieczeństwo\n3. Kliknij Integracje > Tokeny API\n4. Utwórz nowy token z zakresem \"Masked Email\"\n5. Skopiuj token i wklej go powyżej</string>
+    <string name="login_open_token_settings">Otwórz ustawienia tokenów Fastmail</string>
+    <string name="login_token_warning_shape">To nie wygląda na token API Fastmail. Zwykle zaczynają się od fmu1-. Możesz mimo to spróbować.</string>
+    <string name="login_error_missing_masked_email_scope">Ten token działa, ale nie ma uprawnienia do zarządzania ukrytymi adresami. Utwórz w Fastmail nowy token i zaznacz uprawnienie Masked Email.</string>
+    <string name="login_try_demo">Nie masz tokenu? Zobacz, jak to działa</string>
+    <string name="login_open_browser_failed">Nie udało się otworzyć przeglądarki na tym urządzeniu.</string>
     <string name="login_error_empty_token">Wprowadź token API</string>
     <string name="login_error_failed">Nie udało się zalogować</string>
 

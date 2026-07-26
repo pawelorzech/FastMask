@@ -7,6 +7,7 @@
     <string name="login_subtitle">Gerenciador de emails mascarados do Fastmail</string>
     <string name="login_api_token_label">Token de API</string>
     <string name="login_api_token_placeholder">Digite seu token de API do Fastmail</string>
+    <string name="login_paste_button">Colar</string>
     <string name="login_button">Entrar</string>
     <string name="login_show_token">Mostrar token</string>
     <string name="login_hide_token">Ocultar token</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">4. Crie um novo token com o escopo \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Copie o token e cole acima</string>
     <string name="login_instructions_full">1. Faça login no aplicativo web do Fastmail\n2. Vá para Configurações > Privacidade e Segurança\n3. Clique em Integrações > Tokens de API\n4. Crie um novo token com o escopo \"Masked Email\"\n5. Copie o token e cole acima</string>
+    <string name="login_open_token_settings">Abrir as configurações de tokens do Fastmail</string>
+    <string name="login_token_warning_shape">Isto não parece um token de API do Fastmail. Eles normalmente começam com fmu1-. Você ainda pode tentar.</string>
+    <string name="login_error_missing_masked_email_scope">Este token funciona, mas não tem permissão para gerenciar endereços mascarados. Crie um novo token no Fastmail e marque a permissão Masked Email.</string>
+    <string name="login_try_demo">Ainda não tem um token? Veja como funciona</string>
+    <string name="login_open_browser_failed">Não foi possível abrir um navegador neste dispositivo.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">Emails mascarados</string>

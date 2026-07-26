@@ -7,6 +7,7 @@
     <string name="login_subtitle">Fastmail 隐藏邮箱管理器</string>
     <string name="login_api_token_label">API 令牌</string>
     <string name="login_api_token_placeholder">输入您的 Fastmail API 令牌</string>
+    <string name="login_paste_button">粘贴</string>
     <string name="login_button">登录</string>
     <string name="login_show_token">显示令牌</string>
     <string name="login_hide_token">隐藏令牌</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">4. 创建一个具有"隐藏邮箱"权限的新令牌</string>
     <string name="login_instructions_step5">5. 复制令牌并粘贴到上方</string>
     <string name="login_instructions_full">1. 登录 Fastmail 网页版\n2. 前往 设置 > 隐私与安全\n3. 点击 集成 > API 令牌\n4. 创建一个具有"隐藏邮箱"权限的新令牌\n5. 复制令牌并粘贴到上方</string>
+    <string name="login_open_token_settings">打开 Fastmail 令牌设置</string>
+    <string name="login_token_warning_shape">这看起来不像 Fastmail API 令牌，它们通常以 fmu1- 开头。您仍然可以继续尝试。</string>
+    <string name="login_error_missing_masked_email_scope">此令牌有效，但没有管理隐藏邮箱的权限。请在 Fastmail 中创建新令牌，并勾选 Masked Email 权限。</string>
+    <string name="login_try_demo">还没有令牌？看看它是如何工作的</string>
+    <string name="login_open_browser_failed">无法在此设备上打开浏览器。</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">隐藏邮箱</string>

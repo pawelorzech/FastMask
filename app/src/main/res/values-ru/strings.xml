@@ -7,6 +7,7 @@
     <string name="login_subtitle">Менеджер масок email для Fastmail</string>
     <string name="login_api_token_label">API токен</string>
     <string name="login_api_token_placeholder">Введите ваш API токен Fastmail</string>
+    <string name="login_paste_button">Вставить</string>
     <string name="login_button">Войти</string>
     <string name="login_show_token">Показать токен</string>
     <string name="login_hide_token">Скрыть токен</string>
@@ -17,6 +18,11 @@
     <string name="login_instructions_step4">4. Создайте новый токен с правами \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Скопируйте токен и вставьте выше</string>
     <string name="login_instructions_full">1. Войдите в веб-приложение Fastmail\n2. Перейдите в Настройки > Конфиденциальность и безопасность\n3. Нажмите Интеграции > API токены\n4. Создайте новый токен с правами \"Masked Email\"\n5. Скопируйте токен и вставьте выше</string>
+    <string name="login_open_token_settings">Открыть настройки токенов Fastmail</string>
+    <string name="login_token_warning_shape">Это не похоже на токен API Fastmail. Обычно они начинаются с fmu1-. Вы всё равно можете попробовать.</string>
+    <string name="login_error_missing_masked_email_scope">Токен рабочий, но у него нет прав на управление защищёнными адресами. Создайте в Fastmail новый токен и отметьте разрешение Masked Email.</string>
+    <string name="login_try_demo">Ещё нет токена? Посмотрите, как это работает</string>
+    <string name="login_open_browser_failed">Не удалось открыть браузер на этом устройстве.</string>
 
     <!-- Email List Screen -->
     <string name="email_list_title">Маски email</string>
