@@ -19,6 +19,7 @@
     <string name="login_instructions_step5">5. Salin token dan tempel di atas</string>
     <string name="login_instructions_full">1. Masuk ke aplikasi web Fastmail\n2. Buka Pengaturan > Privasi &amp; Keamanan\n3. Klik Integrasi > Token API\n4. Buat token baru dengan cakupan \"Masked Email\"\n5. Salin token dan tempel di atas</string>
     <string name="login_open_token_settings">Buka pengaturan token Fastmail</string>
+    <string name="login_paste_empty">Tidak ada yang bisa ditempel — salin dulu token Anda di Fastmail.</string>
     <string name="login_token_warning_shape">Ini tidak terlihat seperti token API Fastmail. Biasanya diawali dengan fmu1-. Anda tetap bisa mencobanya.</string>
     <string name="login_error_missing_masked_email_scope">Token ini berfungsi, tetapi tidak memiliki izin untuk mengelola alamat tersamar. Buat token baru di Fastmail dan centang izin Masked Email.</string>
     <string name="login_try_demo">Belum punya token? Lihat cara kerjanya</string>
