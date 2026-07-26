@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">最后消息 %1$s</string>
     <string name="hygiene_created">创建于 %1$s</string>
     <string name="hygiene_issue_new_title">新动态</string>
-    <string name="hygiene_issue_new_body">自上次成功刷新以来，这些邮箱收到了邮件。</string>
+    <string name="hygiene_issue_new_body">自您上次查看以来，这些邮箱收到了邮件。</string>
     <string name="hygiene_issue_never_title">从未使用</string>
     <string name="hygiene_issue_never_body">创建已有一段时间，却从未收到过任何一封邮件。</string>
     <string name="hygiene_issue_dormant_title">长期沉寂</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">先创建几个隐藏邮箱地址，这里就会显示哪些需要处理。</string>
     <string name="hygiene_clean_title">无需整理</string>
     <string name="hygiene_clean_body">每个隐藏邮箱都有备注、在使用且已启用。再注册几次后回来看看。</string>
+    <string name="hygiene_all_archived_body">此账户中的所有隐藏邮箱都已归档，没有需要查看的内容了。</string>
     <string name="hygiene_confirm_disable_title">禁用所选隐藏邮箱？</string>
     <string name="hygiene_confirm_disable_body">它们将停止接收邮件。你可以随时重新启用。</string>
     <string name="hygiene_confirm_archive_title">存档所选隐藏邮箱？</string>

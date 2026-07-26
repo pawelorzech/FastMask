@@ -1,6 +1,5 @@
 package com.fastmask.domain.hygiene
 
-import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
 import com.fastmask.testutil.mask
 import java.time.Duration
@@ -397,9 +396,9 @@ class MaskHygieneTest {
      */
     @Test
     fun `groups follow the declared priority and skip empty categories`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(mask("busy", description = "Bank", createdAt = ago(days(400)), lastMessageAt = ago(days(30)))),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("anon", createdAt = ago(days(1)), lastMessageAt = ago(days(1))),
@@ -416,13 +415,16 @@ class MaskHygieneTest {
         )
     }
 
-    // --- new activity vs the cached snapshot -------------------------------
+    // --- new activity vs the retained baseline -----------------------------
 
     /**
-     * The snapshot is [com.fastmask.data.local.MaskedEmailCache], written on
-     * every successful fetch, so "new activity" means "since the last
-     * successful refresh". No snapshot (first run, demo mode, unreadable file)
-     * is a missing baseline, not an error: the category is simply empty.
+     * The baseline is [HygieneBaseline], written by the review and by nothing
+     * else, so "new activity" means "since you last looked at this screen".
+     * It is deliberately not the mask cache: that one is rewritten by every
+     * successful fetch, including the one the list screen fires on each RESUME,
+     * which would leave this category permanently empty. No baseline (first
+     * review, demo mode, unreadable file) is a missing baseline, not an error:
+     * the category is simply empty.
      */
     @Test
     fun `a missing snapshot yields an empty new activity category not a failure`() {
@@ -443,7 +445,7 @@ class MaskHygieneTest {
         val report = MaskHygiene.review(
             listOf(healthy("a")),
             now,
-            baseline = CachedMasks(emptyList(), ago(days(1))),
+            baseline = HygieneBaseline.of(emptyList(), ago(days(1))),
             thresholds = thresholds,
         )
 
@@ -452,12 +454,12 @@ class MaskHygieneTest {
 
     @Test
     fun `only masks whose last message moved since the snapshot count as new activity`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(
                 mask("moved", description = "Bank", createdAt = ago(days(400)), lastMessageAt = ago(days(30))),
                 mask("still", description = "Forum", createdAt = ago(days(400)), lastMessageAt = ago(days(30))),
             ),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("moved", description = "Bank", createdAt = ago(days(400)), lastMessageAt = ago(days(1))),
@@ -471,9 +473,9 @@ class MaskHygieneTest {
 
     @Test
     fun `a first ever message on a known mask is new activity`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(mask("first", description = "Shop", createdAt = ago(days(40)), lastMessageAt = null)),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("first", description = "Shop", createdAt = ago(days(40)), lastMessageAt = ago(days(1))),
@@ -491,9 +493,9 @@ class MaskHygieneTest {
      */
     @Test
     fun `a mask absent from the snapshot is not reported as new activity`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(mask("old", description = "Bank", createdAt = ago(days(400)), lastMessageAt = ago(days(30)))),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("old", description = "Bank", createdAt = ago(days(400)), lastMessageAt = ago(days(30))),
@@ -508,9 +510,9 @@ class MaskHygieneTest {
     /** A mask that still has no mail at all cannot have new activity. */
     @Test
     fun `a mask with no message in either snapshot is not new activity`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(mask("silent", description = "Shop", createdAt = ago(days(60)), lastMessageAt = null)),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("silent", description = "Shop", createdAt = ago(days(60)), lastMessageAt = null),
@@ -529,9 +531,9 @@ class MaskHygieneTest {
      */
     @Test
     fun `new activity stacks with the other verdicts`() {
-        val baseline = CachedMasks(
+        val baseline = HygieneBaseline.of(
             masks = listOf(mask("waking", createdAt = ago(days(700)), lastMessageAt = ago(days(400)))),
-            cachedAt = ago(days(2)),
+            reviewedAt = ago(days(2)),
         )
         val masks = listOf(
             mask("waking", createdAt = ago(days(700)), lastMessageAt = ago(days(300))),
@@ -543,5 +545,63 @@ class MaskHygieneTest {
         assertEquals(listOf("waking"), report.masksFor(HygieneIssue.DORMANT).map { it.id })
         assertEquals(listOf("waking"), report.masksFor(HygieneIssue.UNDESCRIBED).map { it.id })
         assertEquals(0, report.healthyCount)
+    }
+
+    /**
+     * The baseline stores a mask that existed and had never received anything
+     * as a present key with a null value, so it can be told apart from a mask
+     * that did not exist yet. Losing that distinction would either silence the
+     * first-ever message or fire the category on every freshly created mask.
+     */
+    @Test
+    fun `the baseline keeps masks that had never received anything`() {
+        val baseline = HygieneBaseline.of(
+            masks = listOf(mask("silent", description = "Shop", createdAt = ago(days(60)), lastMessageAt = null)),
+            reviewedAt = ago(days(2)),
+        )
+
+        assertTrue(baseline.lastMessageAtById.containsKey("silent"))
+        assertEquals(null, baseline.lastMessageAtById["silent"])
+    }
+
+    // --- "no masks" vs "nothing left to review" ----------------------------
+
+    /**
+     * Both leave `reviewedCount` at zero, and the screen picks entirely
+     * different copy from them: a user who archived all forty of their masks
+     * must not be told they have never created one.
+     */
+    @Test
+    fun `a collection of only archived masks reports them in the total`() {
+        val masks = listOf(
+            mask("gone1", state = EmailState.DELETED, createdAt = ago(days(700)), lastMessageAt = null),
+            mask("gone2", state = EmailState.DELETED, createdAt = ago(days(700)), lastMessageAt = null),
+        )
+
+        val report = MaskHygiene.review(masks, now, baseline = null, thresholds = thresholds)
+
+        assertEquals(0, report.reviewedCount)
+        assertEquals(2, report.totalCount)
+    }
+
+    @Test
+    fun `an account with no masks at all reports a zero total`() {
+        val report = MaskHygiene.review(emptyList(), now, baseline = null, thresholds = thresholds)
+
+        assertEquals(0, report.reviewedCount)
+        assertEquals(0, report.totalCount)
+    }
+
+    @Test
+    fun `the total counts every mask including the archived ones`() {
+        val masks = listOf(
+            healthy("live"),
+            mask("archived", state = EmailState.DELETED, createdAt = ago(days(700)), lastMessageAt = null),
+        )
+
+        val report = MaskHygiene.review(masks, now, baseline = null, thresholds = thresholds)
+
+        assertEquals(1, report.reviewedCount)
+        assertEquals(2, report.totalCount)
     }
 }

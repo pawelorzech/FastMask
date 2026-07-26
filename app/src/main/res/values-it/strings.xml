@@ -300,7 +300,7 @@
     <string name="hygiene_last_message">Ultimo messaggio %1$s</string>
     <string name="hygiene_created">Creata %1$s</string>
     <string name="hygiene_issue_new_title">Nuova attività</string>
-    <string name="hygiene_issue_new_body">Hanno ricevuto posta dall\'ultimo aggiornamento riuscito.</string>
+    <string name="hygiene_issue_new_body">Hanno ricevuto posta dall\'ultima revisione.</string>
     <string name="hygiene_issue_never_title">Mai usate</string>
     <string name="hygiene_issue_never_body">Create tempo fa e non hanno mai ricevuto un solo messaggio.</string>
     <string name="hygiene_issue_dormant_title">Dormienti</string>
@@ -311,6 +311,7 @@
     <string name="hygiene_empty_body">Crea qualche indirizzo mascherato e questa revisione mostrerà cosa richiede attenzione.</string>
     <string name="hygiene_clean_title">Niente da sistemare</string>
     <string name="hygiene_clean_body">Ogni maschera è descritta, usata e attiva. Torna dopo qualche altra registrazione.</string>
+    <string name="hygiene_all_archived_body">Tutte le maschere di questo account sono archiviate, quindi non resta nulla da rivedere.</string>
     <string name="hygiene_confirm_disable_title">Disattivare le maschere selezionate?</string>
     <string name="hygiene_confirm_disable_body">Smetteranno di accettare posta. Puoi riattivarle quando vuoi.</string>
     <string name="hygiene_confirm_archive_title">Archiviare le maschere selezionate?</string>

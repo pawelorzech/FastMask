@@ -1,6 +1,7 @@
 package com.fastmask.data.repository
 
 import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.hygiene.HygieneBaseline
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
@@ -38,6 +39,12 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
 
     override suspend fun cachedMaskedEmails(): CachedMasks? =
         current().cachedMaskedEmails()
+
+    override suspend fun hygieneBaseline(): HygieneBaseline? =
+        current().hygieneBaseline()
+
+    override suspend fun saveHygieneBaseline(baseline: HygieneBaseline) =
+        current().saveHygieneBaseline(baseline)
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> =
         current().createMaskedEmail(params)

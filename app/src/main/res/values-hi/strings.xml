@@ -294,7 +294,7 @@
     <string name="hygiene_last_message">अंतिम संदेश %1$s</string>
     <string name="hygiene_created">बनाया गया %1$s</string>
     <string name="hygiene_issue_new_title">नई गतिविधि</string>
-    <string name="hygiene_issue_new_body">पिछली सफल रीफ़्रेश के बाद इन पर मेल आया है।</string>
+    <string name="hygiene_issue_new_body">आपकी पिछली समीक्षा के बाद इन पर मेल आया है।</string>
     <string name="hygiene_issue_never_title">कभी इस्तेमाल नहीं हुए</string>
     <string name="hygiene_issue_never_body">काफ़ी पहले बनाए गए, पर इन पर एक भी संदेश नहीं आया।</string>
     <string name="hygiene_issue_dormant_title">शांत पड़े</string>
@@ -305,6 +305,7 @@
     <string name="hygiene_empty_body">कुछ मास्क्ड पते बनाइए, फिर यह समीक्षा बताएगी कि किन पर ध्यान देना है।</string>
     <string name="hygiene_clean_title">साफ़ करने को कुछ नहीं</string>
     <string name="hygiene_clean_body">हर मास्क का विवरण है, वह इस्तेमाल में है और चालू है। कुछ और साइन-अप के बाद फिर देखिए।</string>
+    <string name="hygiene_all_archived_body">इस खाते के सभी मास्क संग्रहीत हैं, इसलिए समीक्षा के लिए कुछ नहीं बचा है।</string>
     <string name="hygiene_confirm_disable_title">चुने गए मास्क अक्षम करें?</string>
     <string name="hygiene_confirm_disable_body">ये मेल लेना बंद कर देंगे। आप इन्हें कभी भी दोबारा चालू कर सकते हैं।</string>
     <string name="hygiene_confirm_archive_title">चुने गए मास्क संग्रहित करें?</string>

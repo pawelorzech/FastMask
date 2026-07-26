@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">Pesan terakhir %1$s</string>
     <string name="hygiene_created">Dibuat %1$s</string>
     <string name="hygiene_issue_new_title">Aktivitas baru</string>
-    <string name="hygiene_issue_new_body">Menerima surat sejak pembaruan berhasil yang terakhir.</string>
+    <string name="hygiene_issue_new_body">Menerima surat sejak tinjauan terakhir Anda.</string>
     <string name="hygiene_issue_never_title">Belum pernah dipakai</string>
     <string name="hygiene_issue_never_body">Dibuat beberapa waktu lalu dan tidak pernah menerima satu pesan pun.</string>
     <string name="hygiene_issue_dormant_title">Tertidur</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">Buat beberapa alamat tersamar, lalu tinjauan ini akan menunjukkan apa yang perlu perhatian.</string>
     <string name="hygiene_clean_title">Tidak ada yang perlu dibereskan</string>
     <string name="hygiene_clean_body">Semua alamat tersamar sudah dideskripsikan, terpakai, dan aktif. Kembalilah setelah beberapa pendaftaran lagi.</string>
+    <string name="hygiene_all_archived_body">Semua alamat tersamar di akun ini sudah diarsipkan, jadi tidak ada lagi yang perlu ditinjau.</string>
     <string name="hygiene_confirm_disable_title">Nonaktifkan yang dipilih?</string>
     <string name="hygiene_confirm_disable_body">Alamat berhenti menerima surat. Kamu bisa mengaktifkannya lagi kapan saja.</string>
     <string name="hygiene_confirm_archive_title">Arsipkan yang dipilih?</string>

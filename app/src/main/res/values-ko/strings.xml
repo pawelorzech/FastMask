@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">마지막 메시지 %1$s</string>
     <string name="hygiene_created">생성 %1$s</string>
     <string name="hygiene_issue_new_title">새 활동</string>
-    <string name="hygiene_issue_new_body">마지막으로 새로고침한 이후 메일을 받은 마스크입니다.</string>
+    <string name="hygiene_issue_new_body">마지막으로 점검한 이후 메일을 받은 마스크입니다.</string>
     <string name="hygiene_issue_never_title">사용한 적 없음</string>
     <string name="hygiene_issue_never_body">만든 지 꽤 지났지만 메시지를 한 통도 받지 않았습니다.</string>
     <string name="hygiene_issue_dormant_title">휴면 상태</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">마스크 주소를 몇 개 만들면 여기에서 무엇을 살펴봐야 하는지 알려줍니다.</string>
     <string name="hygiene_clean_title">정리할 것이 없습니다</string>
     <string name="hygiene_clean_body">모든 마스크에 설명이 있고 사용 중이며 활성 상태입니다. 가입을 몇 번 더 한 뒤 다시 확인해 보세요.</string>
+    <string name="hygiene_all_archived_body">이 계정의 마스크가 모두 보관되어 검토할 항목이 없습니다.</string>
     <string name="hygiene_confirm_disable_title">선택한 마스크를 비활성화할까요?</string>
     <string name="hygiene_confirm_disable_body">메일을 더 이상 받지 않습니다. 언제든 다시 켤 수 있습니다.</string>
     <string name="hygiene_confirm_archive_title">선택한 마스크를 보관할까요?</string>

@@ -294,7 +294,7 @@
     <string name="hygiene_last_message">শেষ বার্তা %1$s</string>
     <string name="hygiene_created">তৈরি %1$s</string>
     <string name="hygiene_issue_new_title">নতুন কার্যকলাপ</string>
-    <string name="hygiene_issue_new_body">শেষ সফল রিফ্রেশের পর এগুলোতে মেইল এসেছে।</string>
+    <string name="hygiene_issue_new_body">আপনার শেষ পর্যালোচনার পর এগুলোতে মেইল এসেছে।</string>
     <string name="hygiene_issue_never_title">কখনও ব্যবহার হয়নি</string>
     <string name="hygiene_issue_never_body">অনেক আগে তৈরি, কিন্তু একটিও বার্তা আসেনি।</string>
     <string name="hygiene_issue_dormant_title">ঘুমিয়ে আছে</string>
@@ -305,6 +305,7 @@
     <string name="hygiene_empty_body">কয়েকটি মাস্কড ঠিকানা তৈরি করুন, তারপর এই পর্যালোচনা দেখাবে কোনটিতে নজর দিতে হবে।</string>
     <string name="hygiene_clean_title">গোছানোর কিছু নেই</string>
     <string name="hygiene_clean_body">প্রতিটি মাস্কের বিবরণ আছে, ব্যবহৃত হচ্ছে এবং সক্রিয়। আরও কয়েকটি সাইন-আপের পর ফিরে আসুন।</string>
+    <string name="hygiene_all_archived_body">এই অ্যাকাউন্টের সব মাস্ক আর্কাইভ করা হয়েছে, তাই পর্যালোচনা করার মতো কিছু বাকি নেই।</string>
     <string name="hygiene_confirm_disable_title">নির্বাচিত মাস্ক নিষ্ক্রিয় করবেন?</string>
     <string name="hygiene_confirm_disable_body">এগুলো আর মেইল নেবে না। যেকোনো সময় আবার চালু করতে পারবেন।</string>
     <string name="hygiene_confirm_archive_title">নির্বাচিত মাস্ক আর্কাইভ করবেন?</string>

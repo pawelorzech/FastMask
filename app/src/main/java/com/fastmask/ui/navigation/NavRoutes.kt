@@ -7,6 +7,7 @@ object NavRoutes {
     const val WELCOME = "welcome"
     const val LOGIN = "login"
     const val EMAIL_LIST = "email_list"
+    const val HYGIENE = "hygiene"
     const val CREATE_EMAIL =
         "create_email?forDomain={forDomain}&url={url}&description={description}"
     const val EMAIL_DETAIL = "email_detail/{emailId}"

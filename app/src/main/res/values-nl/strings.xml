@@ -294,7 +294,7 @@
     <string name="hygiene_last_message">Laatste bericht %1$s</string>
     <string name="hygiene_created">Aangemaakt %1$s</string>
     <string name="hygiene_issue_new_title">Nieuwe activiteit</string>
-    <string name="hygiene_issue_new_body">Hier kwam post binnen sinds de laatste geslaagde vernieuwing.</string>
+    <string name="hygiene_issue_new_body">Hier kwam post binnen sinds je laatste controle.</string>
     <string name="hygiene_issue_never_title">Nooit gebruikt</string>
     <string name="hygiene_issue_never_body">Een tijd geleden aangemaakt en nooit één bericht ontvangen.</string>
     <string name="hygiene_issue_dormant_title">Slapend</string>
@@ -305,6 +305,7 @@
     <string name="hygiene_empty_body">Maak een paar gemaskeerde adressen aan, dan laat dit overzicht zien wat aandacht vraagt.</string>
     <string name="hygiene_clean_title">Niets op te ruimen</string>
     <string name="hygiene_clean_body">Elk masker is omschreven, in gebruik en actief. Kom terug na een paar nieuwe aanmeldingen.</string>
+    <string name="hygiene_all_archived_body">Alle maskers in dit account zijn gearchiveerd, dus er valt niets meer te controleren.</string>
     <string name="hygiene_confirm_disable_title">Geselecteerde maskers uitschakelen?</string>
     <string name="hygiene_confirm_disable_body">Ze nemen dan geen post meer aan. Je kunt ze altijd weer inschakelen.</string>
     <string name="hygiene_confirm_archive_title">Geselecteerde maskers archiveren?</string>

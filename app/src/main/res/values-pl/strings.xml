@@ -308,7 +308,7 @@
     <string name="hygiene_last_message">Ostatnia wiadomość %1$s</string>
     <string name="hygiene_created">Utworzono %1$s</string>
     <string name="hygiene_issue_new_title">Nowa aktywność</string>
-    <string name="hygiene_issue_new_body">Na te maski przyszła poczta od ostatniego udanego odświeżenia.</string>
+    <string name="hygiene_issue_new_body">Na te maski przyszła poczta od Twojego ostatniego przeglądu.</string>
     <string name="hygiene_issue_never_title">Nigdy nieużyte</string>
     <string name="hygiene_issue_never_body">Utworzone jakiś czas temu i nie przyszła na nie ani jedna wiadomość.</string>
     <string name="hygiene_issue_dormant_title">Uśpione</string>
@@ -319,6 +319,7 @@
     <string name="hygiene_empty_body">Utwórz kilka zamaskowanych adresów, a ten przegląd pokaże, co wymaga uwagi.</string>
     <string name="hygiene_clean_title">Nie ma czego porządkować</string>
     <string name="hygiene_clean_body">Każda maska jest opisana, używana i aktywna. Zajrzyj tu po kolejnych rejestracjach.</string>
+    <string name="hygiene_all_archived_body">Wszystkie maski na tym koncie są zarchiwizowane, więc nie ma już czego przeglądać.</string>
     <string name="hygiene_confirm_disable_title">Wyłączyć zaznaczone maski?</string>
     <string name="hygiene_confirm_disable_body">Przestaną przyjmować pocztę. Możesz je włączyć z powrotem w dowolnej chwili.</string>
     <string name="hygiene_confirm_archive_title">Zarchiwizować zaznaczone maski?</string>

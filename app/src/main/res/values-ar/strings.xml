@@ -318,7 +318,7 @@
     <string name="hygiene_last_message">آخر رسالة %1$s</string>
     <string name="hygiene_created">أُنشئ %1$s</string>
     <string name="hygiene_issue_new_title">نشاط جديد</string>
-    <string name="hygiene_issue_new_body">وصلت إليها رسائل منذ آخر تحديث ناجح.</string>
+    <string name="hygiene_issue_new_body">وصلت إليها رسائل منذ آخر مراجعة لك.</string>
     <string name="hygiene_issue_never_title">لم تُستخدم قط</string>
     <string name="hygiene_issue_never_body">أُنشئت منذ فترة ولم تصلها أي رسالة على الإطلاق.</string>
     <string name="hygiene_issue_dormant_title">خاملة</string>
@@ -329,6 +329,7 @@
     <string name="hygiene_empty_body">أنشئ بعض العناوين المقنّعة وستُظهر هذه المراجعة ما يحتاج إلى انتباهك.</string>
     <string name="hygiene_clean_title">لا شيء يحتاج إلى ترتيب</string>
     <string name="hygiene_clean_body">كل قناع موصوف ومستخدم ونشط. عُد بعد بضعة تسجيلات جديدة.</string>
+    <string name="hygiene_all_archived_body">كل الأقنعة في هذا الحساب مؤرشفة، فلم يبقَ شيء للمراجعة.</string>
     <string name="hygiene_confirm_disable_title">تعطيل الأقنعة المحددة؟</string>
     <string name="hygiene_confirm_disable_body">ستتوقف عن استقبال البريد. يمكنك إعادة تفعيلها في أي وقت.</string>
     <string name="hygiene_confirm_archive_title">أرشفة الأقنعة المحددة؟</string>

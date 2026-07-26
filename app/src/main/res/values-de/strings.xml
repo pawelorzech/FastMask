@@ -294,7 +294,7 @@
     <string name="hygiene_last_message">Letzte Nachricht %1$s</string>
     <string name="hygiene_created">Erstellt %1$s</string>
     <string name="hygiene_issue_new_title">Neue Aktivität</string>
-    <string name="hygiene_issue_new_body">Hier kam seit der letzten erfolgreichen Aktualisierung Post an.</string>
+    <string name="hygiene_issue_new_body">Hier kam seit deiner letzten Durchsicht Post an.</string>
     <string name="hygiene_issue_never_title">Nie genutzt</string>
     <string name="hygiene_issue_never_body">Vor einiger Zeit erstellt und nie eine einzige Nachricht erhalten.</string>
     <string name="hygiene_issue_dormant_title">Ruhend</string>
@@ -305,6 +305,7 @@
     <string name="hygiene_empty_body">Erstelle ein paar maskierte Adressen, dann zeigt dieser Überblick, was Aufmerksamkeit braucht.</string>
     <string name="hygiene_clean_title">Nichts aufzuräumen</string>
     <string name="hygiene_clean_body">Jede Maske ist beschrieben, genutzt und aktiv. Schau nach ein paar weiteren Anmeldungen wieder vorbei.</string>
+    <string name="hygiene_all_archived_body">Alle Masken in diesem Konto sind archiviert, es gibt also nichts mehr zu prüfen.</string>
     <string name="hygiene_confirm_disable_title">Ausgewählte Masken deaktivieren?</string>
     <string name="hygiene_confirm_disable_body">Sie nehmen dann keine Post mehr an. Du kannst sie jederzeit wieder aktivieren.</string>
     <string name="hygiene_confirm_archive_title">Ausgewählte Masken archivieren?</string>

@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">Tin nhắn cuối %1$s</string>
     <string name="hygiene_created">Ngày tạo %1$s</string>
     <string name="hygiene_issue_new_title">Hoạt động mới</string>
-    <string name="hygiene_issue_new_body">Đã nhận thư kể từ lần làm mới thành công gần nhất.</string>
+    <string name="hygiene_issue_new_body">Đã nhận thư kể từ lần bạn xem lại gần nhất.</string>
     <string name="hygiene_issue_never_title">Chưa từng dùng</string>
     <string name="hygiene_issue_never_body">Được tạo từ lâu và chưa hề nhận được tin nhắn nào.</string>
     <string name="hygiene_issue_dormant_title">Đang ngủ yên</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">Hãy tạo vài địa chỉ ẩn danh, phần xem lại này sẽ cho biết điều gì cần chú ý.</string>
     <string name="hygiene_clean_title">Không có gì cần dọn</string>
     <string name="hygiene_clean_body">Mọi email ẩn danh đều có mô tả, được dùng và đang bật. Hãy quay lại sau vài lần đăng ký nữa.</string>
+    <string name="hygiene_all_archived_body">Mọi email ẩn danh trong tài khoản này đã được lưu trữ nên không còn gì để xem lại.</string>
     <string name="hygiene_confirm_disable_title">Tắt các mục đã chọn?</string>
     <string name="hygiene_confirm_disable_body">Chúng sẽ ngừng nhận thư. Bạn có thể bật lại bất cứ lúc nào.</string>
     <string name="hygiene_confirm_archive_title">Lưu trữ các mục đã chọn?</string>

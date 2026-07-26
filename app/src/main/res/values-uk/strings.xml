@@ -306,7 +306,7 @@
     <string name="hygiene_last_message">Останнє повідомлення %1$s</string>
     <string name="hygiene_created">Створено %1$s</string>
     <string name="hygiene_issue_new_title">Нова активність</string>
-    <string name="hygiene_issue_new_body">На них надходила пошта після останнього вдалого оновлення.</string>
+    <string name="hygiene_issue_new_body">На них надходила пошта після вашого останнього перегляду.</string>
     <string name="hygiene_issue_never_title">Жодного разу не використані</string>
     <string name="hygiene_issue_never_body">Створені давно й не отримали жодного повідомлення.</string>
     <string name="hygiene_issue_dormant_title">Сплячі</string>
@@ -317,6 +317,7 @@
     <string name="hygiene_empty_body">Створіть кілька замаскованих адрес, і цей огляд покаже, що потребує уваги.</string>
     <string name="hygiene_clean_title">Наводити лад не потрібно</string>
     <string name="hygiene_clean_body">Усі маски описані, використовуються й активні. Завітайте сюди після нових реєстрацій.</string>
+    <string name="hygiene_all_archived_body">Усі маски в цьому обліковому записі архівовані, тож переглядати нічого.</string>
     <string name="hygiene_confirm_disable_title">Вимкнути вибрані маски?</string>
     <string name="hygiene_confirm_disable_body">Вони перестануть приймати пошту. Увімкнути їх назад можна будь-коли.</string>
     <string name="hygiene_confirm_archive_title">Архівувати вибрані маски?</string>

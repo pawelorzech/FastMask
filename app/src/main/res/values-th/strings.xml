@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">ข้อความล่าสุด %1$s</string>
     <string name="hygiene_created">สร้างเมื่อ %1$s</string>
     <string name="hygiene_issue_new_title">มีความเคลื่อนไหวใหม่</string>
-    <string name="hygiene_issue_new_body">มีอีเมลเข้ามาตั้งแต่การรีเฟรชสำเร็จครั้งล่าสุด</string>
+    <string name="hygiene_issue_new_body">มีอีเมลเข้ามาตั้งแต่การตรวจสอบครั้งล่าสุดของคุณ</string>
     <string name="hygiene_issue_never_title">ไม่เคยถูกใช้</string>
     <string name="hygiene_issue_never_body">สร้างไว้นานแล้วและยังไม่เคยได้รับข้อความเลยสักฉบับ</string>
     <string name="hygiene_issue_dormant_title">หลับใหล</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">สร้างอีเมลซ่อนสักสองสามรายการ แล้วหน้านี้จะบอกว่าอะไรต้องดูแล</string>
     <string name="hygiene_clean_title">ไม่มีอะไรต้องจัดระเบียบ</string>
     <string name="hygiene_clean_body">ทุกอีเมลซ่อนมีคำอธิบาย ถูกใช้งาน และเปิดอยู่ กลับมาดูอีกครั้งหลังสมัครใช้บริการเพิ่ม</string>
+    <string name="hygiene_all_archived_body">มาสก์ทั้งหมดในบัญชีนี้ถูกเก็บถาวรแล้ว จึงไม่มีอะไรให้ตรวจสอบ</string>
     <string name="hygiene_confirm_disable_title">ปิดใช้งานรายการที่เลือกไหม</string>
     <string name="hygiene_confirm_disable_body">รายการเหล่านี้จะหยุดรับอีเมล คุณเปิดกลับมาได้ทุกเมื่อ</string>
     <string name="hygiene_confirm_archive_title">เก็บรายการที่เลือกเข้าคลังไหม</string>

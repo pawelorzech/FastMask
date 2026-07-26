@@ -288,7 +288,7 @@
     <string name="hygiene_last_message">最後のメッセージ %1$s</string>
     <string name="hygiene_created">作成 %1$s</string>
     <string name="hygiene_issue_new_title">新しい着信</string>
-    <string name="hygiene_issue_new_body">前回の更新以降にメールを受け取ったマスクです。</string>
+    <string name="hygiene_issue_new_body">前回の確認以降にメールを受け取ったマスクです。</string>
     <string name="hygiene_issue_never_title">未使用</string>
     <string name="hygiene_issue_never_body">作成してから時間がたっていますが、メールが一通も届いていません。</string>
     <string name="hygiene_issue_dormant_title">休眠中</string>
@@ -299,6 +299,7 @@
     <string name="hygiene_empty_body">マスクをいくつか作成すると、この画面で確認が必要なものがわかります。</string>
     <string name="hygiene_clean_title">整理するものはありません</string>
     <string name="hygiene_clean_body">すべてのマスクに説明があり、使われていて、有効です。登録が増えたらまた見てください。</string>
+    <string name="hygiene_all_archived_body">このアカウントのマスクはすべてアーカイブ済みで、確認するものは残っていません。</string>
     <string name="hygiene_confirm_disable_title">選択したマスクを無効にしますか？</string>
     <string name="hygiene_confirm_disable_body">メールを受け取らなくなります。いつでも有効に戻せます。</string>
     <string name="hygiene_confirm_archive_title">選択したマスクをアーカイブしますか？</string>

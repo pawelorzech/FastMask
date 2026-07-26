@@ -294,7 +294,7 @@
     <string name="hygiene_last_message">Son mesaj %1$s</string>
     <string name="hygiene_created">Oluşturulma %1$s</string>
     <string name="hygiene_issue_new_title">Yeni etkinlik</string>
-    <string name="hygiene_issue_new_body">Son başarılı yenilemeden bu yana bunlara posta geldi.</string>
+    <string name="hygiene_issue_new_body">Son incelemenden bu yana bunlara posta geldi.</string>
     <string name="hygiene_issue_never_title">Hiç kullanılmadı</string>
     <string name="hygiene_issue_never_body">Bir süre önce oluşturuldu ve tek bir mesaj bile almadı.</string>
     <string name="hygiene_issue_dormant_title">Uykuda</string>
@@ -305,6 +305,7 @@
     <string name="hygiene_empty_body">Birkaç maskeli adres oluştur, bu inceleme neyin ilgi beklediğini gösterecek.</string>
     <string name="hygiene_clean_title">Düzenlenecek bir şey yok</string>
     <string name="hygiene_clean_body">Her maske tanımlı, kullanımda ve etkin. Birkaç kayıt daha sonra yine bak.</string>
+    <string name="hygiene_all_archived_body">Bu hesaptaki tüm maskeler arşivlendi, dolayısıyla incelenecek bir şey kalmadı.</string>
     <string name="hygiene_confirm_disable_title">Seçili maskeler devre dışı bırakılsın mı?</string>
     <string name="hygiene_confirm_disable_body">Posta kabul etmeyi bırakırlar. İstediğin zaman yeniden açabilirsin.</string>
     <string name="hygiene_confirm_archive_title">Seçili maskeler arşivlensin mi?</string>
