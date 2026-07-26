@@ -3,6 +3,7 @@ package com.fastmask.ui.settings
 import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
+import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.ProStatus
@@ -10,23 +11,28 @@ import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
+import com.fastmask.testutil.FakeCrashReporter
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.FakeMonetizationAnalytics
 import com.fastmask.testutil.FakeProRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
+import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -44,13 +50,20 @@ class SettingsViewModelTest {
     private val analytics = FakeMonetizationAnalytics()
     private val maskRepository = FakeMaskedEmailRepository()
 
+    private val crashReporter = FakeCrashReporter()
+
+    /** Stored crash-reporting preference; opt-out, so it starts on. */
+    private val storedCrashReporting = MutableStateFlow(true)
+
     private val settingsDataStore = mockk<SettingsDataStore> {
         every { appMode } returns flowOf(AppMode.REAL)
         every { appModeBlocking() } returns AppMode.REAL
         every { accent } returns flowOf(Accent.AMBER)
         every { appLockEnabled } returns flowOf(false)
+        every { crashReportingEnabled } returns storedCrashReporting
         coJustRun { setAccent(any()) }
         coJustRun { setAppLockEnabled(any()) }
+        coJustRun { setCrashReportingEnabled(any()) }
     }
 
     private fun viewModel(): SettingsViewModel {
@@ -65,6 +78,10 @@ class SettingsViewModelTest {
             proRepository = proRepository,
             exportMasksUseCase = ExportMasksUseCase(maskRepository),
             analytics = analytics,
+            crashReporting = CrashReportingController(
+                reporter = crashReporter,
+                isDebugBuild = false,
+            ),
         )
     }
 
@@ -181,5 +198,93 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SettingsEvent.ExportFailed(R.string.error_rate_limit), vm.events.first())
+    }
+
+    // --- Crash reporting (opt-out) ---
+
+    /**
+     * The switch is rendered before the stored value has been read. Rendering
+     * it as "off" would tell a user who never opted out that nothing is being
+     * collected — the opposite of the truth, and the kind of thing that gets an
+     * app called out on a privacy-first promise.
+     */
+    @Test
+    fun `the crash reporting switch reads as on before the stored value arrives`() = runTest {
+        storedCrashReporting.value = false
+
+        val vm = viewModel()
+
+        assertTrue(vm.crashReportingEnabled.value)
+    }
+
+    @Test
+    fun `the crash reporting switch follows the stored preference in both directions`() = runTest {
+        val vm = viewModel()
+        val collector = launch { vm.crashReportingEnabled.collect { } }
+        advanceUntilIdle()
+
+        assertTrue("an untouched install is opted in", vm.crashReportingEnabled.value)
+
+        storedCrashReporting.value = false
+        advanceUntilIdle()
+        assertFalse("an opt-out must show as off", vm.crashReportingEnabled.value)
+
+        storedCrashReporting.value = true
+        advanceUntilIdle()
+        assertTrue("opting back in must show as on", vm.crashReportingEnabled.value)
+
+        collector.cancel()
+    }
+
+    @Test
+    fun `opting out persists the choice and stops collection immediately`() = runTest {
+        val vm = viewModel()
+
+        vm.onCrashReportingToggled(false)
+        advanceUntilIdle()
+
+        coVerify { settingsDataStore.setCrashReportingEnabled(false) }
+        assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
+    }
+
+    @Test
+    fun `opting back in persists the choice and resumes collection without purging`() = runTest {
+        val vm = viewModel()
+
+        vm.onCrashReportingToggled(true)
+        advanceUntilIdle()
+
+        coVerify { settingsDataStore.setCrashReportingEnabled(true) }
+        assertEquals(listOf("collection=true"), crashReporter.calls)
+    }
+
+    /**
+     * A full disk must not turn an opt-out into a crash, and must not turn it
+     * into a no-op either: the user asked to stop being reported on, so
+     * collection stops for this session even though the choice did not survive.
+     */
+    @Test
+    fun `a failed write still stops collection and does not crash`() = runTest {
+        coEvery { settingsDataStore.setCrashReportingEnabled(any()) } throws
+            IOException("No space left on device")
+        val vm = viewModel()
+
+        vm.onCrashReportingToggled(false)
+        advanceUntilIdle()
+
+        assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
+    }
+
+    @Test
+    fun `toggling the same value twice keeps the stored state consistent`() = runTest {
+        val vm = viewModel()
+
+        vm.onCrashReportingToggled(false)
+        advanceUntilIdle()
+        vm.onCrashReportingToggled(false)
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { settingsDataStore.setCrashReportingEnabled(false) }
+        coVerify(exactly = 0) { settingsDataStore.setCrashReportingEnabled(true) }
     }
 }

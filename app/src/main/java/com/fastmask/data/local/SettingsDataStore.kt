@@ -134,6 +134,15 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
+    // --- Crash reporting (opt-out) ---
+
+    private val crashReporting = CrashReportingSettings(context.settingsDataStore)
+
+    /** Opt-out flag; `true` for every install that never touched the switch. */
+    val crashReportingEnabled: Flow<Boolean> get() = crashReporting.enabled
+
+    suspend fun setCrashReportingEnabled(enabled: Boolean) = crashReporting.setEnabled(enabled)
+
     companion object {
         /**
          * Owns the language key for both readers: the injected instance above

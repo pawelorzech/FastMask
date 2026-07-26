@@ -10,6 +10,7 @@ import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
+import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.usecase.ExportMasksUseCase
@@ -40,6 +41,7 @@ class SettingsViewModel @Inject constructor(
     private val proRepository: ProRepository,
     private val exportMasksUseCase: ExportMasksUseCase,
     private val analytics: MonetizationAnalytics,
+    private val crashReporting: CrashReportingController,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -78,6 +80,15 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false,
     )
+
+    // STUB — deliberately ignores the stored preference so the tests stay red
+    // until the crash reporting change lands.
+    val crashReportingEnabled: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
+
+    /** STUB — no persistence, no reporter call yet. */
+    fun onCrashReportingToggled(enabled: Boolean) {
+        // TODO: apply immediately, then persist.
+    }
 
 
     init {
