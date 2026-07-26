@@ -5,8 +5,8 @@
 (34 znaki)
 
 ## Krótki opis (max 80 znaków)
-**Menedżer masek e‑mail Fastmail. Open source, prywatne, bez śledzenia.**
-(70 znaków)
+**Menedżer masek e‑mail Fastmail. Open source, prywatne, bez reklam.**
+(66 znaków)
 
 ## Pełny opis (max 4000 znaków)
 
@@ -25,7 +25,7 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Kopiowanie do schowka jednym dotknięciem z delikatnym haptic feedback
 • Wyszukiwanie i filtrowanie po statusie: Aktywne / Wyłączone / Zarchiwizowane
 • Szybkie statystyki: ile maili każda maska odebrała i kiedy ostatnio
-• Ustawienia: wybór języka, kontakt i wylogowanie
+• Ustawienia: wybór języka, przełącznik raportów o awariach, kontakt i wylogowanie
 
 ⸻ DESIGN ⸻
 
@@ -37,13 +37,14 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 
 ⸻ PRYWATNOŚĆ I BEZPIECZEŃSTWO ⸻
 
-• Zero śledzenia. Zero analityki. Zero zewnętrznych SDK.
+• Bez śledzenia, bez analityki, bez reklam. Nie ma tu Google Analytics, identyfikatora reklamowego, śledzenia ekranów ani profilowania.
 • Token API Fastmaila jest szyfrowany na urządzeniu przez EncryptedSharedPreferences
 • Aplikacja łączy się bezpośrednio z api.fastmail.com przez HTTPS — żadnych pośredników
 • Network Security Config przypina zaufanie do systemowego magazynu CA
 • Wydania Release nie logują żadnego ruchu sieciowego
 • Ekrany mają FLAG_SECURE — token nie trafia do zrzutów ani nagrań ekranu
-• Open source na licencji MIT — wszystko możesz sam zweryfikować
+• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem. Gdy aplikacja się wywali, wysyła do Google Firebase Crashlytics ślad stosu, model urządzenia, wersję Androida i wersję aplikacji — żeby dało się znaleźć i naprawić błąd. Nigdy nie wysyła Twoich masek, opisów, przypisanych domen, tokenu API, adresu e‑mail ani treści wiadomości. Nie chcesz nawet tego? Ustawienia → Raporty o awariach → wyłącz. Działa od razu i kasuje to, co czekało w kolejce.
+• Open source na licencji MIT — wszystko możesz sam zweryfikować. SDK Crashlytics jest wołane z dokładnie jednego pliku, a test wywala build, gdyby to się kiedyś zmieniło.
 
 ⸻ JĘZYKI ⸻
 
@@ -76,6 +77,18 @@ Licencja MIT. Pull requesty mile widziane.
 • Ta sama spokojna, prywatna aplikacja bez śledzenia
 
 (252 znaki)
+
+## Co nowego (max 500 znaków) — wydanie z raportami o awariach
+
+**Raporty o awariach — domyślnie włączone, wyłączasz jednym dotknięciem**
+
+• Nowość: gdy aplikacja się wywali, może wysłać ślad stosu, model urządzenia i wersję aplikacji do Firebase Crashlytics, żeby błąd dało się naprawić
+• Nigdy nie wysyła Twoich masek, opisów, domen, tokenu ani e‑maila
+• Nadal bez analityki i bez śledzenia reklamowego
+• Nie chcesz? Ustawienia → Raporty o awariach → wyłącz. Działa od razu.
+• Szczegóły w zaktualizowanej polityce prywatności
+
+(459 znaków, całe pole)
 
 ## Kategoria, tagi, kontakt
 
