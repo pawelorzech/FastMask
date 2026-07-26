@@ -12,6 +12,7 @@
     <string name="login_intro">A quiet place for your masked addresses. Paste your Fastmail API token to begin.</string>
     <string name="login_api_token_label">API Token</string>
     <string name="login_api_token_placeholder">Paste your Fastmail API token</string>
+    <string name="login_paste_button">Paste</string>
     <string name="login_button">Unlock</string>
     <string name="login_show_token">Show token</string>
     <string name="login_hide_token">Hide token</string>
@@ -22,6 +23,11 @@
     <string name="login_instructions_step4">Create a token with Masked Email scope</string>
     <string name="login_instructions_step5">Paste it here</string>
     <string name="login_instructions_full">1. Log in to Fastmail web app\n2. Go to Settings > Privacy &amp; Security\n3. Click on Integrations > API tokens\n4. Create a new token with \"Masked Email\" scope\n5. Copy the token and paste it above</string>
+    <string name="login_open_token_settings">Open Fastmail token settings</string>
+    <string name="login_token_warning_shape">This doesn\'t look like a Fastmail API token. They usually start with fmu1-. You can still try.</string>
+    <string name="login_error_missing_masked_email_scope">This token works, but it is not allowed to manage masked addresses. Create a new token in Fastmail and tick the Masked Email permission.</string>
+    <string name="login_try_demo">No token yet? See how it works</string>
+    <string name="login_open_browser_failed">Couldn\'t open a browser on this device.</string>
     <string name="login_error_empty_token">Please enter your API token</string>
     <string name="login_error_failed">Login failed</string>
 

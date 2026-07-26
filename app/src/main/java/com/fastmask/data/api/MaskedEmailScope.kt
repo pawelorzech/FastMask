@@ -6,9 +6,15 @@ package com.fastmask.data.api
  * scope at all.
  *
  * Pure over [JmapSession] so the diagnosis is unit-testable without a network.
+ * The narrow fallback exists because Fastmail may omit the
+ * `primaryAccounts[maskedemail]` entry even while a specific account still
+ * advertises the capability under `accounts[id].accountCapabilities`. That is
+ * positive evidence for one concrete account, so it is safe to use.
  *
- * STUB — the body below is TODAY's (buggy) behaviour, kept so the failing
- * tests point at the real defect. See the contract in `MaskedEmailScopeTest`.
+ * What must never come back is the old positional fallback
+ * `primaryAccounts.values.firstOrNull()`: that guesses an account from another
+ * scope, lets a Mail-only token "log in", and delays the real diagnosis until
+ * a masked-email call fails later with an opaque server error.
  */
 object MaskedEmailScope {
 
@@ -19,7 +25,14 @@ object MaskedEmailScope {
      * The account id to use, or null when the session proves the token lacks
      * the Masked Email scope.
      */
-    fun accountId(session: JmapSession): String? =
-        session.primaryAccounts[CAPABILITY_URI]
-            ?: session.primaryAccounts.values.firstOrNull()
+    fun accountId(session: JmapSession): String? {
+        val primaryAccountId = session.primaryAccounts[CAPABILITY_URI]
+        if (!primaryAccountId.isNullOrBlank()) {
+            return primaryAccountId
+        }
+
+        return session.accounts.entries.firstOrNull { (_, account) ->
+            account.accountCapabilities.containsKey(CAPABILITY_URI)
+        }?.key
+    }
 }

@@ -8,9 +8,6 @@ package com.fastmask.domain.auth
  * check exists to catch the user who pastes their Fastmail *password* (or a
  * random line of text) into the token field, and it must never be turned into
  * a hard gate, because the token format is Fastmail's to change.
- *
- * STUB — behaviour is intentionally not implemented yet; see the contract in
- * `TokenFormatTest`.
  */
 object TokenFormat {
 
@@ -21,15 +18,19 @@ object TokenFormat {
      * Strips every whitespace character (spaces, tabs, newlines, non-breaking
      * spaces) from [raw]. Clipboard content routinely arrives wrapped in them.
      */
-    fun sanitize(raw: String): String = raw
+    fun sanitize(raw: String): String = raw.filterNot { it.isWhitespace() }
 
     /** True when the sanitized [raw] has the recognizable Fastmail token shape. */
-    fun looksLikeToken(raw: String): Boolean = false
+    fun looksLikeToken(raw: String): Boolean =
+        sanitize(raw).startsWith(FASTMAIL_TOKEN_PREFIX, ignoreCase = true)
 
     /**
      * True when [raw] carries content that does not look like a token — the
      * trigger for a soft, non-blocking warning. Blank input is *not* warned
      * about: that case already has its own "enter your token" error.
      */
-    fun shouldWarn(raw: String): Boolean = false
+    fun shouldWarn(raw: String): Boolean {
+        val sanitized = sanitize(raw)
+        return sanitized.isNotEmpty() && !looksLikeToken(raw)
+    }
 }
