@@ -19,7 +19,20 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * trace, the app version, the device model and the OS build. No analytics
  * product is enabled alongside it, and the session-reporting SDK that ships
  * inside Crashlytics is switched off in the manifest
- * (`firebase_sessions_enabled`), so nothing is sent when the app merely starts.
+ * (`firebase_sessions_enabled`).
+ *
+ * A report only leaves on a real crash, but the SDK is not silent at startup
+ * while collection is on: `FirebaseCrashlytics.init` unconditionally calls
+ * `SettingsController.loadSettingsData`, which fetches Crashlytics' own remote
+ * config (carrying the installation ID, device model and OS build), and
+ * `IdManager` registers the Firebase installation. Both are gated on
+ * `DataCollectionArbiter` — with collection off the config fetch never runs,
+ * because `waitForDataCollectionPermission()` never resolves. The one thing
+ * that is not gated is `IdManager.getInstallIds()` on session open: it still
+ * calls `FirebaseInstallationsApi.getId()`, which is a local read once the
+ * installation is registered but will retry registration if it never
+ * completed. [setCollectionEnabled] is therefore what the privacy docs mean by
+ * "switching it off stops the startup traffic".
  *
  * The SDK handle is resolved lazily, per call, and never in the constructor.
  * `FirebaseCrashlytics.getInstance()` throws `IllegalStateException` when the

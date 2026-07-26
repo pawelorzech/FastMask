@@ -37,13 +37,13 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 
 ⸻ PRIVACY & SECURITY ⸻
 
-• No tracking, no analytics, no ads. There is no Google Analytics in this app, no advertising ID, no event or screen tracking, no user profiling — and nothing is sent when you simply open the app.
+• No tracking, no analytics, no ads. There is no Google Analytics in this app, no advertising ID, no event or screen tracking, no user profiling.
 • Your Fastmail API token is encrypted on-device using EncryptedSharedPreferences
 • The app talks directly to api.fastmail.com over HTTPS — no servers in the middle
 • Network Security Config pins trust to the system CA store
 • Release builds log nothing about your network traffic
 • Screens are FLAG_SECURE — the token never leaks to screenshots or screen recording
-• Crash reports: on by default, off in one tap. If the app crashes, it sends Google Firebase Crashlytics the stack trace, your device model, Android version and app version — so the bug can be found and fixed. It never sends your masked addresses, descriptions, associated domains, API token, email address, or the contents of any message. Don't want even that? Settings → Crash reports → off. It stops immediately and deletes anything still queued.
+• Crash reports: on by default, off in one tap. If the app crashes, it sends Google Firebase Crashlytics the stack trace, your device model, Android version and app version — so the bug can be found and fixed. It never sends your masked addresses, descriptions, associated domains, API token, email address, or the contents of any message. A report only leaves on a real crash — but while reporting is on, the SDK also registers the install with Google and fetches its own configuration when the app starts, sending the installation ID, device model and Android version with no crash involved. Don't want any of it? Settings → Crash reports → off. Both stop immediately and anything still queued is deleted.
 • Open source under MIT license — verify everything for yourself. The Crashlytics SDK is called from exactly one file, and a test fails the build if that ever changes.
 
 ⸻ LANGUAGES ⸻
