@@ -6,9 +6,6 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * STUB — contract only. The implementation is deliberately absent so the tests
- * in `MaskHygieneTest` fail red until someone writes it.
- *
  * "Mask hygiene" is the review of a whole mask collection: which addresses are
  * dead, which were never used, which can no longer be identified. Everything
  * here is computed from fields the JMAP API actually returns — there is no
@@ -167,7 +164,7 @@ object MaskHygiene {
             }
         }
 
-        val groups: List<HygieneGroup> = HygieneIssue.values().mapNotNull { issue ->
+        val groups: List<HygieneGroup> = HygieneIssue.entries.mapNotNull { issue ->
             groupsByIssue[issue]?.takeIf { masksForIssue -> masksForIssue.isNotEmpty() }?.let { masksForIssue ->
                 HygieneGroup(issue = issue, masks = masksForIssue)
             }
