@@ -36,6 +36,16 @@ internal const val QUICK_MASK_CREATED_NOTIFICATION_ID: Int = 7_301
 internal const val QUICK_MASK_OPEN_REQUEST_CODE: Int = 7_302
 internal const val QUICK_MASK_UNDO_REQUEST_CODE: Int = 7_303
 internal const val QUICK_MASK_FAILURE_NOTIFICATION_ID: Int = 7_304
+
+/**
+ * The slot the result of "Undo" posts in.
+ *
+ * Its own id, because the two neighbouring slots are already spoken for: the
+ * "mask created" notification is CANCELLED the moment Undo is tapped (reusing
+ * its id would resurrect a dismissed notification), and the quick-create
+ * failure slot carries a different failure the user may not have read yet.
+ */
+internal const val QUICK_MASK_UNDO_NOTIFICATION_ID: Int = 7_305
 internal const val EXTRA_QUICK_MASK_ID: String = "quick_mask_id"
 
 internal fun createAppLaunchIntent(context: Context): Intent {
