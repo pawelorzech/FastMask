@@ -21,6 +21,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -72,6 +73,7 @@ fun MaskHygieneScreen(
         runCatching { BulkAction.valueOf(name) }.getOrNull()
     }
     val report = uiState.report
+    val errorRes = uiState.errorRes
     val attentionCount = (report.reviewedCount - report.healthyCount).coerceAtLeast(0)
     val reviewedSummary = pluralStringResource(
         R.plurals.hygiene_reviewed,
@@ -275,15 +277,15 @@ fun MaskHygieneScreen(
                         modifier = Modifier.size(18.dp),
                     )
                 }
-                androidx.compose.material3.Text(
+                Text(
                     text = stringResource(R.string.hygiene_title),
                     style = MaterialTheme.typography.displayMedium,
                 )
             }
-            if (uiState.errorRes != null && report.reviewedCount > 0) {
+            if (errorRes != null && report.reviewedCount > 0) {
                 Spacer(modifier = Modifier.size(12.dp))
                 HygieneErrorBanner(
-                    message = stringResource(uiState.errorRes!!),
+                    message = stringResource(errorRes),
                     onRetry = viewModel::refresh,
                     enabled = !uiState.actionInFlight,
                 )
@@ -321,7 +323,7 @@ fun MaskHygieneScreen(
                 // A refresh that failed on top of a report the user is already
                 // reading — the common case after a partial bulk run, where the
                 // surviving selection IS the retry list — gets a banner instead.
-                uiState.errorRes != null && report.reviewedCount == 0 -> {
+                errorRes != null && report.reviewedCount == 0 -> {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -329,7 +331,7 @@ fun MaskHygieneScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         ErrorMessage(
-                            message = stringResource(uiState.errorRes!!),
+                            message = stringResource(errorRes),
                             onRetry = viewModel::refresh,
                         )
                     }
@@ -436,9 +438,10 @@ fun MaskHygieneScreen(
         if (pendingCount == 0) pendingActionName = null
     }
     pendingAction?.takeIf { pendingCount > 0 }?.let { action ->
+        val isDisable = action == BulkAction.DISABLE
         ConfirmDialog(
             title = pluralStringResource(
-                if (action == BulkAction.DISABLE) {
+                if (isDisable) {
                     R.plurals.hygiene_confirm_disable_title
                 } else {
                     R.plurals.hygiene_confirm_archive_title
@@ -447,14 +450,14 @@ fun MaskHygieneScreen(
                 pendingCount,
             ),
             message = stringResource(
-                if (action == BulkAction.DISABLE) {
+                if (isDisable) {
                     R.string.hygiene_confirm_disable_body
                 } else {
                     R.string.hygiene_confirm_archive_body
                 },
             ),
             confirmText = stringResource(
-                if (action == BulkAction.DISABLE) {
+                if (isDisable) {
                     R.string.hygiene_action_disable
                 } else {
                     R.string.hygiene_action_archive
@@ -466,7 +469,7 @@ fun MaskHygieneScreen(
                 viewModel.onBulkAction(action)
             },
             onDismiss = { pendingActionName = null },
-            confirmVariant = if (action == BulkAction.DISABLE) {
+            confirmVariant = if (isDisable) {
                 PillButtonVariant.Secondary
             } else {
                 PillButtonVariant.Danger
@@ -491,7 +494,7 @@ private fun HygieneErrorBanner(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        androidx.compose.material3.Text(
+        Text(
             text = message,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodySmall,
@@ -525,12 +528,12 @@ private fun HygieneStateCard(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
-                androidx.compose.material3.Text(
+                Text(
                     text = body,
                     style = MaterialTheme.typography.bodyMedium,
                     color = FastMaskExtras.current.inkSoft,
@@ -556,7 +559,11 @@ private fun HygieneGroupHeader(
     onSelectAll: () -> Unit,
 ) {
     val extras = FastMaskExtras.current
-    val headerColor = if (issue == HygieneIssue.NEW_ACTIVITY) extras.accent else null
+    val headerColor = if (issue == HygieneIssue.NEW_ACTIVITY) {
+        extras.accent
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
 
     Row(
         modifier = Modifier
@@ -569,16 +576,16 @@ private fun HygieneGroupHeader(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            androidx.compose.material3.Text(
+            Text(
                 text = issueTitle(issue),
                 style = MaterialTheme.typography.titleLarge,
-                color = headerColor ?: MaterialTheme.colorScheme.onSurface,
+                color = headerColor,
             )
             MonoLabel(
                 text = pluralStringResource(R.plurals.hygiene_group_count, count, count),
                 color = extras.inkMuted,
             )
-            androidx.compose.material3.Text(
+            Text(
                 text = issueBody(issue),
                 style = MaterialTheme.typography.bodyMedium,
                 color = extras.inkSoft,
@@ -635,7 +642,7 @@ private fun HygieneMaskRow(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     text = displayName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
@@ -650,7 +657,7 @@ private fun HygieneMaskRow(
                     state = state,
                     label = stringResource(stateLabel(state)),
                 )
-                androidx.compose.material3.Text(
+                Text(
                     text = timestampLabel,
                     style = MaterialTheme.typography.bodySmall,
                     color = extras.inkSoft,

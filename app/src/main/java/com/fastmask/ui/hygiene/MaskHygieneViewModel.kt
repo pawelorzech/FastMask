@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.di.ApplicationScope
 import com.fastmask.di.DefaultDispatcher
-import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.analytics.MonetizationAnalytics
+import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.hygiene.HygieneBaseline
 import com.fastmask.domain.hygiene.HygieneIssue
 import com.fastmask.domain.hygiene.MaskHygiene
@@ -101,7 +101,7 @@ class MaskHygieneViewModel @Inject constructor(
      * report the gate left behind, with no refresh affordance anywhere on the
      * screen. They would have paid and be looking at "no masks yet".
      */
-    private fun observeEntitlement(): Unit {
+    private fun observeEntitlement() {
         viewModelScope.launch {
             proRepository.proStatus
                 .map { status -> status.isPro }
@@ -117,13 +117,13 @@ class MaskHygieneViewModel @Inject constructor(
     }
 
     /** User-initiated reload. Entry remains Pro-gated, exactly like first open. */
-    fun refresh(): Unit {
+    fun refresh() {
         viewModelScope.launch {
             loadReview(requirePro = true)
         }
     }
 
-    fun onMaskToggled(id: String): Unit {
+    fun onMaskToggled(id: String) {
         _uiState.update { state ->
             val selectedIds: Set<String> = if (id in state.selectedIds) {
                 state.selectedIds - id
@@ -134,7 +134,7 @@ class MaskHygieneViewModel @Inject constructor(
         }
     }
 
-    fun onSelectAll(issue: HygieneIssue): Unit {
+    fun onSelectAll(issue: HygieneIssue) {
         val idsForIssue: Set<String> = _uiState.value.report.masksFor(issue)
             .map { mask -> mask.id }
             .toSet()
@@ -147,7 +147,7 @@ class MaskHygieneViewModel @Inject constructor(
      * the button's own `enabled` guard — clearing it mid-run would tell the
      * user nothing is selected while masks are still being changed.
      */
-    fun onClearSelection(): Unit {
+    fun onClearSelection() {
         if (_uiState.value.actionInFlight) return
         _uiState.update { state -> state.copy(selectedIds = emptySet()) }
     }
@@ -156,7 +156,7 @@ class MaskHygieneViewModel @Inject constructor(
      * The in-flight flag is set BEFORE the coroutine launch so two taps in one
      * frame cannot both start a sequential run against the account.
      */
-    fun onBulkAction(action: BulkAction): Unit {
+    fun onBulkAction(action: BulkAction) {
         val selectedIds: Set<String> = _uiState.value.selectedIds
         if (selectedIds.isEmpty()) return
         if (_uiState.value.actionInFlight) return
@@ -217,11 +217,11 @@ class MaskHygieneViewModel @Inject constructor(
     /**
      * Undo is N account mutations exactly like the run it reverses, so it is
      * reported to the same standard: counted, and never rounded up to "done".
-     * Collapsing "6 of 7 restorations failed" into one generic error string —
-     * which is what this used to do — hides the only number that matters, and
-     * the forward direction has never been allowed to do that.
+     * Collapsing "6 of 7 restorations failed" into one generic error string
+     * hides the only number that matters, and the forward direction is not
+     * allowed to do that either.
      */
-    fun undoBulkAction(result: BulkActionResult): Unit {
+    fun undoBulkAction(result: BulkActionResult) {
         if (result.succeeded.isEmpty()) return
 
         externalScope.launch {
@@ -255,7 +255,7 @@ class MaskHygieneViewModel @Inject constructor(
      * The locked card's own call to action. The gate already tracked the tap
      * that got the user here; this is a second, deliberate one.
      */
-    fun onUnlockPro(): Unit {
+    fun onUnlockPro() {
         analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = PAYWALL_SOURCE)
         viewModelScope.launch {
             _events.send(MaskHygieneEvent.OpenPro(PAYWALL_SOURCE))
@@ -267,7 +267,7 @@ class MaskHygieneViewModel @Inject constructor(
      * must still render the server truth for the screen already in front of the
      * user, rather than abruptly replacing it with a paywall state.
      */
-    private suspend fun loadReview(requirePro: Boolean): Unit {
+    private suspend fun loadReview(requirePro: Boolean) {
         if (requirePro && !proRepository.proStatus.value.isPro) {
             // `isLocked` is the difference between "we did not look" and "we
             // looked and there is nothing there". Without it the free user who
