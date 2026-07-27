@@ -44,7 +44,7 @@ class QuickMaskCreatorTest {
         authRepository = auth,
         guard = guard,
         createMaskedEmailUseCase = CreateMaskedEmailUseCase(repo),
-        deleteMaskedEmailUseCase = DeleteMaskedEmailUseCase(repo),
+        destroyMaskedEmailUseCase = DestroyMaskedEmailUseCase(repo),
     )
 
     // --- gates: nothing may be created behind them --------------------------
@@ -83,28 +83,27 @@ class QuickMaskCreatorTest {
 
         val result = creator(
             repo = repo,
-            guard = FakeQuickMaskGuard(lockEnabled = true, pro = true),
+            guard = FakeQuickMaskGuard(lockEnabled = true),
         ).create()
 
         assertEquals(QuickMaskResult.LockRequired, result)
         assertEquals(0, repo.createCalls)
     }
 
-    @Test
-    fun `the lock preference without Pro does not block quick creation`() = runTest {
-        val repo = FakeMaskedEmailRepository()
-
-        // The toggle stays usable without Pro (anti-lockout, see SettingsScreen),
-        // so the preference alone is not an armed lock — the gate is the same
-        // conjunction MainActivity uses: appLockEnabled && Pro.
-        val result = creator(
-            repo = repo,
-            guard = FakeQuickMaskGuard(lockEnabled = true, pro = false),
-        ).create()
-
-        assertTrue("expected a created mask, got $result", result is QuickMaskResult.Created)
-        assertEquals(1, repo.createCalls)
-    }
+    /*
+     * There used to be a second test here asserting the opposite: that the lock
+     * preference WITHOUT Pro let quick creation through, on the stated grounds
+     * that the gate matched "the same conjunction MainActivity uses:
+     * appLockEnabled && Pro". MainActivity did not use that conjunction
+     * consistently — it re-locked on the raw preference at ON_STOP — so a user
+     * whose purchase lapsed met a lock screen on every resume while the tile
+     * minted masks straight to the clipboard past it. Audit 2026-07-27 removed
+     * the conjunction from all four sites that carried it.
+     *
+     * The regression guard is the compiler, not a test: QuickMaskGuard no longer
+     * exposes an entitlement at all, so the conjunction cannot be written again
+     * without first re-adding the method and arguing for it.
+     */
 
     // --- happy path ---------------------------------------------------------
 
@@ -180,7 +179,7 @@ class QuickMaskCreatorTest {
     // --- undo ---------------------------------------------------------------
 
     @Test
-    fun `undo deletes exactly the mask that was just created`() = runTest {
+    fun `undo destroys exactly the mask that was just created`() = runTest {
         val repo = FakeMaskedEmailRepository()
         val quickMask = creator(repo = repo)
 
@@ -188,15 +187,15 @@ class QuickMaskCreatorTest {
         val undone = quickMask.undo(created.id)
 
         assertTrue("undo must report success", undone)
-        assertEquals(1, repo.deleteCalls)
-        assertEquals("created", repo.lastDeleteId)
+        assertEquals(1, repo.destroyCalls)
+        assertEquals("created", repo.lastDestroyId)
     }
 
     @Test
-    fun `undo reports failure when the delete does not land`() = runTest {
+    fun `undo reports failure when the destroy does not land`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
 
         assertEquals(false, creator(repo = repo).undo("created"))
-        assertEquals(1, repo.deleteCalls)
+        assertEquals(1, repo.destroyCalls)
     }
 }

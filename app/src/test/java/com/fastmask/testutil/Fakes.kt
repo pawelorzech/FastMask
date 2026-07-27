@@ -45,8 +45,10 @@ class FakeMaskedEmailRepository(
     var getCalls = 0
     var createCalls = 0
     var updateCalls = 0
-    var deleteCalls = 0
-    var lastDeleteId: String? = null
+    var archiveCalls = 0
+    var destroyCalls = 0
+    var lastArchiveId: String? = null
+    var lastDestroyId: String? = null
     var lastUpdateId: String? = null
     var lastUpdateParams: UpdateMaskedEmailParams? = null
     var lastCreateParams: CreateMaskedEmailParams? = null
@@ -72,9 +74,16 @@ class FakeMaskedEmailRepository(
         return Result.success(Unit)
     }
 
-    override suspend fun deleteMaskedEmail(id: String): Result<Unit> {
-        deleteCalls++
-        lastDeleteId = id
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> {
+        archiveCalls++
+        lastArchiveId = id
+        failure?.let { return Result.failure(it) }
+        return Result.success(Unit)
+    }
+
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> {
+        destroyCalls++
+        lastDestroyId = id
         failure?.let { return Result.failure(it) }
         return Result.success(Unit)
     }
@@ -128,9 +137,7 @@ class FakeDemoModeActivator(
 class FakeQuickMaskGuard(
     var mode: AppMode = AppMode.REAL,
     var lockEnabled: Boolean = false,
-    var pro: Boolean = false,
 ) : QuickMaskGuard {
     override suspend fun appMode(): AppMode = mode
     override suspend fun appLockEnabled(): Boolean = lockEnabled
-    override suspend fun isPro(): Boolean = pro
 }

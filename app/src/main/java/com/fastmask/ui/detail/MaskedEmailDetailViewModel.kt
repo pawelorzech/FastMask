@@ -7,11 +7,14 @@ import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
-import com.fastmask.domain.usecase.DeleteMaskedEmailUseCase
+import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
+import com.fastmask.di.ApplicationScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -27,7 +30,8 @@ class MaskedEmailDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
-    private val deleteMaskedEmailUseCase: DeleteMaskedEmailUseCase
+    private val archiveMaskedEmailUseCase: ArchiveMaskedEmailUseCase,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     private val emailId: String = savedStateHandle.get<String>("emailId")
@@ -120,7 +124,12 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(isUpdating = true) }
         viewModelScope.launch {
 
-            updateMaskedEmailUseCase(emailId, UpdateMaskedEmailParams(state = newState)).fold(
+            // Application scope: see the note in create(). Leaving the screen
+            // mid-request must not cancel a change the server may already have
+            // applied, leaving the UI and the account disagreeing.
+            appScope.async {
+                updateMaskedEmailUseCase(emailId, UpdateMaskedEmailParams(state = newState))
+            }.await().fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
@@ -160,7 +169,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(isUpdating = true) }
         viewModelScope.launch {
 
-            updateMaskedEmailUseCase(emailId, params).fold(
+            appScope.async { updateMaskedEmailUseCase(emailId, params) }.await().fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
@@ -183,7 +192,10 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(isDeleting = true) }
         viewModelScope.launch {
 
-            deleteMaskedEmailUseCase(emailId).fold(
+            // The archive in particular: cancelling it after the server acted
+            // meant the mask was archived but the Deleted event never fired, so
+            // the list showed no Undo snackbar for a change that had happened.
+            appScope.async { archiveMaskedEmailUseCase(emailId) }.await().fold(
                 onSuccess = {
                     // Carry the pre-archive state so the list's Undo can put
                     // the mask back EXACTLY as it was — a DISABLED mask must
