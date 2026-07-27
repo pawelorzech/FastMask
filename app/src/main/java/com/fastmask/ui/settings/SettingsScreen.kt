@@ -316,13 +316,20 @@ fun SettingsScreen(
                     )
                     SettingsToggleRow(
                         label = stringResource(R.string.settings_app_lock),
-                        value = if (isPro) {
+                        // An armed lock describes itself even without Pro. The
+                        // "Pro" placeholder is an invitation to buy, and showing
+                        // it over a lock that IS armed told the user the opposite
+                        // of what the app does on the next resume.
+                        value = if (isPro || appLockEnabled) {
                             stringResource(R.string.settings_app_lock_description)
                         } else {
                             stringResource(R.string.settings_accent_locked)
                         },
                         leading = Icons.Filled.Fingerprint,
-                        checked = appLockEnabled && isPro,
+                        // The preference alone, matching MainActivity's gate: the
+                        // switch reports the lock that is actually armed, not the
+                        // entitlement that paid for it.
+                        checked = appLockEnabled,
                         onToggle = { enabled ->
                             if (enabled && isPro && !canUseAppLock(context)) {
                                 showLockUnavailableDialog = true

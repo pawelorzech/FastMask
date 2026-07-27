@@ -149,11 +149,21 @@ class MainActivity : AppCompatActivity() {
             var loggedInAtLaunch = false
             val startDestination = try {
                 withContext(Dispatchers.IO) {
-                    // App lock engages from the last VERIFIED entitlement (cache):
-                    // the Play reconciliation may race this read, and a privacy
-                    // gate should not wait on Play.
+                    // Read for the ACCENT fallback below, not for the lock.
                     cachedPro = proEntitlementStore.read() == ProStatus.PRO
-                    lockAtLaunch = settingsDataStore.appLockEnabled.first() && cachedPro
+                    // The lock engages from the preference ALONE, deliberately
+                    // not `&& cachedPro`. It used to carry the entitlement, and
+                    // that made the gate disagree with itself: the ON_STOP
+                    // observer below re-locks on the raw flag, so a user whose
+                    // Pro lapsed (refund, Play account switch) got the worst of
+                    // both — no lock on a cold start, where the mask list sits
+                    // exposed, but a biometric prompt on every return from the
+                    // background, while Settings showed the toggle as OFF.
+                    // A privacy control the user switched on must not switch
+                    // itself off when a purchase lapses; Pro gates ENABLING it
+                    // (SettingsViewModel.onAppLockToggled), and turning it off
+                    // is always allowed, so this cannot lock anyone out.
+                    lockAtLaunch = settingsDataStore.appLockEnabled.first()
                     cachedAccent = settingsDataStore.accent.first()
                     notificationPromptShown = settingsDataStore.notificationPromptShown()
                     cachedAppMode = settingsDataStore.appMode.first()
