@@ -277,4 +277,6 @@
     <string name="quick_mask_undone">ลบอีเมลซ่อนแล้ว</string>
     <string name="quick_mask_undo_failed">ไม่สามารถลบอีเมลซ่อนได้ เปิด FastMask แล้วลองอีกครั้ง</string>
     <string name="share_requires_sign_in">ลงชื่อเข้าใช้ FastMask เพื่อสร้างมาสก์สำหรับลิงก์นี้</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">กำลังดำเนินการ…</string>
 </resources>

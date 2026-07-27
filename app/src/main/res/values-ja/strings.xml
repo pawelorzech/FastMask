@@ -277,4 +277,6 @@
     <string name="quick_mask_undone">マスクを削除しました</string>
     <string name="quick_mask_undo_failed">マスクを削除できませんでした。FastMask を開いてもう一度お試しください。</string>
     <string name="share_requires_sign_in">このリンク用のマスクを作成するには FastMask にサインインしてください。</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">処理中…</string>
 </resources>

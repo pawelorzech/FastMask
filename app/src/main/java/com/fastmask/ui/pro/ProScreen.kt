@@ -63,6 +63,8 @@ import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 
 private const val PRIVACY_URL = "https://pawelorzech.github.io/FastMask/privacy.html"
 private const val TERMS_URL = "https://pawelorzech.github.io/FastMask/terms.html"
@@ -161,6 +163,7 @@ fun ProScreen(
                 Text(
                     text = stringResource(R.string.pro_title),
                     style = MaterialTheme.typography.displayMedium,
+                    modifier = Modifier.semantics { heading() },
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(12.dp))

@@ -62,6 +62,10 @@ import com.fastmask.ui.components.PillIconButton
 import com.fastmask.ui.components.StateDot
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,6 +150,7 @@ fun CreateMaskedEmailScreen(
                 Text(
                     text = stringResource(R.string.create_email_title),
                     style = MaterialTheme.typography.displayMedium,
+                    modifier = Modifier.semantics { heading() },
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(8.dp))
@@ -250,7 +255,8 @@ fun CreateMaskedEmailScreen(
                 Spacer(Modifier.height(28.dp))
 
                 PillButton(
-                    text = if (uiState.isLoading) "…" else stringResource(R.string.create_email_button),
+                    text = stringResource(R.string.create_email_button),
+                    loadingDescription = stringResource(R.string.state_working),
                     onClick = viewModel::create,
                     variant = PillButtonVariant.Primary,
                     enabled = !uiState.isLoading && uiState.prefixErrorRes == null,
@@ -323,6 +329,9 @@ private fun StateSegmented(
                         enabled = enabled,
                         role = Role.RadioButton,
                     ) { onSelect(state) }
+                    // Segment draws at ~38dp; the target stays 48dp.
+                    .heightIn(min = 48.dp)
+                    .wrapContentHeight(Alignment.CenterVertically)
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,

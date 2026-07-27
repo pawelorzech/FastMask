@@ -81,7 +81,8 @@ We operate no servers of our own, so we transfer nothing ourselves. Two destinat
 
 ## 6. Data Retention
 
-- The API token, language, and other local preferences remain on your device until you log out of FastMask, clear the app's data, or uninstall the app — whichever happens first. At that point they are removed.
+- **Removed when you log out:** the Fastmail API token, the offline snapshot of your masked addresses, and any CSV export still in the cache. Logging out is meant to end the account's presence on the device, and it does.
+- **Kept until you clear the app's data or uninstall it:** your device-local preferences — chosen language, accent, the app-lock switch, and the crash-reports switch. These describe the app, not the account, so a log-out deliberately leaves them alone; they contain nothing about your Fastmail account or your masked addresses. Clearing the app's data in Android settings, or uninstalling, removes them.
 - We have no servers and therefore retain no copy of your data ourselves.
 - Masked email entries themselves live in your Fastmail account. Their retention is governed by Fastmail.
 - **Crash reports:** Google states that "Firebase Crashlytics keeps crash stack traces, extracted minidump data, and associated identifiers (including Crashlytics Installation UUIDs and Firebase installation IDs) for 90 days before starting the process of removing it from live and backup systems" (source: <https://firebase.google.com/support/privacy>). Reports captured on your device but not yet uploaded are deleted immediately when you switch crash reporting off.

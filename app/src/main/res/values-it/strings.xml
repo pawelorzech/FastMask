@@ -293,4 +293,6 @@
     <string name="quick_mask_undone">Maschera eliminata</string>
     <string name="quick_mask_undo_failed">Impossibile eliminare la maschera. Apri FastMask e riprova.</string>
     <string name="share_requires_sign_in">Accedi a FastMask per creare una maschera per questo link.</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">Elaborazione…</string>
 </resources>

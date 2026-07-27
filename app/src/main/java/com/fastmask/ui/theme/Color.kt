@@ -13,6 +13,22 @@ val LightInkSoft = Color(0xFF4A4438)
 val LightInkMuted = Color(0xFF6A614F)
 val LightLine = Color(0xFFDDD4C2)
 val LightLineStrong = Color(0xFFC2B9A5)
+
+/**
+ * Border of an interactive text field, and only that.
+ *
+ * WCAG 1.4.11 asks for 3:1 on the boundary of a component the user has to find
+ * and act on. `LightLine` gives 1.28:1 against the page and `LightLineStrong`
+ * 1.70:1, so on the three screens where something has to be typed — the token,
+ * a new mask, an edit — the field was effectively borderless for anyone with
+ * reduced contrast sensitivity. This is 3.23:1 against the page and 3.46:1
+ * against a surface.
+ *
+ * Separate from `LightLine` on purpose: hairline dividers and card edges are
+ * decorative, they carry no affordance, and darkening all of them would repaint
+ * the whole warm-ink look to fix a problem three screens have.
+ */
+val LightInputLine = Color(0xFF8E846E)
 val LightChip = Color(0xFFE6DFCE)
 val LightInputBg = Color(0xFFFFFFFF)
 val LightActiveBg = Color(0xFFD9E5CF)
@@ -35,6 +51,9 @@ val DarkInkSoft = Color(0xFFC8C1B1)
 val DarkInkMuted = Color(0xFF9A9181)
 val DarkLine = Color(0xFF332E27)
 val DarkLineStrong = Color(0xFF443D33)
+
+/** Dark-theme counterpart of [LightInputLine]: 3.58:1 on the page, 3.30:1 on a surface. */
+val DarkInputLine = Color(0xFF776D5C)
 val DarkChip = Color(0xFF2D2923)
 val DarkInputBg = Color(0xFF1C1916)
 val DarkActiveBg = Color(0xFF2F3D25)

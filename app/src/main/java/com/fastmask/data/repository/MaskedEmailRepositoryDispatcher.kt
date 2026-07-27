@@ -7,6 +7,7 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -19,9 +20,10 @@ import javax.inject.Singleton
  * the default Hilt binding for [MaskedEmailRepository] so ViewModels keep injecting the
  * interface without changes.
  *
- * The cost of [SettingsDataStore.appModeBlocking] per call is acceptable because DataStore
- * caches reads in memory after the first hit and these calls are not on hot UI paths
- * (only on explicit CRUD invocations from ViewModels).
+ * The mode read is a suspending [SettingsDataStore.appMode] collection, not the blocking
+ * variant it used to be: `appModeBlocking` wraps `runBlocking`, and every caller here is a
+ * ViewModel on the main dispatcher, so each CRUD call parked the UI thread on a DataStore
+ * read. The flow's first emission comes from the same in-memory cache after the first hit.
  */
 @Singleton
 class MaskedEmailRepositoryDispatcher @Inject constructor(
@@ -30,8 +32,8 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
     private val settingsDataStore: SettingsDataStore
 ) : MaskedEmailRepository {
 
-    private fun current(): MaskedEmailRepository =
-        if (settingsDataStore.appModeBlocking() == AppMode.DEMO) demoRepo else realRepo
+    private suspend fun current(): MaskedEmailRepository =
+        if (settingsDataStore.appMode.first() == AppMode.DEMO) demoRepo else realRepo
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> =
         current().getMaskedEmails()
@@ -45,6 +47,9 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> =
         current().updateMaskedEmail(id, params)
 
-    override suspend fun deleteMaskedEmail(id: String): Result<Unit> =
-        current().deleteMaskedEmail(id)
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> =
+        current().archiveMaskedEmail(id)
+
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> =
+        current().destroyMaskedEmail(id)
 }

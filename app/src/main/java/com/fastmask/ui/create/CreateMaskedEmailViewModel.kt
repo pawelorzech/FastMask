@@ -8,7 +8,10 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
+import com.fastmask.di.ApplicationScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,7 +24,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateMaskedEmailViewModel @Inject constructor(
-    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase
+    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateMaskedEmailUiState())
@@ -108,7 +112,14 @@ class CreateMaskedEmailViewModel @Inject constructor(
                 url = state.url.takeIf { it.isNotBlank() }
             )
 
-            createMaskedEmailUseCase(params).fold(
+            // The REQUEST runs in the application scope; only the wait for it
+            // belongs to this ViewModel. Backing out of the create screen tears
+            // the ViewModel down, and with it a viewModelScope job — cancelling
+            // a POST that may already have reached Fastmail. The mask would then
+            // exist on the account with nobody ever seeing its address, which is
+            // the worst outcome this screen has: an orphan the user cannot use
+            // and did not knowingly create.
+            appScope.async { createMaskedEmailUseCase(params) }.await().fold(
                 onSuccess = { email ->
                     _uiState.update { it.copy(isLoading = false) }
                     _events.send(CreateMaskedEmailEvent.Created(email.email))

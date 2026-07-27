@@ -265,12 +265,19 @@ class PlayBillingDataSource @Inject constructor(
     private fun Purchase.isSignatureValid(): Boolean {
         val key = BuildConfig.PLAY_LICENSE_KEY
         if (key.isBlank()) {
-            // No key configured — cannot verify. Loud in debug so it's caught
-            // before release; permissive so dev/CI builds still function.
+            // No key configured — cannot verify. Permissive in DEBUG only, so
+            // dev and CI builds still function; a release build with no key
+            // treats every purchase as unverified instead of as valid.
+            //
+            // The Gradle task-graph guard refuses to build a SIGNED release
+            // without a key at all, so this branch should be unreachable in
+            // production. It returns fail-closed anyway: a check that answers
+            // "valid" when it did not run is not a check, and the two layers
+            // fail in opposite directions, which is the point.
             if (BuildConfig.DEBUG) {
                 Log.w("FastMaskBilling", "PLAY_LICENSE_KEY unset — purchase signature NOT verified")
             }
-            return true
+            return BuildConfig.DEBUG
         }
         return PurchaseSecurity.verify(key, originalJson, signature)
     }

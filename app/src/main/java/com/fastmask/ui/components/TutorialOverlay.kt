@@ -46,6 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.ui.theme.FastMaskExtras
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.isTraversalGroup
 
 /**
  * Position of the tooltip relative to the highlighted target.
@@ -118,7 +123,17 @@ fun TutorialOverlay(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                ) { /* swallow */ },
+                ) { /* swallow */ }
+                // The scrim swallowed touches but not semantics, so a screen
+                // reader kept walking the mask list, the FAB and the settings
+                // button behind a 70% black overlay while the tutorial bubble
+                // itself was never focused. Claiming traversal for this subtree
+                // and sorting it first makes the overlay modal for the reader
+                // the way it already is for the finger.
+                .semantics {
+                    isTraversalGroup = true
+                    traversalIndex = -1f
+                },
         ) {
             ScrimWithCutout(targetBounds = step.targetBounds)
 
@@ -243,6 +258,9 @@ private fun TooltipBubble(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
                             .clickable(onClick = onSkip)
+                            // Text draws at ~30dp tall; the target stays 48dp.
+                            .heightIn(min = 48.dp)
+                            .wrapContentHeight(Alignment.CenterVertically)
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                     )
                     PillButton(

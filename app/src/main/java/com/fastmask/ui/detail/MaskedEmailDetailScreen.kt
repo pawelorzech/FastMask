@@ -70,6 +70,7 @@ import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
 import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.sizeIn
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
@@ -279,6 +280,8 @@ private fun DetailContent(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onCopyEmail(email.email)
                         }
+                        // Chip draws at ~30x34dp; the target stays 48dp.
+                        .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -296,7 +299,8 @@ private fun DetailContent(
         // Toggle button (single)
         val isActive = email.state == EmailState.ENABLED || email.state == EmailState.PENDING
         PillButton(
-            text = if (uiState.isUpdating) "…" else stringResource(if (isActive) R.string.email_detail_disable else R.string.email_detail_enable),
+            text = stringResource(if (isActive) R.string.email_detail_disable else R.string.email_detail_enable),
+            loadingDescription = stringResource(R.string.state_working),
             onClick = onToggleState,
             variant = if (isActive) PillButtonVariant.Ghost else PillButtonVariant.Active,
             enabled = !uiState.isUpdating,
@@ -380,7 +384,8 @@ private fun DetailContent(
             )
 
         PillButton(
-            text = if (uiState.isUpdating) "…" else stringResource(R.string.email_detail_save),
+            text = stringResource(R.string.email_detail_save),
+            loadingDescription = stringResource(R.string.state_working),
             onClick = onSaveChanges,
             variant = PillButtonVariant.Secondary,
             enabled = hasChanges && !uiState.isUpdating,

@@ -99,6 +99,12 @@ import com.fastmask.ui.util.RelativeTime
 import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
@@ -158,6 +164,13 @@ fun MaskedEmailListScreen(
         if (result == SnackbarResult.ActionPerformed) {
             viewModel.restoreMask(archivedId, previousState)
         }
+        // Release the slot, exactly as the "mask created" effect below does.
+        // Without this the latch never reopened: `pendingUndo` stayed non-null
+        // for the rest of the screen's life, so the guard above rejected every
+        // later archive — no snackbar, no Undo — and `onArchivedConsumed()` was
+        // never reached either, leaving the id in the SavedStateHandle to
+        // resurrect a stale "Mask archived — Undo" on the next rotation.
+        pendingUndo = null
     }
 
     // A mask was just created; confirm it here, where it now appears, with the
@@ -234,7 +247,18 @@ fun MaskedEmailListScreen(
         },
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // While the tutorial is up, drop this whole subtree out of
+                    // the semantics tree. The scrim already blocks touch; without
+                    // this a screen reader still walked the mask list, the search
+                    // field and the filter chips underneath a 70% black overlay,
+                    // reading out an interface the user cannot see or reach.
+                    .then(
+                        if (showTutorial) Modifier.clearAndSetSemantics { } else Modifier,
+                    ),
+            ) {
                 // Demo mode banner (auto-hides in REAL mode).
                 DemoBanner(onSignInClick = onSignInFromBanner)
 
@@ -284,6 +308,7 @@ fun MaskedEmailListScreen(
                             Text(
                                 text = stringResource(R.string.email_list_title),
                                 style = MaterialTheme.typography.displayMedium,
+                    modifier = Modifier.semantics { heading() },
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
                         }
@@ -395,7 +420,9 @@ fun MaskedEmailListScreen(
                 }
             }
 
-            // Tutorial coach marks — overlays the entire scaffold body.
+            // Tutorial coach marks — overlays the entire scaffold body, and
+            // while it is up the content beneath is hidden from screen readers
+            // as well as from touch (see TutorialOverlay).
             TutorialOverlay(
                 visible = showTutorial,
                 steps = rememberTutorialSteps(bounds = tutorialBounds),
@@ -562,6 +589,10 @@ private fun FilterPill(
             // Expose the filter's on/off state to TalkBack — visually it is
             // conveyed by color only.
             .semantics { this.selected = selected; role = Role.Tab }
+            // The pill draws at ~32dp; the touch target must still be 48dp.
+            // Height only — the visual size is unchanged.
+            .heightIn(min = 48.dp)
+            .wrapContentHeight(Alignment.CenterVertically)
             .padding(horizontal = 12.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -574,7 +605,10 @@ private fun FilterPill(
         Text(
             text = count.toString(),
             style = MonoSmallStyle,
-            color = if (selected) extras.onAccent.copy(alpha = 0.7f) else extras.inkMuted,
+            // Was onAccent at 70% alpha: 3.27:1 against the accent fill, at
+            // 10sp, the lowest contrast anywhere in the app. Full opacity is
+            // 5.02:1 and costs nothing but a slightly louder number.
+            color = if (selected) extras.onAccent else extras.inkMuted,
         )
     }
 }
@@ -812,7 +846,15 @@ private fun OfflineBanner(text: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            // The one thing on this screen that changes what the data MEANS —
+            // these masks may no longer exist. Drawn only, it never reached a
+            // screen reader; the row now announces itself when it appears and
+            // reads as one phrase instead of an unlabelled icon plus text.
+            .semantics(mergeDescendants = true) {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = text
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(

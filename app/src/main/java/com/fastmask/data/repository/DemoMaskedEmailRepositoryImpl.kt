@@ -23,9 +23,13 @@ import javax.inject.Singleton
  * application process, which is intentional: leaving demo mode (logout / "Sign in")
  * should always come back to the same pristine seed list.
  *
- * `deleteMaskedEmail` archives by flipping state to [EmailState.DELETED] rather than
- * removing the entry, mirroring how Fastmail's JMAP API behaves and so the "Archived"
- * filter chip in the UI has content to show.
+ * [archiveMaskedEmail] flips state to [EmailState.DELETED] rather than removing the
+ * entry, so the "Archived" filter chip has content to show. Until audit 2026-07-27 this
+ * was the ONLY implementation with those semantics: the real repository sent JMAP
+ * `destroy` from the same use case, and the instrumented test covering "the highest-risk
+ * path in the app" ran here — so it verified the reversible behaviour the UI promises
+ * against a repository users never archive with. [destroyMaskedEmail] now models the
+ * irreversible half honestly, by dropping the entry.
  */
 @Singleton
 class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository, DemoSession {
@@ -79,7 +83,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         }
     }
 
-    override suspend fun deleteMaskedEmail(id: String): Result<Unit> {
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> {
         var found = false
         state.update { current ->
             current.map { mask ->
@@ -91,6 +95,16 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
                 }
             }
         }
+        return if (found) {
+            Result.success(Unit)
+        } else {
+            Result.failure(NoSuchElementException("Demo mask not found: $id"))
+        }
+    }
+
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> {
+        val found = state.value.any { it.id == id }
+        state.update { current -> current.filterNot { it.id == id } }
         return if (found) {
             Result.success(Unit)
         } else {

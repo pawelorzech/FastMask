@@ -207,7 +207,8 @@ fun LoginScreen(
             Spacer(Modifier.height(16.dp))
 
             PillButton(
-                text = if (uiState.isLoading) "…" else stringResource(R.string.login_button),
+                text = stringResource(R.string.login_button),
+                loadingDescription = stringResource(R.string.state_working),
                 onClick = { viewModel.login() },
                 enabled = !uiState.isLoading && uiState.token.isNotBlank(),
                 variant = PillButtonVariant.Primary,

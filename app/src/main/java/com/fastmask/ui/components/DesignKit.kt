@@ -38,6 +38,9 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoLabelStyle
 import com.fastmask.ui.theme.MonoSmallStyle
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 // ============================================================
 // Mono labels — uppercase tiny markers used throughout the design
@@ -216,6 +219,14 @@ fun PillButton(
     // In-flight state: shows a small spinner and disables the button. Payment
     // and other slow actions must not look frozen while they work.
     loading: Boolean = false,
+    /**
+     * Announced by a screen reader while [loading], in place of the button's
+     * own state. Callers used to signal progress by replacing [text] with "…",
+     * which reads out as "ellipsis, button": the name of the action disappears
+     * at the exact moment the user needs to know what is happening. The label
+     * now stays put and the progress is carried here.
+     */
+    loadingDescription: String? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     fullWidth: Boolean = false,
@@ -245,7 +256,14 @@ fun PillButton(
         .padding(horizontal = 20.dp, vertical = 14.dp)
 
     Row(
-        modifier = modifier.then(base),
+        modifier = modifier
+            .then(base)
+            .semantics {
+                if (loading && loadingDescription != null) {
+                    stateDescription = loadingDescription
+                    liveRegion = LiveRegionMode.Polite
+                }
+            },
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {

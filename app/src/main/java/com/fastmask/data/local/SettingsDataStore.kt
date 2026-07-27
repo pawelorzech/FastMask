@@ -2,7 +2,9 @@ package com.fastmask.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -18,7 +20,16 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+/**
+ * A corrupt preferences file is unreadable for good once it happens (interrupted
+ * write, full disk), and every read then throws. The handler trades the stored
+ * settings — language, accent, app-lock flag, all re-settable — for an app that
+ * still starts. Without it the failure is terminal: see [SettingsDataStore.appModeBlocking].
+ */
+val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "settings",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 @Singleton
 class SettingsDataStore @Inject constructor(
@@ -72,11 +83,21 @@ class SettingsDataStore @Inject constructor(
      * quickly (in-memory cache after first read).
      */
     fun appModeBlocking(): AppMode {
-        return runBlocking {
-            val raw = context.settingsDataStore.data.first()[appModeKey]
-            raw?.let { runCatching { AppMode.valueOf(it) }.getOrDefault(AppMode.REAL) }
-                ?: AppMode.REAL
-        }
+        // runCatching wraps the READ, not just the enum parse. A corrupt
+        // preferences file throws CorruptionException on every read, for good,
+        // and this is called from three ViewModel constructors and from every
+        // repository call — so an unguarded throw here is a permanent crash
+        // loop on the mask list, recoverable only by clearing app data.
+        // crashReportingEnabledBlocking() below already guarded its own read;
+        // this one was simply missed. REAL is the safe default: it routes to
+        // the real account, never silently into demo.
+        return runCatching {
+            runBlocking {
+                val raw = context.settingsDataStore.data.first()[appModeKey]
+                raw?.let { runCatching { AppMode.valueOf(it) }.getOrDefault(AppMode.REAL) }
+                    ?: AppMode.REAL
+            }
+        }.getOrDefault(AppMode.REAL)
     }
 
     // --- Pro personalization: accent theme + biometric app lock ---

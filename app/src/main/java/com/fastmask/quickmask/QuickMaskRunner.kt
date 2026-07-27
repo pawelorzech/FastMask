@@ -9,6 +9,7 @@ import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.common.openExternalIntent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -38,6 +39,7 @@ class QuickMaskRunner @Inject constructor(
      */
     private val crashGuard = CoroutineExceptionHandler { _, throwable ->
         Log.w(TAG, "quick mask work failed", throwable)
+        createInFlight.set(false)
         notifyFailure(throwable)
     }
 
@@ -46,7 +48,28 @@ class QuickMaskRunner @Inject constructor(
     private val scope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.IO + crashGuard)
 
+    /**
+     * True from the moment a create is accepted until it settles.
+     *
+     * Every ViewModel that can mint a mask sets an in-flight flag synchronously
+     * before launching, "against rapid double-tap… two taps in one frame would
+     * otherwise both land here and create two real masks on the Fastmail
+     * account" (CreateMaskedEmailViewModel). This entry point had no such
+     * guard, and it is the easiest one to hit twice: a Quick Settings tile
+     * gives no feedback until the notification arrives a network round-trip
+     * later, so three impatient taps meant three real masks — with one
+     * notification, because they share a notification id, so only the last was
+     * undoable and only the last reached the clipboard.
+     *
+     * compareAndSet, not a plain Boolean: tile clicks and notification actions
+     * arrive on the main thread, but the release happens on Dispatchers.IO.
+     */
+    private val createInFlight = AtomicBoolean(false)
+
     fun launchCreate(openApp: (() -> Unit)? = null) {
+        if (!createInFlight.compareAndSet(false, true)) {
+            return
+        }
         scope.launch {
             // A throwable escaping the gates (storage) is the same outcome as an
             // API rejection: no mask, and the user gets told why.
@@ -69,6 +92,11 @@ class QuickMaskRunner @Inject constructor(
                 // message happens here, in the Android layer, and nowhere else.
                 is QuickMaskResult.Failed -> notifyFailure(result.cause)
             }
+            // In the coroutine's own body rather than a finally: a throwable
+            // escaping here is caught by crashGuard, which releases the flag
+            // too. Both paths must release, or the tile is dead for the rest
+            // of the process.
+            createInFlight.set(false)
         }
     }
 

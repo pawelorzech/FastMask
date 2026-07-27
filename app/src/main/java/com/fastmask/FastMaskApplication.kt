@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.crash.CrashReportingStartup
 import dagger.hilt.android.HiltAndroidApp
@@ -35,10 +36,27 @@ class FastMaskApplication : Application() {
     @Inject
     lateinit var crashReportingStartup: CrashReportingStartup
 
+    @Inject
+    lateinit var exportCache: ExportCache
+
     override fun onCreate() {
         super.onCreate()
         applyCrashReportingPreference()
         restoreSavedLanguage()
+        pruneExpiredExports()
+    }
+
+    /**
+     * The CSV export is the only copy of the user's full mask list that sits on
+     * disk unencrypted, and it is supposed to age out after an hour. That
+     * ageing used to happen only inside [ExportCache.write], so for anyone who
+     * exported once and never again it never happened at all. A cold start is
+     * an independent trigger that costs one directory listing.
+     */
+    private fun pruneExpiredExports() {
+        startupScope.launch {
+            exportCache.pruneExpired()
+        }
     }
 
     /**

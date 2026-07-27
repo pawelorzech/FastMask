@@ -3,8 +3,9 @@
 package com.fastmask.ui.detail
 
 import androidx.lifecycle.SavedStateHandle
+import kotlinx.coroutines.CoroutineScope
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.usecase.DeleteMaskedEmailUseCase
+import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
@@ -27,7 +28,10 @@ class MaskedEmailDetailViewModelTest {
             savedStateHandle = SavedStateHandle(mapOf("emailId" to emailId)),
             getMaskedEmailsUseCase = GetMaskedEmailsUseCase(repo),
             updateMaskedEmailUseCase = UpdateMaskedEmailUseCase(repo),
-            deleteMaskedEmailUseCase = DeleteMaskedEmailUseCase(repo),
+            archiveMaskedEmailUseCase = ArchiveMaskedEmailUseCase(repo),
+            // Shares the rule's scheduler so application-scoped mutations still
+            // advance under runTest's virtual time.
+            appScope = CoroutineScope(mainDispatcherRule.dispatcher),
         )
 
     // --- clearing fields (regression: cleared fields silently reverted) ----
@@ -95,7 +99,7 @@ class MaskedEmailDetailViewModelTest {
         viewModel.delete() // second tap in the same frame
         advanceUntilIdle()
 
-        assertEquals(1, repo.deleteCalls)
+        assertEquals(1, repo.archiveCalls)
     }
 
     @Test

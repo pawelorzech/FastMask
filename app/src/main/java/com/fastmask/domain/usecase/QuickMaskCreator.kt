@@ -43,7 +43,7 @@ class QuickMaskCreator @Inject constructor(
     private val authRepository: AuthRepository,
     private val guard: QuickMaskGuard,
     private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
-    private val deleteMaskedEmailUseCase: DeleteMaskedEmailUseCase,
+    private val destroyMaskedEmailUseCase: DestroyMaskedEmailUseCase,
 ) {
 
     /** Runs the gates, then creates one ENABLED mask with no prefix. */
@@ -54,7 +54,11 @@ class QuickMaskCreator @Inject constructor(
         if (guard.appMode() == AppMode.DEMO) {
             return QuickMaskResult.DemoMode
         }
-        if (guard.appLockEnabled() && guard.isPro()) {
+        // The preference alone arms the lock — see MainActivity's gate. Pairing
+        // it with the entitlement here let the tile mint a mask straight to the
+        // clipboard on a device whose owner had switched the lock on and whose
+        // Pro had since lapsed.
+        if (guard.appLockEnabled()) {
             return QuickMaskResult.LockRequired
         }
 
@@ -70,6 +74,13 @@ class QuickMaskCreator @Inject constructor(
         )
     }
 
-    /** The notification's "Undo" action: deletes the mask just created. */
-    suspend fun undo(id: String): Boolean = deleteMaskedEmailUseCase(id).isSuccess
+    /**
+     * The notification's "Undo" action: destroys the mask just created.
+     *
+     * Irreversible on purpose, and the one place in the app that is. The mask is
+     * seconds old and was never given to anyone, so the user asking to take it
+     * back means "remove it", not "archive it" — the opposite of what the
+     * detail screen's Archive button promises.
+     */
+    suspend fun undo(id: String): Boolean = destroyMaskedEmailUseCase(id).isSuccess
 }

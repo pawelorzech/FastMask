@@ -285,4 +285,6 @@
     <string name="quick_mask_undone">Maske gelöscht</string>
     <string name="quick_mask_undo_failed">Die Maske konnte nicht gelöscht werden. Öffne FastMask und versuche es erneut.</string>
     <string name="share_requires_sign_in">Melden Sie sich bei FastMask an, um eine Maske für diesen Link zu erstellen.</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">Wird ausgeführt…</string>
 </resources>
