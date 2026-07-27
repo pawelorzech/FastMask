@@ -36,9 +36,24 @@ class ExportCache @Inject constructor(
      */
     fun write(csv: String, now: Long = System.currentTimeMillis()): File {
         val dir = dir.apply { mkdirs() }
+        pruneExpired(now)
+        return File(dir, "fastmask-masks-$now.csv").apply { writeText(csv) }
+    }
+
+    /**
+     * Drops exports past [MAX_AGE_MS].
+     *
+     * Extracted from [write] and called independently, because as a side effect
+     * of writing it never ran for the user who exports once: the "one hour"
+     * retention this class documents only elapsed on the NEXT export, so a
+     * single CSV holding every mask in plaintext sat in the cache directory
+     * indefinitely. Every other copy of that data on the device — the token,
+     * the offline snapshot — is Keystore-encrypted; this one is not, so its
+     * lifetime is the only thing protecting it.
+     */
+    fun pruneExpired(now: Long = System.currentTimeMillis()) {
         val cutoff = now - MAX_AGE_MS
         dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
-        return File(dir, "fastmask-masks-$now.csv").apply { writeText(csv) }
     }
 
     /** Drops every export regardless of age. Called on sign-out. */

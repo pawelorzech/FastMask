@@ -60,6 +60,35 @@ class ExportCacheTest {
         assertTrue("a five-minute-old export may still be in use", recent.exists())
     }
 
+    /*
+     * Audit 2026-07-27. Ageing used to happen only inside write(), so the
+     * documented "one hour" retention elapsed only on the NEXT export. A user
+     * who exports once — the common case — left a plaintext CSV of every mask
+     * they own sitting in the cache directory indefinitely, while every other
+     * on-disk copy of that data is Keystore-encrypted. pruneExpired() is now
+     * callable on its own and runs at every cold start.
+     */
+    @Test
+    fun `pruneExpired ages out old exports without writing a new one`() {
+        val (cache, dir) = cache()
+        val now = TimeUnit.DAYS.toMillis(10)
+        dir.mkdirs()
+        val stale = File(dir, "old.csv").apply {
+            writeText("x")
+            setLastModified(now - TimeUnit.HOURS.toMillis(2))
+        }
+        val recent = File(dir, "recent.csv").apply {
+            writeText("x")
+            setLastModified(now - TimeUnit.MINUTES.toMillis(5))
+        }
+
+        cache.pruneExpired(now = now)
+
+        assertTrue("a two-hour-old export should be gone", !stale.exists())
+        assertTrue("a five-minute-old export may still be in use", recent.exists())
+        assertEquals("pruning must not create an export", 1, dir.listFiles()!!.size)
+    }
+
     // Signing out is the point at which the account's data should stop being on
     // the device — an export written minutes earlier must not outlive it.
     @Test
