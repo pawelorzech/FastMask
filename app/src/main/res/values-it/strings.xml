@@ -148,12 +148,36 @@
     <string name="email_detail_error_delete">Impossibile archiviare</string>
     <string name="time_never">mai</string>
     <string name="time_just_now">proprio ora</string>
-    <string name="time_min_ago">%dm fa</string>
-    <string name="time_hour_ago">%dh fa</string>
-    <string name="time_day_ago">%dg fa</string>
-    <string name="time_week_ago">%ds fa</string>
-    <string name="time_month_ago">%dm fa</string>
-    <string name="time_year_ago">%da fa</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dmin fa</item>
+        <item quantity="many">%dmin fa</item>
+        <item quantity="other">%dmin fa</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dh fa</item>
+        <item quantity="many">%dh fa</item>
+        <item quantity="other">%dh fa</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dg fa</item>
+        <item quantity="many">%dg fa</item>
+        <item quantity="other">%dg fa</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%ds fa</item>
+        <item quantity="many">%ds fa</item>
+        <item quantity="other">%ds fa</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dm fa</item>
+        <item quantity="many">%dm fa</item>
+        <item quantity="other">%dm fa</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%da fa</item>
+        <item quantity="many">%da fa</item>
+        <item quantity="other">%da fa</item>
+    </plurals>
     <string name="welcome_signin_cta">Accedi con Fastmail</string>
     <string name="welcome_demo_cta">Prova la demo</string>
     <string name="welcome_tagline">Un posto tranquillo per i tuoi indirizzi mascherati.</string>

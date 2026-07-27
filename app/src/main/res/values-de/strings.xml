@@ -148,12 +148,30 @@
     <string name="email_detail_error_delete">Konnte nicht archivieren</string>
     <string name="time_never">nie</string>
     <string name="time_just_now">gerade eben</string>
-    <string name="time_min_ago">vor %dm</string>
-    <string name="time_hour_ago">vor %dh</string>
-    <string name="time_day_ago">vor %dd</string>
-    <string name="time_week_ago">vor %dw</string>
-    <string name="time_month_ago">vor %dmo</string>
-    <string name="time_year_ago">vor %dy</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">vor %dm</item>
+        <item quantity="other">vor %dm</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">vor %dh</item>
+        <item quantity="other">vor %dh</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">vor %dd</item>
+        <item quantity="other">vor %dd</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">vor %dw</item>
+        <item quantity="other">vor %dw</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">vor %dmo</item>
+        <item quantity="other">vor %dmo</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">vor %dy</item>
+        <item quantity="other">vor %dy</item>
+    </plurals>
     <string name="welcome_signin_cta">Mit Fastmail anmelden</string>
     <string name="welcome_demo_cta">Demo versuchen</string>
     <string name="welcome_tagline">Ein ruhiger Ort für Ihre maskierten Adressen.</string>

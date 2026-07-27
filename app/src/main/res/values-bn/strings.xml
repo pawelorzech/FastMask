@@ -148,12 +148,30 @@
     <string name="email_detail_error_delete">আর্কাইভ করা যায়নি</string>
     <string name="time_never">কখনও না</string>
     <string name="time_just_now">এখনই</string>
-    <string name="time_min_ago">%dm আগে</string>
-    <string name="time_hour_ago">%dh আগে</string>
-    <string name="time_day_ago">%dd আগে</string>
-    <string name="time_week_ago">%dw আগে</string>
-    <string name="time_month_ago">%dmo আগে</string>
-    <string name="time_year_ago">%dy আগে</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dm আগে</item>
+        <item quantity="other">%dm আগে</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dh আগে</item>
+        <item quantity="other">%dh আগে</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dd আগে</item>
+        <item quantity="other">%dd আগে</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dw আগে</item>
+        <item quantity="other">%dw আগে</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dmo আগে</item>
+        <item quantity="other">%dmo আগে</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dy আগে</item>
+        <item quantity="other">%dy আগে</item>
+    </plurals>
     <string name="welcome_signin_cta">Fastmail দিয়ে সাইন ইন করুন</string>
     <string name="welcome_demo_cta">ডেমো চেষ্টা করুন</string>
     <string name="welcome_tagline">আপনার মাস্কড ঠিকানাগুলির জন্য একটি শান্ত জায়গা।</string>

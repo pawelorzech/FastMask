@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">无法归档</string>
     <string name="time_never">从不</string>
     <string name="time_just_now">刚刚</string>
-    <string name="time_min_ago">%d分钟前</string>
-    <string name="time_hour_ago">%d小时前</string>
-    <string name="time_day_ago">%d天前</string>
-    <string name="time_week_ago">%d周前</string>
-    <string name="time_month_ago">%d月前</string>
-    <string name="time_year_ago">%d年前</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d分钟前</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%d小时前</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%d天前</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%d周前</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%d月前</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%d年前</item>
+    </plurals>
     <string name="welcome_signin_cta">使用 Fastmail 登录</string>
     <string name="welcome_demo_cta">尝试演示</string>
     <string name="welcome_tagline">为您的隐藏邮箱提供静谧之地。</string>

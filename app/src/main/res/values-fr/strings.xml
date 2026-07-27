@@ -148,12 +148,36 @@
     <string name="email_detail_error_delete">Impossible d\'archiver</string>
     <string name="time_never">jamais</string>
     <string name="time_just_now">à l\'instant</string>
-    <string name="time_min_ago">il y a %dm</string>
-    <string name="time_hour_ago">il y a %dh</string>
-    <string name="time_day_ago">il y a %dd</string>
-    <string name="time_week_ago">il y a %dw</string>
-    <string name="time_month_ago">il y a %dmo</string>
-    <string name="time_year_ago">il y a %dy</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">il y a %dm</item>
+        <item quantity="many">il y a %dm</item>
+        <item quantity="other">il y a %dm</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">il y a %dh</item>
+        <item quantity="many">il y a %dh</item>
+        <item quantity="other">il y a %dh</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">il y a %dd</item>
+        <item quantity="many">il y a %dd</item>
+        <item quantity="other">il y a %dd</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">il y a %dw</item>
+        <item quantity="many">il y a %dw</item>
+        <item quantity="other">il y a %dw</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">il y a %dmo</item>
+        <item quantity="many">il y a %dmo</item>
+        <item quantity="other">il y a %dmo</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">il y a %dy</item>
+        <item quantity="many">il y a %dy</item>
+        <item quantity="other">il y a %dy</item>
+    </plurals>
     <string name="welcome_signin_cta">Se connecter avec Fastmail</string>
     <string name="welcome_demo_cta">Essayez la démo</string>
     <string name="welcome_tagline">Un endroit tranquille pour vos adresses masquées.</string>

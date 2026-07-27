@@ -148,12 +148,36 @@
     <string name="email_detail_error_delete">No se pudo archivar</string>
     <string name="time_never">nunca</string>
     <string name="time_just_now">hace poco</string>
-    <string name="time_min_ago">hace %dm</string>
-    <string name="time_hour_ago">hace %dh</string>
-    <string name="time_day_ago">hace %dd</string>
-    <string name="time_week_ago">hace %dw</string>
-    <string name="time_month_ago">hace %dmo</string>
-    <string name="time_year_ago">hace %dy</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">hace %dm</item>
+        <item quantity="many">hace %dm</item>
+        <item quantity="other">hace %dm</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">hace %dh</item>
+        <item quantity="many">hace %dh</item>
+        <item quantity="other">hace %dh</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">hace %dd</item>
+        <item quantity="many">hace %dd</item>
+        <item quantity="other">hace %dd</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">hace %dw</item>
+        <item quantity="many">hace %dw</item>
+        <item quantity="other">hace %dw</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">hace %dmo</item>
+        <item quantity="many">hace %dmo</item>
+        <item quantity="other">hace %dmo</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">hace %dy</item>
+        <item quantity="many">hace %dy</item>
+        <item quantity="other">hace %dy</item>
+    </plurals>
     <string name="welcome_signin_cta">Iniciar sesión con Fastmail</string>
     <string name="welcome_demo_cta">Prueba la demostración</string>
     <string name="welcome_tagline">Un lugar tranquilo para tus direcciones enmascaradas.</string>

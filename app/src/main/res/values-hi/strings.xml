@@ -148,12 +148,30 @@
     <string name="email_detail_error_delete">आर्काइव नहीं किया जा सका</string>
     <string name="time_never">कभी नहीं</string>
     <string name="time_just_now">अभी</string>
-    <string name="time_min_ago">%dm पहले</string>
-    <string name="time_hour_ago">%dh पहले</string>
-    <string name="time_day_ago">%dd पहले</string>
-    <string name="time_week_ago">%dw पहले</string>
-    <string name="time_month_ago">%dmo पहले</string>
-    <string name="time_year_ago">%dy पहले</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dm पहले</item>
+        <item quantity="other">%dm पहले</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dh पहले</item>
+        <item quantity="other">%dh पहले</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dd पहले</item>
+        <item quantity="other">%dd पहले</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dw पहले</item>
+        <item quantity="other">%dw पहले</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dmo पहले</item>
+        <item quantity="other">%dmo पहले</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dy पहले</item>
+        <item quantity="other">%dy पहले</item>
+    </plurals>
     <string name="welcome_signin_cta">Fastmail के साथ साइन इन करें</string>
     <string name="welcome_demo_cta">डेमो आजमाएं</string>
     <string name="welcome_tagline">आपके मास्क्ड पतों के लिए एक शांत जगह।</string>

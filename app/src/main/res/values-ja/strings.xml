@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">アーカイブできません</string>
     <string name="time_never">なし</string>
     <string name="time_just_now">たった今</string>
-    <string name="time_min_ago">%d分前</string>
-    <string name="time_hour_ago">%d時間前</string>
-    <string name="time_day_ago">%d日前</string>
-    <string name="time_week_ago">%d週前</string>
-    <string name="time_month_ago">%dヶ月前</string>
-    <string name="time_year_ago">%d年前</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d分前</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%d時間前</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%d日前</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%d週前</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%dヶ月前</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%d年前</item>
+    </plurals>
     <string name="welcome_signin_cta">Fastmailでサインイン</string>
     <string name="welcome_demo_cta">デモを試す</string>
     <string name="welcome_tagline">マスクアドレスのための静かな場所。</string>

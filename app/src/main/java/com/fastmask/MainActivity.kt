@@ -24,20 +24,22 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.domain.model.Accent
+import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.share.ShareIntentPolicy
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.share.SharedLinkParser
-import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.ProRepository
+import com.fastmask.quickmask.NotificationPermissionGate
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.showUnlockPrompt
 import com.fastmask.ui.navigation.FastMaskNavHost
-import com.fastmask.quickmask.QuickMaskPolicy
 import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -73,9 +75,14 @@ class MainActivity : AppCompatActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    private val notificationPermissionGate = NotificationPermissionGate(Build.VERSION.SDK_INT)
+
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
     private val pendingShare = mutableStateOf<PendingShare?>(null)
+    // Until the persisted flag has been read, the safe answer is "already
+    // asked": a startup race must never spend the one system prompt.
+    private var notificationPromptShown: Boolean = true
 
     /**
      * True once the current launch intent's share has been routed to the create
@@ -133,6 +140,7 @@ class MainActivity : AppCompatActivity() {
             var lockAtLaunch = false
             var cachedPro = false
             var cachedAccent = Accent.DEFAULT
+            var cachedAppMode = AppMode.REAL
             val startDestination = try {
                 withContext(Dispatchers.IO) {
                     // App lock engages from the last VERIFIED entitlement (cache):
@@ -141,6 +149,8 @@ class MainActivity : AppCompatActivity() {
                     cachedPro = proEntitlementStore.read() == ProStatus.PRO
                     lockAtLaunch = settingsDataStore.appLockEnabled.first() && cachedPro
                     cachedAccent = settingsDataStore.accent.first()
+                    notificationPromptShown = settingsDataStore.notificationPromptShown()
+                    cachedAppMode = settingsDataStore.appMode.first()
                     if (authRepository.isLoggedIn()) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
                 }
             } catch (e: Exception) {
@@ -163,7 +173,6 @@ class MainActivity : AppCompatActivity() {
                 lockAtLaunch
             }
             isReady = true
-            maybeRequestNotificationPermission(signedIn = startDestination == NavRoutes.EMAIL_LIST)
 
             setContent {
                 val proStatus by proRepository.proStatus.collectAsState()
@@ -216,6 +225,21 @@ class MainActivity : AppCompatActivity() {
                         // the screen ViewModels (half-typed create form, unsaved
                         // edit). Only the NavHost content is gated.
                         val navController = rememberNavController()
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val appMode by settingsDataStore.appMode.collectAsState(initial = cachedAppMode)
+                        // One snapshot per session-state change, instead of one evaluation in
+                        // onCreate: the reported bug was a user who launched signed out and signed
+                        // in without leaving (welcome -> login -> list). The route is the sign-in
+                        // signal, and it is null while the lock gate is up because the NavHost is
+                        // not composed behind it — which is exactly the deferral we want. The gate
+                        // owns the "at most once" part.
+                        LaunchedEffect(navBackStackEntry?.destination?.route, isLocked, appMode) {
+                            maybeRequestNotificationPermission(
+                                signedIn = navBackStackEntry?.destination?.route == NavRoutes.EMAIL_LIST,
+                                locked = isLocked,
+                                demoMode = appMode == AppMode.DEMO,
+                            )
+                        }
 
                         if (isLocked) {
                             // Content behind the gate is not composed at all.
@@ -296,36 +320,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Asks for POST_NOTIFICATIONS once, from the one screen where it means
-     * something.
+     * Asks for POST_NOTIFICATIONS off a stream of session snapshots, not one
+     * startup guess.
      *
-     * The permission was declared but never requested, so on Android 13+ every
-     * fresh install had it denied — and with it the quick-create confirmation,
-     * which is the only place the "Undo" action lives. Skipped while the
-     * biometric gate is up (a permission dialog on top of the lock screen is
-     * the wrong thing to look at); the next launch asks instead.
+     * The reported miss was a user who launched signed out and signed in
+     * without leaving: one onCreate-time check off the start destination never
+     * saw the later real session. The gate now sees every route/lock/app-mode
+     * snapshot and decides when the one ask is warranted. The launcher call is
+     * wrapped in `runCatching` because an ActivityResultLauncher that is not
+     * registered for this lifecycle state throws; a thrown ask is better than a
+     * crash, and the Toast fallback still covers quick-create.
      */
-    private suspend fun maybeRequestNotificationPermission(signedIn: Boolean) {
-        if (locked.value) return
+    private fun maybeRequestNotificationPermission(
+        signedIn: Boolean,
+        locked: Boolean,
+        demoMode: Boolean,
+    ) {
         val granted = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
-        val alreadyAsked = withContext(Dispatchers.IO) {
-            runCatching { settingsDataStore.notificationPromptShown() }.getOrDefault(true)
-        }
-        val shouldAsk = QuickMaskPolicy.shouldRequestNotificationPermission(
-            sdkInt = Build.VERSION.SDK_INT,
+        val shouldAsk = notificationPermissionGate.shouldPrompt(
             permissionGranted = granted,
-            alreadyAsked = alreadyAsked,
+            alreadyAsked = notificationPromptShown,
             signedIn = signedIn,
+            locked = locked,
+            demoMode = demoMode,
         )
         if (!shouldAsk) return
 
-        // Recorded before the dialog resolves: whatever the user answers, the
-        // app has now had its one ask.
-        withContext(Dispatchers.IO) {
-            runCatching { settingsDataStore.setNotificationPromptShown(true) }
+        // Recorded before the dialog resolves: whatever the user answers, the app
+        // has now had its one ask. The gate already latched in memory, so this
+        // write only has to survive to the NEXT process.
+        notificationPromptShown = true
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { settingsDataStore.setNotificationPromptShown(true) }
+            }
         }
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }

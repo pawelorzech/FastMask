@@ -148,12 +148,42 @@
     <string name="email_detail_error_delete">Не удалось архивировать</string>
     <string name="time_never">никогда</string>
     <string name="time_just_now">только что</string>
-    <string name="time_min_ago">%dм назад</string>
-    <string name="time_hour_ago">%dч назад</string>
-    <string name="time_day_ago">%dд назад</string>
-    <string name="time_week_ago">%dн назад</string>
-    <string name="time_month_ago">%dмес назад</string>
-    <string name="time_year_ago">%dг назад</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dм назад</item>
+        <item quantity="few">%dм назад</item>
+        <item quantity="many">%dм назад</item>
+        <item quantity="other">%dм назад</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dч назад</item>
+        <item quantity="few">%dч назад</item>
+        <item quantity="many">%dч назад</item>
+        <item quantity="other">%dч назад</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dд назад</item>
+        <item quantity="few">%dд назад</item>
+        <item quantity="many">%dд назад</item>
+        <item quantity="other">%dд назад</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dн назад</item>
+        <item quantity="few">%dн назад</item>
+        <item quantity="many">%dн назад</item>
+        <item quantity="other">%dн назад</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dмес назад</item>
+        <item quantity="few">%dмес назад</item>
+        <item quantity="many">%dмес назад</item>
+        <item quantity="other">%dмес назад</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dг назад</item>
+        <item quantity="few">%dг назад</item>
+        <item quantity="many">%dг назад</item>
+        <item quantity="other">%dг назад</item>
+    </plurals>
     <string name="welcome_signin_cta">Войти с помощью Fastmail</string>
     <string name="welcome_demo_cta">Попробовать демо</string>
     <string name="welcome_tagline">Тихое место для ваших защищённых адресов.</string>
