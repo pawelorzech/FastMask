@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Icon for the "New mask" launcher shortcut (res/xml/shortcuts.xml).
+
+    A launcher shortcut icon is NOT tinted by anyone: the launcher draws the
+    drawable as it is. A bare white silhouette therefore disappeared — Launcher3
+    wraps a non-adaptive icon in a white circle before drawing it, so white ink
+    on a white disc is exactly the empty circle the shortcut menu showed.
+
+    An adaptive icon fixes that at the root instead of guessing the backdrop:
+    it brings its own opaque cream background, so the mask stays legible under a
+    light or a dark shortcut popup, and the launcher masks it into whatever shape
+    it uses for app icons rather than inventing a fallback.
+
+    Deliberately a separate resource from ic_quick_mask.xml — that one is the
+    monochrome glyph for surfaces that tint (QS tile, notifications), this one is
+    a full-colour icon for a surface that does not. One file cannot be both.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_shortcut_quick_mask_foreground" />
+</adaptive-icon>

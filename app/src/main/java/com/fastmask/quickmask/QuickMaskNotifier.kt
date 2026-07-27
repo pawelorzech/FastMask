@@ -140,6 +140,18 @@ class QuickMaskNotifier @Inject constructor(
                     null -> showToast(message)
                     else -> {
                         ensureChannel()
+                        // The failure text tells the user to open FastMask and
+                        // try again; without a contentIntent, tapping the
+                        // notification that says so did nothing. Both outcomes
+                        // get it — after a successful undo the app is still
+                        // where the mask list is — and it opens the launcher
+                        // intent, so the biometric gate stays in the path.
+                        val openPendingIntent = PendingIntent.getActivity(
+                            context,
+                            QUICK_MASK_UNDO_OPEN_REQUEST_CODE,
+                            createAppLaunchIntent(context),
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                        )
                         manager.notify(
                             notificationId,
                             NotificationCompat.Builder(context, QuickMaskChannel.id)
@@ -148,6 +160,7 @@ class QuickMaskNotifier @Inject constructor(
                                 .setContentText(message)
                                 .setVisibility(NotificationCompat.VISIBILITY_SECRET)
                                 .setAutoCancel(true)
+                                .setContentIntent(openPendingIntent)
                                 .build(),
                         )
                     }

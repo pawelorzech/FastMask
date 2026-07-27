@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    The app's mark — a domino mask — as a 24dp glyph. It used to be an envelope,
+    which read as "something to do with mail" in the Quick Settings tile picker
+    and shared nothing with the icon the user taps on their home screen.
+
+    The path is the shipped launcher art (drawable-*/ic_launcher_monochrome.png)
+    measured and re-drawn as curves: the outer silhouette and both eye holes land
+    within a few percent of the raster, so tile and launcher show one silhouette.
+
+    WHITE ON PURPOSE, and only for the surfaces that tint it themselves:
+      - the Quick Settings tile, where SystemUI applies its own on/off tint,
+      - notification small icons and actions, which the platform flattens to a
+        monochrome mask anyway.
+    The launcher shortcut does NOT tint, and white is invisible there against the
+    white circle Launcher3 wraps a legacy icon in — that is the bug this file
+    used to cause. The shortcut is served by ic_shortcut_quick_mask.xml instead,
+    which carries its own background.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
@@ -6,5 +24,6 @@
     android:viewportHeight="24">
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M3,6C3,4.895 3.895,4 5,4H19C20.105,4 21,4.895 21,6V18C21,19.105 20.105,20 19,20H5C3.895,20 3,19.105 3,18V6ZM5,6V6.382L12,11.632L19,6.382V6H5ZM19,18V8.882L12.6,13.682C12.244,13.949 11.756,13.949 11.4,13.682L5,8.882V18H19Z" />
+        android:fillType="evenOdd"
+        android:pathData="M2,11.474C2.972,8.64 6.696,7.992 12,7.992C17.304,7.992 21.028,8.64 22,11.474C21.595,13.903 19.085,16.008 15.684,16.008C13.984,16.008 13.012,15.441 12,14.874C10.988,15.441 10.016,16.008 8.316,16.008C4.915,16.008 2.405,13.903 2,11.474ZM4.753,11.514C5.077,10.664 6.049,10.259 7.304,10.259C8.559,10.259 9.53,10.704 9.854,11.514C9.53,12.486 8.559,13.174 7.304,13.174C6.049,13.174 5.077,12.445 4.753,11.514ZM19.247,11.514C18.923,10.664 17.951,10.259 16.696,10.259C15.441,10.259 14.47,10.704 14.146,11.514C14.47,12.486 15.441,13.174 16.696,13.174C17.951,13.174 18.923,12.445 19.247,11.514Z" />
 </vector>

@@ -46,6 +46,15 @@ internal const val QUICK_MASK_FAILURE_NOTIFICATION_ID: Int = 7_304
  * failure slot carries a different failure the user may not have read yet.
  */
 internal const val QUICK_MASK_UNDO_NOTIFICATION_ID: Int = 7_305
+
+/**
+ * Request code for the "open the app" intent on the undo-result notification.
+ *
+ * Its own code, not [QUICK_MASK_OPEN_REQUEST_CODE]: that one is reused with
+ * FLAG_UPDATE_CURRENT by the "mask created" notification, and sharing it would
+ * make two live notifications fight over one PendingIntent slot.
+ */
+internal const val QUICK_MASK_UNDO_OPEN_REQUEST_CODE: Int = 7_306
 internal const val EXTRA_QUICK_MASK_ID: String = "quick_mask_id"
 
 internal fun createAppLaunchIntent(context: Context): Intent {

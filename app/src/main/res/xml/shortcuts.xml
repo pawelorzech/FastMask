@@ -3,7 +3,7 @@
     <shortcut
         android:shortcutId="quick_mask"
         android:enabled="true"
-        android:icon="@drawable/ic_quick_mask"
+        android:icon="@drawable/ic_shortcut_quick_mask"
         android:shortcutShortLabel="@string/shortcut_quick_mask_short"
         android:shortcutLongLabel="@string/shortcut_quick_mask_long">
         <!-- Own action: QuickMaskActivity only creates a mask for this one. -->

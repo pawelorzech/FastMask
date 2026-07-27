@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive-icon foreground for the launcher shortcut: the same domino mask as
+    ic_quick_mask.xml, drawn at 1:4 of the 432px launcher art, so the shortcut
+    and the app icon are the same mark at the same size (62dp wide, inside the
+    66dp safe circle every launcher mask is guaranteed to keep).
+
+    Amber #A8530F is the colour the shipped launcher foreground is painted in
+    (theme AccentAmber); it sits at ~5:1 against the cream background this icon
+    is paired with, so the glyph survives whatever mask the launcher applies.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#A8530F"
+        android:fillType="evenOdd"
+        android:pathData="M23,50.5C26,41.75 37.5,39.75 53.875,39.75C70.25,39.75 81.75,41.75 84.75,50.5C83.5,58 75.75,64.5 65.25,64.5C60,64.5 57,62.75 53.875,61C50.75,62.75 47.75,64.5 42.5,64.5C32,64.5 24.25,58 23,50.5ZM31.5,50.625C32.5,48 35.5,46.75 39.375,46.75C43.25,46.75 46.25,48.125 47.25,50.625C46.25,53.625 43.25,55.75 39.375,55.75C35.5,55.75 32.5,53.5 31.5,50.625ZM76.25,50.625C75.25,48 72.25,46.75 68.375,46.75C64.5,46.75 61.5,48.125 60.5,50.625C61.5,53.625 64.5,55.75 68.375,55.75C72.25,55.75 75.25,53.5 76.25,50.625Z" />
+</vector>
