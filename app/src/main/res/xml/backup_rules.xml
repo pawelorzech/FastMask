@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Inert while android:allowBackup="false" (see AndroidManifest). Kept as the
+  safety net for the day someone flips that flag back — which is exactly why the
+  net has to cover everything, not just the token.
+
+  Until audit 2026-07-27 it excluded the encrypted prefs alone, so the offline
+  mask snapshot — the account's full mask list — would have gone to cloud backup.
+  The CSV export needs no rule: it lives in cacheDir, which Android never backs
+  up. Its protection is ExportCache's retention, not this file.
+-->
 <full-backup-content>
+    <!-- Fastmail API token (EncryptedSharedPreferences). -->
     <exclude domain="sharedpref" path="fastmask_secure_prefs.xml"/>
+    <!-- Offline snapshot: every mask on the account. -->
+    <exclude domain="file" path="masked_emails_cache.bin"/>
+    <!-- Entitlement proof and settings — device-local, nothing to restore. -->
+    <exclude domain="file" path="datastore/"/>
 </full-backup-content>
