@@ -35,9 +35,10 @@ interface SnapshotStore {
  */
 class EncryptedFileSnapshotStore(
     private val context: Context,
+    private val fileName: String = FILE_NAME,
 ) : SnapshotStore {
 
-    private val file: File get() = File(context.filesDir, FILE_NAME)
+    private val file: File get() = File(context.filesDir, fileName)
 
     private fun encryptedFile(): EncryptedFile {
         val masterKey = MasterKey.Builder(context)
