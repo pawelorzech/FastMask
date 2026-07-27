@@ -276,4 +276,5 @@
     <string name="quick_mask_undo">Hoàn tác</string>
     <string name="quick_mask_undone">Đã xóa email ẩn danh</string>
     <string name="quick_mask_undo_failed">Không thể xóa email ẩn danh. Mở FastMask rồi thử lại.</string>
+    <string name="share_requires_sign_in">Đăng nhập vào FastMask để tạo địa chỉ ẩn danh cho liên kết này.</string>
 </resources>

@@ -284,4 +284,5 @@
     <string name="quick_mask_undo">पूर्ववत् करें</string>
     <string name="quick_mask_undone">मास्क हटा दिया गया</string>
     <string name="quick_mask_undo_failed">मास्क हटाया नहीं जा सका। FastMask खोलें और फिर से कोशिश करें।</string>
+    <string name="share_requires_sign_in">इस लिंक के लिए मास्क बनाने के लिए FastMask में साइन इन करें।</string>
 </resources>

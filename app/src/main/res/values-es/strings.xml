@@ -292,4 +292,5 @@
     <string name="quick_mask_undo">Deshacer</string>
     <string name="quick_mask_undone">Máscara eliminada</string>
     <string name="quick_mask_undo_failed">No se pudo eliminar la máscara. Abre FastMask e inténtalo de nuevo.</string>
+    <string name="share_requires_sign_in">Inicia sesión en FastMask para crear una máscara para este enlace.</string>
 </resources>

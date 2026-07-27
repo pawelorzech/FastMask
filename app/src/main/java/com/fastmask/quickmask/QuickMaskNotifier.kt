@@ -108,12 +108,65 @@ class QuickMaskNotifier @Inject constructor(
     }
 
     fun showUndoResult(success: Boolean) {
-        val messageRes = if (success) {
-            R.string.quick_mask_undone
-        } else {
-            R.string.quick_mask_undo_failed
+        val manager = NotificationManagerCompat.from(context)
+        val postPermissionGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        val canPostNotification = QuickMaskPolicy.canPostNotification(
+            sdkInt = Build.VERSION.SDK_INT,
+            notificationsEnabled = manager.areNotificationsEnabled(),
+            postPermissionGranted = postPermissionGranted,
+        )
+        val feedback = QuickMaskUndoPolicy.feedback(
+            success = success,
+            canPostNotification = canPostNotification,
+        )
+        val message = context.getString(
+            when (feedback.message) {
+                UndoFeedbackMessage.UNDONE -> R.string.quick_mask_undone
+                UndoFeedbackMessage.UNDO_FAILED -> R.string.quick_mask_undo_failed
+            },
+        )
+        when (feedback.channel) {
+            UndoFeedbackChannel.TOAST -> showToast(message)
+            UndoFeedbackChannel.NOTIFICATION -> {
+                // The policy only asks for a notification together with a slot
+                // to post it in, so the null arm is unreachable today. It is
+                // written out rather than forced with !! because the failure it
+                // would cause — the one message the user must not miss going
+                // nowhere — is worse than a Toast they can still read.
+                when (val notificationId = feedback.notificationId) {
+                    null -> showToast(message)
+                    else -> {
+                        ensureChannel()
+                        // The failure text tells the user to open FastMask and
+                        // try again; without a contentIntent, tapping the
+                        // notification that says so did nothing. Both outcomes
+                        // get it — after a successful undo the app is still
+                        // where the mask list is — and it opens the launcher
+                        // intent, so the biometric gate stays in the path.
+                        val openPendingIntent = PendingIntent.getActivity(
+                            context,
+                            QUICK_MASK_UNDO_OPEN_REQUEST_CODE,
+                            createAppLaunchIntent(context),
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                        )
+                        manager.notify(
+                            notificationId,
+                            NotificationCompat.Builder(context, QuickMaskChannel.id)
+                                .setSmallIcon(R.drawable.ic_quick_mask)
+                                .setContentTitle(context.getString(R.string.app_name))
+                                .setContentText(message)
+                                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                                .setAutoCancel(true)
+                                .setContentIntent(openPendingIntent)
+                                .build(),
+                        )
+                    }
+                }
+            }
         }
-        showToast(context.getString(messageRes))
     }
 
     /**
@@ -166,10 +219,17 @@ class QuickMaskNotifier @Inject constructor(
                 .forEach { manager.deleteNotificationChannel(it) }
             channelReady = true
         }
+        // QuickMaskChannel is deliberately free of Android types, so the
+        // importance arrives here as a plain Int and lint's @IntDef cannot see
+        // that it is one of the platform constants. The check the annotation
+        // would have given us lives in QuickMaskChannelImportanceTest, which
+        // asserts QuickMaskChannel.IMPORTANCE == IMPORTANCE_HIGH == 4 and fails
+        // the build the moment the two drift apart.
+        @Suppress("WrongConstant")
         val channel = NotificationChannel(
             QuickMaskChannel.id,
             context.getString(R.string.quick_mask_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT,
+            QuickMaskChannel.IMPORTANCE,
         ).apply {
             description = context.getString(R.string.quick_mask_channel_description)
             // Caps every notification on this channel, whatever the builder

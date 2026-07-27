@@ -276,4 +276,5 @@
     <string name="quick_mask_undo">Batalkan</string>
     <string name="quick_mask_undone">Email tersamar dihapus</string>
     <string name="quick_mask_undo_failed">Tidak dapat menghapus email tersamar. Buka FastMask lalu coba lagi.</string>
+    <string name="share_requires_sign_in">Masuk ke FastMask untuk membuat alamat tersamar bagi tautan ini.</string>
 </resources>

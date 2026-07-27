@@ -10,7 +10,21 @@ package com.fastmask.quickmask
 internal object QuickMaskChannel {
 
     /** Bumped whenever a field of the channel changes. */
-    const val VERSION: Int = 1
+    const val VERSION: Int = 2
+
+    /**
+     * `NotificationManager.IMPORTANCE_HIGH`, spelled out so this file stays
+     * Android-free. The value is public platform API and cannot change.
+     *
+     * Importance and lock-screen visibility are INDEPENDENT fields: a heads-up
+     * banner is what the user sees while looking at their unlocked phone, and
+     * `VISIBILITY_SECRET` is what keeps the same notification off the lock
+     * screen. Raising one does not weaken the other.
+     */
+    const val IMPORTANCE_HIGH: Int = 4
+
+    /** Importance the channel is created with. */
+    const val IMPORTANCE: Int = IMPORTANCE_HIGH
 
     /** The id the notifier posts under today. */
     val id: String = idFor(VERSION)

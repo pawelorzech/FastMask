@@ -300,4 +300,5 @@
     <string name="quick_mask_undo">Скасувати</string>
     <string name="quick_mask_undone">Маску видалено</string>
     <string name="quick_mask_undo_failed">Не вдалося видалити маску. Відкрийте FastMask і спробуйте ще раз.</string>
+    <string name="share_requires_sign_in">Увійдіть у FastMask, щоб створити маску для цього посилання.</string>
 </resources>

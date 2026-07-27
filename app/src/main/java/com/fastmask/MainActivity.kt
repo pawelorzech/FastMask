@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,8 +32,11 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.ProStatus
+import com.fastmask.domain.share.ShareInbox
 import com.fastmask.domain.share.ShareIntentPolicy
-import com.fastmask.domain.share.SharePrefill
+import com.fastmask.domain.share.ShareRequest
+import com.fastmask.domain.share.ShareRoute
+import com.fastmask.domain.share.ShareRouter
 import com.fastmask.domain.share.SharedLinkParser
 import com.fastmask.domain.repository.AuthRepository
 import com.fastmask.domain.repository.ProRepository
@@ -79,7 +83,8 @@ class MainActivity : AppCompatActivity() {
 
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
-    private val pendingShare = mutableStateOf<PendingShare?>(null)
+    private val pendingShare = mutableStateOf<ShareRequest?>(null)
+    private val shareInbox = ShareInbox()
     // Until the persisted flag has been read, the safe answer is "already
     // asked": a startup race must never spend the one system prompt.
     private var notificationPromptShown: Boolean = true
@@ -100,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         shareConsumed = savedInstanceState?.getBoolean(KEY_SHARE_CONSUMED) ?: false
-        pendingShare.value = if (shareConsumed) null else pendingShareFromIntent(intent)
+        pendingShare.value = if (shareConsumed) null else shareRequestFromIntent(intent)
 
         if (!BuildConfig.DEBUG) {
             window.setFlags(
@@ -141,6 +146,7 @@ class MainActivity : AppCompatActivity() {
             var cachedPro = false
             var cachedAccent = Accent.DEFAULT
             var cachedAppMode = AppMode.REAL
+            var loggedInAtLaunch = false
             val startDestination = try {
                 withContext(Dispatchers.IO) {
                     // App lock engages from the last VERIFIED entitlement (cache):
@@ -151,11 +157,13 @@ class MainActivity : AppCompatActivity() {
                     cachedAccent = settingsDataStore.accent.first()
                     notificationPromptShown = settingsDataStore.notificationPromptShown()
                     cachedAppMode = settingsDataStore.appMode.first()
-                    if (authRepository.isLoggedIn()) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
+                    loggedInAtLaunch = authRepository.isLoggedIn()
                 }
+                if (loggedInAtLaunch) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
             } catch (e: Exception) {
                 // Storage double-fault (see TokenStorage recovery) — fall back to
                 // the welcome flow instead of stranding the splash or crashing.
+                loggedInAtLaunch = false
                 NavRoutes.WELCOME
             }
             // A config change (rotation) recreates the Activity mid-session;
@@ -227,6 +235,16 @@ class MainActivity : AppCompatActivity() {
                         val navController = rememberNavController()
                         val navBackStackEntry by navController.currentBackStackEntryAsState()
                         val appMode by settingsDataStore.appMode.collectAsState(initial = cachedAppMode)
+                        // Live session state, not a launch-time snapshot: the reproduced bug was a
+                        // process that started signed out and signed in without leaving. WELCOME and
+                        // LOGIN are the only destinations reachable without a session (demo mode goes
+                        // to EMAIL_LIST and can create masks, so it counts as signed in). A null route
+                        // means the NavHost has not composed yet — fall back to the launch answer.
+                        val signedIn = when (navBackStackEntry?.destination?.route) {
+                            null -> loggedInAtLaunch
+                            NavRoutes.WELCOME, NavRoutes.LOGIN -> false
+                            else -> true
+                        }
                         // One snapshot per session-state change, instead of one evaluation in
                         // onCreate: the reported bug was a user who launched signed out and signed
                         // in without leaving (welcome -> login -> list). The route is the sign-in
@@ -246,22 +264,43 @@ class MainActivity : AppCompatActivity() {
                             LockScreen(onUnlockClick = ::requestUnlock)
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
-                            // This must stay INSIDE the unlocked branch: a pending
-                            // share waits behind the biometric gate until content
-                            // is allowed to compose, which is the whole mechanism.
-                            LaunchedEffect(pendingShare.value, startDestination) {
-                                val share: PendingShare = pendingShare.value ?: return@LaunchedEffect
-                                if (startDestination == NavRoutes.EMAIL_LIST) {
-                                    navController.navigate(NavRoutes.createEmail(share.prefill)) {
-                                        launchSingleTop = true
-                                    }
+                            // This must stay INSIDE the unlocked branch: a pending share waits behind
+                            // the biometric gate (ShareRoute.WaitForUnlock) until content is allowed to
+                            // compose. A share must never become a way past the app lock, and
+                            // ShareRouter.consumes() refuses to clear a share that is still waiting.
+                            LaunchedEffect(pendingShare.value, signedIn, isLocked) {
+                                val route = ShareRouter.route(
+                                    request = pendingShare.value,
+                                    signedIn = signedIn,
+                                    locked = isLocked,
+                                )
+                                when (route) {
+                                    is ShareRoute.OpenCreate ->
+                                        navController.navigate(NavRoutes.createEmail(route.prefill)) {
+                                            launchSingleTop = true
+                                        }
+                                    // Dropped, but never in silence: the create form cannot be
+                                    // submitted without a session, and holding the text across an
+                                    // external OAuth round-trip (and a possible process death) to
+                                    // replay it minutes later is a surprise the user cannot connect
+                                    // to anything they did. A Toast rather than a Snackbar because
+                                    // MainActivity has no Scaffold/SnackbarHost and this lands on the
+                                    // welcome screen, where there is nothing to obscure; adding a host
+                                    // around the NavHost would be an out-of-scope change to an
+                                    // edge-to-edge layout.
+                                    ShareRoute.RejectSignedOut ->
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            R.string.share_requires_sign_in,
+                                            Toast.LENGTH_LONG,
+                                        ).show()
+                                    ShareRoute.WaitForUnlock -> Unit
+                                    ShareRoute.Idle -> Unit
                                 }
-                                // Cleared even when the share was dropped (signed
-                                // out): a form the user cannot submit is worse
-                                // than an ignored share, and replaying it after a
-                                // later sign-in would be a surprise.
-                                shareConsumed = true
-                                pendingShare.value = null
+                                if (ShareRouter.consumes(route)) {
+                                    shareConsumed = true
+                                    pendingShare.value = null
+                                }
                             }
                             FastMaskNavHost(
                                 navController = navController,
@@ -279,7 +318,7 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         // Only a genuinely new share re-arms the flag; an unrelated intent must
         // not resurrect one that was already routed.
-        val share = pendingShareFromIntent(intent) ?: return
+        val share = shareRequestFromIntent(intent) ?: return
         shareConsumed = false
         pendingShare.value = share
     }
@@ -361,7 +400,7 @@ class MainActivity : AppCompatActivity() {
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 
-    private fun pendingShareFromIntent(intent: Intent?): PendingShare? {
+    private fun shareRequestFromIntent(intent: Intent?): ShareRequest? {
         // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
         // and a Spanned from the sending app makes getStringExtra return null.
         // The type/length rules live in ShareIntentPolicy, where they are tested.
@@ -370,7 +409,7 @@ class MainActivity : AppCompatActivity() {
             type = intent?.type,
             text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
         ) ?: return null
-        return PendingShare(prefill = SharedLinkParser.parse(sharedText))
+        return shareInbox.offer(prefill = SharedLinkParser.parse(sharedText))
     }
 
     private companion object {
@@ -385,6 +424,4 @@ class MainActivity : AppCompatActivity() {
          */
         val processToken: String = java.util.UUID.randomUUID().toString()
     }
-
-    private data class PendingShare(val prefill: SharePrefill?)
 }

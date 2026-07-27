@@ -292,4 +292,5 @@
     <string name="quick_mask_undo">Annuler</string>
     <string name="quick_mask_undone">Masque supprimé</string>
     <string name="quick_mask_undo_failed">Impossible de supprimer le masque. Ouvrez FastMask et réessayez.</string>
+    <string name="share_requires_sign_in">Connectez-vous à FastMask pour créer un masque pour ce lien.</string>
 </resources>
