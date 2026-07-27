@@ -21,6 +21,16 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun login(token: String): Result<Unit> {
         return jmapApi.getSession(token).map {
+            // Sign-in is the second place the device changes hands between
+            // accounts, and until now only sign-out cleaned up. A sign-out
+            // whose clear() silently failed, or a session that ended without
+            // one (an unreadable token keyset makes isLoggedIn() answer false
+            // and drops the user back on the welcome screen), left the previous
+            // account's snapshot and exports in place for the next person to
+            // sign in. Clearing here makes the guarantee independent of
+            // sign-out having worked.
+            maskCache.clear()
+            exportCache.clear()
             tokenStorage.saveToken(token)
         }
     }

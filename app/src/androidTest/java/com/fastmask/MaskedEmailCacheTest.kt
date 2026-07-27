@@ -29,6 +29,11 @@ class MaskedEmailCacheTest {
 
     private val takenAt: Instant = Instant.parse("2026-07-24T09:00:00Z")
 
+    /** Stand-ins for two accounts' owner markers. */
+    private val owner = "owner-a"
+    private val otherOwner = "owner-b"
+
+
     private fun mask(id: String, state: EmailState = EmailState.ENABLED) = MaskedEmail(
         id = id,
         email = "$id@fastmail.com",
@@ -51,8 +56,8 @@ class MaskedEmailCacheTest {
     fun writeThenReadRoundTripsEveryFieldAndTheTimestamp() {
         val masks = listOf(mask("one"), mask("two", EmailState.DISABLED))
 
-        cache.write(masks, now = takenAt)
-        val restored = cache.read()
+        cache.write(masks, owner = owner, now = takenAt)
+        val restored = cache.read(owner)
 
         assertEquals(takenAt, restored?.cachedAt)
         assertEquals(masks, restored?.masks)
@@ -60,13 +65,13 @@ class MaskedEmailCacheTest {
 
     @Test
     fun readWithoutAWrittenCacheIsNull() {
-        assertNull(cache.read())
+        assertNull(cache.read(owner))
     }
 
     /** The mask list must not be readable by anything that gets the file. */
     @Test
     fun theFileOnDiskDoesNotContainTheAddressesInPlaintext() {
-        cache.write(listOf(mask("secret")), now = takenAt)
+        cache.write(listOf(mask("secret")), owner = owner, now = takenAt)
 
         val raw = cacheFile.readBytes().toString(Charsets.ISO_8859_1)
 
@@ -78,19 +83,19 @@ class MaskedEmailCacheTest {
     /** Derived data: a damaged cache degrades to "no cache", never a crash. */
     @Test
     fun aCorruptCacheReadsAsNull() {
-        cache.write(listOf(mask("one")), now = takenAt)
+        cache.write(listOf(mask("one")), owner = owner, now = takenAt)
         cacheFile.writeBytes(ByteArray(64) { 0x7A })
 
-        assertNull(cache.read())
+        assertNull(cache.read(owner))
     }
 
     @Test
     fun writingTwiceReplacesTheSnapshotRatherThanAppending() {
-        cache.write(listOf(mask("first")), now = takenAt)
+        cache.write(listOf(mask("first")), owner = owner, now = takenAt)
         val later = takenAt.plusSeconds(3600)
 
-        cache.write(listOf(mask("second")), now = later)
-        val restored = cache.read()
+        cache.write(listOf(mask("second")), owner = owner, now = later)
+        val restored = cache.read(owner)
 
         assertEquals(listOf("second"), restored?.masks?.map { it.id })
         assertEquals(later, restored?.cachedAt)
@@ -99,11 +104,44 @@ class MaskedEmailCacheTest {
 
     @Test
     fun clearRemovesTheSnapshot() {
-        cache.write(listOf(mask("one")), now = takenAt)
+        cache.write(listOf(mask("one")), owner = owner, now = takenAt)
 
         cache.clear()
 
-        assertNull(cache.read())
+        assertNull(cache.read(owner))
         assertTrue("file should be gone after clear", !cacheFile.exists())
+    }
+
+    /*
+     * Audit 2026-07-27. The snapshot carried no owner and lives under a fixed
+     * file name, so the only thing keeping one account's masks away from the
+     * next account signed in on the device was clear() having succeeded — an
+     * unchecked File.delete(). Now a snapshot answers only to the account that
+     * wrote it.
+     */
+
+    @Test
+    fun aSnapshotWrittenByOneAccountIsInvisibleToAnother() {
+        cache.write(listOf(mask("account-a-mask")), owner = owner, now = takenAt)
+
+        assertNull(cache.read(otherOwner))
+    }
+
+    @Test
+    fun aSnapshotFromBeforeOwnersExistedIsTreatedAsAbsent() {
+        // A null owner is what an upgrade from the previous build reads back.
+        cache.write(listOf(mask("legacy")), owner = null, now = takenAt)
+
+        assertNull(cache.read(owner))
+    }
+
+    /** An interrupted write must leave the previous good snapshot in place. */
+    @Test
+    fun aStrandedTempFileDoesNotDestroyTheLiveSnapshot() {
+        cache.write(listOf(mask("good")), owner = owner, now = takenAt)
+        File(context.filesDir, "cache_staging").apply { mkdirs() }
+            .resolve("masked_emails_cache.bin").writeBytes(ByteArray(32) { 0x5A })
+
+        assertEquals(listOf("good"), cache.read(owner)?.masks?.map { it.id })
     }
 }
