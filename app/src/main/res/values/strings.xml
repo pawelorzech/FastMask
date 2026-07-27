@@ -290,4 +290,5 @@
     <string name="quick_mask_undo">Undo</string>
     <string name="quick_mask_undone">Mask deleted</string>
     <string name="quick_mask_undo_failed">Could not delete the mask. Open FastMask and try again.</string>
+    <string name="share_requires_sign_in">Sign in to FastMask to create a mask for this link.</string>
 </resources>

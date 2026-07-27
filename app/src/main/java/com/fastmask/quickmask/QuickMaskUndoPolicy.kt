@@ -35,6 +35,24 @@ internal object QuickMaskUndoPolicy {
      * @param success whether the mask was actually deleted.
      * @param canPostNotification result of [QuickMaskPolicy.canPostNotification].
      */
-    fun feedback(success: Boolean, canPostNotification: Boolean): UndoFeedback =
-        TODO("P3: not implemented")
+    fun feedback(success: Boolean, canPostNotification: Boolean): UndoFeedback {
+        val message = when (success) {
+            true -> UndoFeedbackMessage.UNDONE
+            false -> UndoFeedbackMessage.UNDO_FAILED
+        }
+
+        return if (canPostNotification) {
+            UndoFeedback(
+                channel = UndoFeedbackChannel.NOTIFICATION,
+                message = message,
+                notificationId = QUICK_MASK_UNDO_NOTIFICATION_ID,
+            )
+        } else {
+            UndoFeedback(
+                channel = UndoFeedbackChannel.TOAST,
+                message = message,
+                notificationId = null,
+            )
+        }
+    }
 }

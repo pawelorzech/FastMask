@@ -10,7 +10,7 @@ package com.fastmask.quickmask
 internal object QuickMaskChannel {
 
     /** Bumped whenever a field of the channel changes. */
-    const val VERSION: Int = 1
+    const val VERSION: Int = 2
 
     /**
      * `NotificationManager.IMPORTANCE_HIGH`, spelled out so this file stays
@@ -24,7 +24,7 @@ internal object QuickMaskChannel {
     const val IMPORTANCE_HIGH: Int = 4
 
     /** Importance the channel is created with. */
-    const val IMPORTANCE: Int = 3
+    const val IMPORTANCE: Int = IMPORTANCE_HIGH
 
     /** The id the notifier posts under today. */
     val id: String = idFor(VERSION)

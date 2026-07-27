@@ -1,5 +1,7 @@
 package com.fastmask.domain.share
 
+import java.util.concurrent.atomic.AtomicLong
+
 /**
  * One delivery of shared text into FastMask.
  *
@@ -56,8 +58,14 @@ sealed interface ShareRoute {
  */
 class ShareInbox {
 
+    private val nextDeliveryId = AtomicLong(0)
+
     /** @return a request whose `deliveryId` is greater than every previous one. */
-    fun offer(prefill: SharePrefill?): ShareRequest = TODO("P1: not implemented")
+    fun offer(prefill: SharePrefill?): ShareRequest =
+        ShareRequest(
+            prefill = prefill,
+            deliveryId = nextDeliveryId.incrementAndGet(),
+        )
 }
 
 /**
@@ -82,7 +90,12 @@ object ShareRouter {
      *   the content.
      */
     fun route(request: ShareRequest?, signedIn: Boolean, locked: Boolean): ShareRoute =
-        TODO("P1: not implemented")
+        when {
+            request == null -> ShareRoute.Idle
+            locked -> ShareRoute.WaitForUnlock
+            !signedIn -> ShareRoute.RejectSignedOut
+            else -> ShareRoute.OpenCreate(request.prefill)
+        }
 
     /**
      * Whether [route] finished with the request — i.e. the caller may clear it.
@@ -90,5 +103,11 @@ object ShareRouter {
      * A held share ([ShareRoute.WaitForUnlock]) must survive: clearing it would
      * turn the lock gate into a share shredder.
      */
-    fun consumes(route: ShareRoute): Boolean = TODO("P1: not implemented")
+    fun consumes(route: ShareRoute): Boolean =
+        when (route) {
+            is ShareRoute.OpenCreate -> true
+            ShareRoute.WaitForUnlock -> false
+            ShareRoute.RejectSignedOut -> true
+            ShareRoute.Idle -> true
+        }
 }

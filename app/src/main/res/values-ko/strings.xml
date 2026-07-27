@@ -276,4 +276,5 @@
     <string name="quick_mask_undo">실행 취소</string>
     <string name="quick_mask_undone">마스크 삭제됨</string>
     <string name="quick_mask_undo_failed">마스크를 삭제할 수 없습니다. FastMask를 열고 다시 시도하세요.</string>
+    <string name="share_requires_sign_in">이 링크의 마스크를 만들려면 FastMask에 로그인하세요.</string>
 </resources>

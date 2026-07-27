@@ -276,4 +276,5 @@
     <string name="quick_mask_undo">撤销</string>
     <string name="quick_mask_undone">隐藏邮箱已删除</string>
     <string name="quick_mask_undo_failed">无法删除该隐藏邮箱。请打开 FastMask 后重试。</string>
+    <string name="share_requires_sign_in">登录 FastMask 后即可为此链接创建掩码地址。</string>
 </resources>
