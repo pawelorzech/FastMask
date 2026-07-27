@@ -25,6 +25,7 @@ import javax.inject.Singleton
 class QuickMaskNotifier @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
+    private var channelReady = false
 
     fun showCreated(id: String) {
         // Same neutral wording as the notification, and for the same reason: a
@@ -65,7 +66,7 @@ class QuickMaskNotifier @Inject constructor(
             //
             // The address is on the clipboard, and the app itself — behind
             // FLAG_SECURE and the biometric gate — is where it can be read.
-            NotificationCompat.Builder(context, QUICK_MASK_CHANNEL_ID)
+            NotificationCompat.Builder(context, QuickMaskChannel.id)
                 .setSmallIcon(R.drawable.ic_quick_mask)
                 .setContentTitle(context.getString(R.string.quick_mask_created_title))
                 .setContentText(context.getString(R.string.quick_mask_created_body))
@@ -92,7 +93,7 @@ class QuickMaskNotifier @Inject constructor(
             notificationId = QuickMaskPolicy.notificationId(success = false),
             fallbackMessage = message,
         ) {
-            NotificationCompat.Builder(context, QUICK_MASK_CHANNEL_ID)
+            NotificationCompat.Builder(context, QuickMaskChannel.id)
                 .setSmallIcon(R.drawable.ic_quick_mask)
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText(message)
@@ -149,10 +150,24 @@ class QuickMaskNotifier @Inject constructor(
         manager.notify(notificationId, buildNotification())
     }
 
+    // createNotificationChannel is a no-op for an id the system already knows:
+    // QuickMaskChannel exists because importance, lockscreenVisibility and
+    // description are read once at creation, then owned by the user. When one
+    // of those fields changes in source, bump QuickMaskChannel.VERSION so the
+    // app creates a fresh id, and let deleteNotificationChannel clear the
+    // superseded ones instead of leaving dead duplicates in settings.
     private fun ensureChannel() {
         val manager = context.getSystemService(NotificationManager::class.java)
+        if (!channelReady) {
+            // Superseded channels would otherwise sit in system settings forever
+            // as dead duplicates. Deleting an id the system does not know does
+            // nothing, so this is safe on a fresh install.
+            QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+                .forEach { manager.deleteNotificationChannel(it) }
+            channelReady = true
+        }
         val channel = NotificationChannel(
-            QUICK_MASK_CHANNEL_ID,
+            QuickMaskChannel.id,
             context.getString(R.string.quick_mask_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {

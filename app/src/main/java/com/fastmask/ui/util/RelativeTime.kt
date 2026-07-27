@@ -10,19 +10,27 @@ import java.util.Locale
 
 object RelativeTime {
 
+    // These six labels are compact card metadata, not prose. Fourteen shipped
+    // locales already use abbreviations by design, and promoting one key to
+    // plurals is all-or-nothing across all twenty locales. A locale left as a
+    // string falls back to the default language, while one like Russian would
+    // have to spell four identical plural items that all read the same. When a
+    // form never varies, that is not grammar, it is noise.
     fun format(context: Context, instant: Instant?, nowSec: Long = Instant.now().epochSecond): String {
-        if (instant == null) return context.getString(R.string.time_never)
-        val thenSec = instant.epochSecond
-        val diff = (nowSec - thenSec).coerceAtLeast(0)
+        val bucket = RelativeTimeBuckets.of(
+            epochSecond = instant?.epochSecond,
+            nowSec = nowSec,
+        )
 
-        return when {
-            diff < 60L -> context.getString(R.string.time_just_now)
-            diff < 3_600L -> context.getString(R.string.time_min_ago, diff / 60)
-            diff < 86_400L -> context.getString(R.string.time_hour_ago, diff / 3_600)
-            diff < 86_400L * 7 -> context.getString(R.string.time_day_ago, diff / 86_400)
-            diff < 86_400L * 30 -> context.getString(R.string.time_week_ago, diff / (86_400L * 7))
-            diff < 86_400L * 365 -> context.getString(R.string.time_month_ago, diff / (86_400L * 30))
-            else -> context.getString(R.string.time_year_ago, diff / (86_400L * 365))
+        return when (bucket.unit) {
+            RelativeTimeUnit.NEVER -> context.getString(R.string.time_never)
+            RelativeTimeUnit.JUST_NOW -> context.getString(R.string.time_just_now)
+            RelativeTimeUnit.MINUTES -> context.getString(R.string.time_min_ago, bucket.count)
+            RelativeTimeUnit.HOURS -> context.getString(R.string.time_hour_ago, bucket.count)
+            RelativeTimeUnit.DAYS -> context.getString(R.string.time_day_ago, bucket.count)
+            RelativeTimeUnit.WEEKS -> context.getString(R.string.time_week_ago, bucket.count)
+            RelativeTimeUnit.MONTHS -> context.getString(R.string.time_month_ago, bucket.count)
+            RelativeTimeUnit.YEARS -> context.getString(R.string.time_year_ago, bucket.count)
         }
     }
 

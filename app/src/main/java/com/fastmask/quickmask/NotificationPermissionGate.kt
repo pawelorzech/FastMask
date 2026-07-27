@@ -1,8 +1,6 @@
 package com.fastmask.quickmask
 
 /**
- * STUB — written by the test author, to be implemented.
- *
  * At-most-once gate over a STREAM of session snapshots.
  *
  * [QuickMaskPolicy.shouldRequestNotificationPermission] answers "does this
@@ -19,17 +17,28 @@ package com.fastmask.quickmask
  */
 internal class NotificationPermissionGate(private val sdkInt: Int) {
 
+    private var prompted = false
+
     /**
-     * STUB: never prompts, so the test suite compiles and fails.
-     *
      * @return true at most once, for the first snapshot that warrants the prompt.
      */
-    @Suppress("UNUSED_PARAMETER")
     fun shouldPrompt(
         permissionGranted: Boolean,
         alreadyAsked: Boolean,
         signedIn: Boolean,
         locked: Boolean,
         demoMode: Boolean,
-    ): Boolean = false
+    ): Boolean {
+        if (prompted) return false
+        val warranted = QuickMaskPolicy.shouldRequestNotificationPermission(
+            sdkInt = sdkInt,
+            permissionGranted = permissionGranted,
+            alreadyAsked = alreadyAsked,
+            signedIn = signedIn,
+            locked = locked,
+            demoMode = demoMode,
+        )
+        if (warranted) prompted = true
+        return warranted
+    }
 }

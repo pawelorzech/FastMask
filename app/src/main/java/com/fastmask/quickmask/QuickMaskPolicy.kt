@@ -76,13 +76,18 @@ internal object QuickMaskPolicy {
      * @param permissionGranted result of `checkSelfPermission(POST_NOTIFICATIONS)`.
      * @param alreadyAsked whether this install has already shown the prompt.
      * @param signedIn whether there is a session to create masks in.
-     * @param locked whether the biometric app-lock gate is covering the content.
+     * @param locked whether the biometric app-lock gate is covering the
+     *   content. A system dialog stacked on that gate asks about a feature the
+     *   user cannot see; deferring costs nothing because the persisted flag is
+     *   only written when the dialog is actually launched, so the one ask is
+     *   not consumed.
      * @param demoMode whether this is the in-memory demo session.
-     *
-     * STUB: [locked] and [demoMode] are accepted so the test suite compiles;
-     * neither is honoured yet. See NotificationPermissionPromptTest.
+     *   QuickMaskCreator returns DemoMode before touching the account, so the
+     *   confirmation notification this permission exists for can never be
+     *   posted there. Worse, a denial in demo is remembered by the platform and
+     *   makes the later real request harder to surface; keeping the persisted
+     *   flag false through the demo moves the one ask to the first real sign-in.
      */
-    @Suppress("UNUSED_PARAMETER")
     fun shouldRequestNotificationPermission(
         sdkInt: Int,
         permissionGranted: Boolean,
@@ -93,6 +98,8 @@ internal object QuickMaskPolicy {
     ): Boolean {
         if (sdkInt < NOTIFICATION_PERMISSION_SDK) return false
         if (permissionGranted || alreadyAsked) return false
+        if (locked) return false
+        if (demoMode) return false
         return signedIn
     }
 }

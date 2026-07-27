@@ -14,6 +14,14 @@ import com.fastmask.MainActivity
  */
 internal const val ACTION_QUICK_MASK: String = "com.fastmask.action.QUICK_MASK"
 
+/**
+ * Legacy, pre-versioning notification channel id.
+ *
+ * New notifications do not post under this id anymore; it stays so
+ * [QuickMaskChannel.staleIds] can remove the channel from devices that already
+ * created it before versioned ids existed. See [QuickMaskChannel] for the id
+ * the notifier uses now.
+ */
 internal const val QUICK_MASK_CHANNEL_ID: String = "quick_mask"
 
 /**

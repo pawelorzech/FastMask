@@ -1,9 +1,6 @@
 package com.fastmask.quickmask
 
 /**
- * STUB — written by the test author, to be implemented (or deliberately
- * rejected; see QuickMaskChannelTest).
- *
  * `NotificationManager.createNotificationChannel` is a no-op for an id that
  * already exists: importance, lock-screen visibility and description are read
  * once, at creation, and every later call is ignored. So a channel field
@@ -16,13 +13,22 @@ internal object QuickMaskChannel {
     const val VERSION: Int = 1
 
     /** The id the notifier posts under today. */
-    val id: String get() = QUICK_MASK_CHANNEL_ID
+    val id: String = idFor(VERSION)
 
-    /** STUB. */
-    @Suppress("UNUSED_PARAMETER")
-    fun idFor(version: Int): String = QUICK_MASK_CHANNEL_ID
+    fun idFor(version: Int): String = "${QUICK_MASK_CHANNEL_ID}_v$version"
 
-    /** STUB: ids of superseded channels that must be deleted. */
-    @Suppress("UNUSED_PARAMETER")
-    fun staleIds(currentVersion: Int): List<String> = emptyList()
+    /**
+     * Ids of superseded channels that should be removed from system settings.
+     *
+     * This list never contains the current id: deleting the live channel would
+     * also delete the user's own importance and sound choices. Bumping
+     * [VERSION] is the deliberate action that ships a channel FIELD change,
+     * because the system only re-reads those fields for an id it has not seen.
+     */
+    fun staleIds(currentVersion: Int): List<String> = buildList {
+        // The id that shipped before versioning existed; it is idFor(n) for no
+        // n, so nothing else in the scheme would ever clean it up.
+        if (QUICK_MASK_CHANNEL_ID != idFor(currentVersion)) add(QUICK_MASK_CHANNEL_ID)
+        for (version in 1 until currentVersion) add(idFor(version))
+    }
 }
