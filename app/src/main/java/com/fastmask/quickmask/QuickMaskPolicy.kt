@@ -76,12 +76,20 @@ internal object QuickMaskPolicy {
      * @param permissionGranted result of `checkSelfPermission(POST_NOTIFICATIONS)`.
      * @param alreadyAsked whether this install has already shown the prompt.
      * @param signedIn whether there is a session to create masks in.
+     * @param locked whether the biometric app-lock gate is covering the content.
+     * @param demoMode whether this is the in-memory demo session.
+     *
+     * STUB: [locked] and [demoMode] are accepted so the test suite compiles;
+     * neither is honoured yet. See NotificationPermissionPromptTest.
      */
+    @Suppress("UNUSED_PARAMETER")
     fun shouldRequestNotificationPermission(
         sdkInt: Int,
         permissionGranted: Boolean,
         alreadyAsked: Boolean,
         signedIn: Boolean,
+        locked: Boolean = false,
+        demoMode: Boolean = false,
     ): Boolean {
         if (sdkInt < NOTIFICATION_PERMISSION_SDK) return false
         if (permissionGranted || alreadyAsked) return false
