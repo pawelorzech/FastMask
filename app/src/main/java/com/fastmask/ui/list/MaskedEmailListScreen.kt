@@ -158,6 +158,13 @@ fun MaskedEmailListScreen(
         if (result == SnackbarResult.ActionPerformed) {
             viewModel.restoreMask(archivedId, previousState)
         }
+        // Release the slot, exactly as the "mask created" effect below does.
+        // Without this the latch never reopened: `pendingUndo` stayed non-null
+        // for the rest of the screen's life, so the guard above rejected every
+        // later archive — no snackbar, no Undo — and `onArchivedConsumed()` was
+        // never reached either, leaving the id in the SavedStateHandle to
+        // resurrect a stale "Mask archived — Undo" on the next rotation.
+        pendingUndo = null
     }
 
     // A mask was just created; confirm it here, where it now appears, with the
