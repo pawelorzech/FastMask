@@ -3,7 +3,7 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.10.0] — Unreleased
+## [1.10.0] — 2026-07-27
 
 ### Added
 - **A mask without opening the app.** A share target (share a page from the browser), a quick settings tile and a long-press app shortcut each create a mask and copy it to the clipboard. The confirmation notification offers *Open* and *Undo*; the address itself stays out of the notification and the toast.

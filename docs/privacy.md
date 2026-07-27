@@ -117,7 +117,7 @@ FastMask is not directed at children under 18, and we do not knowingly process d
 
 We may update this policy from time to time. Material changes will be announced through a new app release and reflected in the "Last updated" date at the top of this document. The current version is always available at <https://pawelorzech.github.io/FastMask/privacy.html>.
 
-**Change on 2026-07-26:** crash reporting via Firebase Crashlytics is being added, on by default and switchable off in Settings. It applies **from FastMask 1.10.0 onwards**; every earlier version contains no crash‑reporting SDK, and until you update the previous wording ("no crash reports, no Crashlytics") still describes what is installed.
+**Change on 2026-07-27:** crash reporting via Firebase Crashlytics was added, on by default and switchable off in Settings. It applies **from FastMask 1.10.0 onwards**; every earlier version contains no crash‑reporting SDK, so until you update, the previous wording ("no crash reports, no Crashlytics") still describes what is installed on your device.
 
 ## 11. Open Source
 
