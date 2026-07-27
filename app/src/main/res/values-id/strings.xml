@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">Gagal mengarsipkan</string>
     <string name="time_never">tidak pernah</string>
     <string name="time_just_now">baru saja</string>
-    <string name="time_min_ago">%dm lalu</string>
-    <string name="time_hour_ago">%dj lalu</string>
-    <string name="time_day_ago">%dh lalu</string>
-    <string name="time_week_ago">%dmg lalu</string>
-    <string name="time_month_ago">%db lalu</string>
-    <string name="time_year_ago">%dt lalu</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%dm lalu</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%dj lalu</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%dh lalu</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%dmg lalu</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%db lalu</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%dt lalu</item>
+    </plurals>
     <string name="welcome_signin_cta">Masuk dengan Fastmail</string>
     <string name="welcome_demo_cta">Coba demo</string>
     <string name="welcome_tagline">Tempat tenang untuk alamat tersamar Anda.</string>

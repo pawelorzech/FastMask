@@ -148,12 +148,36 @@
     <string name="email_detail_error_delete">Não foi possível arquivar</string>
     <string name="time_never">nunca</string>
     <string name="time_just_now">agora mesmo</string>
-    <string name="time_min_ago">%dm atrás</string>
-    <string name="time_hour_ago">%dh atrás</string>
-    <string name="time_day_ago">%dd atrás</string>
-    <string name="time_week_ago">%ds atrás</string>
-    <string name="time_month_ago">%dm atrás</string>
-    <string name="time_year_ago">%da atrás</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dmin atrás</item>
+        <item quantity="many">%dmin atrás</item>
+        <item quantity="other">%dmin atrás</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dh atrás</item>
+        <item quantity="many">%dh atrás</item>
+        <item quantity="other">%dh atrás</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dd atrás</item>
+        <item quantity="many">%dd atrás</item>
+        <item quantity="other">%dd atrás</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%ds atrás</item>
+        <item quantity="many">%ds atrás</item>
+        <item quantity="other">%ds atrás</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dm atrás</item>
+        <item quantity="many">%dm atrás</item>
+        <item quantity="other">%dm atrás</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%da atrás</item>
+        <item quantity="many">%da atrás</item>
+        <item quantity="other">%da atrás</item>
+    </plurals>
     <string name="welcome_signin_cta">Entrar com Fastmail</string>
     <string name="welcome_demo_cta">Experimentar demo</string>
     <string name="welcome_tagline">Um lugar tranquilo para seus endereços mascarados.</string>

@@ -148,12 +148,30 @@
     <string name="email_detail_error_delete">Kan niet archiveren</string>
     <string name="time_never">nooit</string>
     <string name="time_just_now">zojuist</string>
-    <string name="time_min_ago">%dm geleden</string>
-    <string name="time_hour_ago">%du geleden</string>
-    <string name="time_day_ago">%dd geleden</string>
-    <string name="time_week_ago">%dw geleden</string>
-    <string name="time_month_ago">%dma geleden</string>
-    <string name="time_year_ago">%dj geleden</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dm geleden</item>
+        <item quantity="other">%dm geleden</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%du geleden</item>
+        <item quantity="other">%du geleden</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dd geleden</item>
+        <item quantity="other">%dd geleden</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dw geleden</item>
+        <item quantity="other">%dw geleden</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dma geleden</item>
+        <item quantity="other">%dma geleden</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dj geleden</item>
+        <item quantity="other">%dj geleden</item>
+    </plurals>
     <string name="welcome_signin_cta">Aanmelden met Fastmail</string>
     <string name="welcome_demo_cta">Demo proberen</string>
     <string name="welcome_tagline">Een rustige plek voor uw gemaskeerde adressen.</string>

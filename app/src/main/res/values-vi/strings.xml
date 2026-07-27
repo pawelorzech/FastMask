@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">Không thể lưu trữ</string>
     <string name="time_never">không bao giờ</string>
     <string name="time_just_now">vừa mới</string>
-    <string name="time_min_ago">%dp trước</string>
-    <string name="time_hour_ago">%dg trước</string>
-    <string name="time_day_ago">%dn trước</string>
-    <string name="time_week_ago">%dtu trước</string>
-    <string name="time_month_ago">%dth trước</string>
-    <string name="time_year_ago">%dna trước</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%dp trước</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%dg trước</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%dn trước</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%dtu trước</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%dth trước</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%dna trước</item>
+    </plurals>
     <string name="welcome_signin_cta">Đăng nhập bằng Fastmail</string>
     <string name="welcome_demo_cta">Thử phiên bản demo</string>
     <string name="welcome_tagline">Một nơi yên tĩnh cho các địa chỉ email ẩn danh của bạn.</string>

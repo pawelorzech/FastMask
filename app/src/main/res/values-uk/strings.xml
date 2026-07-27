@@ -148,12 +148,42 @@
     <string name="email_detail_error_delete">Не вдалося архівувати</string>
     <string name="time_never">ніколи</string>
     <string name="time_just_now">щойно</string>
-    <string name="time_min_ago">%dх тому</string>
-    <string name="time_hour_ago">%dг тому</string>
-    <string name="time_day_ago">%dд тому</string>
-    <string name="time_week_ago">%dт тому</string>
-    <string name="time_month_ago">%dм тому</string>
-    <string name="time_year_ago">%dр тому</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dх тому</item>
+        <item quantity="few">%dх тому</item>
+        <item quantity="many">%dх тому</item>
+        <item quantity="other">%dх тому</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dг тому</item>
+        <item quantity="few">%dг тому</item>
+        <item quantity="many">%dг тому</item>
+        <item quantity="other">%dг тому</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dд тому</item>
+        <item quantity="few">%dд тому</item>
+        <item quantity="many">%dд тому</item>
+        <item quantity="other">%dд тому</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dт тому</item>
+        <item quantity="few">%dт тому</item>
+        <item quantity="many">%dт тому</item>
+        <item quantity="other">%dт тому</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dм тому</item>
+        <item quantity="few">%dм тому</item>
+        <item quantity="many">%dм тому</item>
+        <item quantity="other">%dм тому</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dр тому</item>
+        <item quantity="few">%dр тому</item>
+        <item quantity="many">%dр тому</item>
+        <item quantity="other">%dр тому</item>
+    </plurals>
     <string name="welcome_signin_cta">Увійти з Fastmail</string>
     <string name="welcome_demo_cta">Спробувати демо</string>
     <string name="welcome_tagline">Тихе місце для ваших замаскованих адрес.</string>

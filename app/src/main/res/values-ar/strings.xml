@@ -148,12 +148,54 @@
     <string name="email_detail_error_delete">لم يتم الأرشفة</string>
     <string name="time_never">أبداً</string>
     <string name="time_just_now">الآن للتو</string>
-    <string name="time_min_ago">منذ %d د</string>
-    <string name="time_hour_ago">منذ %d سا</string>
-    <string name="time_day_ago">منذ %d ي</string>
-    <string name="time_week_ago">منذ %d أس</string>
-    <string name="time_month_ago">منذ %d أش</string>
-    <string name="time_year_ago">منذ %d سن</string>
+    <plurals name="time_min_ago">
+        <item quantity="zero">منذ %d دقيقة</item>
+        <item quantity="one">منذ %d دقيقة</item>
+        <item quantity="two">منذ %d دقيقتين</item>
+        <item quantity="few">منذ %d دقائق</item>
+        <item quantity="many">منذ %d دقيقة</item>
+        <item quantity="other">منذ %d دقيقة</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="zero">منذ %d ساعة</item>
+        <item quantity="one">منذ %d ساعة</item>
+        <item quantity="two">منذ %d ساعتين</item>
+        <item quantity="few">منذ %d ساعات</item>
+        <item quantity="many">منذ %d ساعة</item>
+        <item quantity="other">منذ %d ساعة</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="zero">منذ %d يوم</item>
+        <item quantity="one">منذ %d يوم</item>
+        <item quantity="two">منذ %d يومين</item>
+        <item quantity="few">منذ %d أيام</item>
+        <item quantity="many">منذ %d يومًا</item>
+        <item quantity="other">منذ %d يوم</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="zero">منذ %d أسبوع</item>
+        <item quantity="one">منذ %d أسبوع</item>
+        <item quantity="two">منذ %d أسبوعين</item>
+        <item quantity="few">منذ %d أسابيع</item>
+        <item quantity="many">منذ %d أسبوعًا</item>
+        <item quantity="other">منذ %d أسبوع</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="zero">منذ %d شهر</item>
+        <item quantity="one">منذ %d شهر</item>
+        <item quantity="two">منذ %d شهرين</item>
+        <item quantity="few">منذ %d أشهر</item>
+        <item quantity="many">منذ %d شهرًا</item>
+        <item quantity="other">منذ %d شهر</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="zero">منذ %d سنة</item>
+        <item quantity="one">منذ %d سنة</item>
+        <item quantity="two">منذ %d سنتين</item>
+        <item quantity="few">منذ %d سنوات</item>
+        <item quantity="many">منذ %d سنة</item>
+        <item quantity="other">منذ %d سنة</item>
+    </plurals>
     <string name="welcome_signin_cta">تسجيل الدخول عبر Fastmail</string>
     <string name="welcome_demo_cta">جرّب النسخة التجريبية</string>
     <string name="welcome_tagline">مكان هادئ لعناوينك المقنّعة.</string>

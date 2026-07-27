@@ -146,12 +146,30 @@
     <!-- Relative time -->
     <string name="time_never">never</string>
     <string name="time_just_now">just now</string>
-    <string name="time_min_ago">%dm ago</string>
-    <string name="time_hour_ago">%dh ago</string>
-    <string name="time_day_ago">%dd ago</string>
-    <string name="time_week_ago">%dw ago</string>
-    <string name="time_month_ago">%dmo ago</string>
-    <string name="time_year_ago">%dy ago</string>
+    <plurals name="time_min_ago">
+        <item quantity="one">%dm ago</item>
+        <item quantity="other">%dm ago</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="one">%dh ago</item>
+        <item quantity="other">%dh ago</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="one">%dd ago</item>
+        <item quantity="other">%dd ago</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="one">%dw ago</item>
+        <item quantity="other">%dw ago</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="one">%dmo ago</item>
+        <item quantity="other">%dmo ago</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="one">%dy ago</item>
+        <item quantity="other">%dy ago</item>
+    </plurals>
 
     <!-- Welcome Screen / Demo Mode -->
     <!-- TODO: translate to remaining 18 locales in v1.6 -->

@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">ไม่สามารถเก็บถาวร</string>
     <string name="time_never">ไม่เคย</string>
     <string name="time_just_now">เมื่อสักครู่</string>
-    <string name="time_min_ago">%d นาที ที่แล้ว</string>
-    <string name="time_hour_ago">%d ชั่วโมง ที่แล้ว</string>
-    <string name="time_day_ago">%d วัน ที่แล้ว</string>
-    <string name="time_week_ago">%d สัปดาห์ ที่แล้ว</string>
-    <string name="time_month_ago">%d เดือน ที่แล้ว</string>
-    <string name="time_year_ago">%d ปี ที่แล้ว</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d นาที ที่แล้ว</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%d ชั่วโมง ที่แล้ว</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%d วัน ที่แล้ว</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%d สัปดาห์ ที่แล้ว</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%d เดือน ที่แล้ว</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%d ปี ที่แล้ว</item>
+    </plurals>
     <string name="welcome_signin_cta">เข้าสู่ระบบด้วย Fastmail</string>
     <string name="welcome_demo_cta">ลองเวอร์ชั่นทดลอง</string>
     <string name="welcome_tagline">สถานที่เงียบสำหรับที่อยู่อีเมลซ่อนของคุณ</string>

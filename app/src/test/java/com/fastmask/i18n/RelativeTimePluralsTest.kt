@@ -59,13 +59,19 @@ class RelativeTimePluralsTest {
         // Singular / plural.
         "values-bn" to setOf("one", "other"),
         "values-de" to setOf("one", "other"),
-        "values-es" to setOf("one", "other"),
-        "values-fr" to setOf("one", "other"),
         "values-hi" to setOf("one", "other"),
-        "values-it" to setOf("one", "other"),
         "values-nl" to setOf("one", "other"),
-        "values-pt" to setOf("one", "other"),
         "values-tr" to setOf("one", "other"),
+        // Romance: singular / plural, plus the `many` category CLDR 38 added
+        // for whole millions ("il y a 1000000 DE jours" takes a preposition the
+        // plural does not). These labels never count that high, but Lint reads
+        // the same table and reports MissingQuantity when the form is absent —
+        // so declare it rather than ship a warning that trains people to ignore
+        // MissingQuantity.
+        "values-es" to setOf("one", "many", "other"),
+        "values-fr" to setOf("one", "many", "other"),
+        "values-it" to setOf("one", "many", "other"),
+        "values-pt" to setOf("one", "many", "other"),
         // No count agreement at all: one form covers every number.
         "values-b+zh+Hans" to setOf("other"),
         "values-id" to setOf("other"),

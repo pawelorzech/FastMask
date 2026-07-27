@@ -148,12 +148,24 @@
     <string name="email_detail_error_delete">보관할 수 없음</string>
     <string name="time_never">없음</string>
     <string name="time_just_now">방금</string>
-    <string name="time_min_ago">%d분 전</string>
-    <string name="time_hour_ago">%d시간 전</string>
-    <string name="time_day_ago">%d일 전</string>
-    <string name="time_week_ago">%d주 전</string>
-    <string name="time_month_ago">%d개월 전</string>
-    <string name="time_year_ago">%d년 전</string>
+    <plurals name="time_min_ago">
+        <item quantity="other">%d분 전</item>
+    </plurals>
+    <plurals name="time_hour_ago">
+        <item quantity="other">%d시간 전</item>
+    </plurals>
+    <plurals name="time_day_ago">
+        <item quantity="other">%d일 전</item>
+    </plurals>
+    <plurals name="time_week_ago">
+        <item quantity="other">%d주 전</item>
+    </plurals>
+    <plurals name="time_month_ago">
+        <item quantity="other">%d개월 전</item>
+    </plurals>
+    <plurals name="time_year_ago">
+        <item quantity="other">%d년 전</item>
+    </plurals>
     <string name="welcome_signin_cta">Fastmail로 로그인</string>
     <string name="welcome_demo_cta">데모 시도</string>
     <string name="welcome_tagline">마스크 주소를 위한 조용한 장소입니다.</string>
