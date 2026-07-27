@@ -1,7 +1,6 @@
 package com.fastmask.data.repository
 
 import com.fastmask.data.demo.INITIAL_DEMO_MASKS
-import com.fastmask.domain.hygiene.HygieneBaseline
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -49,12 +48,6 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
 
     /** Demo data already lives in memory and is never persisted. */
     override suspend fun cachedMaskedEmails(): CachedMasks? = null
-
-    /** Nothing is persisted in demo mode, so there is no baseline to diff against. */
-    override suspend fun hygieneBaseline(): HygieneBaseline? = null
-
-    /** Deliberately a no-op: a demo must not leave anything on the user's disk. */
-    override suspend fun saveHygieneBaseline(baseline: HygieneBaseline) = Unit
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val newMask = buildNewMask(params)

@@ -1,125 +1,87 @@
 package com.fastmask.data.local
 
-import com.fastmask.domain.hygiene.HygieneBaseline
+import android.content.Context
+import androidx.security.crypto.EncryptedFile
+import androidx.security.crypto.MasterKey
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
+import java.io.File
 import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Last known good snapshot of the account's masks, so the list is readable
- * without a network — plus the hygiene review's own baseline, which rides along
- * in the same encrypted file.
+ * without a network.
  *
  * This is the user's full set of masked addresses on disk, which the app
- * otherwise never keeps — so it is encrypted with a Keystore-backed key (see
- * [EncryptedFileSnapshotStore]), the same protection [TokenStorage] gives the
- * API token, and dropped on sign-out.
+ * otherwise never keeps — so it is encrypted with a Keystore-backed key, the
+ * same protection [TokenStorage] gives the API token, and dropped on sign-out.
  *
  * Every failure is soft: a missing, unreadable or corrupt cache means "no
  * cache", never an error the user sees. It is derived data — the server
  * remains the source of truth, and the worst case is the offline list being
  * empty, exactly as it was before this existed.
- *
- * The class takes its storage rather than a `Context` so the file FORMAT can be
- * tested off-device (see `MaskedEmailCacheFormatTest`); Hilt builds it through
- * `RepositoryModule`.
  */
-class MaskedEmailCache(
-    private val store: SnapshotStore,
+@Singleton
+class MaskedEmailCache @Inject constructor(
+    @ApplicationContext private val context: Context,
 ) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    /**
-     * Replaces the mask list. Failures are swallowed — caching is best-effort.
-     *
-     * Reads the existing file first to carry the hygiene baseline forward: this
-     * runs on every successful fetch, and the baseline it must not touch is the
-     * one thing on that file a list refresh has no business changing.
-     */
+    private val file: File get() = File(context.filesDir, FILE_NAME)
+
+    private fun encryptedFile(): EncryptedFile {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedFile.Builder(
+            context,
+            file,
+            masterKey,
+            EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB,
+        ).build()
+    }
+
+    /** Replaces the snapshot. Failures are swallowed — caching is best-effort. */
     fun write(masks: List<MaskedEmail>, now: Instant = Instant.now()) {
         runCatching {
-            val retainedBaseline: JsonElement? = loadSnapshot()?.hygieneBaseline
-            store.write(
-                encode(
-                    CachedSnapshot(
-                        cachedAtEpochMs = now.toEpochMilli(),
-                        masks = masks.map { it.toCached() },
-                        hygieneBaseline = retainedBaseline,
-                    )
-                )
+            // EncryptedFile refuses to overwrite an existing file.
+            if (file.exists()) file.delete()
+            val payload = CachedSnapshot(
+                cachedAtEpochMs = now.toEpochMilli(),
+                masks = masks.map { it.toCached() },
             )
+            encryptedFile().openFileOutput().use { out ->
+                out.write(json.encodeToString(CachedSnapshot.serializer(), payload).toByteArray())
+            }
         }
     }
 
     /** @return the snapshot, or null when there is none or it cannot be read. */
     fun read(): CachedMasks? = runCatching {
-        val snapshot = loadSnapshot() ?: return null
+        if (!file.exists()) return null
+        val bytes = encryptedFile().openFileInput().use { it.readBytes() }
+        val snapshot = json.decodeFromString(CachedSnapshot.serializer(), String(bytes))
         CachedMasks(
             masks = snapshot.masks.map { it.toDomain() },
             cachedAt = Instant.ofEpochMilli(snapshot.cachedAtEpochMs),
         )
     }.getOrNull()
 
-    /**
-     * @return the last persisted hygiene baseline, or null when there is none
-     *   (installs that predate the field, demo mode, damaged data).
-     */
-    fun readHygieneBaseline(): HygieneBaseline? = runCatching {
-        val element: JsonElement = loadSnapshot()?.hygieneBaseline ?: return null
-        // Decoded separately from the snapshot on purpose: a baseline written
-        // by a future version, or damaged in place, must cost the user their
-        // "new activity" category — never their offline mask list.
-        val decoded = json.decodeFromJsonElement(CachedHygieneBaseline.serializer(), element)
-        HygieneBaseline(
-            reviewedAt = Instant.ofEpochMilli(decoded.reviewedAtEpochMs),
-            lastMessageAtById = decoded.entries
-                .filter { entry -> entry.id.isNotEmpty() }
-                .associate { entry ->
-                    entry.id to entry.lastMessageAtEpochMs?.let(Instant::ofEpochMilli)
-                },
-        )
-    }.getOrNull()
-
-    /**
-     * Stores the hygiene baseline alongside the current mask list.
-     *
-     * Attaches to an existing snapshot only. Writing a mask-less snapshot just
-     * to hold a baseline would make [read] answer "cached: 0 masks" to an
-     * offline list that should be saying "nothing cached at all".
-     */
-    fun writeHygieneBaseline(baseline: HygieneBaseline) {
-        runCatching {
-            val existing: CachedSnapshot = loadSnapshot() ?: return
-            store.write(
-                encode(
-                    existing.copy(
-                        hygieneBaseline = json.encodeToJsonElement(
-                            CachedHygieneBaseline.serializer(),
-                            baseline.toCached(),
-                        )
-                    )
-                )
-            )
-        }
-    }
-
-    /** Drops the snapshot, baseline included. Called on sign-out. */
+    /** Drops the snapshot. Called on sign-out. */
     fun clear() {
-        runCatching { store.clear() }
+        runCatching { file.delete() }
     }
 
-    private fun loadSnapshot(): CachedSnapshot? = runCatching {
-        val bytes: ByteArray = store.read() ?: return null
-        json.decodeFromString(CachedSnapshot.serializer(), String(bytes))
-    }.getOrNull()
-
-    private fun encode(snapshot: CachedSnapshot): ByteArray =
-        json.encodeToString(CachedSnapshot.serializer(), snapshot).toByteArray()
+    private companion object {
+        const val FILE_NAME = "masked_emails_cache.bin"
+    }
 }
 
 /**
@@ -130,13 +92,7 @@ class MaskedEmailCache(
 @Serializable
 private data class CachedSnapshot(
     val cachedAtEpochMs: Long,
-    val masks: List<CachedMask> = emptyList(),
-    /**
-     * Kept opaque here and decoded on demand, so no shape this field can take —
-     * a future version's, a truncated one, a string where an object belongs —
-     * can fail the decode of the mask list next to it.
-     */
-    val hygieneBaseline: JsonElement? = null,
+    val masks: List<CachedMask>,
 )
 
 @Serializable
@@ -151,27 +107,6 @@ private data class CachedMask(
     val emailPrefix: String? = null,
     val createdAtEpochMs: Long? = null,
     val lastMessageAtEpochMs: Long? = null,
-)
-
-/** Every field defaulted: a half-written baseline degrades, it does not throw. */
-@Serializable
-private data class CachedHygieneBaseline(
-    val reviewedAtEpochMs: Long = 0L,
-    val entries: List<CachedHygieneEntry> = emptyList(),
-)
-
-@Serializable
-private data class CachedHygieneEntry(
-    val id: String = "",
-    /** null = the mask existed at review time and had received nothing. */
-    val lastMessageAtEpochMs: Long? = null,
-)
-
-private fun HygieneBaseline.toCached() = CachedHygieneBaseline(
-    reviewedAtEpochMs = reviewedAt.toEpochMilli(),
-    entries = lastMessageAtById.map { (id, lastMessageAt) ->
-        CachedHygieneEntry(id = id, lastMessageAtEpochMs = lastMessageAt?.toEpochMilli())
-    },
 )
 
 private fun MaskedEmail.toCached() = CachedMask(

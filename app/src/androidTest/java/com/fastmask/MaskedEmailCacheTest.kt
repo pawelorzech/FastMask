@@ -2,7 +2,6 @@ package com.fastmask
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.fastmask.data.local.EncryptedFileSnapshotStore
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -25,7 +24,7 @@ import java.time.Instant
 class MaskedEmailCacheTest {
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-    private val cache = MaskedEmailCache(EncryptedFileSnapshotStore(context))
+    private val cache = MaskedEmailCache(context)
     private val cacheFile = File(context.filesDir, "masked_emails_cache.bin")
 
     private val takenAt: Instant = Instant.parse("2026-07-24T09:00:00Z")

@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -77,7 +76,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.fastmask.BuildConfig
 import com.fastmask.R
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
@@ -107,7 +105,6 @@ import kotlinx.coroutines.launch
 fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToHygiene: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onSignInFromBanner: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
@@ -289,21 +286,6 @@ fun MaskedEmailListScreen(
                                 style = MaterialTheme.typography.displayMedium,
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
-                        }
-                        // The kill-switch hides entry points (see MainActivity):
-                        // with monetization off the paywall is gone, so an icon
-                        // that leads nowhere but the paywall has to go with it.
-                        if (BuildConfig.MONETIZATION_ENABLED) {
-                            PillIconButton(
-                                onClick = onNavigateToHygiene,
-                                contentDescription = stringResource(R.string.hygiene_open),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.CleaningServices,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            }
                         }
                         PillIconButton(
                             onClick = onNavigateToSettings,

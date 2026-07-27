@@ -1,6 +1,5 @@
 package com.fastmask.testutil
 
-import com.fastmask.domain.hygiene.HygieneBaseline
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -42,17 +41,6 @@ class FakeMaskedEmailRepository(
 ) : MaskedEmailRepository {
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = cached
-
-    /** The review's own retention, kept apart from [cached] exactly as in production. */
-    var hygieneBaseline: HygieneBaseline? = null
-    val savedHygieneBaselines = mutableListOf<HygieneBaseline>()
-
-    override suspend fun hygieneBaseline(): HygieneBaseline? = hygieneBaseline
-
-    override suspend fun saveHygieneBaseline(baseline: HygieneBaseline) {
-        savedHygieneBaselines += baseline
-        hygieneBaseline = baseline
-    }
 
     var getCalls = 0
     var createCalls = 0

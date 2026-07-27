@@ -1,8 +1,5 @@
 package com.fastmask.di
 
-import android.content.Context
-import com.fastmask.data.local.EncryptedFileSnapshotStore
-import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.repository.AuthRepositoryImpl
 import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
 import com.fastmask.data.repository.DemoModeActivatorImpl
@@ -16,9 +13,7 @@ import com.fastmask.domain.repository.QuickMaskGuard
 import com.fastmask.domain.usecase.DemoModeActivator
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Named
 import javax.inject.Singleton
@@ -81,17 +76,4 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindDemoModeActivator(impl: DemoModeActivatorImpl): DemoModeActivator
-
-    companion object {
-        /**
-         * The cache takes its storage as a constructor argument so the on-disk
-         * format is testable on the JVM (see [com.fastmask.data.local.SnapshotStore]),
-         * which is why it is provided here instead of `@Inject`-constructed.
-         */
-        @Provides
-        @Singleton
-        fun provideMaskedEmailCache(
-            @ApplicationContext context: Context,
-        ): MaskedEmailCache = MaskedEmailCache(EncryptedFileSnapshotStore(context))
-    }
 }

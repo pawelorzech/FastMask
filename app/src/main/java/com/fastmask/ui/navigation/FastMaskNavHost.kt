@@ -21,7 +21,6 @@ import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
-import com.fastmask.ui.hygiene.MaskHygieneScreen
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
@@ -132,9 +131,6 @@ fun FastMaskNavHost(
                     onNavigateToDetail = { emailId ->
                         navController.navigate(NavRoutes.emailDetail(emailId)) { launchSingleTop = true }
                     },
-                    onNavigateToHygiene = {
-                        navController.navigate(NavRoutes.HYGIENE) { launchSingleTop = true }
-                    },
                     onNavigateToSettings = {
                         navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
                     },
@@ -175,14 +171,6 @@ fun FastMaskNavHost(
                             launchSingleTop = true
                         }
                     },
-                    onNavigateToPro = { source ->
-                        navController.navigate(NavRoutes.pro(source)) { launchSingleTop = true }
-                    },
-                )
-            }
-            composable(NavRoutes.HYGIENE) {
-                MaskHygieneScreen(
-                    onNavigateBack = { navController.popBackStack() },
                     onNavigateToPro = { source ->
                         navController.navigate(NavRoutes.pro(source)) { launchSingleTop = true }
                     },
