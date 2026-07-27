@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.JetBrainsMono
+import androidx.compose.ui.semantics.error
 
 @Composable
 fun DesignInput(
@@ -59,7 +60,11 @@ fun DesignInput(
     val borderColor = when {
         isError -> extras.status.deleted.content
         focused -> extras.accent
-        else -> MaterialTheme.colorScheme.outline
+        // Not colorScheme.outline: that is the decorative hairline (1.28:1
+        // against the page), which left the resting state of an input the user
+        // has to find and tap effectively invisible at reduced contrast.
+        // inputLine is held to WCAG 1.4.11's 3:1 for component boundaries.
+        else -> extras.inputLine
     }
     val shape = RoundedCornerShape(12.dp)
     val textStyle: TextStyle = LocalTextStyle.current.copy(
@@ -103,6 +108,19 @@ fun DesignInput(
                             .then(
                                 if (label != null) {
                                     Modifier.semantics { contentDescription = label }
+                                } else {
+                                    Modifier
+                                }
+                            )
+                            // isError used to change the border colour and the
+                            // hint colour and nothing else, so a screen reader
+                            // never said "invalid entry" and the hint — a
+                            // separate Text below the box — was not attached to
+                            // the field it describes. error() puts both on the
+                            // field's own node.
+                            .then(
+                                if (isError && hint != null) {
+                                    Modifier.semantics { error(hint) }
                                 } else {
                                     Modifier
                                 }

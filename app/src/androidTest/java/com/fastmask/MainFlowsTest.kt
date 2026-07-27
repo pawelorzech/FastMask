@@ -101,15 +101,30 @@ class MainFlowsTest {
         demoSession.reset()
     }
 
-    /** Demo mode opens with coach marks over the whole list; get past them. */
+    /**
+     * Demo mode opens with coach marks over the whole list; get past them.
+     *
+     * Waits for the tutorial FIRST, then for the list. It used to wait for the
+     * list title and dismiss the tutorial afterwards, which stopped working the
+     * moment the overlay became modal for accessibility (audit 2026-07-27): the
+     * content beneath is dropped from the semantics tree while the coach marks
+     * are up, so the title genuinely is not there to find — which is the point
+     * of the change, and what a screen-reader user now experiences.
+     */
     private fun enterDemoAndDismissTutorial() {
         composeRule.onNodeWithText(string(R.string.welcome_demo_cta)).performClick()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
+                .fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithText(string(R.string.email_list_title))
+                    .fetchSemanticsNodes().isNotEmpty()
+        }
+        val skip = composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
+        if (skip.fetchSemanticsNodes().isNotEmpty()) skip.onFirst().performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText(string(R.string.email_list_title))
                 .fetchSemanticsNodes().isNotEmpty()
         }
-        val skip = composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-        if (skip.fetchSemanticsNodes().isNotEmpty()) skip.onFirst().performClick()
         composeRule.waitForIdle()
     }
 

@@ -285,4 +285,6 @@
     <string name="quick_mask_undone">মাস্ক মুছে ফেলা হয়েছে</string>
     <string name="quick_mask_undo_failed">মাস্ক মুছে ফেলা যায়নি। FastMask খুলে আবার চেষ্টা করুন।</string>
     <string name="share_requires_sign_in">এই লিঙ্কের জন্য মাস্ক তৈরি করতে FastMask-এ সাইন ইন করুন।</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">চলছে…</string>
 </resources>

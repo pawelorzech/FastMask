@@ -113,3 +113,43 @@ Kolejność od najważniejszego.
 8. **Tworzenie maski + natychmiastowe cofnięcie.** Wypełnij formularz, „Utwórz", od razu wstecz. Maska powinna powstać, a nie zawisnąć jako sierota bez adresu.
 9. **Eksport CSV (Pro).** Wyeksportuj, poczekaj godzinę, zrestartuj aplikację, sprawdź że plik zniknął z `cacheDir/exports`.
 10. **Płynność listy.** Przy ~265 maskach pull-to-refresh powinien być zauważalnie gładszy — szyfrowany zapis snapshotu zszedł z wątku głównego.
+
+
+---
+
+## 6. Druga tura — dostępność
+
+Po pierwszym zestawie poprawek doszła runda a11y (patrz `AUDIT_REPORT.md` §6).
+
+### Zmienione pliki
+
+| Plik | Co się zmieniło |
+|---|---|
+| `ui/theme/Color.kt` | Nowe `LightInputLine` `#8E846E` i `DarkInputLine` `#776D5C` — obramowanie pól na 3:1 |
+| `ui/theme/StatusColors.kt` | `inputLine` w `FastMaskExtraColors` |
+| `ui/components/DesignInput.kt` | Obramowanie z `extras.inputLine`; `semantics { error(hint) }` przy błędzie |
+| `ui/components/DesignKit.kt` | `PillButton` przyjmuje `loadingDescription`, ogłaszany jako `stateDescription` + `liveRegion` |
+| `ui/components/TutorialOverlay.kt` | `isTraversalGroup` + `traversalIndex`; „Skip" na 48 dp |
+| `ui/list/MaskedEmailListScreen.kt` | Pigułki filtrów 48 dp; licznik bez alphy; baner offline ogłaszany; tytuł jako `heading()`; treść ukryta przed czytnikiem, gdy tutorial widoczny |
+| `ui/detail/MaskedEmailDetailScreen.kt` | Kopiowanie 48 dp; dwa przyciski z `loadingDescription` |
+| `ui/create/CreateMaskedEmailScreen.kt` | Segment Active/Off 48 dp; przycisk z `loadingDescription`; tytuł jako `heading()` |
+| `ui/auth/LoginScreen.kt` | Przycisk logowania z `loadingDescription` |
+| `ui/settings/SettingsScreen.kt` | `heightIn(max = 360.dp)` w dialogu języka; tytuł jako `heading()` |
+| `ui/pro/ProScreen.kt` | Tytuł jako `heading()` |
+| `res/values*/strings.xml` | Nowy `state_working` w 20 lokalach |
+| `androidTest/MainFlowsTest.kt` | Helper czeka najpierw na tutorial, potem na listę |
+| `app/build.gradle.kts`, `CHANGELOG.md` | Wersja 22 / 1.10.1 |
+
+### Zmiany widoczne dla użytkownika
+
+Dwie. **Obramowania pól tekstowych są teraz wyraźnie widoczne** — ciepły brąz zamiast ledwie widocznej kreski; sprawdzone wizualnie na emulatorze, mieści się w estetyce „warm ink". **Pigułki filtrów i segment Active/Off są nieco wyższe**, bo urosły do 48 dp obszaru dotyku.
+
+Reszta jest niewidoczna dla wzroku i słyszalna wyłącznie przez czytnik ekranu.
+
+### Regresja złapana w trakcie
+
+Uczynienie tutoriala modalnym dla czytnika wywaliło 6 testów instrumentowanych: ich wspólny helper czekał na tytuł listy, który jest teraz — celowo — poza drzewem semantyki, dopóki coach marks są na wierzchu. Poprawiony został **helper, nie zachowanie**. To ta sama kategoria co defekt A1: test opisywał założenie, które przestało być prawdziwe.
+
+### Czego nadal nie potwierdzam
+
+Wszystkie poprawki a11y są wyliczone (kontrasty), skompilowane i sprawdzone wizualnie — ale **żadna nie została przepuszczona przez TalkBacka**. Nie mam urządzenia z włączonym czytnikiem ekranu. To pozycja QA, nie deklaracja gotowości.

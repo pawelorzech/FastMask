@@ -285,4 +285,6 @@
     <string name="quick_mask_undone">Masker verwijderd</string>
     <string name="quick_mask_undo_failed">Kan het masker niet verwijderen. Open FastMask en probeer het opnieuw.</string>
     <string name="share_requires_sign_in">Meld u aan bij FastMask om een masker voor deze link te maken.</string>
+    <!-- Announced by a screen reader while a button is busy. -->
+    <string name="state_working">Bezig…</string>
 </resources>

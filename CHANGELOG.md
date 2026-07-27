@@ -3,6 +3,39 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.1] — 2026-07-27
+
+Fifth audit pass. 442 → 446 unit tests, 16 → 19 instrumented. Full reports in `AUDIT_REPORT.md`, `UX_RECOMMENDATIONS.md` and `CHANGELOG_AGENT.md`.
+
+### Fixed
+- **"Archive mask" destroyed the mask instead of archiving it.** The button sent JMAP `destroy` — permanent removal — while its own confirmation dialog promised "You can restore it later" and the list offered an Undo that could never work. Archiving is now a state change the account keeps, so archived masks appear under the *Archived* filter and can be restored. Quick-create *Undo*, which really does mean "remove the mask I just made by mistake", is the only thing left that destroys.
+- **The app lock switched itself off when Pro lapsed** — but only halfway. A cold start came up unlocked while returning from the background still demanded a fingerprint, and Settings drew the switch as off the whole time. A lock you turned on stays on; Pro still gates turning it on.
+- **The quick settings tile created a mask per tap.** Three quick taps meant three real masks, one notification, and an Undo for only the last of them.
+- **Archiving offered Undo only once per visit to the list.** Every later archive passed in silence, and the stale one could resurface as a snackbar after a rotation.
+- **A corrupt settings file crashed the app on every launch** instead of falling back to defaults.
+- **The offline snapshot was not tied to an account.** Signing in as someone else without a clean sign-out could show the previous account's masks as your own offline data.
+- **Backing out of a screen cancelled the request it had already sent** — a mask created but never shown, or an archive with no Undo.
+- Encrypting and writing the whole mask list ran on the UI thread on every refresh, along with the token read.
+- A CSV export could sit in the cache indefinitely: the documented one-hour retention only ran on the *next* export.
+- A release build with no Play licence key treated every purchase as verified instead of unverified.
+- Backup exclusion rules covered the API token but not the offline mask snapshot.
+- The privacy policy said log-out removed local preferences; it removes the token, the snapshot and cached exports, and deliberately keeps language and appearance settings.
+
+### Accessibility
+- Text fields had no visible border: 1.15:1 against the page in light, 1.04:1 in dark. Field borders now meet the 3:1 WCAG asks of an interactive component, without repainting the rest of the palette.
+- Buttons replaced their own label with "…" while working, which a screen reader read as "ellipsis, button". The label stays and progress is announced instead.
+- Filter chips, the detail-screen copy button, the tutorial's *Skip* and the Active/Off segment were 30–38dp touch targets; all are 48dp now, with no change to how they look.
+- The tutorial overlay blocked touch but not screen readers, which kept walking the list behind it. It is now modal for both.
+- Validation errors are attached to the field they describe, so "invalid entry" is announced.
+- The offline banner — the app admitting the list may be stale — is announced when it appears.
+- Screen titles are marked as headings.
+- The counter inside a selected filter chip was 3.27:1 at 10sp, the lowest contrast in the app.
+- The language dialog no longer uses a fixed height that can overflow at a 200% font scale.
+
+### Build
+- `versionCode` 21 → 22, `versionName` "1.10.0" → "1.10.1".
+- `gradle.properties` no longer pins an absolute JDK path from one contributor's machine; the Gradle daemon needs JDK 17–21 via `JAVA_HOME` or `~/.gradle/gradle.properties`.
+
 ## [1.10.0] — 2026-07-27
 
 ### Added

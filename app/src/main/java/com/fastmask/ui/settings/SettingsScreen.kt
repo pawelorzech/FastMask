@@ -91,6 +91,9 @@ import com.fastmask.ui.theme.MonoSmallStyle
 import com.fastmask.ui.theme.color
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.layout.heightIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -262,6 +265,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_title),
                     style = MaterialTheme.typography.displayMedium,
+                    modifier = Modifier.semantics { heading() },
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Spacer(Modifier.height(28.dp))
@@ -652,7 +656,9 @@ private fun LanguagePickerDialog(
             )
         },
         text = {
-            Box(modifier = Modifier.height(360.dp)) {
+            // heightIn, not height: at a 200% font scale a fixed box can
+            // overflow the dialog on a short screen in landscape.
+            Box(modifier = Modifier.heightIn(max = 360.dp)) {
                 LazyColumn {
                     item {
                         LanguageRow(
