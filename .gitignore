@@ -33,6 +33,7 @@ build/
 
 # Android
 local.properties
+/app/google-services.json
 *.apk
 *.aab
 *.ap_
