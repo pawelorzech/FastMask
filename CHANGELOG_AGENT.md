@@ -1,155 +1,120 @@
-# CHANGELOG_AGENT — audyt 2026-07-27
+# CHANGELOG_AGENT — audyt 2026-08-01
 
-**Gałąź:** `feature/audit-2026-07-27` (z `main`, `be6b291`, v1.10.0 / versionCode 21)
-**Charakter zmian:** wyłącznie poprawki defektów i dokumentacji. Żadnej nowej funkcji, żadnej zmiany modelu biznesowego, żadnej migracji frameworka, żadnego masowego bumpu zależności.
+**Gałąź:** `feature/audit-2026-08-01` (z `main`, `b3d6dca`, v1.10.1 / versionCode 22)
+**Charakter zmian:** wyłącznie poprawki defektów, testy regresyjne i dokumentacja. Żadnej nowej funkcji, żadnej migracji frameworka, żadnego masowego bumpu zależności, żadnej zmiany modelu biznesowego.
 
-> Raporty z poprzedniego przebiegu (2026-07-24) leżą w `Plans/audit-archive/`.
+> Raporty z poprzedniego przebiegu (2026-07-27) leżą w `Plans/audit-archive/`.
+
+Każda poprawka behawioralna ma test regresyjny, i **każdy taki test został uruchomiony przeciwko staremu kodowi, żeby potwierdzić, że tam pada**. Test, który przechodzi w obie strony, nie pilnuje niczego — a ten przebieg istnieje między innymi dlatego, że poprzedni dowiózł dokładnie taki przypadek (patrz B-6 w `AUDIT_REPORT.md`).
 
 ---
 
-## 1. Zmienione pliki
+## 1. Commity
 
-### Kod produkcyjny
+| Commit | Temat |
+|---|---|
+| `3f306ac` | Fix: let a clean clone build without the Firebase config |
+| `b0bfe7e` | Fix: a corrupt entitlement store must not crash-loop a paying user |
+| `45da219` | Fix: let an Undo outlive the screen that started it |
+| `ef008f4` | Fix: stop a sign-out being undone by an in-flight fetch |
+| `289d8dd` | Fix: make the screen-reader progress announcement actually fire |
+| `165468f` | Fix: harden the task stack, the undo path and the backup net |
+
+Plus commit domykający: poprawka `CancellationException` w `MainActivity`, nowy workflow CI i trzy raporty.
+
+---
+
+## 2. Zmienione pliki
+
+### Build i konfiguracja repozytorium
 
 | Plik | Co się zmieniło |
 |---|---|
-| `domain/repository/MaskedEmailRepository.kt` | `deleteMaskedEmail` rozdzielone na `archiveMaskedEmail` (odwracalne) i `destroyMaskedEmail` (nieodwracalne) |
-| `data/repository/MaskedEmailRepositoryImpl.kt` | `archiveMaskedEmail` wysyła `MaskedEmail/set update {state: deleted}` zamiast `destroy`; wszystkie metody na `Dispatchers.IO`; cache zapisywany i czytany ze znacznikiem właściciela |
-| `data/repository/DemoMaskedEmailRepositoryImpl.kt` | `archiveMaskedEmail` (przerzut stanu) + nowe `destroyMaskedEmail` (usunięcie wpisu) |
-| `data/repository/MaskedEmailRepositoryDispatcher.kt` | `current()` jest `suspend` i czyta `appMode.first()` zamiast `runBlocking` |
-| `data/repository/AuthRepositoryImpl.kt` | `login()` czyści cache masek i eksporty przed zapisem tokenu |
-| `domain/usecase/DeleteMaskedEmailUseCase.kt` → `ArchiveMaskedEmailUseCase.kt` | Rozdzielone na `ArchiveMaskedEmailUseCase` i `DestroyMaskedEmailUseCase` |
-| `domain/usecase/QuickMaskCreator.kt` | Bramka zamka bez `isPro()`; Undo woła `DestroyMaskedEmailUseCase` |
-| `domain/repository/QuickMaskGuard.kt` | Usunięte `isPro()` |
-| `data/repository/QuickMaskGuardImpl.kt` | Usunięta zależność od `ProEntitlementStore` |
-| `MainActivity.kt` | `lockAtLaunch` bez `&& cachedPro` |
-| `ui/settings/SettingsScreen.kt` | Przełącznik zamka pokazuje stan preferencji, nie uprawnienia |
-| `ui/list/MaskedEmailListScreen.kt` | `pendingUndo = null` po zamknięciu snackbara |
-| `ui/detail/MaskedEmailDetailViewModel.kt` | Mutacje w `@ApplicationScope`; użycie `ArchiveMaskedEmailUseCase` |
-| `ui/create/CreateMaskedEmailViewModel.kt` | Tworzenie w `@ApplicationScope` |
-| `data/local/MaskedEmailCache.kt` | Znacznik właściciela w snapshocie; zapis przez plik tymczasowy + `renameTo`; `synchronized` na zapisie i czyszczeniu |
-| `data/local/SettingsDataStore.kt` | `runCatching` obejmuje odczyt w `appModeBlocking()`; `ReplaceFileCorruptionHandler` na DataStore `settings` |
-| `data/local/ExportCache.kt` | Wydzielone `pruneExpired()`, wołane niezależnie od zapisu |
-| `data/billing/PlayBillingDataSource.kt` | Brak klucza licencyjnego = weryfikacja fail-closed poza debugiem |
-| `FastMaskApplication.kt` | `pruneExpiredExports()` przy starcie |
-| `quickmask/QuickMaskRunner.kt` | `AtomicBoolean` blokujący równoległe tworzenie |
+| `app/build.gradle.kts` | Wtyczki `google-services` i `firebase.crashlytics` aplikowane **tylko** gdy istnieje `app/google-services.json`. Blok `configure<CrashlyticsExtension>` w buildType `debug` osłonięty tą samą flagą — `configure<T>` rzuca, gdy wtyczki nie zaaplikowano. Build bez wtyczek loguje komunikat, żeby nie dało się go pomylić z pełnym |
+| `.github/workflows/build.yml` | **Nowy.** Testy jednostkowe, lint i nieopisany build release na każdy push do `main` i każdy PR |
+| `README.md` | Wymóg JDK 17–21 i opcjonalność `google-services.json` |
+| `AGENTS.md` | To samo, plus usunięty stub `TODO: Document how to run the app` |
+| `Plans/release-checklist.md` | Nowy punkt: potwierdź, że `google-services.json` był na miejscu przy buildzie release — brak pliku nie jest już błędem builda |
+| `docs/privacy.md` | Korekta sekcji 2 (patrz § 4) |
 
-### Zasoby i konfiguracja
+### Dane i pamięć lokalna
 
 | Plik | Co się zmieniło |
 |---|---|
-| `res/xml/backup_rules.xml` | Dodane wykluczenia snapshotu masek i katalogu DataStore |
-| `res/xml/data_extraction_rules.xml` | To samo, dla backupu chmurowego i transferu urządzenia |
-| `gradle.properties` | Usunięty `org.gradle.java.home` z absolutną ścieżką do lokalnego JDK |
-| `docs/privacy.md` | Sekcja 6 (retencja) opisuje faktyczne zachowanie wylogowania |
+| `data/local/MaskedEmailCache.kt` | Licznik generacji podbijany przez `clear()` pod tym samym zamkiem; `write()` przyjmuje generację złapaną przed pobraniem i porzuca zapis unieważniony. Parametr `generation` **celowo bez wartości domyślnej** |
+| `data/local/ExportCache.kt` | Ten sam mechanizm; `write()` rzuca, gdy sesja się skończyła |
+| `data/local/ProEntitlementStore.kt` | Dodany `ReplaceFileCorruptionHandler`, tak jak w `SettingsDataStore` |
+| `data/repository/MaskedEmailRepositoryImpl.kt` | Łapie generację cache'u **przed** wywołaniem sieciowym i przekazuje do zapisu |
+| `data/repository/ProRepositoryImpl.kt` | Zapis uprawnienia osłonięty; `lastPersistedToken` przesuwa się tylko po sukcesie, więc porażka jest ponawiana; `CancellationException` przepuszczany dalej |
 
----
-
-## 2. Zmiany zachowania widoczne dla użytkownika
-
-Trzy zmiany są odczuwalne. Reszta jest niewidoczna, dopóki coś nie pójdzie źle.
-
-**1. „Archiwizuj maskę" faktycznie archiwizuje.** Przed zmianą przycisk wysyłał JMAP `destroy`. Po zmianie wysyła `state: deleted`. **Konsekwencja do sprawdzenia na koncie:** zarchiwizowane maski powinny teraz pojawiać się pod filtrem „Archived" i w webowym Fastmailu pod „Review deleted masked addresses" — czyli tam, gdzie UI od początku obiecywał, że będą. Wcześniej najprawdopodobniej znikały bezpowrotnie. Undo ze snackbara powinno je przywracać.
-
-**2. Zamek aplikacji nie rozbraja się po utracie Pro.** Jeśli miałeś włączony zamek i uprawnienie Pro wygasło, aplikacja startowała odblokowana, ale blokowała się po powrocie z tła, a Ustawienia pokazywały przełącznik jako wyłączony. Teraz wszystkie cztery miejsca czytają tę samą preferencję. Wyłączenie zamka nadal nie wymaga Pro (ochrona przed zablokowaniem się na zewnątrz).
-
-**3. Kafelek Quick Settings nie tworzy wielu masek naraz.** Trzykrotne szybkie tapnięcie tworzyło trzy prawdziwe maski, z których cofnąć dało się tylko ostatnią. Teraz kolejne tapnięcia w trakcie tworzenia są ignorowane.
-
-**Zmiana jednorazowa, cicha:** przy pierwszym uruchomieniu po aktualizacji offline'owy snapshot masek zostanie odrzucony (nie ma znacznika właściciela) i odtworzony przy pierwszym udanym pobraniu. Bez sieci przy pierwszym starcie lista będzie pusta zamiast pokazać stare dane — jednorazowo.
-
----
-
-## 3. Dodane testy
-
-**Jednostkowe (442 → 446, wszystkie zielone):**
-
-| Test | Co pilnuje |
-|---|---|
-| `MaskedEmailRepositoryImplTest.archive flips state to deleted and never destroys` | Archiwizacja nie może sięgnąć po `destroy` |
-| `MaskedEmailRepositoryImplTest.destroy is the only path that reaches jmap destroy` | I odwrotnie — Undo kafelka nie może zamienić się w archiwizację |
-| `MaskedEmailRepositoryImplTest.the cache is read back under the same owner it was written with` | Zapis i odczyt cache'u używają tego samego znacznika |
-| `MaskedEmailRepositoryImplTest.a different token asks the cache for a different owner` | Dwa konta nie dzielą znacznika |
-| `MaskedEmailRepositoryImplTest.a successful fetch is written through to the cache` | *(rozszerzony)* zapis musi nieść niepusty znacznik |
-| `ExportCacheTest.pruneExpired ages out old exports without writing a new one` | Retencja działa bez kolejnego eksportu |
-
-**Instrumentowane (16 → 19):**
-
-| Test | Co pilnuje |
-|---|---|
-| `MaskedEmailCacheTest.aSnapshotWrittenByOneAccountIsInvisibleToAnother` | Snapshot konta A nie odpowiada kontu B |
-| `MaskedEmailCacheTest.aSnapshotFromBeforeOwnersExistedIsTreatedAsAbsent` | Plik po aktualizacji degraduje do „brak cache", nie do cudzych danych |
-| `MaskedEmailCacheTest.aStrandedTempFileDoesNotDestroyTheLiveSnapshot` | Przerwany zapis nie kasuje dobrego snapshotu |
-
-**Usunięty test:** `QuickMaskCreatorTest.the lock preference without Pro does not block quick creation` — kodyfikował naprawiany defekt, powołując się na uzasadnienie („taka sama koniunkcja, jakiej używa MainActivity"), które było nieprawdziwe. W jego miejscu jest komentarz wyjaśniający, dlaczego zniknął. Regresję blokuje teraz kompilator: `QuickMaskGuard` nie wystawia już uprawnienia, więc koniunkcji nie da się napisać bez ponownego dodania metody i uzasadnienia jej.
-
----
-
-## 4. Potencjalne regresje
-
-Uczciwie: rozdzielenie archiwizacji od usuwania to najpoważniejsza zmiana w tym zestawie i **nie została zweryfikowana na prawdziwym koncie Fastmail** — nie mam tokenu, a testy potwierdzają tylko, że wysyłamy `update {state: deleted}`, nie to, co Fastmail z tym robi.
-
-| Ryzyko | Dlaczego mimo to uważam zmianę za bezpieczną |
-|---|---|
-| Zarchiwizowane maski zaczną pojawiać się pod „Archived" i podbijać licznik chipa | To jest zamierzone zachowanie: enum `EmailState.DELETED`, filtr „Archived" i etykieta `state_deleted` istnieją w kodzie od dawna i nie miały czym się zapełnić z poziomu aplikacji |
-| Fastmail mógłby odrzucić `state: deleted` | Wtedy archiwizacja zwróci błąd „Nie udało się zarchiwizować" zamiast po cichu skasować maskę. Głośna porażka jest lepsza od cichej utraty |
-| Mutacje w `@ApplicationScope` mogą trafić do martwego ViewModelu | Nie mogą: `async { }.await()` — żądanie żyje w scope aplikacji, oczekiwanie w `viewModelScope`, więc zniszczenie ekranu przerywa tylko oczekiwanie |
-| `withContext(IO)` odsłania wyścig zapisu cache'u | Dlatego atomowy zapis i `synchronized` weszły w tym samym zestawie zmian, nie później |
-| Odrzucenie snapshotu bez znacznika przy aktualizacji | Jednorazowa degradacja do stanu sprzed funkcji offline; nic nie jest tracone poza jednym pobraniem |
-| `./gradlew` z gołego terminala przestanie działać | Świadoma decyzja Pawła (2026-07-27): repo zostaje przenośne, budujesz przez alias z `JAVA_HOME` wskazującym JBR z Android Studio |
-
----
-
-## 5. Do ręcznego QA (nie da się tego sprawdzić bez konta i telefonu)
-
-Kolejność od najważniejszego.
-
-1. **Archiwizacja na prawdziwym koncie.** Załóż maskę testową → zarchiwizuj z ekranu szczegółów → wróć na listę → tapnij „Cofnij" w snackbarze. Maska powinna wrócić do stanu sprzed archiwizacji. Potem zarchiwizuj drugą i sprawdź w webowym Fastmailu, czy leży pod „Review deleted masked addresses".
-2. **Filtr „Archived".** Po powyższym chip „Archived" powinien mieć niezerowy licznik.
-3. **Drugie Undo z rzędu.** Zarchiwizuj maskę A, poczekaj aż snackbar zniknie, zarchiwizuj maskę B. Snackbar z Undo musi pojawić się za drugim razem (wcześniej nie pojawiał się nigdy po pierwszym).
-4. **Undo po obrocie.** Zarchiwizuj, poczekaj aż snackbar zniknie, obróć telefon. Nie może wyskoczyć „zombie" snackbar dla dawno zarchiwizowanej maski.
-5. **Kafelek Quick Settings.** Tapnij trzy razy szybko. Ma powstać **jedna** maska, jedno powiadomienie, Undo ma ją cofnąć.
-6. **Zamek aplikacji.** Włącz (wymaga Pro) → wyjdź i wróć → prompt biometryczny. Zabij proces i uruchom ponownie → prompt musi pojawić się też przy zimnym starcie.
-7. **Wylogowanie i zalogowanie na to samo konto.** Lista musi się odbudować; brak sieci zaraz po zalogowaniu = pusta lista, nie cudze dane.
-8. **Tworzenie maski + natychmiastowe cofnięcie.** Wypełnij formularz, „Utwórz", od razu wstecz. Maska powinna powstać, a nie zawisnąć jako sierota bez adresu.
-9. **Eksport CSV (Pro).** Wyeksportuj, poczekaj godzinę, zrestartuj aplikację, sprawdź że plik zniknął z `cacheDir/exports`.
-10. **Płynność listy.** Przy ~265 maskach pull-to-refresh powinien być zauważalnie gładszy — szyfrowany zapis snapshotu zszedł z wątku głównego.
-
-
----
-
-## 6. Druga tura — dostępność
-
-Po pierwszym zestawie poprawek doszła runda a11y (patrz `AUDIT_REPORT.md` §6).
-
-### Zmienione pliki
+### UI
 
 | Plik | Co się zmieniło |
 |---|---|
-| `ui/theme/Color.kt` | Nowe `LightInputLine` `#8E846E` i `DarkInputLine` `#776D5C` — obramowanie pól na 3:1 |
-| `ui/theme/StatusColors.kt` | `inputLine` w `FastMaskExtraColors` |
-| `ui/components/DesignInput.kt` | Obramowanie z `extras.inputLine`; `semantics { error(hint) }` przy błędzie |
-| `ui/components/DesignKit.kt` | `PillButton` przyjmuje `loadingDescription`, ogłaszany jako `stateDescription` + `liveRegion` |
-| `ui/components/TutorialOverlay.kt` | `isTraversalGroup` + `traversalIndex`; „Skip" na 48 dp |
-| `ui/list/MaskedEmailListScreen.kt` | Pigułki filtrów 48 dp; licznik bez alphy; baner offline ogłaszany; tytuł jako `heading()`; treść ukryta przed czytnikiem, gdy tutorial widoczny |
-| `ui/detail/MaskedEmailDetailScreen.kt` | Kopiowanie 48 dp; dwa przyciski z `loadingDescription` |
-| `ui/create/CreateMaskedEmailScreen.kt` | Segment Active/Off 48 dp; przycisk z `loadingDescription`; tytuł jako `heading()` |
-| `ui/auth/LoginScreen.kt` | Przycisk logowania z `loadingDescription` |
-| `ui/settings/SettingsScreen.kt` | `heightIn(max = 360.dp)` w dialogu języka; tytuł jako `heading()` |
-| `ui/pro/ProScreen.kt` | Tytuł jako `heading()` |
-| `res/values*/strings.xml` | Nowy `state_working` w 20 lokalach |
-| `androidTest/MainFlowsTest.kt` | Helper czeka najpierw na tutorial, potem na listę |
-| `app/build.gradle.kts`, `CHANGELOG.md` | Wersja 22 / 1.10.1 |
+| `ui/components/DesignKit.kt` | `PillButton` dostaje `Role.Button` i ogłasza postęp zawsze, gdy ustawiono `loading`, z fallbackiem na ogólny string. `DesignCard` — `Role.Button` na klikalności |
+| `ui/auth/LoginScreen.kt`, `ui/create/CreateMaskedEmailScreen.kt`, `ui/detail/MaskedEmailDetailScreen.kt` | Przekazują `loading` zamiast własnego spinnera; z `enabled` znika zbędne `!isLoading` |
+| `ui/pro/ProScreen.kt` | Oba przyciski dostają `loadingDescription` |
+| `ui/list/MaskedEmailListViewModel.kt` | `restoreMask` wysyła żądanie w `@ApplicationScope` |
+| `ui/settings/SettingsViewModel.kt`, `SettingsScreen.kt` | Zapis CSV przeniesiony z composable'a do ViewModelu, który trzyma wstrzyknięty singleton `ExportCache`. `SettingsEvent.ShareCsv` niesie teraz `File` |
+| `ui/theme/Color.kt` | `LightOffInk` przyciemniony `#6B6450` → `#645E4B` |
 
-### Zmiany widoczne dla użytkownika
+### Platforma i IPC
 
-Dwie. **Obramowania pól tekstowych są teraz wyraźnie widoczne** — ciepły brąz zamiast ledwie widocznej kreski; sprawdzone wizualnie na emulatorze, mieści się w estetyce „warm ink". **Pigułki filtrów i segment Active/Off są nieco wyższe**, bo urosły do 48 dp obszaru dotyku.
+| Plik | Co się zmieniło |
+|---|---|
+| `AndroidManifest.xml` | `android:taskAffinity=""` na `<application>` |
+| `res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml` | Wykluczenie `cache_staging/` |
+| `quickmask/QuickMaskRunner.kt` | Bramka Undo per-id; `crashGuard` nie zwalnia już flagi tworzenia; dispatcher wstrzykiwany przez nowy `@IoDispatcher` |
+| `di/BillingModule.kt` | Deklaracja i dostarczenie `@IoDispatcher` |
+| `MainActivity.kt` | Przepuszcza `CancellationException` z odczytu startowego |
 
-Reszta jest niewidoczna dla wzroku i słyszalna wyłącznie przez czytnik ekranu.
+---
 
-### Regresja złapana w trakcie
+## 3. Testy
 
-Uczynienie tutoriala modalnym dla czytnika wywaliło 6 testów instrumentowanych: ich wspólny helper czekał na tytuł listy, który jest teraz — celowo — poza drzewem semantyki, dopóki coach marks są na wierzchu. Poprawiony został **helper, nie zachowanie**. To ta sama kategoria co defekt A1: test opisywał założenie, które przestało być prawdziwe.
+**Jednostkowe 447 → 459 (+12). Instrumentalne 19 → 24 (+5).**
 
-### Czego nadal nie potwierdzam
+| Test | Czego pilnuje |
+|---|---|
+| `ProRepositoryImplTest` · a failing entitlement write does not propagate out of refresh | pętli crashy u płacącego użytkownika |
+| `ProRepositoryImplTest` · a failed entitlement write is retried on the next reconciliation | tego, że porażka jest ponawiana, a nie tylko przeżyta |
+| `MaskedEmailListViewModelTest` · restoreMask issues the request on the application scope | Undo przeżywającego zniszczenie ekranu |
+| `MaskedEmailRepositoryImplTest` · the cache write is stamped with the generation captured before the fetch | tego, że generacja jest czytana **przed** pobraniem — na tym polega cała bramka |
+| `ExportCacheTest` · an export whose fetch outlived a sign-out is never written | CSV w plaintekście po wylogowaniu |
+| `ExportCacheTest` · an export that started after the sign-out is written normally | tego, że bramka nie strzela za często |
+| `SettingsViewModelTest` · an export whose fetch outlived a sign-out is abandoned | to samo, przez cały ViewModel |
+| `MaskedEmailCacheTest` (instr.) · aWriteFromASessionThatHasSinceEndedIsDropped | snapshotu po wylogowaniu, na prawdziwym szyfrowanym pliku |
+| `MaskedEmailCacheTest` (instr.) · aWriteFromTheCurrentSessionStillLands | tego, że bramka nie strzela za często |
+| `PillButtonSemanticsTest` (instr., nowy plik) · 3 testy | roli, ogłoszenia postępu i **braku** fałszywego ogłoszenia w spoczynku |
+| `QuickMaskUndoIdempotenceTest` (nowy plik) · 5 testów | podwójnego tapnięcia Undo, zakresu per-id, zwolnienia po porażce, zamknięcia powiadomienia |
 
-Wszystkie poprawki a11y są wyliczone (kontrasty), skompilowane i sprawdzone wizualnie — ale **żadna nie została przepuszczona przez TalkBacka**. Nie mam urządzenia z włączonym czytnikiem ekranu. To pozycja QA, nie deklaracja gotowości.
+`FakeMaskedEmailRepository` dostał hook `beforeGet`, żeby test mógł wpleść coś w trwające pobieranie.
+
+---
+
+## 4. Zmiany zachowania
+
+To są zmiany, które użytkownik albo Ty możecie zauważyć. Reszta jest wewnętrzna.
+
+1. **Pozycja spinnera na czterech przyciskach.** Zaloguj, Utwórz i dwa przyciski ekranu szczegółów pokazują spinner **po lewej** od etykiety, nie po prawej — bo `PillButton` przejął go na siebie. Tak już wyglądały przyciski paywalla.
+2. **Pigułka statusu „off" jest odrobinę ciemniejsza** w motywie jasnym.
+3. **Eksport CSV może teraz zakończyć się błędem** tam, gdzie wcześniej się udawał — konkretnie gdy użytkownik wyloguje się w trakcie pobierania. O to właśnie chodzi w tej poprawce.
+4. **Build bez `app/google-services.json` przechodzi** zamiast padać i daje aplikację z martwym raportowaniem crashy. Release zbudowany przez pomyłkę bez tego pliku pojedzie bez instrumentacji, zamiast się nie zbudować — dlatego doszedł punkt w checkliście, a build wypisuje o tym komunikat.
+5. **`docs/privacy.md` sekcja 2** mówi teraz, że zaszyfrowany snapshot listy masek leży na urządzeniu. To korekta dokumentu, nie zmiana aplikacji: snapshot istnieje od czasu listy offline, a sekcja 6 już wcześniej obiecywała jego usunięcie przy wylogowaniu. Nie zbierasz nowych danych i nic nowego nie opuszcza urządzenia. **Play Console → Data safety nie wymaga zmiany** — przechowywanie wyłącznie lokalne nie jest „collection", a deklarowany zbiór (crash logs, device IDs) się nie zmienił.
+
+---
+
+## 5. Potencjalne regresje — na co patrzeć
+
+- **Task affinity.** `android:taskAffinity=""` zmienia sposób identyfikacji zadania aplikacji. Suite instrumentalny przechodzi (start, nawigacja, przepływy demo), ale zachowanie w „ostatnich aplikacjach" i wejście przez udostępnianie warto przejść ręcznie — checklist w `AUDIT_REPORT.md` § 8.
+- **Zmiana `PillButton` dotyka każdego przycisku w aplikacji.** Tryb awarii to przycisk, który przestaje się blokować w trakcie pracy. W czterech miejscach z `enabled` zniknęło `!isLoading`, bo komponent robi to sam; gdyby ktoś kiedyś to cofnął, przyciski staną się podwójnie klikalne.
+- **`ExportCache.write` teraz rzuca** zamiast zawsze zwracać plik. Jedyny wołający to obsługuje, ale każdy nowy musi.
+- **Raportowanie crashy zależy od pliku spoza repozytorium.** Build nie wymusza już jego obecności; checklist release'u jest teraz jedyną bramką.
+
+---
+
+## 6. Czego świadomie nie zmieniłem
+
+- **Pusty udany fetch nadal nadpisuje snapshot.** Rozważane jako kandydat na próg „nie zastępuj N masek zerem". Odrzucone: pusta lista jest poprawną odpowiedzią — użytkownik, który skasował ostatnią maskę, nie może dalej widzieć jej offline — a próg zamieniłby wynik poprawny na nieaktualny. Realnym defektem byłoby potraktowanie **nieudanego** pobrania jako pustego, a ta ścieżka już zostawia cache w spokoju (pokryte istniejącym testem).
+- **Cyfrowy „dowód" w `ProEntitlementStore` nie jest odporny na manipulację.** Jego KDoc obiecuje więcej, niż robi kod: digest jest sprawdzany tylko na niepustość, więc na zrootowanym urządzeniu da się przypiąć PRO offline. Porządna poprawka to HMAC na kluczu z Keystore. Opisane w `AUDIT_REPORT.md` (S-3), nie naprawione — wymaga roota, nie odsłania danych użytkownika, a Play pozostaje autorytatywny, kiedy tylko jest osiągalny.
+- **Stan maski na liście nadal rozróżnialny wyłącznie kolorem.** Potwierdzona niezgodność z WCAG 1.4.1 z policzonymi współczynnikami (1.02:1 między dwiema kropkami stanu). Nie naprawione tutaj, bo lekarstwo zmienia język wizualny najczęściej przewijanego ekranu — to decyzja projektowa, nie naprawa defektu. Pierwsza pozycja w `UX_RECOMMENDATIONS.md`, z konkretną propozycją.
