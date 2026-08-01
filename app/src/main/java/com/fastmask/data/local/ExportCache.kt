@@ -29,12 +29,38 @@ class ExportCache @Inject constructor(
     private val dir: File get() = File(context.cacheDir, EXPORTS_DIR)
 
     /**
+     * Bumped by every [clear], mirroring `MaskedEmailCache`. An export is built
+     * from a network fetch, so the sequence "tap Export on a slow link, then Log
+     * out from the same screen before it lands" wrote the account's complete
+     * mask list — in plaintext, the one place in the app where that is true —
+     * into the cache directory *after* the sign-out that was supposed to erase
+     * it. Ageing out after an hour is the wrong answer there; the file should
+     * never have been created.
+     */
+    private val generation = java.util.concurrent.atomic.AtomicLong(0)
+
+    /** Snapshot of the current generation, for a caller about to fetch. */
+    fun currentGeneration(): Long = generation.get()
+
+    /**
      * Writes [csv] to a fresh timestamped file and returns it, after ageing out
      * exports old enough that no share can still be reading them.
      *
      * @param now injected so the ageing rule is testable without a clock.
+     * @param generation what [currentGeneration] returned when the export's
+     *   fetch began; a [clear] since then aborts the write.
+     * @throws IllegalStateException when the session that asked for this export
+     *   has ended. The caller already treats a failure as "export failed", which
+     *   is the correct outcome: there is no session to export for any more.
      */
-    fun write(csv: String, now: Long = System.currentTimeMillis()): File {
+    fun write(
+        csv: String,
+        now: Long = System.currentTimeMillis(),
+        generation: Long = this.generation.get(),
+    ): File {
+        check(generation == this.generation.get()) {
+            "Export abandoned: the session ended before the file was written"
+        }
         val dir = dir.apply { mkdirs() }
         pruneExpired(now)
         return File(dir, "fastmask-masks-$now.csv").apply { writeText(csv) }
@@ -58,6 +84,7 @@ class ExportCache @Inject constructor(
 
     /** Drops every export regardless of age. Called on sign-out. */
     fun clear() {
+        generation.incrementAndGet()
         dir.listFiles()?.forEach { it.delete() }
     }
 

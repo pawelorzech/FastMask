@@ -53,8 +53,15 @@ class FakeMaskedEmailRepository(
     var lastUpdateParams: UpdateMaskedEmailParams? = null
     var lastCreateParams: CreateMaskedEmailParams? = null
 
+    /**
+     * Runs before the fetch answers, so a test can interleave something with an
+     * in-flight request — e.g. a sign-out landing before the response does.
+     */
+    var beforeGet: (suspend () -> Unit)? = null
+
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
         getCalls++
+        beforeGet?.invoke()
         failure?.let { return Result.failure(it) }
         return Result.success(emails)
     }

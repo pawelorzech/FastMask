@@ -113,6 +113,7 @@ class MaskedEmailRepositoryImplTest {
                 match { it.single().id == "m1" },
                 match { owner -> !owner.isNullOrBlank() },
                 any(),
+                any(),
             )
         }
     }
@@ -128,7 +129,7 @@ class MaskedEmailRepositoryImplTest {
         every { tokenStorage.getToken() } returns "token"
         coEvery { jmapApi.getMaskedEmails("token") } returns Result.success(listOf(dto()))
         val written = slot<String>()
-        every { cache.write(any(), capture(written), any()) } returns Unit
+        every { cache.write(any(), capture(written), any(), any()) } returns Unit
         val readWith = slot<String>()
         every { cache.read(capture(readWith)) } returns null
 
@@ -143,7 +144,7 @@ class MaskedEmailRepositoryImplTest {
         val owners = mutableListOf<String?>()
         // captureNullable, not capture: the owner parameter is String?, and
         // capture()'s type variable is bounded by Any.
-        every { cache.write(any(), captureNullable(owners), any()) } returns Unit
+        every { cache.write(any(), captureNullable(owners), any(), any()) } returns Unit
         coEvery { jmapApi.getMaskedEmails(any()) } returns Result.success(listOf(dto()))
 
         every { tokenStorage.getToken() } returns "account-a-token"
@@ -200,6 +201,24 @@ class MaskedEmailRepositoryImplTest {
 
         repo.getMaskedEmails()
 
-        verify(exactly = 0) { cache.write(any(), any()) }
+        verify(exactly = 0) { cache.write(any(), any(), any(), any()) }
+    }
+
+    // A sign-out during an in-flight refresh must not put the snapshot back.
+    // The generation has to be read BEFORE the network call: reading it at write
+    // time would pick up the value the clear() already installed and the guard
+    // would pass. The mask list must therefore be stamped with what the cache
+    // said when the fetch started.
+    @Test
+    fun `the cache write is stamped with the generation captured before the fetch`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        every { cache.currentGeneration() } returns 7L
+        coEvery { jmapApi.getMaskedEmails("tok") } returns Result.success(listOf(dto()))
+        val stamped = slot<Long>()
+        every { cache.write(any(), any(), any(), capture(stamped)) } returns Unit
+
+        repo.getMaskedEmails()
+
+        assertEquals(7L, stamped.captured)
     }
 }

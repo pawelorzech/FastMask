@@ -111,4 +111,32 @@ class ExportCacheTest {
 
         cache.clear()
     }
+
+    // An export is built from a network fetch, so "tap Export on a slow link,
+    // then Log out from the same screen before it lands" used to write the
+    // account's whole mask list — in plaintext — into the cache directory AFTER
+    // the sign-out that was supposed to erase it. Ageing it out an hour later is
+    // the wrong remedy for a file that should never have existed.
+    @Test
+    fun `an export whose fetch outlived a sign-out is never written`() {
+        val (cache, dir) = cache()
+        val generation = cache.currentGeneration()
+
+        cache.clear() // the sign-out lands while the fetch is still in flight
+
+        val failure = runCatching { cache.write("every,mask", generation = generation) }
+        assertTrue(failure.isFailure)
+        assertEquals(0, dir.listFiles()?.size ?: 0)
+    }
+
+    @Test
+    fun `an export that started after the sign-out is written normally`() {
+        val (cache, dir) = cache()
+        cache.clear()
+
+        // Fresh generation read: this export belongs to the new session.
+        cache.write("email,state\n", generation = cache.currentGeneration())
+
+        assertEquals(1, dir.listFiles()?.size)
+    }
 }
