@@ -290,7 +290,28 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.inlineErrorRes)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
+    }
+
+    @Test
+    fun `successful background refresh clears an earlier visible refresh error`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline now")
+        viewModel.loadMaskedEmails()
+        advanceUntilIdle()
+        assertEquals(R.string.error_network, viewModel.uiState.value.inlineErrorRes)
+
+        repo.failure = null
+        repo.emails = listOf(mask("fresh"))
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(null, viewModel.uiState.value.inlineErrorRes)
+        assertEquals(listOf("fresh"), viewModel.uiState.value.emails.map { it.id })
     }
 
     // --- offline cache (B1) ------------------------------------------------
@@ -325,6 +346,7 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(null, viewModel.uiState.value.inlineErrorRes)
         assertEquals(null, viewModel.uiState.value.cachedAt)
     }
 

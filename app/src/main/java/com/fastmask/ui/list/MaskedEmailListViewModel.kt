@@ -135,6 +135,9 @@ class MaskedEmailListViewModel @Inject constructor(
                                 ),
                                 // A successful fetch is by definition current.
                                 cachedAt = null,
+                                // A previous pull-to-refresh or Undo failure is
+                                // no longer true once the server answers again.
+                                errorRes = null,
                             )
                         }
                     },
@@ -235,7 +238,11 @@ data class MaskedEmailListUiState(
     val cachedAt: java.time.Instant? = null,
     val selectedFilter: EmailFilter = EmailFilter.ALL,
     val errorRes: Int? = null
-)
+) {
+    /** An error shown above an existing list instead of replacing its data. */
+    val inlineErrorRes: Int?
+        get() = errorRes?.takeIf { emails.isNotEmpty() }
+}
 
 enum class EmailFilter {
     ALL, ENABLED, DISABLED, DELETED

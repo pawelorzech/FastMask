@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -272,6 +273,13 @@ fun MaskedEmailListScreen(
                             RelativeTime.format(context, cachedAt),
                         ),
                     )
+                }
+
+                // A manual refresh can fail while the previous good list is
+                // still usable. Keep the data on screen, but do not turn the
+                // failed request into a silent no-op.
+                uiState.inlineErrorRes?.let { errorRes ->
+                    InlineErrorBanner(text = stringResource(errorRes))
                 }
 
                 // Header
@@ -868,6 +876,34 @@ private fun OfflineBanner(text: String) {
             text = text,
             style = MonoSmallStyle,
             color = extras.inkMuted,
+        )
+    }
+}
+
+@Composable
+private fun InlineErrorBanner(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .semantics(mergeDescendants = true) {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = text
+            },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.ErrorOutline,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onErrorContainer,
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MonoSmallStyle,
+            color = MaterialTheme.colorScheme.onErrorContainer,
         )
     }
 }
