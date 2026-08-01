@@ -256,19 +256,14 @@ fun CreateMaskedEmailScreen(
 
                 PillButton(
                     text = stringResource(R.string.create_email_button),
+                    loading = uiState.isLoading,
                     loadingDescription = stringResource(R.string.state_working),
                     onClick = viewModel::create,
                     variant = PillButtonVariant.Primary,
-                    enabled = !uiState.isLoading && uiState.prefixErrorRes == null,
+                    enabled = uiState.prefixErrorRes == null,
                     fullWidth = true,
                     trailing = if (uiState.isLoading) {
-                        {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                color = extras.onAccent,
-                                strokeWidth = 2.dp,
-                            )
-                        }
+                        null
                     } else {
                         {
                             Icon(

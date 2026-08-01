@@ -300,18 +300,15 @@ private fun DetailContent(
         val isActive = email.state == EmailState.ENABLED || email.state == EmailState.PENDING
         PillButton(
             text = stringResource(if (isActive) R.string.email_detail_disable else R.string.email_detail_enable),
+            loading = uiState.isUpdating,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onToggleState,
             variant = if (isActive) PillButtonVariant.Ghost else PillButtonVariant.Active,
-            enabled = !uiState.isUpdating,
             fullWidth = true,
+            // PillButton substitutes its own spinner for `leading` while
+            // loading, so this branch only has to supply the resting icon.
             leading = if (uiState.isUpdating) {
-                {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
+                null
             } else {
                 {
                     Icon(
@@ -385,10 +382,11 @@ private fun DetailContent(
 
         PillButton(
             text = stringResource(R.string.email_detail_save),
+            loading = uiState.isUpdating,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onSaveChanges,
             variant = PillButtonVariant.Secondary,
-            enabled = hasChanges && !uiState.isUpdating,
+            enabled = hasChanges,
             fullWidth = true,
         )
     }

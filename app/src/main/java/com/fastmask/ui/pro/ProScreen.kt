@@ -245,6 +245,7 @@ fun ProScreen(
                             ),
                             onClick = { activity?.let(viewModel::buy) },
                             loading = uiState.purchaseInFlight,
+                            loadingDescription = stringResource(R.string.state_working),
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(Modifier.height(10.dp))
@@ -264,6 +265,7 @@ fun ProScreen(
                         text = stringResource(R.string.pro_restore),
                         onClick = viewModel::restore,
                         loading = uiState.restoreInFlight,
+                        loadingDescription = stringResource(R.string.state_working),
                         variant = PillButtonVariant.Ghost,
                         modifier = Modifier.fillMaxWidth(),
                     )

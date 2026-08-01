@@ -208,19 +208,18 @@ fun LoginScreen(
 
             PillButton(
                 text = stringResource(R.string.login_button),
+                // `loading`, not a hand-rolled spinner in `trailing`: the flag is
+                // what drives the screen-reader announcement, and it also
+                // disables the button, so the enabled expression no longer has
+                // to repeat !isLoading.
+                loading = uiState.isLoading,
                 loadingDescription = stringResource(R.string.state_working),
                 onClick = { viewModel.login() },
-                enabled = !uiState.isLoading && uiState.token.isNotBlank(),
+                enabled = uiState.token.isNotBlank(),
                 variant = PillButtonVariant.Primary,
                 fullWidth = true,
                 trailing = if (uiState.isLoading) {
-                    {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = extras.onAccent,
-                            strokeWidth = 2.dp,
-                        )
-                    }
+                    null
                 } else {
                     {
                         Icon(
