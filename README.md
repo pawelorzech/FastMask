@@ -1,290 +1,225 @@
 <p align="center">
-  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width="100" alt="FastMask Logo">
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png" width="112" alt="FastMask app icon">
 </p>
 
 <h1 align="center">FastMask</h1>
 
 <p align="center">
-  <strong>Native Android app for managing Fastmail masked emails</strong>
+  <strong>A privacy-first Android client for Fastmail Masked Email.</strong><br>
+  Create, find, edit, pause, archive, and restore masked addresses without opening Fastmail in a browser.
 </p>
 
 <p align="center">
-  <a href="https://github.com/pawelorzech/FastMask/releases/latest">
-    <img src="https://img.shields.io/github/v/release/pawelorzech/FastMask?style=flat-square" alt="Latest Release">
-  </a>
-  <a href="https://github.com/pawelorzech/FastMask/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/pawelorzech/FastMask?style=flat-square" alt="License">
-  </a>
-  <a href="https://developer.android.com/about/versions/oreo">
-    <img src="https://img.shields.io/badge/API-26%2B-brightgreen?style=flat-square" alt="API 26+">
-  </a>
-  <a href="https://kotlinlang.org">
-    <img src="https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin">
-  </a>
+  <a href="https://github.com/pawelorzech/FastMask/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/pawelorzech/FastMask/build.yml?branch=main&style=flat-square&label=build" alt="Build status"></a>
+  <a href="https://github.com/pawelorzech/FastMask/releases/latest"><img src="https://img.shields.io/github/v/release/pawelorzech/FastMask?style=flat-square" alt="Latest packaged release"></a>
+  <a href="https://github.com/pawelorzech/FastMask/blob/main/LICENSE"><img src="https://img.shields.io/github/license/pawelorzech/FastMask?style=flat-square" alt="MIT License"></a>
+  <a href="https://developer.android.com/about/versions/oreo"><img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white" alt="Android 8.0 or newer"></a>
+  <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.2.20-7F52FF?style=flat-square&logo=kotlin&logoColor=white" alt="Kotlin 2.2.20"></a>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#setup">Setup</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#contributing">Contributing</a>
+  <a href="#what-it-does">Features</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#privacy-and-security">Privacy</a> ·
+  <a href="#building-the-project">Build</a> ·
+  <a href="#architecture">Architecture</a>
 </p>
 
----
+> [!NOTE]
+> FastMask is an independent, open-source project. It is not affiliated with or endorsed by Fastmail.
 
-## About
+## What it does
 
-FastMask is a native Android application that lets you manage your [Fastmail](https://www.fastmail.com) masked email addresses directly from your phone. Masked emails are disposable addresses that forward to your real inbox, helping you protect your privacy and reduce spam.
+FastMask talks directly to Fastmail's JMAP API using a token limited to the **Masked Email** permission. The current source tree builds app version **1.10.1** (`versionCode 22`); downloadable GitHub releases may trail the source.
 
-## Features
+### Core features
 
-| Feature | Description |
-|---------|-------------|
-| **View All Masks** | Browse your masked emails in a clean, searchable list |
-| **Create New** | Generate new masked addresses with custom descriptions |
-| **Enable/Disable** | Toggle masks on or off without deleting them |
-| **Edit Details** | Update description, domain, and URL associations |
-| **Quick Copy** | One-tap copy to clipboard |
-| **Archive** | Disable masks reversibly (mail bounces, restorable later) |
-| **Search & Filter** | Find specific masks instantly, filter by Active / Off / Archived |
-| **Sorted by Activity** | Newest mail at the top, not just newest creation |
-| **Warm-Ink Design** | Custom parchment/ink palette, Instrument Serif + JetBrains Mono typography |
-| **Light & Dark** | Both modes follow system theme |
-| **20 Languages** | Full localization with in-app language picker |
-| **Settings** | Language selection, contact/feedback, and logout |
+- Browse masks in a searchable list, sorted by latest activity.
+- Filter by **All**, **Active**, **Off**, or **Archived**, with live counts.
+- Create a random address or choose an optional prefix, site/domain, note, URL, and initial state.
+- Copy an address from the list or detail screen.
+- Edit metadata and switch a mask between Active and Off.
+- Archive a mask so new mail bounces, then restore it with Undo.
+- Keep reading the last successful, encrypted account snapshot while offline.
+- Share a link or text to FastMask to open a pre-filled creation form.
+- Create a mask from a Quick Settings tile or long-press launcher shortcut; the address is copied to the clipboard and the confirmation notification offers Undo.
+- Explore the complete UI in a local demo mode without a Fastmail token. Demo changes are never saved.
+- Use the app in 20 languages, including RTL support, with an in-app language picker.
+- Follow the system light/dark theme with an accessible warm-ink design system.
 
-## Screenshots
+### FastMask Pro
 
-<p align="center">
-  <i>Screenshots coming soon</i>
-</p>
+FastMask Pro is an optional one-time Google Play purchase. Existing core functionality stays free; Pro adds:
 
-<!--
-<p align="center">
-  <img src="docs/screenshots/list.png" width="200" alt="Email List">
-  <img src="docs/screenshots/create.png" width="200" alt="Create Email">
-  <img src="docs/screenshots/detail.png" width="200" alt="Email Detail">
-</p>
--->
+- five accent themes: Amber, Ink, Sage, Plum, and Cobalt;
+- an optional biometric/device-credential app lock;
+- CSV export of all masks through Android's system share sheet.
 
-## Installation
+The Pro surface can be disabled at build time with the monetization kill switch. A signed release build also requires a Play licensing public key so purchase signatures cannot be accepted without verification.
 
-### Download APK
+## Getting started
 
-1. Go to the [Releases](https://github.com/pawelorzech/FastMask/releases/latest) page
-2. Download the latest APK file
-3. Enable "Install from unknown sources" if prompted
-4. Install the APK
+### Requirements
 
-### Build from Source
+- Android 8.0 (API 26) or newer;
+- a Fastmail account with access to Masked Email;
+- a Fastmail API token with the **Masked Email** permission.
+
+### Create a Fastmail API token
+
+1. Sign in to [Fastmail on the web](https://app.fastmail.com/settings/security/tokens).
+2. Open **Settings → Privacy & Security**.
+3. In **Connected apps & API tokens**, choose **Manage API tokens**.
+4. Create a new token and select only **Masked Email**.
+5. Copy the token before closing the Fastmail dialog.
+
+FastMask's sign-in screen includes the same walkthrough, a direct link to Fastmail's token settings, and a paste action. Tokens without the required scope are rejected with a specific error.
+
+### Install an APK
+
+1. Open [GitHub Releases](https://github.com/pawelorzech/FastMask/releases/latest).
+2. Download the APK attached to the release.
+3. Allow installation from that source if Android asks.
+4. Install FastMask and paste the API token.
+
+The packaged release can lag behind the version on `main`. To run the current source, build a debug APK locally.
+
+## Privacy and security
+
+FastMask is designed around a narrow data path:
+
+```text
+FastMask on your device ── JMAP over HTTPS ── Fastmail
+          │
+          └── optional crash diagnostics ── Firebase Crashlytics
+```
+
+- **No intermediary backend:** mask operations go directly to Fastmail.
+- **Encrypted local secrets:** the API token uses `EncryptedSharedPreferences`; the offline snapshot uses `EncryptedFile`. Both are backed by Android Keystore.
+- **Account-scoped offline data:** cached masks are bound to the account and removed on sign-out.
+- **No cloud backup:** Android backup and device-transfer backup are disabled for app data.
+- **Hardened transport:** cleartext traffic is disabled, Fastmail API traffic trusts system certificate authorities only, and server-provided JMAP URLs are restricted to Fastmail hosts before receiving the token.
+- **Protected release UI:** release builds block screenshots, screen recording, Recents previews, and obscured-touch interactions.
+- **Sensitive clipboard data:** Android 13+ is told that copied masked addresses are sensitive.
+- **No ads or behavioural analytics:** there is no analytics SDK or screen/event tracking in production.
+- **Optional crash reports:** configured release builds can send technical crash diagnostics to Firebase Crashlytics. Collection is on by default, can be disabled in **Settings → Crash reports**, never runs in debug builds, and the app has no API for attaching masks, descriptions, domains, email addresses, or tokens to reports.
+- **Explicit plaintext export:** CSV export is a Pro action with a privacy confirmation. Exports live in app cache, are shared with a one-time URI grant, and are cleaned up after one hour.
+
+See the full [privacy policy](https://pawelorzech.github.io/FastMask/privacy.html) and [security policy](SECURITY.md). Please report vulnerabilities privately using the process in `SECURITY.md`, not a public issue.
+
+## Building the project
+
+### Prerequisites
+
+- Android Studio with Android SDK 36;
+- JDK 17–21. Android Studio's bundled JBR is suitable;
+- no Firebase project for a normal local or CI build.
+
+The project supports JDK 17–21; in particular, the Gradle 8.11.1 wrapper does not run on Java 26. If your system Java is 22 or newer, point `JAVA_HOME` at a supported JDK or put `org.gradle.java.home` in your personal `~/.gradle/gradle.properties`. Never commit a machine-specific JDK path.
 
 ```bash
-# Clone the repository
 git clone https://github.com/pawelorzech/FastMask.git
 cd FastMask
 
-# Build debug APK
+# Fast pre-commit gate
+./gradlew testDebugUnitTest lintDebug
+
+# Debug APK
 ./gradlew assembleDebug
 
-# Or build release APK
+# Minified, unsigned release smoke build
 ./gradlew assembleRelease
 ```
 
-The APK will be generated in `app/build/outputs/apk/`
+APK outputs are written to `app/build/outputs/apk/`.
 
-Requires JDK 17–21 (Android Studio's bundled JBR works; the Gradle 8.11.1 wrapper does not run
-on anything newer). Set `JAVA_HOME`, or `org.gradle.java.home` in your *personal*
-`~/.gradle/gradle.properties` — not in the repo.
+`app/google-services.json` is intentionally absent from the repository. When it is missing, the Firebase Gradle plugins are skipped and crash reporting is inert; the rest of the app builds and runs normally. Maintainers can add their own Firebase configuration outside version control for instrumented release builds.
 
-**Firebase is optional.** `app/google-services.json` is not in the repository, and
-the build no longer requires it: without the file the Firebase plugins are skipped
-and the app builds and runs normally with crash reporting inert. Only configured
-release builds report crashes; the maintainer's shipped build is configured this
-way. To build a fully instrumented copy, add your own `google-services.json` from
-a Firebase project of your own.
+### Tests
 
-## Requirements
+```bash
+# JVM unit tests
+./gradlew testDebugUnitTest
 
-- Android 8.0 (API 26) or higher
-- Fastmail account with API access
+# Android lint
+./gradlew lintDebug
 
-## Setup
+# Instrumented tests on a booted emulator/device
+./gradlew connectedDebugAndroidTest
 
-### 1. Create a Fastmail API Token
+# Full Gradle test lifecycle
+./gradlew test
+```
 
-1. Log in to [Fastmail](https://www.fastmail.com)
-2. Navigate to **Settings** → **Privacy & Security** → **Integrations** → **API tokens**
-3. Click **New API token**
-4. Name it (e.g., "FastMask")
-5. Select scope: **Masked Email** (read/write)
-6. Copy the generated token
+CI runs unit tests, lint, and a minified release build for every pull request. The test suite covers JMAP mapping, authentication and scope validation, repositories, offline encryption flows, share routing, Quick Mask and Undo policies, billing verification, CSV hardening, translations, privacy boundaries, ViewModels, accessibility semantics, and end-to-end Compose flows.
 
-### 2. Log in to FastMask
+### Signed release configuration
 
-1. Open the app
-2. Paste your API token
-3. Tap "Log in"
+Release signing material belongs outside the repository. FastMask reads it from environment variables or personal Gradle properties:
 
-Your token is stored securely using Android's EncryptedSharedPreferences.
+| Purpose | Environment variable | Gradle property |
+|---|---|---|
+| Keystore path | `FASTMASK_KEYSTORE` | `fastmask.keystore` |
+| Store password | `FASTMASK_STORE_PWD` | `fastmask.storePassword` |
+| Key alias | `FASTMASK_KEY_ALIAS` | `fastmask.keyAlias` |
+| Key password | `FASTMASK_KEY_PWD` | `fastmask.keyPassword` |
+| Play licensing public key | `FASTMASK_PLAY_LICENSE_KEY` | `fastmask.playLicenseKey` |
 
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| **Language** | [Kotlin](https://kotlinlang.org/) 100% |
-| **UI Framework** | [Jetpack Compose](https://developer.android.com/jetpack/compose) (BOM 2024.09) |
-| **Design System** | Custom warm-ink palette on top of [Material 3](https://m3.material.io/) primitives |
-| **Typography** | Instrument Serif (display) + Inter Tight (text) + JetBrains Mono (mono), via Google Fonts |
-| **DI** | [Hilt](https://dagger.dev/hilt/) |
-| **Networking** | [Retrofit](https://square.github.io/retrofit/) + [OkHttp](https://square.github.io/okhttp/) |
-| **Serialization** | [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization) |
-| **Async** | [Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) + [Flow](https://kotlinlang.org/docs/flow.html) |
-| **API Protocol** | [JMAP](https://jmap.io/) (Fastmail's native protocol) |
+A release without signing configuration is left unsigned for external signing. A signed `assembleRelease` or `bundleRelease` fails early when the Play licensing key is missing.
 
 ## Architecture
 
-The app follows **Clean Architecture** principles with **MVVM** pattern:
+FastMask is a single-module Android application using layered Clean Architecture and MVVM:
 
-```
-app/
-├── data/                    # Data layer
-│   ├── api/                 # JMAP API service & models
-│   ├── local/               # Secure token storage
-│   └── repository/          # Repository implementations
-│
-├── domain/                  # Business logic layer
-│   ├── model/               # Domain models
-│   ├── repository/          # Repository interfaces
-│   └── usecase/             # Use cases
-│
-├── di/                      # Dependency injection modules
-│
-└── ui/                      # Presentation layer
-    ├── auth/                # Login screen
-    ├── list/                # Masked email list
-    ├── create/              # Create new mask
-    ├── detail/              # View/edit mask details
-    ├── settings/            # Settings screen
-    ├── components/          # Reusable UI components
-    ├── navigation/          # Navigation setup
-    └── theme/               # Material 3 theming
+```text
+app/src/main/java/com/fastmask/
+├── data/       JMAP/Retrofit API, encrypted storage, billing, crash reporting,
+│               demo data, and repository implementations
+├── domain/     models, repository contracts, use cases, share/crash policies
+├── ui/         Compose screens, navigation, ViewModels, theme, accessibility
+├── quickmask/  Quick Settings tile, launcher shortcut, notifications, Undo
+└── di/         Hilt dependency graph and dispatcher bindings
 ```
 
-## Privacy & Security
+| Area | Implementation |
+|---|---|
+| Language/toolchain | Kotlin 2.2.20, Java 17 bytecode, Gradle 8.11.1, AGP 8.10.1 |
+| UI | Jetpack Compose, Material 3 primitives, adaptive layouts, custom design system |
+| State/navigation | ViewModels, Kotlin Coroutines and Flow, Navigation Compose |
+| Dependency injection | Hilt 2.58 |
+| Networking | Retrofit 3, OkHttp 4, Kotlinx Serialization, Fastmail JMAP |
+| Persistence | AndroidX Security Crypto, DataStore Preferences |
+| Monetization | Google Play Billing 8.3.0 with RSA purchase verification |
+| Diagnostics | Optional Firebase Crashlytics; Firebase Analytics is not included |
 
-- **Local Storage Only**: Your API token is stored locally using Android's [EncryptedSharedPreferences](https://developer.android.com/reference/androidx/security/crypto/EncryptedSharedPreferences)
-- **Direct API Communication**: The app communicates directly with Fastmail's servers - no intermediary servers
-- **No Tracking**: No analytics, no advertising ID, no event or screen tracking, no profiling — Google Analytics is deliberately not part of the app, and Firebase's session-reporting SDK is switched off in the manifest (`firebase_sessions_enabled=false`)
-- **Opt-out Crash Reporting** (from 1.10.0): release builds send technical crash diagnostics — the stack trace plus app and device state, as [Firebase](https://firebase.google.com/support/privacy) defines it — to Firebase Crashlytics. On by default, off in Settings → *Crash reports*. Reports never carry masked addresses, descriptions, domains, your API token or email; the SDK is called from one file, the `CrashReporter` seam offers no way to pass data into a report, and `CrashReportingPrivacyTest` — reading the sources and the compiled classes — fails the build if any other class names the SDK or if the seam grows a way to pass data. While reporting is on the SDK also registers the install and fetches its config at startup; the toggle stops both. Debug builds never report. Details in the [Privacy Policy](https://pawelorzech.github.io/FastMask/privacy.html).
-- **Open Source**: Full source code available for audit
+The server is the source of truth. Local storage is limited to the API token, preferences, verified Pro entitlement, temporary exports, and the encrypted last-known-good mask snapshot.
 
 ## Contributing
 
-Contributions are welcome! Here's how you can help:
+Contributions are welcome. Before opening a pull request:
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
+2. Branch from `main`.
+3. Keep user-facing text localized across all supported languages.
+4. Run `./gradlew testDebugUnitTest lintDebug`.
+5. Run instrumented tests when changing navigation, Compose semantics, storage encryption, or device integrations.
 
-### Development Setup
+For user-visible changes, include screenshots or a short recording and explain what was tested on a real device or emulator.
 
-1. Install [Android Studio](https://developer.android.com/studio) (latest stable)
-2. Clone the repository
-3. Open the project in Android Studio
-4. Sync Gradle and run on an emulator or device
+## Project documentation
 
-### Code Style
-
-- Follow [Kotlin coding conventions](https://kotlinlang.org/docs/coding-conventions.html)
-- Use meaningful commit messages
-- Write tests for new features when applicable
-
-## Changelog
-
-### v1.5 (April 2026) — Security hardening
-
-- **Security**: Removed unconditional HTTP body logging — release builds emit zero network logs; debug builds log headers only with `Authorization` redacted
-- **Security**: Release signing config no longer falls back to the public Android debug keystore — keystore must be supplied via `FASTMASK_KEYSTORE`/Gradle properties or the APK is left unsigned for external signing (e.g., Play App Signing)
-- **Security**: `android:allowBackup="false"` — app data is no longer included in cloud backup or device transfer
-- **Security**: Network Security Config restricts trust for `api.fastmail.com` to the system CA store; user-installed CAs cannot intercept JMAP traffic (SPKI pinning scaffold included for follow-up)
-- **Security**: Added `FLAG_SECURE` and `filterTouchesWhenObscured` on the main window — token field, alias list, and detail screens are blanked in screenshots, screen recording, Recents thumbnail, and protected against tapjacking overlays
-- **Security**: JMAP `apiUrl` from the session response is now validated against `*.fastmail.com` before being used for token-bearing requests
-- **Security**: Login token is cleared from in-memory UI state immediately after the login attempt resolves
-- **Security**: GitHub Actions pinned to commit SHAs; Dependabot configured for actions and Gradle dependencies
-- **Hygiene**: Untracked `.idea/` and `.gradle/config.properties` from version control (already in `.gitignore`)
-- **Docs**: Full security audit report added at `Plans/security-audit-report.md`; `SECURITY.md` updated to reflect actual implementation
-
-### v1.4 (April 2026)
-- **Redesign**: Complete UI overhaul to a warm-ink visual language — parchment background, Instrument Serif display type, JetBrains Mono labels, single amber accent
-- **New typography**: Three Google Fonts (Instrument Serif, Inter Tight, JetBrains Mono) replace the Material default
-- **Sort by activity**: List defaults to most recently active mask at the top (uses `lastMessageAt`, falls back to `createdAt`)
-- **Archive instead of Delete**: Destructive action renamed to "Archive" with restorable copy ("Mail sent here will bounce. You can restore it later.")
-- **New custom components**: `PillButton`, `PillIconButton`, `StateDot`, `StatePill`, `DesignCard`, `DesignInput` replacing M3 stock variants
-- **Filter pills with counts**: Active / Off / Archived show live count next to the label
-- **Performance**: Removed per-item animations and pre-computed timestamps for smoother scrolling on large libraries (100+ masks)
-- **Removed**: Material You / dynamic color (replaced by fixed warm palette)
-- **Fixed**: R8/ProGuard rules for Retrofit suspend functions and kotlinx.serialization on release builds
-- **i18n**: English and Polish strings rewritten for the new design language; other 18 locales fall back to English for new keys
-
-### v1.3 (January 2026)
-- **New**: Settings screen with language picker, contact button, and logout
-- **New**: Localization support for 20 languages (English, Chinese, Spanish, Hindi, Arabic, Portuguese, Bengali, Russian, Japanese, French, German, Korean, Italian, Turkish, Vietnamese, Polish, Ukrainian, Dutch, Thai, Indonesian)
-- **New**: In-app language override using AppCompatDelegate
-- **Improved**: All UI strings now use centralized string resources
-- **Fixed**: Choppy navigation transitions between Settings and List screens
-- **Fixed**: Language preference now persists correctly across app restarts
-- **Improved**: Navigation animations simplified (slide-only, 220ms with FastOutSlowInEasing)
-- **Improved**: Soft refresh prevents shimmer loading when returning from Settings
-
-### v1.2 (January 2026)
-- **Fixed**: Login crash caused by `ParameterizedType` casting error at runtime
-- **Improved**: TokenStorage now uses lazy initialization for EncryptedSharedPreferences
-- **Stability**: Deferred crypto initialization prevents reflection errors during Hilt injection
-
-### v1.1 (January 2026)
-- **Fixed**: ProGuard/R8 minification crash with `ParameterizedType` casting error
-- **Improved**: Added proper ProGuard rules for Google Tink (security-crypto dependency)
-- **Stability**: Release builds now work correctly with code minification enabled
-
-### v1.0 (Initial Release)
-- Manage Fastmail masked emails
-- Create, edit, enable/disable, and delete masks
-- Material 3 dynamic theming
-- Secure token storage with EncryptedSharedPreferences
-
-## Roadmap
-
-- [ ] Add screenshots to README
-- [ ] Widget for quick mask creation
-- [ ] In-app accent picker (amber / ink / sage / plum / cobalt)
-- [ ] Bulk archive
-- [x] Custom design system (warm-ink palette, serif/mono typography)
-- [x] Sort by latest activity
-- [x] Localization support (20 languages)
-- [x] Settings screen with language picker
+- [Changelog](CHANGELOG.md) — complete release history
+- [Contributing guide](CONTRIBUTING.md) — workflow and coding expectations
+- [Security policy](SECURITY.md) — threat model and vulnerability reporting
+- [Privacy policy](https://pawelorzech.github.io/FastMask/privacy.html) — data handling for users
+- [Release checklist](Plans/release-checklist.md) — maintainer release process
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [Fastmail](https://www.fastmail.com) for their excellent email service and JMAP API
-- [JMAP](https://jmap.io/) for the open standard specification
-- The Android and Kotlin communities for amazing tools and libraries
+FastMask is available under the [MIT License](LICENSE).
 
 ---
 
 <p align="center">
-  Made with Kotlin and Jetpack Compose
-</p>
-
-<p align="center">
-  <a href="https://github.com/pawelorzech/FastMask/issues">Report Bug</a> •
-  <a href="https://github.com/pawelorzech/FastMask/issues">Request Feature</a>
+  Built with Kotlin, Jetpack Compose, and the Fastmail JMAP API.
 </p>
