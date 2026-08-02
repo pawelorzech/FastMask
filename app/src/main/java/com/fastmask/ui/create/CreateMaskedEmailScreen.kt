@@ -51,6 +51,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DashedDesignCard
 import com.fastmask.ui.components.DemoBanner
@@ -249,6 +251,7 @@ fun CreateMaskedEmailScreen(
                         text = stringResource(uiState.errorRes!!),
                         style = MaterialTheme.typography.bodySmall,
                         color = extras.status.deleted.content,
+                        modifier = Modifier.politeLiveRegion(),
                     )
                 }
 
@@ -303,6 +306,7 @@ private fun StateSegmented(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .radioButtonGroup()
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface, shape)
             .border(1.dp, MaterialTheme.colorScheme.outline, shape)

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
 import com.fastmask.R
+import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.MonoEyebrow
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
@@ -81,6 +82,7 @@ fun WelcomeScreen(
                 text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.screenHeading(),
             )
             Spacer(Modifier.height(12.dp))
 

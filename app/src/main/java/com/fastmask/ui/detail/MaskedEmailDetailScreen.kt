@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
@@ -250,6 +252,7 @@ private fun DetailContent(
             text = email.displayName,
             style = MaterialTheme.typography.displaySmall,
             color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.screenHeading(),
         )
 
         Spacer(Modifier.height(20.dp))
@@ -366,6 +369,7 @@ private fun DetailContent(
                 text = stringResource(uiState.errorRes),
                 style = MaterialTheme.typography.bodySmall,
                 color = extras.status.deleted.content,
+                modifier = Modifier.politeLiveRegion(),
             )
         }
 

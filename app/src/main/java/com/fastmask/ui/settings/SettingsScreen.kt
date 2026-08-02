@@ -75,6 +75,8 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.HairlineDivider
 import com.fastmask.ui.components.MonoLabel
@@ -90,6 +92,7 @@ import com.fastmask.ui.theme.MonoSmallStyle
 import com.fastmask.ui.theme.color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.layout.heightIn
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -342,6 +345,7 @@ fun SettingsScreen(
                         leading = Icons.Filled.FileDownload,
                         trailing = Icons.Filled.ChevronRight,
                         showProgress = uiState.exportInFlight,
+                        progressDescription = stringResource(R.string.state_working),
                         onClick = viewModel::onExportClick,
                     )
                     Spacer(Modifier.height(24.dp))
@@ -423,12 +427,22 @@ private fun SettingsRow(
     // Replaces the trailing icon with a small spinner (e.g. CSV export doing
     // its network fetch) so a slow action doesn't look like a dead tap.
     showProgress: Boolean = false,
+    progressDescription: String? = null,
 ) {
     val extras = FastMaskExtras.current
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(
+                    if (showProgress && progressDescription != null) {
+                        Modifier
+                            .politeLiveRegion()
+                            .semantics { stateDescription = progressDescription }
+                    } else {
+                        Modifier
+                    },
+                )
                 .clickable(onClick = onClick)
                 .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -574,7 +588,7 @@ private fun AccentPickerDialog(
             )
         },
         text = {
-            Column {
+            Column(modifier = Modifier.radioButtonGroup()) {
                 Accent.entries.forEach { accent ->
                     val rowBg = if (accent == selected) extras.surfaceAlt else Color.Transparent
                     Row(
@@ -649,7 +663,7 @@ private fun LanguagePickerDialog(
             // heightIn, not height: at a 200% font scale a fixed box can
             // overflow the dialog on a short screen in landscape.
             Box(modifier = Modifier.heightIn(max = 360.dp)) {
-                LazyColumn {
+                LazyColumn(modifier = Modifier.radioButtonGroup()) {
                     item {
                         LanguageRow(
                             label = stringResource(R.string.settings_system_default),

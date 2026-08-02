@@ -287,4 +287,5 @@
     <string name="share_requires_sign_in">Bu bağlantı için maske oluşturmak üzere FastMask hesabınıza giriş yapın.</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">İşleniyor…</string>
+    <string name="email_list_result_count">Maskeler: %1$d/%2$d</string>
 </resources>
