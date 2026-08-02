@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Gửi phản hồi cho chúng tôi</string>
     <string name="settings_logout">Đăng xuất</string>
     <string name="settings_logout_description">Đăng xuất khỏi tài khoản</string>
-    <string name="settings_version">Phiên bản %s</string>
+    <string name="settings_footer">FastMask · Phiên bản %s</string>
     <string name="settings_select_language">Chọn ngôn ngữ</string>
     <string name="settings_feedback_subject">Phản hồi FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Một nơi yên tĩnh cho</string>
+    <string name="login_hero">Một nơi yên tĩnh cho thư điện tử ẩn danh</string>
     <string name="login_hero_accent">thư điện tử ẩn danh</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Một nơi yên tĩnh cho các địa chỉ email ẩn danh của bạn. Dán mã API Fastmail của bạn để bắt đầu.</string>

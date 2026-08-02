@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Envoyez-nous vos commentaires</string>
     <string name="settings_logout">Déconnexion</string>
     <string name="settings_logout_description">Se déconnecter de votre compte</string>
-    <string name="settings_version">Version %s</string>
+    <string name="settings_footer">FastMask · Version %s</string>
     <string name="settings_select_language">Sélectionner la langue</string>
     <string name="settings_feedback_subject">Commentaires FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- Login Screen - Additional -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Un endroit tranquille pour</string>
+    <string name="login_hero">Un endroit tranquille pour les emails masqués</string>
     <string name="login_hero_accent">les emails masqués</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Un endroit tranquille pour vos adresses masquées. Collez votre jeton API Fastmail pour commencer.</string>

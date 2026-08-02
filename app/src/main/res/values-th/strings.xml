@@ -100,7 +100,7 @@
     <string name="settings_contact_description">ส่งความคิดเห็นให้เรา</string>
     <string name="settings_logout">ออกจากระบบ</string>
     <string name="settings_logout_description">ออกจากบัญชีของคุณ</string>
-    <string name="settings_version">เวอร์ชัน %s</string>
+    <string name="settings_footer">FastMask · เวอร์ชัน %s</string>
     <string name="settings_select_language">เลือกภาษา</string>
     <string name="settings_feedback_subject">ความคิดเห็น FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">สถานที่เงียบสำหรับ</string>
+    <string name="login_hero">สถานที่เงียบสำหรับอีเมลซ่อน</string>
     <string name="login_hero_accent">อีเมลซ่อน</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">สถานที่เงียบสำหรับที่อยู่อีเมลซ่อนของคุณ วางโทเค็น API ของ Fastmail เพื่อเริ่มต้น</string>

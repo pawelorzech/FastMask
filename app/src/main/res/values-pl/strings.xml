@@ -6,7 +6,7 @@
     <!-- Login Screen -->
     <string name="login_subtitle">Spokojne miejsce dla ukrytych adresów.</string>
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Spokojne miejsce dla</string>
+    <string name="login_hero">Spokojne miejsce dla ukrytych adresów</string>
     <string name="login_hero_accent">ukrytych adresów</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Spokojne miejsce dla ukrytych adresów. Wklej token API Fastmail, by zacząć.</string>
@@ -124,7 +124,7 @@
     <string name="settings_contact_description">pawel@orzech.me</string>
     <string name="settings_logout">Wyloguj</string>
     <string name="settings_logout_description">Zapomnij token na tym urządzeniu</string>
-    <string name="settings_version">Wersja %s</string>
+    <string name="settings_footer">FastMask · Wersja %s</string>
     <string name="settings_select_language">Język</string>
     <string name="settings_feedback_subject">Opinia o FastMask</string>
 

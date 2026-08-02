@@ -38,11 +38,15 @@ private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore
 )
 
 /**
- * Local cache of the last Play-verified entitlement, so Pro features work
- * offline. Not a plain user-editable boolean: the status is stored together
- * with a SHA-256 digest of the purchase token that granted it (never the token
- * itself), and it is reconciled against Play on every app start — Play stays
- * the source of truth.
+ * Offline cache of the last Play-verified Pro entitlement status. Play remains
+ * the authoritative source of truth and is consulted on every app start.
+ *
+ * The cache stores two fields: the entitlement [statusKey] (PRO or FREE) and a
+ * SHA-256 digest of the purchase token (stored in the [proofKey] field as a
+ * presence marker only, never for verification or HMAC). On a rooted device,
+ * the DataStore file can be edited directly — there is no tamper resistance.
+ * The proof field simply indicates whether the cached PRO status is backed by
+ * a purchase token or is an orphaned cache entry.
  */
 @Singleton
 class ProEntitlementStore @Inject constructor(

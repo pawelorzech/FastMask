@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Geri bildiriminizi gönderin</string>
     <string name="settings_logout">Çıkış Yap</string>
     <string name="settings_logout_description">Hesabınızdan çıkış yapın</string>
-    <string name="settings_version">Sürüm %s</string>
+    <string name="settings_footer">FastMask · Sürüm %s</string>
     <string name="settings_select_language">Dil Seçin</string>
     <string name="settings_feedback_subject">FastMask Geri Bildirimi</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Maskeli postalar için</string>
+    <string name="login_hero">Maskeli postalar için sessiz bir yer</string>
     <string name="login_hero_accent">sessiz bir yer</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Maskeli adresleriniz için sessiz bir yer. Başlamak için Fastmail API jetonunuzu yapıştırın.</string>

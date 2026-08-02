@@ -100,7 +100,7 @@
     <string name="settings_contact_description">フィードバックを送信</string>
     <string name="settings_logout">ログアウト</string>
     <string name="settings_logout_description">アカウントからサインアウト</string>
-    <string name="settings_version">バージョン %s</string>
+    <string name="settings_footer">FastMask · バージョン %s</string>
     <string name="settings_select_language">言語を選択</string>
     <string name="settings_feedback_subject">FastMask フィードバック</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Keys (Login/Welcome/Intro) -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">静かな場所へ</string>
+    <string name="login_hero">静かな場所へマスクメール</string>
     <string name="login_hero_accent">マスクメール</string>
     <string name="login_hero_suffix">。</string>
     <string name="login_intro">マスクアドレスのための静かな場所。Fastmail APIトークンを貼り付けて始めましょう。</string>

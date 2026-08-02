@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Отправьте нам отзыв</string>
     <string name="settings_logout">Выйти</string>
     <string name="settings_logout_description">Выйти из аккаунта</string>
-    <string name="settings_version">Версия %s</string>
+    <string name="settings_footer">FastMask · Версия %s</string>
     <string name="settings_select_language">Выбрать язык</string>
     <string name="settings_feedback_subject">Отзыв о FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Тихое место для</string>
+    <string name="login_hero">Тихое место для защищённой почты</string>
     <string name="login_hero_accent">защищённой почты</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Тихое место для ваших защищённых адресов. Вставьте ваш API токен Fastmail для начала работы.</string>

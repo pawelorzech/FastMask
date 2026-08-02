@@ -100,7 +100,7 @@
     <string name="settings_contact_description">向我们发送反馈</string>
     <string name="settings_logout">退出登录</string>
     <string name="settings_logout_description">退出您的账户</string>
-    <string name="settings_version">版本 %s</string>
+    <string name="settings_footer">FastMask · 版本 %s</string>
     <string name="settings_select_language">选择语言</string>
     <string name="settings_feedback_subject">FastMask 反馈</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">静谧之地</string>
+    <string name="login_hero">静谧之地用于隐藏邮箱</string>
     <string name="login_hero_accent">用于隐藏邮箱</string>
     <string name="login_hero_suffix">。</string>
     <string name="login_intro">为您的隐藏邮箱提供静谧之地。粘贴您的 Fastmail API 令牌以开始使用。</string>

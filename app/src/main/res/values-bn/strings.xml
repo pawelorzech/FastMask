@@ -100,7 +100,7 @@
     <string name="settings_contact_description">আমাদের আপনার প্রতিক্রিয়া পাঠান</string>
     <string name="settings_logout">লগআউট</string>
     <string name="settings_logout_description">আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন</string>
-    <string name="settings_version">সংস্করণ %s</string>
+    <string name="settings_footer">FastMask · সংস্করণ %s</string>
     <string name="settings_select_language">ভাষা নির্বাচন করুন</string>
     <string name="settings_feedback_subject">FastMask প্রতিক্রিয়া</string>
 
@@ -128,7 +128,7 @@
 
     <!-- Login Screen - Additional -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">একটি শান্ত জায়গা</string>
+    <string name="login_hero">একটি শান্ত জায়গা মাস্কড ইমেইলের জন্য</string>
     <string name="login_hero_accent">মাস্কড ইমেইলের জন্য</string>
     <string name="login_hero_suffix">।</string>
     <string name="login_intro">আপনার মাস্কড ঠিকানাগুলির জন্য একটি শান্ত জায়গা। শুরু করতে আপনার Fastmail API টোকেন পেস্ট করুন।</string>

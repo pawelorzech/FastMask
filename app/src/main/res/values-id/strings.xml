@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Kirimkan masukan Anda</string>
     <string name="settings_logout">Keluar</string>
     <string name="settings_logout_description">Keluar dari akun Anda</string>
-    <string name="settings_version">Versi %s</string>
+    <string name="settings_footer">FastMask · Versi %s</string>
     <string name="settings_select_language">Pilih Bahasa</string>
     <string name="settings_feedback_subject">Masukan FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Keys (Login/Welcome/Intro) -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Tempat tenang untuk</string>
+    <string name="login_hero">Tempat tenang untuk email tersamar</string>
     <string name="login_hero_accent">email tersamar</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Tempat tenang untuk alamat tersamar Anda. Tempel token API Fastmail Anda untuk memulai.</string>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -50,7 +51,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
@@ -265,16 +265,17 @@ private fun DetailContent(
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = email.email,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = JetBrainsMono),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                SelectionContainer(
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 12.dp),
-                )
+                ) {
+                    Text(
+                        text = email.email,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = JetBrainsMono),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
@@ -410,16 +411,15 @@ private fun MetaRow(label: String, value: String, mono: Boolean = false) {
     ) {
         MonoLabel(text = label)
         Spacer(Modifier.width(12.dp))
-        Text(
-            text = value,
-            style = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = JetBrainsMono)
-                   else MaterialTheme.typography.bodySmall,
-            color = extras.inkSoft,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false),
-            textAlign = androidx.compose.ui.text.style.TextAlign.End,
-        )
+        SelectionContainer(modifier = Modifier.weight(1f, fill = false)) {
+            Text(
+                text = value,
+                style = if (mono) MaterialTheme.typography.bodySmall.copy(fontFamily = JetBrainsMono)
+                       else MaterialTheme.typography.bodySmall,
+                color = extras.inkSoft,
+                textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            )
+        }
     }
 }
 

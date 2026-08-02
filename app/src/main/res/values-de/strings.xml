@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Senden Sie uns Ihr Feedback</string>
     <string name="settings_logout">Abmelden</string>
     <string name="settings_logout_description">Von Ihrem Konto abmelden</string>
-    <string name="settings_version">Version %s</string>
+    <string name="settings_footer">FastMask · Version %s</string>
     <string name="settings_select_language">Sprache auswählen</string>
     <string name="settings_feedback_subject">FastMask Feedback</string>
 
@@ -128,7 +128,7 @@
 
     <!-- Login Screen - Additional -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Ein ruhiger Ort für</string>
+    <string name="login_hero">Ein ruhiger Ort für maskierte E-Mails</string>
     <string name="login_hero_accent">maskierte E-Mails</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Ein ruhiger Ort für Ihre maskierten Adressen. Fügen Sie Ihr Fastmail API-Token ein, um zu beginnen.</string>

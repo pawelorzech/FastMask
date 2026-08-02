@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Надішліть нам відгук</string>
     <string name="settings_logout">Вийти</string>
     <string name="settings_logout_description">Вийти з акаунту</string>
-    <string name="settings_version">Версія %s</string>
+    <string name="settings_footer">FastMask · Версія %s</string>
     <string name="settings_select_language">Вибрати мову</string>
     <string name="settings_feedback_subject">Відгук про FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Тихе місце для</string>
+    <string name="login_hero">Тихе місце для замаскованої пошти</string>
     <string name="login_hero_accent">замаскованої пошти</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Тихе місце для ваших замаскованих адрес. Вставте ваш API токен Fastmail для початку.</string>
