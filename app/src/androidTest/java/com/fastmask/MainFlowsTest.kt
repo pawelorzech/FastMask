@@ -200,9 +200,12 @@ class MainFlowsTest {
     fun archivingAMaskOffersAnUndoThatPutsItBack() {
         enterDemoAndDismissTutorial()
 
-        val activeBefore = filterCount(R.string.filter_enabled)
+        val disabledBefore = filterCount(R.string.filter_disabled)
         val archivedBefore = filterCount(R.string.filter_deleted)
 
+        // Exercise a non-default previous state: the old fallback could turn
+        // an Off mask back on if id and state arrived in separate recompositions.
+        composeRule.onNodeWithText(string(R.string.filter_disabled)).performClick()
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
 
@@ -224,11 +227,11 @@ class MainFlowsTest {
 
         composeRule.onNodeWithText(string(R.string.list_undo)).performClick()
 
-        // Undo restores the PREVIOUS state, so the mask returns to Active
-        // rather than merely leaving the archive.
+        // Undo restores the PREVIOUS state, so the mask returns to Off rather
+        // than merely leaving the archive or falling back to Active.
         composeRule.waitUntil(timeoutMillis = 10_000) {
             filterCount(R.string.filter_deleted) == archivedBefore &&
-                filterCount(R.string.filter_enabled) == activeBefore
+                filterCount(R.string.filter_disabled) == disabledBefore
         }
 
         // Once the snackbar has produced a result, its navigation state is

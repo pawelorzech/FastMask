@@ -176,11 +176,11 @@ fun MaskedEmailListScreen(
     var pendingUndo by rememberSaveable(saver = PendingArchiveUndoStateSaver) {
         mutableStateOf(null)
     }
-    LaunchedEffect(justArchivedId, pendingUndo) {
-        if (justArchivedId != null && pendingUndo == null) {
+    LaunchedEffect(justArchivedId, justArchivedState, pendingUndo) {
+        if (justArchivedId != null && justArchivedState != null && pendingUndo == null) {
             pendingUndo = PendingArchiveUndo(
                 id = justArchivedId,
-                previousState = justArchivedState ?: EmailState.ENABLED,
+                previousState = justArchivedState,
             )
         }
     }
