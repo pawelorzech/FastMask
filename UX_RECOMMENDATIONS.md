@@ -40,6 +40,8 @@ Małe, tanie, niskiego ryzyka.
 
 ### A2 · Ogłaszaj stany ładowania, pustki i błędu czytnikowi ekranu
 
+**Status: zrealizowane w PR #42.** Stany ładowania i błędów mają teraz uprzejme `liveRegion`, a brak wyników ogłasza licznik z B4.
+
 **Problem.** Po naprawie `PillButton` w tym audycie w aplikacji zostają trzy miejsca z `liveRegion`, a ciche przejścia to: ładowanie listy (sześć nieopisanych `Box`-ów — ekran czyta się jako **pusty**, nie „ładuję"), wyszukiwanie bez wyników, błąd wczytania listy, nieudany zapis na szczegółach, nieudane tworzenie, ostrzeżenie o pustym wklejeniu przy logowaniu, eksport CSV w toku.
 
 **Rozwiązanie.** `Modifier.semantics { liveRegion = LiveRegionMode.Polite }` na kontenerach tych stanów. Banery offline i błędu inline (`MaskedEmailListScreen.kt:851`, `:884`) są zrobione poprawnie — użyj ich jako wzorca.
@@ -51,6 +53,8 @@ Małe, tanie, niskiego ryzyka.
 | 3 | 2 | 4 | 1 | **6,0** |
 
 ### A3 · `heading()` na czterech brakujących ekranach
+
+**Status: zrealizowane w PR #42.**
 
 Jest na liście, tworzeniu, ustawieniach i Pro. Brakuje na logowaniu, powitaniu, **szczegółach maski** (tytuł ekranu = nazwa maski) i ekranie zamka. Bez tego nawigacja po nagłówkach w TalkBacku pomija połowę aplikacji.
 
@@ -67,6 +71,8 @@ Cztery pola na `KeyboardOptions.Default`, więc klawiatura pokazuje „gotowe" z
 | 2 | 1 | 5 | 1 | **10,0** |
 
 ### A5 · `selectableGroup()` na trzech grupach wyboru
+
+**Status: zrealizowane w PR #42.**
 
 Aktywna/Wyłączona przy tworzeniu, akcenty i języki w ustawieniach. `Role.RadioButton` jest ustawione poprawnie na elementach, ale bez grupy TalkBack nie powie „1 z 5".
 
@@ -126,6 +132,8 @@ Eksport wysyła **każdą maskę w plaintekście** do dowolnie wybranej aplikacj
 
 ### B4 · Licznik wyników po wyszukaniu
 
+**Status: zrealizowane w PR #42.** Licznik `n/m` jest zlokalizowany we wszystkich 20 językach i działa jako uprzejmy `liveRegion`.
+
 Po wpisaniu frazy lista podmienia się bez żadnego komunikatu. Linia „n z m masek" pod polem filtra pomaga wszystkim, a użytkownikowi czytnika ekranu domyka najgorszy przypadek z A2 (przejście do „brak wyników" jest dziś całkowicie ciche).
 
 | Impact | Effort | Confidence | Risk | Priority |
@@ -183,10 +191,10 @@ Filtry Aktywne / Wyłączone / Archiwum zajmują stałe miejsce nad najczęście
 ## E. Roadmapa
 
 **Najbliższy patch (1.10.2) — same rzeczy tanie i domykające ten audyt**
-A3 (`heading()`), A4 (`ImeAction.Next`), A5 (`selectableGroup()`), A6 (sklejanie stringów), B3 (potwierdzenie eksportu). Wszystkie mają `Priority ≥ 8`, żadna nie dotyka architektury.
+A4 (`ImeAction.Next`), A6 (sklejanie stringów), B3 (potwierdzenie eksportu). A3 i A5 są zrealizowane w PR #42. Wszystkie pozostałe mają `Priority ≥ 8`, żadna nie dotyka architektury.
 
 **Kolejny release (1.11) — dostępność domknięta**
-A1 (kształty stanu — pozycja numer jeden), A2 (`liveRegion` na stanach), A7 (ponów bez gestu), B4 (licznik wyników). Przed tym: sprawdź C1 na urządzeniu, bo jeśli podejrzenie się potwierdzi, jest to pilniejsze niż wszystko powyżej.
+A1 (kształty stanu — pozycja numer jeden) i A7 (ponów bez gestu). A2 i B4 są zrealizowane w PR #42. Przed tym: sprawdź C1 na urządzeniu, bo jeśli podejrzenie się potwierdzi, jest to pilniejsze niż wszystko powyżej.
 
 **Większy release (1.12+)**
 B1 (droga do pierwszego tokenu) — jedyna pozycja wymagająca realnej pracy projektowej i jedyna, która może ruszyć retencję. B2 (wyjście z odrzuconego tokenu) naturalnie idzie razem z nią.
