@@ -16,6 +16,7 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.PurchaseLaunch
 import com.fastmask.domain.repository.RefreshResult
 import com.fastmask.domain.repository.RestoreResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -231,8 +232,25 @@ class ProRepositoryImpl @Inject constructor(
         val token = proPurchase?.purchaseToken
         if (newStatus != previous || token != lastPersistedToken) {
             _proStatus.value = newStatus
-            store.write(newStatus, token)
-            lastPersistedToken = token
+            // The in-memory status is what gates Pro features this session, and
+            // it is already set. Persisting is a cache write for the NEXT cold
+            // start, so a storage failure must not propagate: `refresh()` is
+            // called from a bare `lifecycleScope.launch` in MainActivity, where
+            // a throwable reaches the uncaught handler and takes the process
+            // down. `lastPersistedToken` is only advanced on a successful write,
+            // so a failure retries on the next reconciliation instead of being
+            // silently recorded as done.
+            try {
+                store.write(newStatus, token)
+                lastPersistedToken = token
+            } catch (cancellation: CancellationException) {
+                // Belongs to the caller's coroutine — keep it propagating, as
+                // CrashReportingStartup does. runCatching would swallow it.
+                throw cancellation
+            } catch (_: Throwable) {
+                // Retried on the next reconciliation; lastPersistedToken stays
+                // behind deliberately so the retry is not skipped.
+            }
         }
         if (newStatus != previous) {
             when {

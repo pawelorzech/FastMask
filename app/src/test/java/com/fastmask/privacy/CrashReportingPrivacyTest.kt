@@ -274,7 +274,7 @@ class CrashReportingPrivacyTest {
 
     private val seamShapeFailure =
         "$seamFile must contain exactly one class with exactly the two CrashReporter " +
-            "overrides and the SDK supplier — anything else declared there is a path " +
+            "overrides and no other declarations — anything else there is a path " +
             "from app data to Google. This includes extension functions and property " +
             "setters, which the earlier version of this guard could not see: " +
             "`fun CrashReporter.note(value: String)` in this file compiled to a static " +
@@ -308,7 +308,7 @@ class CrashReportingPrivacyTest {
 
         assertEquals(
             seamShapeFailure,
-            listOf("crashlytics"),
+            emptyList<String>(),
             propertyDeclarations(source).sorted(),
         )
 

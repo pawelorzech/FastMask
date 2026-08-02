@@ -305,4 +305,5 @@
     <string name="share_requires_sign_in">Zaloguj się w FastMask, aby utworzyć maskę dla tego linku.</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Pracuję…</string>
+    <string name="email_list_result_count">Maski: %1$d/%2$d</string>
 </resources>

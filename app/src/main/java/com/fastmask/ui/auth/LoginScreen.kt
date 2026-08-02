@@ -60,6 +60,8 @@ import com.fastmask.BuildConfig
 import com.fastmask.R
 import com.fastmask.ui.common.FastmailLinks
 import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.DesignInput
 import com.fastmask.ui.components.MonoEyebrow
@@ -134,6 +136,7 @@ fun LoginScreen(
             Text(
                 text = annotated,
                 style = MaterialTheme.typography.displayLarge,
+                modifier = Modifier.screenHeading(),
             )
             Spacer(Modifier.height(18.dp))
 
@@ -201,6 +204,7 @@ fun LoginScreen(
                     text = stringResource(warningRes),
                     color = extras.status.pending.content,
                     style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.politeLiveRegion(),
                 )
             }
 
@@ -208,19 +212,18 @@ fun LoginScreen(
 
             PillButton(
                 text = stringResource(R.string.login_button),
+                // `loading`, not a hand-rolled spinner in `trailing`: the flag is
+                // what drives the screen-reader announcement, and it also
+                // disables the button, so the enabled expression no longer has
+                // to repeat !isLoading.
+                loading = uiState.isLoading,
                 loadingDescription = stringResource(R.string.state_working),
                 onClick = { viewModel.login() },
-                enabled = !uiState.isLoading && uiState.token.isNotBlank(),
+                enabled = uiState.token.isNotBlank(),
                 variant = PillButtonVariant.Primary,
                 fullWidth = true,
                 trailing = if (uiState.isLoading) {
-                    {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            color = extras.onAccent,
-                            strokeWidth = 2.dp,
-                        )
-                    }
+                    null
                 } else {
                     {
                         Icon(
@@ -275,6 +278,7 @@ fun LoginScreen(
                             text = stringResource(R.string.login_open_browser_failed),
                             color = extras.status.pending.content,
                             style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.politeLiveRegion(),
                         )
                     }
                 }

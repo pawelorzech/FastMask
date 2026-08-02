@@ -287,4 +287,5 @@
     <string name="share_requires_sign_in">Meld u aan bij FastMask om een masker voor deze link te maken.</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Bezig…</string>
+    <string name="email_list_result_count">Maskers: %1$d/%2$d</string>
 </resources>

@@ -9,6 +9,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -110,5 +112,72 @@ class ExportCacheTest {
         assertTrue(!dir.exists())
 
         cache.clear()
+    }
+
+    // An export is built from a network fetch, so "tap Export on a slow link,
+    // then Log out from the same screen before it lands" used to write the
+    // account's whole mask list — in plaintext — into the cache directory AFTER
+    // the sign-out that was supposed to erase it. Ageing it out an hour later is
+    // the wrong remedy for a file that should never have existed.
+    @Test
+    fun `an export whose fetch outlived a sign-out is never written`() {
+        val (cache, dir) = cache()
+        val generation = cache.currentGeneration()
+
+        cache.clear() // the sign-out lands while the fetch is still in flight
+
+        val failure = runCatching { cache.write("every,mask", generation = generation) }
+        assertTrue(failure.isFailure)
+        assertEquals(0, dir.listFiles()?.size ?: 0)
+    }
+
+    @Test
+    fun `an export that started after the sign-out is written normally`() {
+        val (cache, dir) = cache()
+        cache.clear()
+
+        // Fresh generation read: this export belongs to the new session.
+        cache.write("email,state\n", generation = cache.currentGeneration())
+
+        assertEquals(1, dir.listFiles()?.size)
+    }
+
+    @Test
+    fun `clear cannot finish between generation check and file write`() {
+        val (cache, dir) = cache()
+        val executor = Executors.newFixedThreadPool(2)
+        val writeReachedDiskBoundary = CountDownLatch(1)
+        val releaseWrite = CountDownLatch(1)
+        val clearStarted = CountDownLatch(1)
+        val clearFinished = CountDownLatch(1)
+        cache.fileWriter = { file, text ->
+            writeReachedDiskBoundary.countDown()
+            check(releaseWrite.await(2, TimeUnit.SECONDS))
+            file.writeText(text)
+        }
+
+        try {
+            val write = executor.submit<File> { cache.write("every,mask") }
+            assertTrue(writeReachedDiskBoundary.await(2, TimeUnit.SECONDS))
+
+            val clear = executor.submit {
+                clearStarted.countDown()
+                cache.clear()
+                clearFinished.countDown()
+            }
+            assertTrue(clearStarted.await(2, TimeUnit.SECONDS))
+            assertTrue(
+                "clear must wait until the in-flight file write leaves the critical section",
+                !clearFinished.await(100, TimeUnit.MILLISECONDS),
+            )
+
+            releaseWrite.countDown()
+            write.get(2, TimeUnit.SECONDS)
+            clear.get(2, TimeUnit.SECONDS)
+            assertEquals("clear must leave no plaintext export behind", 0, dir.listFiles()?.size ?: 0)
+        } finally {
+            releaseWrite.countDown()
+            executor.shutdownNow()
+        }
     }
 }

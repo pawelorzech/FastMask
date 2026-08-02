@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
@@ -250,6 +252,7 @@ private fun DetailContent(
             text = email.displayName,
             style = MaterialTheme.typography.displaySmall,
             color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.screenHeading(),
         )
 
         Spacer(Modifier.height(20.dp))
@@ -298,20 +301,19 @@ private fun DetailContent(
 
         // Toggle button (single)
         val isActive = email.state == EmailState.ENABLED || email.state == EmailState.PENDING
+        val isToggling = uiState.updateOperation == MaskedEmailDetailUpdate.TOGGLE_STATE
         PillButton(
             text = stringResource(if (isActive) R.string.email_detail_disable else R.string.email_detail_enable),
+            loading = isToggling,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onToggleState,
             variant = if (isActive) PillButtonVariant.Ghost else PillButtonVariant.Active,
             enabled = !uiState.isUpdating,
             fullWidth = true,
-            leading = if (uiState.isUpdating) {
-                {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
+            // PillButton substitutes its own spinner for `leading` while
+            // loading, so this branch only has to supply the resting icon.
+            leading = if (isToggling) {
+                null
             } else {
                 {
                     Icon(
@@ -369,6 +371,7 @@ private fun DetailContent(
                 text = stringResource(uiState.errorRes),
                 style = MaterialTheme.typography.bodySmall,
                 color = extras.status.deleted.content,
+                modifier = Modifier.politeLiveRegion(),
             )
         }
 
@@ -385,6 +388,7 @@ private fun DetailContent(
 
         PillButton(
             text = stringResource(R.string.email_detail_save),
+            loading = uiState.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onSaveChanges,
             variant = PillButtonVariant.Secondary,

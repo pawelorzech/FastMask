@@ -1,0 +1,67 @@
+# Build and test gate.
+#
+# The repository had no build workflow at all: the only two were Claude review
+# bots, so nothing ever compiled a pull request. Dependabot is configured for
+# both gradle and github-actions on a weekly schedule (.github/dependabot.yml),
+# which meant dependency bumps arrived with no evidence they even compiled.
+#
+# This could not have existed before 2026-08-01: app/google-services.json is not
+# in the repository, and the Firebase plugins were applied unconditionally, so
+# any CI checkout failed at processDebugGoogleServices. The plugins are now
+# skipped when the file is absent, which is exactly the shape a CI runner sees —
+# so this job also keeps that path from silently regressing.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push to the same PR makes the previous run irrelevant.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # 17 is the project's toolchain target; Gradle 8.9 refuses to run on
+      # anything newer than 21, so this pin is a real constraint, not a default.
+      - name: Set up JDK 17
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4.4.1
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Lint
+        run: ./gradlew lintDebug
+
+      # Release compilation covers what debug does not: R8 shrinking, the
+      # ProGuard keep rules for kotlinx.serialization / Retrofit / Tink, and the
+      # task-graph guard that refuses a signed release with no Play licence key.
+      # Unsigned here, which that guard deliberately still allows.
+      - name: Release build
+        run: ./gradlew assembleRelease
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          retention-days: 7

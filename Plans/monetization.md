@@ -72,7 +72,7 @@ Obietnica "Zero analytics, telemetry" to **przewaga produktu w niszy privacy** �
 
 ## 4. Architektura wdrożenia (co jest w kodzie)
 
-- **Google Play Billing Library 8.3.0** — artefakt bazowy (Java), NIE `-ktx` (Kotlin 1.9.22 vs metadane Kotlin 2.x nowszych ktx); własne suspend-wrappery. Spełnia wymóg Play "8+" (obowiązuje od 31.08.2026). PBL 9.x odrzucone jako zbyt świeże (05.2026).
+- **Google Play Billing Library 8.3.0** — artefakt bazowy (Java), NIE `-ktx`; własne suspend-wrappery utrzymują małą powierzchnię integracji. Spełnia wymóg Play "8+" (obowiązuje od 31.08.2026). PBL 9.x odrzucone jako zbyt świeże (05.2026).
 - **Warstwy**: `data/billing/BillingDataSource` (abstrakcja, testowalna fake'iem) → `PlayBillingDataSource` (BillingClient, auto-reconnect, pending purchases enabled) → `data/repository/ProRepositoryImpl` (cała logika entitlement) → `domain/repository/ProRepository` (StateFlow<ProStatus> — jedno źródło prawdy) → UI.
 - **Entitlement**: Play `queryPurchasesAsync` przy każdym starcie = źródło prawdy; cache w DataStore (`pro_entitlement`: status + SHA-256 tokenu zakupu, nigdy goły boolean ani sam token) tylko dla offline. Downgrade wyłącznie po autorytatywnej pustej odpowiedzi OK (refund / zmiana konta); błędy połączenia zachowują ostatni zweryfikowany stan.
 - **Acknowledge**: wykonywany zanim funkcje się odblokują; nieudany — ponawiany przy kolejnym refresh (Play refunduje nie-acknowledged po ~3 dniach).
