@@ -241,6 +241,7 @@
     <string name="settings_crash_reporting_description">Send crash reports to Google Firebase so bugs get fixed. Never includes your masks, e-mail or login. Turn off any time.</string>
     <string name="settings_export_title">Export masks</string>
     <string name="settings_export_description">Share all masks as a CSV file</string>
+    <string name="settings_export_confirm_message">This plain-text file contains every mask address and description. The app you choose can read and keep its own copy. FastMask deletes cached exports older than one hour the next time the app starts or exports.</string>
     <string name="settings_export_failed">Export failed. Try again.</string>
     <string name="app_lock_locked_subtitle">Locked. Unlock to continue.</string>
     <string name="app_lock_unlock">Unlock</string>

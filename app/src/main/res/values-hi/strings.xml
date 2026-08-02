@@ -245,6 +245,7 @@
     <string name="settings_crash_reporting_description">गड़बड़ियाँ ठीक करने के लिए क्रैश रिपोर्ट Google Firebase को भेजी जाती हैं। इनमें आपके मास्क, ई-मेल या लॉगिन कभी शामिल नहीं होते। इसे कभी भी बंद किया जा सकता है।</string>
     <string name="settings_export_title">मास्क निर्यात करें</string>
     <string name="settings_export_description">सभी मास्क को CSV फाइल के रूप में साझा करें</string>
+    <string name="settings_export_confirm_message">इस सादे टेक्स्ट फ़ाइल में हर मास्क पता और विवरण शामिल है। आपका चुना हुआ ऐप इसे पढ़कर अपनी कॉपी रख सकता है। अगली बार ऐप शुरू होने या एक्सपोर्ट करने पर FastMask एक घंटे से पुराने कैश किए गए एक्सपोर्ट हटा देता है।</string>
     <string name="settings_export_failed">निर्यात विफल। फिर से कोशिश करें।</string>
     <string name="app_lock_locked_subtitle">लॉक किया गया। जारी रखने के लिए अनलॉक करें।</string>
     <string name="app_lock_unlock">अनलॉक करें</string>

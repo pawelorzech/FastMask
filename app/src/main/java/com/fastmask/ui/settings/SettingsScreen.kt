@@ -179,6 +179,13 @@ fun SettingsScreen(
         )
     }
 
+    if (uiState.showExportConfirmation) {
+        ExportConfirmationDialog(
+            onConfirm = viewModel::onExportConfirmed,
+            onDismiss = viewModel::onExportConfirmationDismissed,
+        )
+    }
+
     if (showLogoutDialog) {
         // Confirm before dropping the token — a mistap otherwise forces a full
         // re-login. Mirrors the archive confirmation on a less destructive action.
@@ -414,6 +421,22 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+@Composable
+internal fun ExportConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ConfirmDialog(
+        title = stringResource(R.string.settings_export_title),
+        message = stringResource(R.string.settings_export_confirm_message),
+        confirmText = stringResource(R.string.settings_export_title),
+        dismissText = stringResource(R.string.email_detail_delete_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        confirmVariant = PillButtonVariant.Primary,
+    )
 }
 
 @Composable

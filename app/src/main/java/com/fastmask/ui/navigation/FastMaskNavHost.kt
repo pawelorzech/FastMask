@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,6 +31,13 @@ private const val TRANSITION_DURATION_MS = 220
 private const val KEY_ARCHIVED_ID = "archived_mask_id"
 private const val KEY_ARCHIVED_STATE = "archived_mask_state"
 private const val KEY_CREATED_EMAIL = "created_mask_email"
+
+internal fun SavedStateHandle.consumeArchivedResultIfCurrent(consumedId: String) {
+    if (get<String>(KEY_ARCHIVED_ID) == consumedId) {
+        this[KEY_ARCHIVED_ID] = null
+        this[KEY_ARCHIVED_STATE] = null
+    }
+}
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -151,9 +159,10 @@ fun FastMaskNavHost(
                     justArchivedId = justArchivedId,
                     justArchivedState = justArchivedState
                         ?.let { runCatching { EmailState.valueOf(it) }.getOrNull() },
-                    onArchivedConsumed = {
-                        entry.savedStateHandle[KEY_ARCHIVED_ID] = null
-                        entry.savedStateHandle[KEY_ARCHIVED_STATE] = null
+                    onArchivedConsumed = { consumedId ->
+                        // A second archive can arrive while the first Undo is
+                        // visible. Never let result A erase newer pending B.
+                        entry.savedStateHandle.consumeArchivedResultIfCurrent(consumedId)
                     },
                     justCreatedEmail = justCreatedEmail,
                     onCreatedConsumed = { entry.savedStateHandle[KEY_CREATED_EMAIL] = null },

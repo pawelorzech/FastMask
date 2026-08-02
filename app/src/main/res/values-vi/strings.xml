@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">Gửi báo cáo sự cố tới Google Firebase để lỗi được khắc phục. Không bao giờ chứa địa chỉ, e-mail hay thông tin đăng nhập của bạn. Có thể tắt bất cứ lúc nào.</string>
     <string name="settings_export_title">Xuất địa chỉ</string>
     <string name="settings_export_description">Chia sẻ tất cả các địa chỉ dưới dạng tệp CSV</string>
+    <string name="settings_export_confirm_message">Tệp văn bản không mã hóa này chứa mọi địa chỉ mặt nạ và phần mô tả. Ứng dụng bạn chọn có thể đọc và giữ bản sao riêng. FastMask xóa các bản xuất đã lưu đệm quá một giờ vào lần khởi động hoặc xuất tiếp theo.</string>
     <string name="settings_export_failed">Xuất không thành công. Hãy thử lại.</string>
     <string name="app_lock_locked_subtitle">Đã khóa. Mở khóa để tiếp tục.</string>
     <string name="app_lock_unlock">Mở khóa</string>

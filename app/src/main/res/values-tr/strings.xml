@@ -245,6 +245,7 @@
     <string name="settings_crash_reporting_description">Hataların düzeltilebilmesi için çökme raporlarını Google Firebase\'e gönderin. Maskalarınız, e-postanız veya giriş bilgileriniz asla yer almaz. İstediğiniz zaman kapatabilirsiniz.</string>
     <string name="settings_export_title">Maskaları dışa aktar</string>
     <string name="settings_export_description">Tüm maskaları CSV dosyası olarak paylaş</string>
+    <string name="settings_export_confirm_message">Bu şifrelenmemiş metin dosyası tüm maske adreslerini ve açıklamalarını içerir. Seçtiğiniz uygulama dosyayı okuyup kendi kopyasını saklayabilir. FastMask bir saatten eski önbelleğe alınmış dışa aktarımları uygulamanın sonraki açılışında veya dışa aktarımında siler.</string>
     <string name="settings_export_failed">Dışa aktarma başarısız oldu. Tekrar deneyin.</string>
     <string name="app_lock_locked_subtitle">Kilitli. Devam etmek için açın.</string>
     <string name="app_lock_unlock">Aç</string>

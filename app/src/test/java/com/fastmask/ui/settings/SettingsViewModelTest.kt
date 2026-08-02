@@ -103,6 +103,14 @@ class SettingsViewModelTest {
         )
     }
 
+    private fun SettingsViewModel.requestAndConfirmExport() {
+        onExportClick()
+        onExportConfirmed()
+    }
+
+    private fun hasCsvFile(): Boolean =
+        temp.root.walkTopDown().any { it.isFile && it.extension == "csv" }
+
     @Test
     fun `accent tap without pro routes to paywall and tracks the gate`() = runTest {
         val vm = viewModel()
@@ -163,15 +171,73 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `export with pro waits for explicit confirmation before reading or writing data`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        val vm = viewModel()
+
+        vm.onExportClick()
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.showExportConfirmation)
+        assertEquals(0, maskRepository.getCalls)
+        assertFalse(hasCsvFile())
+    }
+
+    @Test
+    fun `dismissing export confirmation creates no plaintext file`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        val vm = viewModel()
+
+        vm.onExportClick()
+        vm.onExportConfirmationDismissed()
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.showExportConfirmation)
+        assertEquals(0, maskRepository.getCalls)
+        assertFalse(hasCsvFile())
+    }
+
+    @Test
+    fun `losing pro while export confirmation is open rechecks the gate`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        val vm = viewModel()
+        vm.onExportClick()
+        proRepository.statusFlow.value = ProStatus.FREE
+
+        vm.onExportConfirmed()
+        advanceUntilIdle()
+
+        assertEquals(SettingsEvent.OpenPro("export"), vm.events.first())
+        assertEquals(0, maskRepository.getCalls)
+        assertFalse(hasCsvFile())
+    }
+
+    @Test
+    fun `confirming export twice starts only one export`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        maskRepository.emails = listOf(mask("one"))
+        val vm = viewModel()
+        vm.onExportClick()
+
+        vm.onExportConfirmed()
+        vm.onExportConfirmed()
+        advanceUntilIdle()
+
+        assertEquals(1, maskRepository.getCalls)
+        assertTrue(vm.events.first() is SettingsEvent.ShareCsv)
+    }
+
+    @Test
     fun `export with pro shares a csv containing every mask`() = runTest {
         proRepository.statusFlow.value = ProStatus.PRO
         maskRepository.emails = listOf(mask("one"), mask("two"))
         val vm = viewModel()
-        vm.onExportClick()
+        vm.requestAndConfirmExport()
         advanceUntilIdle()
 
         val event = vm.events.first()
         assertTrue(event is SettingsEvent.ShareCsv)
+        assertEquals(1, maskRepository.getCalls)
         // The event now carries the written file, not the string: producing it
         // belongs to the ViewModel, which holds the ExportCache and can abandon
         // an export whose fetch outlived the session.
@@ -192,7 +258,7 @@ class SettingsViewModelTest {
         maskRepository.beforeGet = { exportCache.clear() }
         val vm = viewModel()
 
-        vm.onExportClick()
+        vm.requestAndConfirmExport()
         advanceUntilIdle()
 
         assertEquals(
@@ -206,7 +272,7 @@ class SettingsViewModelTest {
         proRepository.statusFlow.value = ProStatus.PRO
         maskRepository.failure = RuntimeException("boom")
         val vm = viewModel()
-        vm.onExportClick()
+        vm.requestAndConfirmExport()
         advanceUntilIdle()
 
         assertEquals(
@@ -223,7 +289,7 @@ class SettingsViewModelTest {
         proRepository.statusFlow.value = ProStatus.PRO
         maskRepository.failure = IOException("offline")
         val vm = viewModel()
-        vm.onExportClick()
+        vm.requestAndConfirmExport()
         advanceUntilIdle()
 
         assertEquals(SettingsEvent.ExportFailed(R.string.error_network), vm.events.first())
@@ -236,7 +302,7 @@ class SettingsViewModelTest {
             Response.error<Unit>(429, "".toResponseBody("application/json".toMediaType()))
         )
         val vm = viewModel()
-        vm.onExportClick()
+        vm.requestAndConfirmExport()
         advanceUntilIdle()
 
         assertEquals(SettingsEvent.ExportFailed(R.string.error_rate_limit), vm.events.first())

@@ -49,7 +49,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,6 +111,27 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 
+private data class PendingArchiveUndo(
+    val id: String,
+    val previousState: EmailState,
+)
+
+/** Saves the archive id and its exact pre-archive state as one atomic value. */
+private val PendingArchiveUndoStateSaver = Saver<MutableState<PendingArchiveUndo?>, List<String>>(
+    save = { state ->
+        state.value?.let { undo -> listOf(undo.id, undo.previousState.name) }.orEmpty()
+    },
+    restore = { saved ->
+        mutableStateOf(
+            saved.takeIf { it.size == 2 }?.let { values ->
+                runCatching {
+                    PendingArchiveUndo(values[0], EmailState.valueOf(values[1]))
+                }.getOrNull()
+            },
+        )
+    },
+)
+
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun MaskedEmailListScreen(
@@ -120,7 +144,7 @@ fun MaskedEmailListScreen(
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     justArchivedId: String? = null,
     justArchivedState: EmailState? = null,
-    onArchivedConsumed: () -> Unit = {},
+    onArchivedConsumed: (String) -> Unit = {},
     justCreatedEmail: String? = null,
     onCreatedConsumed: () -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
@@ -149,15 +173,19 @@ fun MaskedEmailListScreen(
     //
     // Guard pendingUndo != null: a rapid second archive of another mask does
     // not overwrite the first undo — the user only gets one undo at a time.
-    var pendingUndo by remember { mutableStateOf<Pair<String, EmailState>?>(null) }
-    LaunchedEffect(justArchivedId) {
-        if (justArchivedId != null && pendingUndo == null) {
-            pendingUndo = justArchivedId to (justArchivedState ?: EmailState.ENABLED)
-            onArchivedConsumed()
+    var pendingUndo by rememberSaveable(saver = PendingArchiveUndoStateSaver) {
+        mutableStateOf(null)
+    }
+    LaunchedEffect(justArchivedId, justArchivedState, pendingUndo) {
+        if (justArchivedId != null && justArchivedState != null && pendingUndo == null) {
+            pendingUndo = PendingArchiveUndo(
+                id = justArchivedId,
+                previousState = justArchivedState,
+            )
         }
     }
     LaunchedEffect(pendingUndo) {
-        val (archivedId, previousState) = pendingUndo ?: return@LaunchedEffect
+        val undo = pendingUndo ?: return@LaunchedEffect
         // Long, not Short: this snackbar is an undo affordance — 4 s is a tight
         // window to notice it mid screen transition and reach the action.
         val result = snackbarHostState.showSnackbar(
@@ -166,14 +194,12 @@ fun MaskedEmailListScreen(
             duration = SnackbarDuration.Long,
         )
         if (result == SnackbarResult.ActionPerformed) {
-            viewModel.restoreMask(archivedId, previousState)
+            viewModel.restoreMask(undo.id, undo.previousState)
         }
-        // Release the slot, exactly as the "mask created" effect below does.
-        // Without this the latch never reopened: `pendingUndo` stayed non-null
-        // for the rest of the screen's life, so the guard above rejected every
-        // later archive — no snackbar, no Undo — and `onArchivedConsumed()` was
-        // never reached either, leaving the id in the SavedStateHandle to
-        // resurrect a stale "Mask archived — Undo" on the next rotation.
+        // Consume navigation state only after the snackbar produced a result.
+        // A recreation cancels this effect, so the saved id remains available
+        // and rememberSaveable restarts the Undo instead of losing it.
+        onArchivedConsumed(undo.id)
         pendingUndo = null
     }
 
