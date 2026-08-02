@@ -71,11 +71,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.core.content.FileProvider
 import com.fastmask.BuildConfig
 import com.fastmask.R
-import com.fastmask.data.local.ExportCache
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
+import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.HairlineDivider
 import com.fastmask.ui.components.MonoLabel
@@ -89,10 +90,9 @@ import kotlinx.coroutines.launch
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
 import com.fastmask.ui.theme.color
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.foundation.layout.heightIn
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,10 +120,6 @@ fun SettingsScreen(
     val exportChooserTitle = stringResource(R.string.settings_export_title)
     val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
     val scope = rememberCoroutineScope()
-    // Constructed rather than injected: it is a stateless wrapper over
-    // cacheDir/exports. Hilt injects the same class into AuthRepositoryImpl for
-    // the sign-out cleanup, so the retention rule still has exactly one home.
-    val exportCache = remember(context) { ExportCache(context) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -134,20 +130,16 @@ fun SettingsScreen(
                 is SettingsEvent.ExportFailed ->
                     snackbarHostState.showSnackbar(context.getString(event.messageRes))
                 is SettingsEvent.ShareCsv -> {
-                    withContext(Dispatchers.IO) {
-                        runCatching {
-                            // Writing and ageing out live in ExportCache, which
-                            // also clears the directory on sign-out — the file
-                            // holds every mask in plaintext, so one owner for
-                            // its whole lifetime beats cache logic inlined in a
-                            // composable.
-                            val file = exportCache.write(event.csv)
-                            FileProvider.getUriForFile(
-                                context,
-                                "${BuildConfig.APPLICATION_ID}.fileprovider",
-                                file,
-                            )
-                        }
+                    // The file is already written: producing it belongs to the
+                    // ViewModel, which holds the injected ExportCache and so can
+                    // abandon an export whose fetch outlived the session. All
+                    // that is left here is turning it into a share intent.
+                    runCatching {
+                        FileProvider.getUriForFile(
+                            context,
+                            "${BuildConfig.APPLICATION_ID}.fileprovider",
+                            event.file,
+                        )
                     }.onSuccess { uri ->
                         val send = Intent(Intent.ACTION_SEND).apply {
                             type = "text/csv"
@@ -156,10 +148,11 @@ fun SettingsScreen(
                         }
                         context.startActivity(Intent.createChooser(send, exportChooserTitle))
                     }.onFailure {
-                        // Distinct from the fetch failure above: the masks were
-                        // downloaded fine and writing the file is what broke
-                        // (no space, cache evicted). "Try again" is the wrong
-                        // advice here — the user has to free something up.
+                        // The file exists but no shareable URI could be built
+                        // for it — it was evicted from the cache directory
+                        // between the write and this line, or the provider
+                        // rejected the path. Same advice as a failed write:
+                        // this is not a "try again in a moment" situation.
                         snackbarHostState.showSnackbar(exportWriteFailedMessage)
                     }
                 }
@@ -352,6 +345,7 @@ fun SettingsScreen(
                         leading = Icons.Filled.FileDownload,
                         trailing = Icons.Filled.ChevronRight,
                         showProgress = uiState.exportInFlight,
+                        progressDescription = stringResource(R.string.state_working),
                         onClick = viewModel::onExportClick,
                     )
                     Spacer(Modifier.height(24.dp))
@@ -433,12 +427,22 @@ private fun SettingsRow(
     // Replaces the trailing icon with a small spinner (e.g. CSV export doing
     // its network fetch) so a slow action doesn't look like a dead tap.
     showProgress: Boolean = false,
+    progressDescription: String? = null,
 ) {
     val extras = FastMaskExtras.current
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(
+                    if (showProgress && progressDescription != null) {
+                        Modifier
+                            .politeLiveRegion()
+                            .semantics { stateDescription = progressDescription }
+                    } else {
+                        Modifier
+                    },
+                )
                 .clickable(onClick = onClick)
                 .padding(vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -584,7 +588,7 @@ private fun AccentPickerDialog(
             )
         },
         text = {
-            Column {
+            Column(modifier = Modifier.radioButtonGroup()) {
                 Accent.entries.forEach { accent ->
                     val rowBg = if (accent == selected) extras.surfaceAlt else Color.Transparent
                     Row(
@@ -659,7 +663,7 @@ private fun LanguagePickerDialog(
             // heightIn, not height: at a 200% font scale a fixed box can
             // overflow the dialog on a short screen in landscape.
             Box(modifier = Modifier.heightIn(max = 360.dp)) {
-                LazyColumn {
+                LazyColumn(modifier = Modifier.radioButtonGroup()) {
                     item {
                         LanguageRow(
                             label = stringResource(R.string.settings_system_default),

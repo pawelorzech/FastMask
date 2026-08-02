@@ -1,179 +1,322 @@
-# FastMask — audyt techniczny 2026-07-27
+# AUDIT_REPORT — FastMask, 2026-08-01
 
-**Rewizja wejściowa:** `be6b291` (v1.10.0, versionCode 21, `main`)
-**Gałąź z poprawkami:** `feature/audit-2026-07-27`
-**Zakres:** całe repozytorium — architektura, kod, dane, bezpieczeństwo, prywatność, zależności, wydajność, dostępność, i18n, UX, pliki doktrynalne i CI
-**Metodyka:** przegląd kodu produkcyjnego i testowego; trzy równoległe audyty specjalistyczne (bezpieczeństwo, dostępność+i18n, dane+współbieżność); buildy debug i release; 446 testów jednostkowych i 19 instrumentowanych na emulatorze API 36; przejście ścieżek UI na żywo w trybie demo ze zrzutami ekranu
+**Repozytorium:** `~/Programowanie/FastMask` · **Wersja:** 1.10.1 (versionCode 22)
+**Punkt wyjścia:** `main` @ `b3d6dca` · **Gałąź poprawek:** `feature/audit-2026-08-01`
+**Przebieg:** szósty audyt. Poprzednie raporty: `Plans/audit-archive/`.
 
-> **Kontekst:** piąty przebieg audytu tego repozytorium. Poprzednie cztery (2026-07-19, 07-23, 07-24 pass A/B/C) naprawiły ponad 40 problemów; ich raporty leżą w `Plans/audit-archive/`. Ten przebieg celowo nie powtarzał tamtych znalezisk — szukał tego, co przeoczyły albo wprowadziły.
+Ten dokument podaje **fakty z lokalizacją i statusem potwierdzenia**. Wnioski, oceny i propozycje produktowe są w `UX_RECOMMENDATIONS.md`; lista zmian w `CHANGELOG_AGENT.md`.
 
-**Status potwierdzenia** używany w całym dokumencie: **[K]** potwierdzony odczytem kodu · **[N]** potwierdzony uruchomionym narzędziem · **[U]** wymaga urządzenia lub konta · **[H]** hipoteza.
-
----
-
-## 1. Stan bazowy (przed zmianami)
-
-| Komenda | Wynik |
-|---|---|
-| `./gradlew clean testDebugUnitTest` | ✅ 442 testy, 0 porażek |
-| `./gradlew lintDebug` | ✅ 0 errorów, 99 ostrzeżeń (42 `Typos`, 26 `GradleDependency`, 20 `UnusedResources`, 5 `IconLauncherShape`, 4 `InlinedApi`, 1 `LocaleFolder`, 1 `ObsoleteSdkInt`) |
-| `./gradlew assembleDebug` | ✅ SUCCESS — APK 22,2 MB |
-| `./gradlew assembleRelease` | ✅ SUCCESS (R8 + shrinkResources) — APK 4,15 MB |
-| `./gradlew connectedDebugAndroidTest` | ✅ 16 testów na emulatorze `Pixel_9a_16.1` (API 36), 0 porażek |
-| Środowisko | Gradle 8.9, Kotlin 1.9.22, compileSdk/targetSdk 36, minSdk 26, JDK 17 (toolchain) |
-
-**Zielony build nie był dowodem poprawności.** Najpoważniejsze znalezisko tego przebiegu (A1) istniało mimo kompletu zielonych testów — bo jedyny test, który je pokrywał, uruchamiał *inną implementację* niż ta, którą dostaje konto użytkownika.
-
-Fizyczny telefon (OnePlus 13, CPH2653) był podpięty, ale ma instalkę z Play App Signing — instrumentowane testy wymagałyby odinstalowania aplikacji, co skasowałoby token Fastmail. Testy poszły na emulatorze.
+Statusy potwierdzenia używane niżej: **[P]** potwierdzone z kodu lub uruchomionym narzędziem · **[U]** wymaga testu manualnego na urządzeniu · **[H]** hipoteza.
 
 ---
 
-## 2. Rozpoznanie projektu
+## 1. Streszczenie stanu
 
-**Przeznaczenie.** Natywny klient Android do zarządzania maskowanymi adresami Fastmail. Logowanie tokenem API (JMAP), przeglądanie / tworzenie / edycja / archiwizacja masek. Model: darmowy rdzeń + jednorazowy zakup „FastMask Pro" (`pro_lifetime`) odblokowujący akcenty kolorystyczne, biometryczną blokadę aplikacji i eksport CSV.
+FastMask to natywna aplikacja Android (Kotlin, Compose, Hilt, JMAP) do zarządzania maskami e-mail Fastmaila. 12 591 linii Kotlina produkcyjnego w 108 plikach, 47 plików testowych, 20 lokalizacji, minSdk 26 / target 36.
+
+Kod jest w bardzo dobrym stanie i widać na nim pięć poprzednich przebiegów: komentarze przy nietrywialnych miejscach tłumaczą nie tylko *co*, ale *jaki błąd* dana linia zamyka, a warstwy są rozdzielone konsekwentnie. Duże obszary sprawdziłem i **nie znalazłem w nich nic do naprawienia** — obsługa tokenu, powierzchnia IPC quick-maska, wiązanie snapshotu z kontem, częściowe odpowiedzi JMAP, cache sesji, escapowanie CSV, rozmiary celów dotykowych, poprawność RTL i kompletność tłumaczeń (233 stringi + 8 plurali × 20 lokalizacji, zero dryfu). Szczegóły w § 6.
+
+Nowe ustalenia tego przebiegu koncentrują się w trzech miejscach, których wcześniejsze audyty nie dotykały:
+
+1. **Repozytorium nie budowało się z czystego klona** — udokumentowana komenda `./gradlew assembleDebug` padała u każdego poza Tobą. To także wyjaśnia brak jakiegokolwiek builda w CI.
+2. **Trzy wyścigi na styku „operacja w locie ↔ koniec sesji/ekranu"**, z których jeden łamał obietnicę zapisaną w polityce prywatności.
+3. **Poprawka dostępności z poprzedniego audytu okazała się kodem martwym** — warunek, pod którym ogłaszała postęp, nie był spełniony w żadnym miejscu wywołania.
+
+Naprawione: **6 pozycji P1, 3 z P2 i 3 z P3**. Dwie pozycje P2 zostawiłem świadomie nienaprawione (S-3 i A-1) — uzasadnienie przy każdej. Wszystkie bramki jakości przechodzą.
+
+---
+
+## 2. Mapa architektury
+
+**Główne komponenty**
 
 | Warstwa | Zawartość |
 |---|---|
-| **Dane** | JMAP przez Retrofit/OkHttp (`JmapApi`, cache sesji pod mutexem), `TokenStorage` (EncryptedSharedPreferences), `MaskedEmailCache` (EncryptedFile), `ExportCache` (cacheDir), `SettingsDataStore` + `ProEntitlementStore` (DataStore), Play Billing 8.3, Firebase Crashlytics (opt-out) |
-| **Domena** | Modele, interfejsy repozytoriów, 12 use case'ów, parser linków share'owanych, polityki quick-mask |
-| **UI** | Compose + Material 3, 9 ekranów, `StateFlow<UiState>` + `Channel<Event>`, Hilt, Navigation z shared elementami, 20 języków |
-| **Wejścia systemowe** | Launcher, share target (`ACTION_SEND`), kafelek Quick Settings, skrót z long-pressa, powiadomienie z akcją Cofnij |
+| `data/api` | `JmapApi` (cache sesji pod `Mutex`, walidacja `apiUrl`), `JmapService` (Retrofit), modele kotlinx.serialization |
+| `data/local` | `TokenStorage` (EncryptedSharedPreferences), `MaskedEmailCache` (EncryptedFile, snapshot offline), `ExportCache` (CSV w cacheDir, jedyne dane w plaintekście), `ProEntitlementStore`, `SettingsDataStore`, `CrashReportingSettings` |
+| `data/repository` | Implementacje + `MaskedEmailRepositoryDispatcher` przełączający demo/real per wywołanie |
+| `data/billing` | `PlayBillingDataSource`, `PurchaseSecurity` (weryfikacja podpisu RSA) |
+| `data/crash` | `FirebaseCrashlyticsReporter` — jedyny plik nazywający SDK Crashlytics |
+| `domain` | Modele, interfejsy repozytoriów, use case'y, `ShareRouter`/`SharedLinkParser`, polityki crash-reportingu |
+| `ui` | 8 ekranów (welcome, auth, list, create, detail, settings, pro, lock) + `DesignKit`, nawigacja, motyw |
+| `quickmask` | Kafelek Quick Settings, skrót, powiadomienie z Undo, `QuickMaskActivity` (nieeksportowana) |
 
-**Przepływ danych.** ViewModel → UseCase → `MaskedEmailRepositoryDispatcher` → (real JMAP | demo in-memory), routing po `AppMode` z DataStore. Konto: token → sesja JMAP (`accountId`, `apiUrl`, walidowany do `*.fastmail.com`) → `MaskedEmail/get|set`.
+**Przepływ danych.** Token → `TokenStorage` (Keystore) → nagłówek `Authorization` → `api.fastmail.com` (JMAP). Odpowiedź → domena → zapis przelotowy do `MaskedEmailCache` (szyfrowany, związany z kontem przez SHA-256 tokenu) → UI. Brak własnych serwerów.
 
-**Miejsca przechowywania danych.** Token → EncryptedSharedPreferences. Snapshot masek → EncryptedFile w `filesDir`. Eksport CSV → `cacheDir/exports` **jawnym tekstem**. Ustawienia i uprawnienie Pro → DataStore. Nic nie opuszcza urządzenia poza Fastmailem, Play i (opcjonalnie) Crashlyticsem.
+**Punkty integracji.** Fastmail JMAP · Google Play Billing · Firebase Crashlytics (opt-out) · systemowy BiometricPrompt · FileProvider (udostępnianie CSV).
 
-**Główne ścieżki.** Welcome → (token | demo) → lista → szczegół (edycja / włącz-wyłącz / archiwizacja z Undo) → tworzenie → ustawienia → paywall. Plus trzy ścieżki poza aplikacją: share URL-a, kafelek, skrót.
+**Miejsca przechowywania danych.** `fastmask_secure_prefs.xml` (token, szyfrowany) · `files/masked_emails_cache.bin` (+ `cache_staging/`, szyfrowany) · `files/datastore/` (ustawienia, uprawnienie Pro) · `cacheDir/exports/` (**CSV w plaintekście**, retencja 1 h).
 
-**Obszary największego ryzyka.** (1) Archiwizacja — jedyna operacja mogąca skasować dane użytkownika. (2) Zamek biometryczny — jedyna bariera prywatności na urządzeniu. (3) Token API — daje pełny dostęp do skrzynki. (4) Cache masek i eksport CSV — jedyne miejsca, gdzie komplet masek leży na dysku. (5) Wejścia systemowe — jedyna powierzchnia, którą może dotknąć obcy proces.
+**Główne ścieżki użytkownika.** Powitanie → wklejenie tokenu API → lista masek → utworzenie / edycja / archiwizacja z Undo → ustawienia (język, akcent, zamek, crash reporty, eksport, wylogowanie). Poza tym: tryb demo, kafelek/skrót quick-mask, udostępnianie linku do aplikacji, paywall Pro.
 
----
-
-## 3. Znalezione problemy
-
-### 3.1 Naprawione
-
-| ID | Prio | Status | Problem | Lokalizacja | Przyczyna źródłowa |
-|---|---|---|---|---|---|
-| **A1** | **P0** | **[K]** | Przycisk **„Archiwizuj maskę" wysyłał JMAP `destroy`** — trwałe usunięcie — podczas gdy dialog potwierdzenia obiecuje „Mail sent here will bounce. **You can restore it later**", a lista oferuje Undo, które wysyła `update {state}` na id już usunięte | `data/repository/MaskedEmailRepositoryImpl.kt:70`, `data/api/JmapApi.kt:184`, `values/strings.xml:110` | Jedno `deleteMaskedEmail` obsługiwało dwa przeciwne zamiary: „archiwizuj odwracalnie" (ekran szczegółów) i „usuń pomyłkę" (Undo kafelka). Realizowało oba twardym `destroy` |
-| **A2** | **P1** | **[K]** | **Zamek aplikacji rozbrajał się po utracie Pro — niespójnie w czterech miejscach.** Zimny start: odblokowany. Powrót z tła: zablokowany. Ustawienia: przełącznik pokazuje „wyłączony". Kafelek: tworzy maski mimo zamka | `MainActivity.kt:156` vs `:218`, `ui/settings/SettingsScreen.kt:325`, `domain/usecase/QuickMaskCreator.kt:57` | Kontrola prywatności (kto widzi maski) sprzężona z kontrolą monetyzacji (kto zapłacił). Trzy miejsca użyły `&& isPro`, jedno nie — a komentarz przy tym jednym poprawnie uzasadniał, dlaczego nie powinno |
-| **A3** | **P1** | **[K]** | **Uszkodzony DataStore `settings` = trwały crash-loop.** `appModeBlocking()` opakowywał `runCatching` wokół parsowania enuma, ale nie wokół odczytu; wołane w konstruktorach trzech ViewModeli i przy każdym wywołaniu repozytorium | `data/local/SettingsDataStore.kt:74` | Niedopatrzenie, nie decyzja — `crashReportingEnabledBlocking()` obok **ma** ten guard. Brak `corruptionHandler` na obu DataStore'ach |
-| **A4** | **P1** | **[K]** | **Cache masek nie był związany z kontem**, a `clear()` przy wylogowaniu ignorował wynik `File.delete()`. Logowanie nie czyściło niczego | `data/local/MaskedEmailCache.kt:37,78`, `data/repository/AuthRepositoryImpl.kt:22` | Snapshot anonimowy, pod stałą nazwą pliku. Jedyne, co dzieliło maski konta A od konta B, to nieweryfikowane `delete()` |
-| **A5** | **P1** | **[K]** | **Szyfrowany zapis całej listy masek, odczyt tokenu i `runBlocking` na DataStore szły na wątku głównym.** Retrofit wznawia korutynę na dyspozytorze wywołującego, a każdym wywołującym jest ViewModel na `Main.immediate` | `data/repository/MaskedEmailRepositoryImpl.kt` (wszystkie metody), `MaskedEmailRepositoryDispatcher.kt:33` | Założenie, że „Retrofit i tak robi I/O w tle" — prawdziwe tylko dla samego HTTP |
-| **A6** | **P1** | **[K]** | **Mutacje w `viewModelScope`**: cofnięcie ekranu w trakcie anulowało żądanie, które mogło już dojść do serwera. Przy tworzeniu = maska-sierota bez adresu; przy archiwizacji = brak snackbara z Undo dla zmiany, która się wydarzyła | `ui/create/CreateMaskedEmailViewModel.kt:102`, `ui/detail/MaskedEmailDetailViewModel.kt:121,161,184` | `@ApplicationScope` istniał w repo i był używany przez billing, ale nie przez mutacje masek |
-| **A7** | **P1** | **[K]** | **Kafelek Quick Settings nie miał guardu in-flight.** Trzy szybkie tapnięcia = trzy prawdziwe maski, jedno powiadomienie, Undo tylko dla ostatniej, schowek tylko z ostatnią | `quickmask/QuickMaskRunner.kt:49` | Wzorzec synchronicznej flagi in-flight jest w repo konsekwentny we wszystkich ViewModelach; ten jeden punkt wejścia go nie dostał — a jest najłatwiejszy do tapnięcia dwa razy, bo nie daje feedbacku aż do powrotu z sieci |
-| **A8** | **P2** | **[K]** | **Undo archiwizacji działało tylko raz na cykl życia ekranu.** `pendingUndo` nigdy nie wracało do `null`; bliźniaczy `pendingCreated` obok wracał. Skutek uboczny: nieskonsumowane id zostawało w `SavedStateHandle` i po obrocie wyskakiwał „zombie" snackbar dla dawno zarchiwizowanej maski | `ui/list/MaskedEmailListScreen.kt:154` | Asymetria dwóch sąsiadujących bloków — pominięcie jednej linii |
-| **A9** | **P2** | **[K]** | **Weryfikacja podpisu zakupu była fail-open**: pusty `PLAY_LICENSE_KEY` = `isSignatureValid()` zwraca `true` | `data/billing/PlayBillingDataSource.kt:266` | Wygoda dev/CI zaimplementowana w warstwie runtime zamiast build-time. Kontrola build-time (guard w `build.gradle.kts`) istnieje i działa, ale runtime nadal ufał domyślnie |
-| **A10** | **P2** | **[K]** | **Retencja eksportu CSV nie działała dla nikogo, kto wyeksportował raz.** Klasa deklaruje godzinę życia, ale czyszczenie było efektem ubocznym `write()` — czyli następowało dopiero przy **następnym** eksporcie | `data/local/ExportCache.kt:37` | Reguła retencji zaimplementowana jako efekt uboczny zapisu, a nie niezależny cykl życia. To jedyna kopia kompletu masek na dysku, która **nie** jest szyfrowana |
-| **A11** | **P2** | **[K]** | **`gradle.properties` pinował `org.gradle.java.home` do ścieżki Homebrew z jednego laptopa.** Repo jest publiczne i przyjmuje kontrybucje | `gradle.properties:2` | Konfiguracja per-maszyna w pliku wersjonowanym. Repo ma już ustalony wzorzec dla takich rzeczy (`~/.gradle/gradle.properties` trzyma klucze podpisu i klucz licencyjny Play) |
-| **A12** | **P2** | **[K]** | **Polityka prywatności deklarowała kasowanie preferencji przy wylogowaniu, którego kod nie robi.** §6: „The API token, language, and other local preferences remain on your device until you log out… At that point they are removed". Faktycznie `logout()` kasuje token, cache i eksporty, ale zostawia język, akcent, flagę zamka, przełącznik raportów awarii | `docs/privacy.md:84` vs `data/repository/AuthRepositoryImpl.kt:28` | Dokument opisywał zamiar, nie implementację. Zachowanie kodu jest tu lepsze (preferencje dotyczą aplikacji, nie konta) — nieprawdziwa była deklaracja |
-| **A13** | **P3** | **[K]** | **Reguły backupu chroniły wyłącznie token.** Snapshot masek i katalog DataStore nie były wykluczone | `res/xml/backup_rules.xml`, `data_extraction_rules.xml` | Dziś bez skutku (`allowBackup="false"`), ale pliki są tam świadomie jako siatka bezpieczeństwa — a siatka miała dziurę dokładnie tam, gdzie leżą maski |
-
-### 3.2 A1 zasługuje na osobne omówienie
-
-To najpoważniejsze znalezisko pięciu przebiegów audytu i warto rozumieć, **dlaczego przeżyło cztery poprzednie**.
-
-Całe UI aplikacji jest zbudowane pod miękkie archiwum. Istnieje `EmailState.DELETED`. Istnieje filtr „Archived" z licznikiem. Istnieje etykieta `state_deleted`. Istnieje dialog obiecujący przywracalność i snackbar z Undo, który przywraca **poprzedni** stan maski, nie byle jaki. Repozytorium demo archiwizuje przerzutem stanu, a jego własny KDoc mówi, że robi to „mirroring how Fastmail's JMAP API behaves".
-
-Tylko jedno miejsce w całym systemie mówiło co innego: jedna linia wysyłająca `destroy`. I żaden produkcyjny kod nie ustawiał nigdy `EmailState.DELETED` przez prawdziwe API — czyli filtr „Archived" **nie mógł się zapełnić** z poziomu aplikacji.
-
-Test, który miał to pokrywać, jest opisany w kodzie jako „the highest-risk path in the app" i biegnie **w trybie demo**. Demo implementuje semantykę, którą obiecuje UI. Produkcja implementowała inną. Test był zielony i mierzył nie to, co trzeba.
-
-**Wniosek procesowy, ważniejszy od samej poprawki:** test ścieżki krytycznej uruchamiany na atrapie o innej semantyce niż implementacja produkcyjna jest gorszy niż brak testu — daje fałszywe poczucie pokrycia. Poprawka rozdziela `archiveMaskedEmail` i `destroyMaskedEmail` na poziomie **interfejsu repozytorium**, więc obie implementacje muszą teraz zadeklarować obie semantyki osobno i nie da się ich pomylić przez przypadek.
-
-**Czego nie wiem:** co dokładnie Fastmail robi z `destroy` na masce (kasuje twardo, czy tłumaczy na `state=deleted`). Nie mam tokenu, a szukanie w dokumentacji Fastmaila nie dało rozstrzygającej odpowiedzi. Poprawka jest jednak poprawna **niezależnie od tej odpowiedzi**: „Archiwizuj" powinno wysyłać operację zdefiniowaną jako odwracalna, a Undo kafelka tę zdefiniowaną jako usunięcie. Weryfikacja na koncie jest punktem 1 listy QA.
-
-### 3.3 Nienaprawione (świadomie)
-
-| ID | Prio | Status | Problem | Lokalizacja | Powód pozostawienia |
-|---|---|---|---|---|---|
-| B1 | P2 | [K] | Pola tekstowe nie mają widocznej granicy: tło pola vs tło ekranu **1,15:1** (jasny) i **1,04:1** (ciemny), ramka 1,28:1 i 1,25:1 — wszystko poniżej wymaganych 3:1 (WCAG 1.4.11) | `ui/components/DesignInput.kt:81`, `ui/theme/Color.kt` | Naprawa wymaga pociemnienia `LightLineStrong` i rozjaśnienia `DarkLineStrong`, czyli **zmiany palety** — a paleta „warm ink" jest świadomie zaprojektowanym elementem produktu. To decyzja projektowa Pawła, nie poprawka błędu. Propozycja z konkretnymi wartościami w `UX_RECOMMENDATIONS.md` §B1 **→ ZAMKNIĘTE w drugiej turze, patrz §6.** |
-| B2 | P2 | [K] | Overlay tutoriala nie jest modalny dla TalkBacka — scrim łyka dotyk, ale nie usuwa treści pod spodem z drzewa semantyki; dymek nie dostaje fokusu | `ui/components/TutorialOverlay.kt:113` | Poprawka jest jednoznaczna (`invisibleToUser()` + `isTraversalGroup`), ale weryfikacja wymaga TalkBacka na urządzeniu. Naprawa bez możliwości sprawdzenia efektu to zgadywanie **→ ZAMKNIĘTE w drugiej turze, patrz §6.** |
-| B3 | P2 | [K] | Brak `liveRegion` i `stateDescription` w całej aplikacji (0 wystąpień). Etykiety przycisków podmieniane na `"…"` w trakcie ładowania — TalkBack czyta „wielokropek, przycisk" | `ui/components/DesignKit.kt:210` i 5 ekranów | To samo — wymaga weryfikacji czytnikiem ekranu. Zakres większy niż jedna linia (dotyka wspólnego `PillButton` i pięciu ekranów) **→ ZAMKNIĘTE w drugiej turze, patrz §6.** |
-| B4 | P2 | [K] | Cztery obszary dotyku poniżej 48 dp: pigułki filtrów (~32 dp), kopiuj na szczegółach (~30×34 dp), „Skip" w tutorialu (~30 dp), segment Active/Off (~38 dp) | `MaskedEmailListScreen.kt:556`, `MaskedEmailDetailScreen.kt:274`, `TutorialOverlay.kt:243`, `CreateMaskedEmailScreen.kt:314` | Poprawka jest bezpieczna i mechaniczna (`heightIn(min = 48.dp)`), ale zmienia rozkład czterech ekranów — chcę, żeby Paweł zobaczył efekt, zanim to wejdzie. Rekomendacja A2 **→ ZAMKNIĘTE w drugiej turze, patrz §6.** |
-| B5 | P2 | [K] | Trzy pary kolorów poniżej 4,5:1 dla małego tekstu: akcent na `surfaceVariant` (4,32:1), `LightOffInk` na `LightOffBg` (4,31:1), licznik w wybranej pigułce przy `alpha 0.7` (**3,27:1** przy 10 sp) | `DemoBanner.kt:66`, `Color.kt:20`, `MaskedEmailListScreen.kt:577` | Licznik da się naprawić bez dotykania palety (zdjąć alpha → 5,02:1) i to jest rekomendacja A1. Pozostałe dwie to znowu zmiana palety **→ ZAMKNIĘTE w drugiej turze, patrz §6.** |
-| B6 | P2 | [K] | Ekran szczegółów pobiera **całą listę masek**, żeby wyświetlić jedną — przy otwarciu, po każdym zapisie i po każdym przełączeniu stanu. `JmapApi` nie ma wariantu z filtrem `ids` | `ui/detail/MaskedEmailDetailViewModel.kt:59`, `data/api/JmapApi.kt` | Przy ~265 maskach to trzy pełne pobrania listy na jedną edycję. Poprawka wymaga nowej metody API i ostrożności, żeby pobranie jednej maski **nie nadpisało** całego cache'u — zmiana projektowa, nie poprawka. Rekomendacja B4 |
-| B7 | P2 | [H] | Chwilowo „pusta" autorytatywna odpowiedź Play (wylogowany Sklep, wyczyszczone dane) odbiera Pro istniejącemu właścicielowi | `data/repository/ProRepositoryImpl.kt:204` | Obsługa błędów jest tu **wzorowa** — błąd sieci/dostępności nie degraduje uprawnienia. Degraduje tylko `Ok` z pustą listą, czyli autorytatywne „nie masz nic". Czy Play potrafi tak skłamać, to hipoteza, której nie potwierdziłem. Szkoda jest odwracalna („Przywróć zakup"). Wprowadzanie histerezy na podstawie hipotezy byłoby leczeniem objawu |
-| B8 | P2 | [K] | Brak reakcji na 401: `cachedSession` nie ma TTL, token nie jest czyszczony, brak wylogowania. Po odwołaniu tokenu w panelu Fastmaila użytkownik krąży w pętli „Authentication failed" | `data/api/JmapApi.kt:299`, `ui/common/UiErrors.kt` | Automatyczne wylogowanie na 401 jest ryzykowne (przejściowe 401 z proxy skasowałoby poprawny token). Właściwa poprawka to akcja „Zaloguj ponownie" w banerze błędu — zmiana UX wymagająca projektu. Rekomendacja B2 |
-| B9 | P3 | [K] | Brak idempotencji tworzenia maski: timeout po dotarciu żądania → użytkownik klika ponownie → dwie maski | `data/api/JmapApi.kt:96` | JMAP nie daje klucza idempotencji; obejście wymagałoby heurystyki po `forDomain`/`createdAt`, która sama może się mylić. Guard in-flight (A7) zamyka najczęstszy wyzwalacz |
-| B10 | P3 | [K] | `Log.w` w `QuickMaskRunner` nie jest bramkowany `BuildConfig.DEBUG` i przeżywa release; `JmapException` niesie serwerowy `description` | `quickmask/QuickMaskRunner.kt:40` | Ekspozycja realnie ograniczona do ADB i bug reportów (`READ_LOGS` jest signature-only). Wpisałem do backlogu zamiast rozdmuchiwać |
-| B11 | P3 | [K] | `QuickMaskUndoReceiver` kasuje maskę o dowolnym id z extras, bez sprawdzenia, że pochodzi z ostatniego quick-create | `quickmask/QuickMaskUndoReceiver.kt:16` | Dziś niewykorzystywalne: receiver nieeksportowany, PendingIntent immutable. Wart drugiego zamka analogicznego do `isQuickCreateLaunch`, ale to hardening na przyszłość, nie luka |
-| B12 | P3 | [K] | `docs/privacy.md` deklaruje restrykcje klucza Firebase, których nie mogę zweryfikować; klucz `AIzaSy…` jest w repo w `app/google-services.json` | `app/google-services.json:18` | **To nie jest podatność** — klucz Firebase dla Androida i tak trafia do APK i jest identyfikatorem, nie sekretem; Google jawnie tak go opisuje. Ryzyko zależy wyłącznie od restrykcji ustawionych w konsoli GCP (package + SHA-1). Zero kodu do zmiany, jedna rzecz do sprawdzenia w konsoli |
-| B13 | P3 | [K] | `.github/workflows/claude.yml` reaguje na `@claude` w komentarzu do issue bez filtra autora, w **publicznym** repo | `.github/workflows/claude.yml:14` | Uprawnienia workflow są read-only, a `claude-code-action` ma własną kontrolę uprawnień aktora, której nie zweryfikowałem. Do potwierdzenia, nie do naprawy w ciemno |
-| B14 | P3 | [K] | README §Features nie wymienia Pro, zamka biometrycznego, eksportu CSV, share targetu, kafelka, skrótu ani trybu offline; §Settings opisuje ekran sprzed kilku wersji | `README.md:42` | Drift dokumentacji, zero wpływu na działanie. Wymaga decyzji Pawła co do marketingowego tonu — nie chcę pisać opisu produktu za niego |
-| B15 | P3 | [K] | 9 nieużywanych stringów przetłumaczonych na 19 języków + 400 zduplikowanych wpisów (endonimy języków i sufiks domeny powinny mieć `translatable="false"`) | `values*/strings.xml` | Czysta higiena, zero wpływu na użytkownika. Usuwanie 180+ wpisów z 20 plików w tym samym przebiegu, co zmiany semantyki archiwizacji, niepotrzebnie rozdmuchałoby diff |
-| B16 | P3 | [K] | `MaskedEmail.formattedCreatedAt` / `formattedLastMessageAt` — martwy kod z formatterem, który zamraża locale w momencie ładowania klasy | `domain/model/MaskedEmail.kt:19` | Nieużywane, więc nie boli. Pułapka dla następnego, kto po nie sięgnie. Do backlogu |
-| B17 | P3 | [K] | `CachedSnapshot` nie ma pola wersji formatu | `data/local/MaskedEmailCache.kt:93` | Dziś ratują to `ignoreUnknownKeys`, wartości domyślne i fallback nieznanego stanu. Znacznik właściciela (A4) daje przy okazji mechanizm odrzucania niezgodnych snapshotów. Jawne pole wersji jest zalecane przed kolejną zmianą kształtu |
-
-### 3.4 Zweryfikowane negatywnie — **nie są** defektami
-
-Podaję, bo to połowa wartości audytu: żeby nikt tego nie „naprawiał" po raz drugi.
-
-**Bezpieczeństwo.** Confused deputy przez `QuickMaskActivity` — zamknięte podwójnie (`exported="false"` + wymóg własnej akcji). Wszystkie cztery `PendingIntent` są `FLAG_IMMUTABLE` z jawnym targetem. `QuickMaskTileService` eksportowany, ale za `BIND_QUICK_SETTINGS_TILE`. Parser share'u nie ma regexa, ma gwarancję postępu O(n) i twardy cap 8192 znaków. Share nie omija zamka (`WaitForUnlock` trzyma go, `consumes()` odmawia wyczyszczenia). Logging interceptor tylko w debug, z redakcją `Authorization`. `apiUrl` z sesji walidowany **przed** przypisaniem — trik z userinfo (`https://api.fastmail.com@evil.com`) nie przechodzi. Neutralizacja formuł CSV wg OWASP, z inspekcją pierwszego niebiałego znaku. FileProvider nieeksportowany, ograniczony do `cache-path exports/`. `FLAG_SECURE` + `filterTouchesWhenObscured` w release. Adres maski **nie jest** w treści powiadomienia; `VISIBILITY_SECRET` na builderze i na kanale.
-
-**Prywatność.** `CrashReporter` wystawia wyłącznie dwa przełączniki — nie ma API, którym dałoby się przekazać dane do raportu, a `CrashReportingPrivacyTest` czyta źródła **i skompilowane klasy**, żeby to egzekwować. `firebase_sessions_enabled=false` w manifeście, z komentarzem opisującym dokładnie, czego ta flaga **nie** zatrzymuje. Zero SDK analitycznych.
-
-**i18n.** 232 stringi + 8 `<plurals>` w każdym z 20 locale — **zero brakujących kluczy, zero niezgodnych placeholderów, zero nadmiarowych**. Kategorie CLDR poprawne wszędzie (`ar` ma pełne zero/one/two/few/many/other; `pl`/`ru`/`uk` one/few/many/other). `locales_config.xml` zgadza się 1:1 z katalogami i z `Language.kt`. **Notatka z pamięci projektu o `time_year_ago` jako zwykłym `<string>` jest nieaktualna** — to `<plurals>` z poprawnymi formami polskimi, a dwa testy pilnują regresji.
-
-**Dostępność (to, co działa).** Wszystkie 24 wystąpienia `contentDescription = null` są poprawnie dekoracyjne. `StateDot` przyjmuje opis stanu, filtry mają `Role.Tab`, wybór akcentu i języka `Role.RadioButton`, przełączniki `toggleable(role = Role.Switch)` na całym wierszu. Etykiety pól **są** powiązane semantycznie. 100% typografii w `sp`. RTL: zero `Absolute`/`Left`/`Right`, ikony przez `AutoMirrored`, `list_stats` przestawiony w `values-ar`.
-
-**Dane.** `JmapApi.ensureSession` — poprawny double-checked locking pod `Mutex` z polami `@Volatile`. `parseSetResponseUpdated`/`Destroyed` **pozytywnie potwierdzają** skutek po stronie serwera, zamiast zakładać sukces. `ProRepositoryImpl` degraduje uprawnienie wyłącznie na odpowiedź autorytatywną, ma `seedJob` z semantyką compare-and-set, ponawia `acknowledge` i rozróżnia „ten sam zakup" od „nowy zakup po zwrocie". `QuickMaskUndoReceiver.goAsync()` utrzymuje proces do zakończenia operacji.
+**Obszary największego ryzyka.** (1) Token Fastmaila — pełny dostęp do skrzynki. (2) Snapshot masek i eksport CSV jako dane w spoczynku. (3) Ścieżki tworzące maski (podwójne wysłanie = prawdziwa maska na koncie). (4) Odwracalność archiwizacji. (5) Bramka biometryczna.
 
 ---
 
-## 4. Weryfikacja po zmianach
+## 3. Stan bazowy (przed zmianami)
 
-| Komenda | Przed | Po |
+Wykonane polecenia i ich dosłowne wyniki. JDK: bundlowany JBR Android Studio 17 — systemowy `java` to OpenJDK 26, na którym Gradle 8.9 **odmawia startu**; to nie jest udokumentowane w repo (patrz D-1).
+
+| # | Polecenie | Wynik |
 |---|---|---|
-| `./gradlew clean testDebugUnitTest` | 442 / 0 porażek | **446 / 0 porażek** |
-| `./gradlew lintDebug` | 0 errorów | **0 errorów** |
-| `./gradlew assembleDebug` | SUCCESS | **SUCCESS** |
-| `./gradlew assembleRelease` | SUCCESS | **SUCCESS** |
-| `./gradlew connectedDebugAndroidTest` (emulator API 36) | 16 / 0 porażek | **19 / 0 porażek** |
+| 1 | `./gradlew test lint` | **BUILD SUCCESSFUL**, 0 błędów lintu, **99 ostrzeżeń** |
+| 2 | `./gradlew testDebugUnitTest --rerun-tasks` | **BUILD SUCCESSFUL** — 39 klas, **447 testów, 0 porażek, 0 pominiętych** |
+| 3 | `./gradlew assembleRelease` | **BUILD SUCCESSFUL** (R8 + shrink resources, niepodpisany) |
+| 4 | `./gradlew connectedDebugAndroidTest` (emulator Pixel 9a, API 36) | **BUILD FAILED** — 19 testów, **1 porażka** |
+| 5 | `git clone` → `./gradlew processDebugGoogleServices` | **BUILD FAILED** — `File google-services.json is missing` |
 
-**Podział weryfikacji — co czym potwierdzone:**
+**Porażka w punkcie 4** to `MainFlowsTest#creatingAMaskReturnsToTheListWithTheNewMaskOnIt` z `RootViewWithoutFocusException: Waited for the root of the view hierarchy to have window focus`. To flake środowiskowy emulatora, nie defekt aplikacji — **[P]**: ten sam test przeszedł w każdym z trzech kolejnych przebiegów na tym samym emulatorze, bez żadnej zmiany w kodzie testu ani ekranu tworzenia.
 
-- **Zweryfikowane automatycznie:** wszystkie poprawki mają pokrycie w testach jednostkowych albo instrumentowanych, poza A2 (bramka zamka — wymaga urządzenia z biometrią), A5 (dyspozytory — brak StrictMode w testach), A6 (scope mutacji — testy potwierdzają, że kod się wykonuje, nie że przeżywa zniszczenie ViewModelu) i A11/A12 (konfiguracja i dokumentacja).
-- **Zweryfikowane ręcznie:** ścieżki UI przejściem w trybie demo na emulatorze ze zrzutami ekranu (welcome → demo → lista → tutorial → wyszukiwanie bez wyników → koniec listy). Build bez `JAVA_HOME` sprawdzony i **potwierdzony jako niedziałający** na systemowym JDK 26 — to znany koszt A11, zaakceptowany przez Pawła.
-- **Nieweryfikowalne w tym środowisku:** semantyka `destroy` vs `state: deleted` po stronie Fastmaila (brak tokenu), zachowanie zamka biometrycznego (emulator bez skonfigurowanej biometrii), rzeczywisty zysk wydajności A5 przy ~265 maskach, restrykcje klucza Firebase (B12), kontrola uprawnień aktora w `claude-code-action` (B13).
+**Rozkład 99 ostrzeżeń lintu:** 27 × `GradleDependency` (nieaktualne zależności), 55 × `Typos` (fałszywe trafienia na base64 w `font_certs.xml` i na `fmu1` w stringach), 9 × `UnusedResources`, 5 × `IconLauncherShape`, 4 × `InlinedApi` (świadome, `POST_NOTIFICATIONS`), 1 × `LocaleFolder`, 1 × `ObsoleteSdkInt`. Żadne nie jest błędem.
 
-**Jedna poprawka została złapana przez testy instrumentowane, nie przez przegląd kodu.** Atomowy zapis cache'u (zapis do pliku tymczasowego + `renameTo`) rozbił odszyfrowywanie: `EncryptedFile` przekazuje `File.getName()` do Tinka jako associated data AEAD, więc plik zaszyfrowany pod nazwą `…bin.tmp` i przemianowany nigdy się już nie odszyfruje. Testy JVM tego nie wyłapią — nie ma tam Keystore'a. Rozwiązanie: staging w osobnym katalogu, pod **tą samą** nazwą pliku.
+> **Zielony build nie jest dowodem, że aplikacja działa poprawnie.** Punkt 5 to pokazuje wprost: punkty 1–4 były zielone u mnie, a repozytorium było niebudowalne dla kogokolwiek innego.
 
 ---
 
-## 5. Ryzyka i ograniczenia audytu
+## 4. Znalezione problemy
 
-1. **A1 nie jest zweryfikowane na prawdziwym koncie.** To najpoważniejsza zmiana i najważniejsza pozycja QA. Kierunek poprawki jest poprawny niezależnie od zachowania serwera, ale jej *skutek* — czy zarchiwizowane maski faktycznie pojawią się pod „Archived" — trzeba zobaczyć.
-2. **Nie miałem tokenu Fastmail ani dostępu do konta Pawła** i świadomie o niego nie prosiłem. Cała warstwa JMAP jest zweryfikowana wyłącznie przez testy z atrapami.
-3. **Testy instrumentowane poszły na emulatorze, nie na telefonie.** Fizyczny OnePlus 13 ma instalkę podpisaną kluczem Play, więc instalacja lokalnego builda wymagałaby odinstalowania aplikacji, co skasowałoby token.
-4. **Brak weryfikacji czytnikiem ekranu.** Wszystkie znaleziska a11y opierają się na odczycie kodu i wyliczeniach kontrastu, nie na TalkBacku. Dlatego B2 i B3 zostały nienaprawione mimo jasnych poprawek.
-5. **Trzy audyty specjalistyczne prowadziły równoległe agenty.** Ich ustalenia weryfikowałem samodzielnie odczytem kodu przed przyjęciem; jedno twierdzenie (możliwość wyzwolenia A2 przez odcięcie sieci) **odrzuciłem** po przeczytaniu `ProRepositoryImpl` — degradacja uprawnienia następuje tylko na odpowiedź autorytatywną.
-6. **Nie ruszałem zależności.** Lint zgłasza 26 `GradleDependency`, a Dependabot ma otwarte PR-y. Selektywny bump wymaga osobnego przebiegu z własnym zakresem testów — mieszanie go z poprawkami semantyki archiwizacji zaciemniłoby, co zepsuło ewentualną regresję.
+### P1
 
 ---
 
-## 6. Druga tura — dostępność (2026-07-27, po decyzji Pawła „napraw wszystko")
+**B-1 · Czysty klon repozytorium nie buduje się** — status **[P]**, naprawione (`3f306ac`)
 
-Po pierwszym zestawie poprawek Paweł poprosił o domknięcie wszystkiego, co da się bezpiecznie domknąć. Zamknięte zostały wszystkie pozycje a11y z §3.3 poza tymi, które wymagają jego decyzji projektowej albo urządzenia z TalkBackiem do walidacji efektu.
+*Lokalizacja:* `app/build.gradle.kts:5-6` (przed zmianą), `.gitignore:41`
 
-| ID | Było | Jak naprawione |
-|---|---|---|
-| **B1** | Obramowanie pól 1,15:1 (jasny) / 1,04:1 (ciemny) — pole nieodróżnialne od tła | Nowe `LightInputLine` `#8E846E` (3,23:1) i `DarkInputLine` `#776D5C` (3,58:1), użyte **wyłącznie** jako obramowanie `DesignInput`. Hairline'y, obramowania kart i dividery zostały nietknięte — paleta „warm ink" nie została przerysowana, żeby naprawić problem trzech ekranów |
-| **B2** | Overlay tutoriala niemodalny dla czytnika ekranu | `isTraversalGroup` + `traversalIndex` na overlayu i `clearAndSetSemantics` na treści pod spodem, gdy tutorial jest widoczny |
-| **B3** | Etykieta przycisku podmieniana na `"…"`; zero `liveRegion`/`stateDescription` w całym `ui/` | `PillButton` dostał `loadingDescription`; cztery miejsca wywołań zachowują nazwę akcji. Baner offline ogłasza się przy pojawieniu. Nowy string `state_working` w 20 lokalach |
-| **B4** | Cztery cele dotykowe 30–38 dp | Pigułki filtrów, kopiowanie na szczegółach, „Skip" w tutorialu i segment Active/Off — wszystkie 48 dp, bez zmiany wyglądu |
-| **B5** | Licznik w wybranej pigułce 3,27:1 przy 10 sp | Zdjęta `alpha = 0.7f` → 5,02:1 |
-| **B6** | `isError` zmieniało tylko kolory; podpowiedź niepowiązana z polem | `semantics { error(hint) }` na węźle pola |
-| — | Tytuły ekranów bez `heading()` | Cztery ekrany oznaczone, TalkBack oferuje nawigację po nagłówkach |
-| — | Sztywna wysokość 360 dp w dialogu języka | `heightIn(max = 360.dp)` |
+*Reprodukcja:* `git clone` → `./gradlew assembleDebug`.
 
-**Jedna regresja złapana i naprawiona w trakcie.** Uczynienie tutoriala modalnym dla czytnika wywaliło 6 testów instrumentowanych: ich wspólny helper czekał na tytuł listy, a tytuł jest teraz — celowo — niewidoczny w drzewie semantyki, dopóki coach marks są na wierzchu. Poprawiony został helper, nie zachowanie: test opisywał założenie, które przestało być prawdziwe, a nowe zachowanie jest dokładnie tym, czego doświadcza użytkownik czytnika ekranu.
+*Oczekiwane vs rzeczywiste:* README § Build from Source, `CLAUDE.md` i `AGENTS.md` podają tę komendę jako sposób zbudowania projektu. Rzeczywistość:
 
-**Nadal otwarte i świadomie niezamknięte:**
+```
+> Task :app:processDebugGoogleServices FAILED
+> File google-services.json is missing. The Google Services Plugin cannot function without it.
+```
 
-| Pozycja | Powód |
+*Przyczyna źródłowa:* wtyczki `google-services` i `firebase.crashlytics` były aplikowane bezwarunkowo, a `app/google-services.json` jest — słusznie — w `.gitignore` (commit `deab7b0`, 2026-07-31). Plik **nigdy nie był w historii gita**, co sprawdziłem (`git rev-list --all --objects`), więc nie ma tu wycieku klucza; jest wyłącznie zepsuty build.
+
+*Klasyfikacja jako regresja:* przed 1.10.0 nie było wtyczek Firebase, więc czysty klon budował się. Zgodnie z regułą „regresja = min. P1" to P1, mimo że nie dotyka użytkownika końcowego.
+
+*Konsekwencja wtórna:* to wyjaśnia, dlaczego repozytorium **nigdy nie miało joba CI budującego kod** (§ B-2) — taki job padłby przy pierwszym uruchomieniu.
+
+*Poprawka:* wtyczki aplikowane warunkowo. Degradacja jest bezpieczna **konstrukcyjnie, nie przypadkiem**: `FirebaseCrashlyticsReporter` rozwiązuje uchwyt SDK leniwie per wywołanie, a `CrashReportingStartup` już wcześniej łapał `IllegalStateException`, który `getInstance()` rzuca bez domyślnego `FirebaseApp` — ścieżka, którą i tak chodzą ROM-y bez content providerów.
+
+*Weryfikacja:* klon bez pliku → `assembleDebug` **BUILD SUCCESSFUL**; zainstalowany APK **startuje i zostaje wznowiony** na emulatorze API 36 (`topResumedActivity=com.fastmask/.MainActivity`, proces żywy, zero `FATAL`/`Firebase` w logcat). Build z plikiem nadal rejestruje `processDebugGoogleServices` i zadania mapowania Crashlytics.
+
+---
+
+**B-2 · Brak jakiegokolwiek builda w CI, przy aktywnym Dependabocie** — status **[P]**, naprawione
+
+*Lokalizacja:* `.github/workflows/` (dwa pliki, oba to boty Claude), `.github/dependabot.yml`
+
+*Fakt:* w całej historii repozytorium istniały tylko `claude.yml` i `claude-code-review.yml` (`git log --all --name-only -- .github/workflows/`). Żaden workflow nigdy nie kompilował kodu ani nie uruchamiał testów. Jednocześnie Dependabot jest skonfigurowany na cotygodniowe PR-y dla `gradle` i `github-actions` (limit 5 + 5), a w repo leży 9 lokalnych gałęzi `dependabot/*`.
+
+*Konsekwencja:* bump zależności trafiał do przeglądu bez żadnego dowodu, że się w ogóle kompiluje.
+
+*Poprawka:* `.github/workflows/build.yml` — `testDebugUnitTest`, `lintDebug`, `assembleRelease` na push do `main` i każdy PR, akcje przypięte do SHA (zgodnie z konwencją istniejących workflowów), artefakty raportów. Build release'u jest tam celowo: pokrywa R8, reguły keep dla serializacji/Retrofita/Tinka oraz bramkę odmawiającą podpisanego release'u bez klucza licencyjnego.
+
+*Uwaga:* ten job stał się możliwy dopiero po B-1.
+
+---
+
+**B-3 · Uszkodzony `pro_entitlement` zapętla crash u płacącego użytkownika** — status **[P]**, naprawione (`b0bfe7e`)
+
+*Lokalizacja:* `data/local/ProEntitlementStore.kt:16` (brak handlera), `data/repository/ProRepositoryImpl.kt:234` (niechroniony zapis), `MainActivity.kt:140` (goły `lifecycleScope.launch`)
+
+*Reprodukcja:* uszkodzić `files/datastore/pro_entitlement.preferences_pb` (przerwany zapis, pełny dysk) na urządzeniu z wykupionym `pro_lifetime`. Start → odczyt rzuca, jest złapany, status degraduje do FREE → `ON_RESUME` → `refresh()` → Play zwraca zakup → `newStatus = PRO ≠ FREE` → `store.write` → `CorruptionException` → nieprzechwycony w `lifecycleScope` → **proces ginie. Przy każdym starcie.**
+
+*Przyczyna źródłowa:* audyt A3 dodał `ReplaceFileCorruptionHandler` do `SettingsDataStore`, a jego własny opis przyczyny brzmiał „brak `corruptionHandler` na **obu** DataStore'ach". Handler dostał tylko jeden.
+
+*Dlaczego to boli tylko płacących:* użytkownik FREE uzgadnia ten sam status z tym samym `null`-owym tokenem, więc zapis nie następuje. Jedyne wyjście to wyczyszczenie danych aplikacji, co niszczy też token i snapshot masek.
+
+*Poprawka:* handler korupcji (naprawa przyczyny) plus osłonięcie zapisu (każda inna awaria dysku degraduje do nieaktualnego cache'u zamiast crasha). `lastPersistedToken` przesuwa się tylko po sukcesie, więc porażka jest ponawiana, a nie zapisana jako zrobiona. `CancellationException` przepuszczany.
+
+*Weryfikacja:* dwa testy regresyjne, **oba potwierdzone jako padające przeciwko niechronionemu zapisowi**.
+
+---
+
+**B-4 · Undo archiwizacji było jedyną mutacją nadal w `viewModelScope`** — status **[P]**, naprawione (`45da219`)
+
+*Lokalizacja:* `ui/list/MaskedEmailListViewModel.kt:63-75`
+
+*Reprodukcja:* zarchiwizuj maskę → snackbar „Undo" → tapnij Undo → natychmiast wyjdź z aplikacji, gdy `MaskedEmail/set {state: enabled}` jest w locie.
+
+*Oczekiwane vs rzeczywiste:* maska powinna wrócić do stanu sprzed archiwizacji. Faktycznie: wpis nawigacji jest zdejmowany, ViewModel czyszczony, `viewModelScope` anulowany, OkHttp anuluje połączenie — maska zostaje zarchiwizowana, a gałąź `.onFailure`, która istnieje właśnie po to, żeby cicha porażka nie przeszła niezauważona, siedzi w tej samej anulowanej korutynie i nigdy nie biegnie. Jeśli żądanie zdążyło dojść do Fastmaila — maska wraca na koncie, ale lista nigdy się nie przeładowuje.
+
+*Przyczyna źródłowa:* audyt A6 przeniósł mutacje na `@ApplicationScope` w `CreateMaskedEmailViewModel` i `MaskedEmailDetailViewModel`. To miejsce zostało pominięte — akurat to, którego całą obietnicą jest odwracalność.
+
+*Poprawka:* żądanie w `appScope`, czekanie w ViewModelu — dokładnie ten podział, którego używają pozostałe ekrany.
+
+*Weryfikacja:* test prowadzi oba zakresy na **osobnych schedulerach**, więc sprawdza własność zakresu, a nie timing; potwierdzony jako padający przeciwko staremu wywołaniu.
+
+---
+
+**B-5 · Wylogowanie cofane przez pobieranie w locie** — status **[P]**, naprawione (`ef008f4`)
+
+*Lokalizacja:* `data/repository/MaskedEmailRepositoryImpl.kt:44-49`, `data/repository/AuthRepositoryImpl.kt:38-48`
+
+*Reprodukcja:* pull-to-refresh na wolnym łączu → Ustawienia → Wyloguj, zanim odpowiedź dotrze.
+
+*Oczekiwane vs rzeczywiste:* `logout()` kasuje snapshot; korutyna w locie wznawia się i **ponownie szyfruje pełną listę masek na dysk**, gdzie zostaje bezterminowo (czyści ją dopiero następne logowanie).
+
+*Dlaczego to jest P1, a nie porządkowa drobnica:* `docs/privacy.md` § 6 wymienia „the offline snapshot of your masked addresses" wśród rzeczy **usuwanych przy wylogowaniu**. To była złamana obietnica z dokumentu prawnego, nie tylko nieporządek. Plik nie jest czytelny dla innego konta — znacznik właściciela to blokuje — więc nie ma tu wycieku między kontami.
+
+*Przyczyna źródłowa:* token czytany na wejściu, potem sieć, potem bezwarunkowy zapis przelotowy, bez ponownego sprawdzenia, czy sesja jeszcze istnieje. **Anulowanie nie mogło tego zamknąć**: między odpowiedzią a zapisem nie ma punktu zawieszenia, więc nie ma czego wywłaszczyć.
+
+*Ten sam kształt, wyższa stawka — eksport CSV.* `ui/settings/SettingsScreen.kt:137-150` zapisywał CSV z korutyny composable'a, która mogła przeżyć `exportCache.clear()`. To jedyna kopia danych konta na urządzeniu **bez szyfrowania**. Dodatkowo composable konstruował własny `ExportCache(context)`, więc jakakolwiek bramka per-instancja i tak by nie zadziałała — sprzątanie przy wylogowaniu działało na wstrzykniętym singletonie, a zapis na innym obiekcie.
+
+*Poprawka:* licznik generacji w obu cache'ach, podbijany przez `clear()` pod tym samym zamkiem, który bierze zapis; zapisujący łapie generację przed pobraniem, a zapis unieważniony jest porzucany. `generation` **nie ma wartości domyślnej** — domyślna czytałaby wartość bieżącą, czyli dokładnie ten przypadek, który bramka ma łapać, i pozwalałaby nowemu miejscu wywołania wypisać się z bramki przez niewiedzę. Zapis eksportu przeniesiony do `SettingsViewModel`, który trzyma wstrzyknięty singleton.
+
+*Weryfikacja:* pokrycie JVM dla obu bramek i dla tego, że generacja jest czytana przed pobraniem, plus dwa testy instrumentalne na prawdziwym szyfrowanym pliku.
+
+---
+
+**B-6 · Ogłoszenie postępu dla czytnika ekranu było kodem martwym** — status **[P]**, naprawione (`289d8dd`)
+
+*Lokalizacja:* `ui/components/DesignKit.kt:261-266`
+
+*Fakt:* `PillButton` ogłaszał postęp tylko gdy `loading && loadingDescription != null`. **Żadne miejsce wywołania w aplikacji nie ustawiało obu naraz:**
+
+| Miejsce | Przekazuje |
 |---|---|
-| Weryfikacja wszystkich powyższych TalkBackiem | Nie mam urządzenia z włączonym czytnikiem. Poprawki są wyliczone i skompilowane, ale „działa dla czytnika" potwierdzi dopiero czytnik |
-| Pozostałe dwie pary kolorów < 4,5:1 (akcent na `surfaceVariant`, `LightOffInk` na `LightOffBg`) | Zmiana palety produktu — Twoja decyzja, propozycja w `UX_RECOMMENDATIONS.md` §B1 |
-| B6/B7/B8/B9 z §3.3 (pobieranie pojedynczej maski, degradacja Pro, 401, idempotencja) | Zmiany projektowe, nie poprawki — nieproporcjonalne do audytu |
-| `values-v31` bez zasobów, ostrzeżenia lintu (99) | Higiena bez wpływu na użytkownika |
+| `auth/LoginScreen.kt:211` | tylko `loadingDescription` |
+| `create/CreateMaskedEmailScreen.kt:259` | tylko `loadingDescription` |
+| `detail/MaskedEmailDetailScreen.kt:303`, `:388` | tylko `loadingDescription` |
+| `pro/ProScreen.kt:247`, `:266` | tylko `loading` |
+
+Cztery ekrany sygnalizowały postęp przez `enabled = !isLoading` plus własny spinner, więc `loading` zostawało `false`. String `state_working`, przetłumaczony na 20 języków, obsługiwał gałąź, która nie mogła się wykonać. Użytkownik czytnika ekranu dostawał wyłącznie przycisk cicho przechodzący w stan `disabled`.
+
+*Przyczyna źródłowa:* poprawka z commita `d1e3edd` („Fix: make the app usable with a screen reader and low vision") nie miała testu, więc nic nie zauważyło, że jest nieosiągalna.
+
+*Przy okazji:* `PillButton` — jedyny przycisk w aplikacji (logowanie, tworzenie, zapis, archiwizacja, ponów, oba przyciski dialogów, zakup, przywracanie, odblokowanie) — **nie miał `Role.Button`**. Poprzedni przebieg ustawił rolę w pięciu liściach i przeoczył komponent, przez który wszystkie przechodzą. To samo dotyczyło `DesignCard`, czyli każdego wiersza maski na liście.
+
+*Poprawka:* `loading` jest jedyną flagą zajętości — komponent posiada spinner, blokuje się i ogłasza, z fallbackiem na ogólny string zamiast milczenia. Miejsca wywołań tracą własne spinnery i zbędne `!isLoading` w `enabled`.
+
+*Weryfikacja:* `PillButtonSemanticsTest` sprawdza rolę, ogłoszenie i **brak fałszywego ogłoszenia w spoczynku** (bez tego trzeciego testu pierwszy przechodziłby dla komponentu ogłaszającego bezwarunkowo). Dwa z trzech potwierdzone jako padające przeciwko starej semantyce.
+
+---
+
+### P2
+
+**S-1 · Przejęcie zadania (StrandHogg) na API 26–30** — status **[P]** z manifestu / **[U]** dla samego exploita, naprawione (`165468f`)
+
+`AndroidManifest.xml:96-118` — `MainActivity` jest eksportowana, `launchMode` standard, bez `taskAffinity` i bez `allowTaskReparenting="false"`; potwierdzone w scalonym manifeście release'u. Dowolna zainstalowana aplikacja mogła zadeklarować aktywność z `android:taskAffinity="com.fastmask"` i `allowTaskReparenting="true"`; przy następnym starcie system przenosi ją na szczyt zadania FastMaska i to ją widzi użytkownik. Ekran wart podszycia to ekran logowania — jedno pole, w które wkleja się token API dający pełny dostęp do skrzynki. Żadna z istniejących obron nie działa: `FLAG_SECURE` chroni przed zrzutami, nie przed nałożonym zadaniem, a `LockScreen` komponuje się *za* aktywnością atakującego. Android 12+ blokuje wstawianie zadań między UID-ami, więc ekspozycja to API 26–30 — w zakresie przy `minSdk = 26`. `QuickMaskActivity` ustawiała pustą afinity; aktywność trzymająca pole tokenu nie. Naprawione przez `android:taskAffinity=""` na `<application>`; **[P]** obecne w scalonym manifeście release'u, suite instrumentalny przechodzi.
+
+**S-2 · Undo quick-maska nieidempotentne i bez bramki** — status **[P]**, naprawione (`165468f`)
+
+`quickmask/QuickMaskRunner.kt:109-123` — `launchUndo` nie miało `AtomicBoolean`, w odróżnieniu od `launchCreate`, które dostało je w poprzednim audycie. `notifier.cancel` biegnie wewnątrz korutyny, więc przycisk Undo zostaje na ekranie jeszcze przez dziesiątki milisekund. Dwa broadcasty → dwa `destroy` na to samo id: pierwszy się udaje, drugi dostaje `notFound`, co `JmapApi` raportuje jako porażkę, a wynikowe „Undo failed" nadpisuje prawdziwe „Undone" w tym samym slocie powiadomienia. **Użytkownik jest informowany, że maska nadal jest na koncie, gdy już jej nie ma** — groźniejsze z dwóch możliwych kłamstw. Bramka jest per-id (dwie różne maski w sekwencji to poprawny scenariusz) i zwalnia się po porażce, żeby nigdy nie stała się powodem odmowy późniejszej próby.
+
+*Znalezione przy pisaniu testów:* `QuickMaskRunner` miał `Dispatchers.IO` zaszyte na sztywno, więc asertywne testy ścigały się z prawdziwą pulą wątków i zachowania, którego ta klasa pilnuje, **nie dało się w ogóle przypiąć testem**. Dispatcher jest teraz wstrzykiwany przez `@IoDispatcher` (Hilt nie honoruje domyślnych argumentów Kotlina na konstruktorze `@Inject`, więc kwalifikator, nie wartość domyślna).
+
+*Przy okazji:* `crashGuard` (`:40-44`) wołał `createInFlight.set(false)` dla **każdego** throwable'a we współdzielonym zakresie, więc wyjątek z korutyny Undo zwalniał bramkę trwającego tworzenia. Poprawione.
+
+**S-3 · „Dowód" uprawnienia Pro nie daje odporności na manipulację** — status **[P]**, **nie naprawione świadomie**
+
+`data/local/ProEntitlementStore.kt:32-44` — digest jest sprawdzany wyłącznie na niepustość (`isNullOrEmpty`), nigdy porównywany z tokenem zakupu, nie ma HMAC-a ani powiązania z Keystore. To zwykły boolean z dodatkowym polem, które spełnia dowolna wartość; KDoc klasy („Not a plain user-editable boolean… tamper") obiecuje więcej, niż robi kod. Na zrootowanym urządzeniu wystarczy wpisać `status="PRO"`, `proof="0"`, a na urządzeniu bez Play `refresh()` zwraca `UNAVAILABLE` i nigdy nie degraduje statusu — Pro zostaje odblokowane na stałe. Wpływ wyłącznie monetyzacyjny: żadne dane użytkownika nie są odsłonięte, wymaga roota, `allowBackup="false"` zamyka drogę przez adb restore. Zgłoszone, bo klasa dokumentuje ochronę, której nie implementuje. Poprawka to HMAC nad `status|proofDigest` kluczem z Keystore.
+
+**D-1 · Dokumentacja procesu budowania rozmija się z rzeczywistością** — status **[P]**, naprawione
+
+Trzy pliki doktryny agentów (`CLAUDE.md`, `AGENTS.md`, README) podawały `./gradlew assembleDebug` bez wzmianki, że (a) potrzebny jest JDK 17–21, bo Gradle 8.9 odmawia startu na nowszym — a systemowy `java` na tej maszynie to OpenJDK 26 — i (b) build wymagał pliku spoza repozytorium. `AGENTS.md` zawierał też stub `TODO: Document how to run the app from Android Studio/emulator once confirmed`. `Plans/release-checklist.md` odwoływał się do „the Android API key **committed in** `app/google-services.json`", co przestało być prawdą 2026-07-31. Zgodnie z zasadą „doktryna to kod" traktuję to jako defekt, nie kosmetykę: instrukcja, której wykonanie kończy się błędem, kosztuje każdego nowego kontrybutora tyle samo co zepsuty skrypt.
+
+**A-1 · Stan maski na liście rozróżnialny wyłącznie kolorem** — status **[P]**, **nie naprawione świadomie**
+
+`ui/list/MaskedEmailListScreen.kt:654` — jedynym wskaźnikiem stanu w wierszu jest `StateDot`. Policzone kontrasty **między wypełnieniami kropek**: jasny archived/pending `#7D3D1E` vs `#6B4C0D` = **1.04:1**; ciemny enabled/pending `#B8D49A` vs `#E6C576` = **1.02:1**; jasny enabled/disabled = 1.39:1. Różnicuje je wyłącznie odcień — luminancja jest praktycznie identyczna, więc w symulacji dichromatycznej zlewają się całkowicie. Każda kropka jest dobrze widoczna na swojej karcie (5,5–10,3:1), po prostu nie jest **rozpoznawalna**. To potwierdzona niezgodność z WCAG 1.4.1 (poziom A). Ścieżka czytnika ekranu jest pokryta (`stateContentDescription`), ekran szczegółów też (`StatePill` ma etykietę tekstową) — luka dotyczy widzącego użytkownika z zaburzeniem widzenia barw. Nie naprawiłem tego tutaj, bo lekarstwo zmienia język wizualny najczęściej przewijanego ekranu, a to decyzja projektowa, nie naprawa defektu. Konkretna propozycja: `UX_RECOMMENDATIONS.md` § A1.
+
+**A-2 · Jedna para statusowa poniżej AA** — status **[P]**, naprawione (`289d8dd`)
+
+`ui/theme/Color.kt:36-37` — `LightOffInk #6B6450` na `LightOffBg #E3DCC9` = **4,31:1**, przy renderowaniu etykiety pigułki „off" w ok. 11sp, czyli bez prawa do ulgi dla dużego tekstu. Zmienione na `#645E4B` = **4,73:1**. Wszystkie pozostałe pary już przechodziły (jasny 5,82–6,25:1, ciemny 5,31–7,74:1).
+
+### P3
+
+**C-1 · `MainActivity` połykał `CancellationException`** — status **[P]**, naprawione
+
+`MainActivity.kt:173` — `catch (e: Exception)` wokół startowego I/O. `CancellationException` dziedziczy po `IllegalStateException`, więc Activity zniszczona lub odtwarzana w trakcie tego odczytu miała anulowanie **wyrzucone do kosza**, a korutyna szła dalej i wołała `setContent` na martwej Activity. Poprawione przez przepuszczenie anulowania. Nie zaobserwowałem z tego crasha — **[U]** co do praktycznego skutku — ale to złamanie strukturalnej współbieżności i dokładnie ten sam wzorzec, który `CrashReportingStartup` w tym samym repo obsługuje poprawnie.
+
+**C-2 · Reguły backupu nie pokrywały kopii roboczej snapshotu** — status **[P]**, naprawione (`165468f`)
+
+`res/xml/backup_rules.xml:16`, `data_extraction_rules.xml:10,15` wykluczały `masked_emails_cache.bin` w korzeniu `filesDir`, ale nie `cache_staging/masked_emails_cache.bin`, gdzie `MaskedEmailCache` stage'uje ten sam pełny zbiór masek przed `renameTo`. Śmierć procesu między zapisem a przemianowaniem zostawia tam kompletną listę. Bez skutku dzisiaj (`allowBackup="false"`, treść szyfrowana kluczem, który i tak nie jest backupowany), ale te pliki istnieją wyłącznie jako siatka bezpieczeństwa na dzień, w którym ta flaga wróci — więc siatka musi pokrywać wszystko, co własny komentarz w tym pliku zresztą deklaruje.
+
+**C-3 · `docs/privacy.md` przeczył sam sobie** — status **[P]**, naprawione
+
+Tabela w sekcji 2 opisywała maski jako trzymane „in memory while the app runs; persisted only on Fastmail's servers", podczas gdy sekcja 6 obiecywała skasowanie lokalnego snapshotu przy wylogowaniu. Snapshot jest realny (`MaskedEmailCache`), szyfrowany i związany z kontem. Sekcja 2 mówi to teraz wprost, z datą i notką o korekcie. **To korekta dokumentu, nie zmiana aplikacji** — żadne nowe dane nie są zbierane i nic nowego nie opuszcza urządzenia. Deklaracja Play Data Safety nie wymaga zmiany: przechowywanie wyłącznie lokalne nie jest „collection".
+
+---
+
+## 5. Problemy zgłoszone i **odrzucone** po weryfikacji
+
+Zgodnie z zasadą „nie przedstawiaj hipotez jako potwierdzonych błędów" — te zostały podniesione w trakcie audytu i po sprawdzeniu **nie są defektami**:
+
+| Zgłoszenie | Dlaczego odrzucone |
+|---|---|
+| Pusty udany fetch niszczy snapshot offline (proponowany próg „nie zastępuj N zerem") | Pusta lista jest **poprawną** odpowiedzią: użytkownik, który skasował ostatnią maskę, nie może widzieć jej dalej offline. Próg zamieniłby wynik poprawny na nieaktualny. Realnym defektem byłoby potraktowanie **nieudanego** pobrania jako pustego — ta ścieżka już zostawia cache w spokoju, co pokrywa istniejący test |
+| `values-id` powinno być `values-in`, bo Indonezyjski się nie załaduje (ostrzeżenie lintu `LocaleFolder`) | **[U]**, ale silnie przemawia za poprawnością: `LocaleListCompat.forLanguageTags("id")` → `Locale.forLanguageTag("id")`, a `toLanguageTag()` kanonizuje legacy `in` z powrotem do `id`, więc `LocaleList.toLanguageTags()` szuka `id`. Ostrzeżenie lintu to porada dla urządzeń sprzed API 21; `minSdk` to 26. Potwierdziłem, że aapt2 zapisuje zasoby aplikacji pod kwalifikatorem `id` (dump APK), więc na pewno **nie ma tu podwójnego zapisu**. Zostawiam jako pozycję do sprawdzenia ręcznego, nie jako defekt |
+| Martwe wpisy `\t`, `\r`, `\n` w `FORMULA_LEAD_CHARS` (`ExportMasksUseCase.kt`) | Nieosiągalne przez `trimStart().firstOrNull()`, bo `trimStart` usuwa właśnie te znaki. Nieszkodliwe, nie defekt |
+
+---
+
+## 6. Obszary sprawdzone i **czyste**
+
+Warte odnotowania, żeby następny przebieg nie audytował ich od zera.
+
+- **Obsługa tokenu.** Token trafia do dokładnie sześciu miejsc, wszystkie to `tokenStorage.getToken()` w `MaskedEmailRepositoryImpl`, i opuszcza aplikację wyłącznie jako `@Header("Authorization")`. Nie ma go w żadnym extra intentu, logu, powiadomieniu, trasie nawigacji, `SavedStateHandle` ani `rememberSaveable` (zero wystąpień `rememberSaveable` w całym drzewie).
+- **Logowanie sieciowe.** `di/NetworkModule.kt:43-51` — interceptor dodawany tylko pod `BuildConfig.DEBUG`, poziom `HEADERS` (bez ciał), `Authorization`/`Cookie`/`Set-Cookie` redagowane.
+- **Prywatność crash-reportingu.** `CrashReporter` wystawia wyłącznie dwa przełączniki — nie ma API user-id / custom-key / log, więc żadne miejsce wywołania nie ma **czym** wyciec. `CrashReportingStartup` poprawnie odmawia zamiany stanu „nieczytelny" w decyzję.
+- **Weryfikacja zakupów.** `PurchaseSecurity.verify` zawodzi zamknięcie na każdej ścieżce błędu; release bez klucza licencyjnego odrzuca każdy zakup; bramka na grafie zadań nadal odmawia zbudowania podpisanego release'u bez klucza.
+- **IPC.** `QuickMaskActivity` nieeksportowana **i** bramkowana akcją; `QuickMaskUndoReceiver` nieeksportowany; kafelek za `BIND_QUICK_SETTINGS_TILE`; wszystkie cztery `PendingIntent` to `FLAG_IMMUTABLE` z jawnymi celami. `ACTION_SEND` nie tworzy maski — tylko wypełnia formularz, który użytkownik musi zatwierdzić.
+- **Zamek aplikacji.** Nie znalazłem obejścia przez rotację (token procesu poprawnie odrzuca bundle z martwego procesu), „ostatnie aplikacje" (`FLAG_SECURE` w release), udostępnianie (`ShareRoute.WaitForUnlock`, a `consumes()` odmawia porzucenia czekającego share'a) ani kafelek.
+- **Wiązanie snapshotu z kontem.** `owner = SHA-256(token)` zapisywany, porównywany przy odczycie, `null` traktowany jako „nie mój"; `clear()` przy wylogowaniu **i** przy logowaniu.
+- **Częściowe odpowiedzi JMAP.** Wszystkie trzy — `notCreated`, `notUpdated`, `notDestroyed` — są czytane, a każda ścieżka **pozytywnie potwierdza** skutek zamiast zakładać sukces. Nic nie jest po cichu gubione.
+- **Cache sesji JMAP.** Poprawny double-checked locking pod `Mutex` z polami `@Volatile`, `apiUrl` walidowany przed przypisaniem.
+- **Escapowanie CSV.** RFC 4180 plus neutralizacja formuł badana na **pierwszym nie-białym** znaku, więc `" =HYPERLINK(...)"` też jest łapane.
+- **Cele dotykowe.** Nie znalazłem ani jednego klikalnego elementu poniżej 48dp.
+- **Skalowanie tekstu.** Zero stałych wysokości `.dp` na kontenerach tekstu.
+- **Akcje wyłącznie gestowe.** Nie ma żadnych — zero `combinedClickable`, `onLongClick`, swipe-to-dismiss w całym drzewie.
+- **RTL.** Zero `Absolute`/`Left`/`Right`/`paddingLeft`, ikony `AutoMirrored`, `ChevronRight` ręcznie lustrzany, `list_stats` z przestawionymi argumentami w `values-ar`.
+- **i18n.** 233 stringi + 8 plurali we wszystkich 20 lokalizacjach, zero dryfu; kategorie liczby mnogiej CLDR poprawne (ar `zero/one/two/few/many/other`, pl/ru/uk `one/few/many/other`).
+- **Sekrety.** Żaden keystore, klucz licencyjny, `local.properties` ani `google-services.json` nie jest śledzony przez gita, ani nigdy nie był w historii.
+
+---
+
+## 7. Stan po zmianach
+
+| Bramka | Wynik | Sposób weryfikacji |
+|---|---|---|
+| `./gradlew testDebugUnitTest` | **459 testów, 0 porażek** (było 447) | automatycznie |
+| `./gradlew lintDebug` | **0 błędów, 99 ostrzeżeń** — bez zmian względem bazy | automatycznie |
+| `./gradlew assembleRelease` | **BUILD SUCCESSFUL** (R8) | automatycznie |
+| `./gradlew connectedDebugAndroidTest` | **24 testy, 0 porażek** (było 19 z 1 porażką) | automatycznie, emulator Pixel 9a API 36 |
+| Build z czystego klona | **BUILD SUCCESSFUL** | automatycznie, osobny klon bez `google-services.json` |
+| Start aplikacji bez Firebase | Activity wznowiona, proces żywy, zero `FATAL` | automatycznie, logcat + `dumpsys activity` |
+| `taskAffinity` w scalonym manifeście release'u | obecne | automatycznie, odczyt scalonego manifestu |
+
+**Zweryfikowane automatycznie:** wszystkie powyższe, plus każdy test regresyjny uruchomiony przeciwko staremu kodowi w celu potwierdzenia, że tam pada.
+
+**Wymaga weryfikacji manualnej:** § 8.
+
+**Nieweryfikowalne w tym środowisku:** rzeczywisty przepływ zakupu Play (wymaga konta testera i podpisanego builda), realny exploit StrandHogg (wymaga urządzenia API ≤30 i złośliwej aplikacji), wysyłka raportu Crashlytics (wymaga podpisanego release'u i prawdziwego crasha), rozdzielczość lokalizacji indonezyjskiej na urządzeniu.
+
+---
+
+## 8. Checklista QA manualnego przed publikacją
+
+Uporządkowana według ryzyka wprowadzonego przez ten audyt.
+
+1. **Zamek i zadania.** Włącz zamek biometryczny → wyjdź → wróć: prompt się pojawia. Sprawdź „ostatnie aplikacje" — aplikacja pojawia się raz, z poprawną nazwą i ikoną (zmiana `taskAffinity`). Obróć ekran przy podniesionym zamku.
+2. **Udostępnianie do FastMaska.** Udostępnij link z przeglądarki → formularz tworzenia wypełnia się. Powtórz przy włączonym zamku: najpierw prompt, formularz dopiero po odblokowaniu. Powtórz po obrocie: share nie odtwarza się drugi raz.
+3. **Undo archiwizacji.** Zarchiwizuj maskę, tapnij Undo, **natychmiast wyjdź z aplikacji**. Wróć: maska ma stan sprzed archiwizacji.
+4. **Eksport CSV a wylogowanie.** Z Pro: tapnij Eksport i szybko się wyloguj. Oczekiwane: komunikat o niepowodzeniu eksportu, **brak** pliku w cache. Osobno: normalny eksport nadal otwiera arkusz udostępniania z poprawną treścią.
+5. **Przyciski w trakcie pracy.** Zaloguj, Utwórz, Zapisz i Włącz/Wyłącz — sprawdź, że w trakcie żądania przycisk jest zablokowany i pokazuje spinner (teraz po lewej stronie etykiety) i że **nie da się go kliknąć dwa razy**.
+6. **TalkBack.** Włącz i przejdź: powitanie → logowanie → lista → szczegóły → ustawienia. Każdy przycisk ogłasza się jako „przycisk", a akcja w toku jest ogłaszana. **Sprawdź szczególnie pola edycyjne** (prefiks, domena, URL, opis, wyszukiwarka) — czy TalkBack czyta ich zawartość, czy tylko etykietę; podejrzenie z § UX D7 wymaga urządzenia.
+7. **Quick mask.** Kafelek → maska utworzona, powiadomienie z Undo. **Tapnij Undo dwa razy szybko**: dokładnie jeden komunikat, mówiący prawdę.
+8. **Pro.** Zakup w torze testowym, przywracanie na drugim urządzeniu, zachowanie w trybie samolotowym (Pro nie znika).
+9. **Indonezyjski.** Ustawienia → język → Indonesia. Interfejs przechodzi na indonezyjski (weryfikacja odrzuconego zgłoszenia z § 5).
+10. **Release.** Zbuduj AAB **z obecnym `app/google-services.json`** i potwierdź, że log **nie zawiera** „building without Firebase Crashlytics".
+
+---
+
+## 9. Ograniczenia tego audytu
+
+- Wszystkie testy na emulatorze Pixel 9a API 36. Nie testowałem na fizycznym urządzeniu ani na API 26–30, gdzie leży ekspozycja S-1.
+- Nie testowałem przeciwko prawdziwemu kontu Fastmail — cała weryfikacja przez tryb demo, testy jednostkowe i analizę kodu. Zachowanie prawdziwego API JMAP przy błędach częściowych jest sprawdzone z kodu, nie z ruchu sieciowego.
+- Nie weryfikowałem przepływu Play Billing końcowo-do-końca.
+- Nie uruchamiałem TalkBacka. Ustalenia dostępności pochodzą z kodu i z policzonych kontrastów; punkt 6 checklisty jest tego konsekwencją, a podejrzenie o `contentDescription` na polach edycyjnych pozostaje **[U]**.
+- Nie audytowałem zależności pod kątem znanych CVE — brak lockfile'a i skanera w tym repo; 27 ostrzeżeń `GradleDependency` mówi tylko o nieaktualności, nie o podatności.

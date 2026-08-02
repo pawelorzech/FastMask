@@ -81,6 +81,7 @@ import com.fastmask.R
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DesignCard
 import com.fastmask.ui.components.MonoEyebrow
@@ -127,6 +128,7 @@ fun MaskedEmailListScreen(
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
+    val extras = FastMaskExtras.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -360,13 +362,32 @@ fun MaskedEmailListScreen(
                             tutorialBounds[2] = coords.boundsInRoot()
                         },
                     )
+
+                    if (uiState.emails.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.email_list_result_count,
+                                uiState.filteredEmails.size,
+                                uiState.emails.size,
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = extras.inkMuted,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .politeLiveRegion(),
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(8.dp))
 
                 when {
                     uiState.isLoading && uiState.emails.isEmpty() -> {
-                        LoadingShimmer()
+                        LoadingShimmer(
+                            loadingDescription = stringResource(R.string.state_working),
+                        )
                     }
                     uiState.errorRes != null && uiState.emails.isEmpty() -> {
                         ErrorBlock(
@@ -759,11 +780,13 @@ private fun NoMatchesBlock() {
 }
 
 @Composable
-private fun LoadingShimmer() {
+private fun LoadingShimmer(loadingDescription: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .politeLiveRegion()
+            .semantics { contentDescription = loadingDescription },
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(6) {
@@ -785,7 +808,8 @@ private fun ErrorBlock(message: String, onRetry: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(32.dp)
+            .politeLiveRegion(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

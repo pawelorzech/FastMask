@@ -95,6 +95,17 @@ cd FastMask
 
 The APK will be generated in `app/build/outputs/apk/`
 
+Requires JDK 17–21 (Android Studio's bundled JBR works; the Gradle 8.11.1 wrapper does not run
+on anything newer). Set `JAVA_HOME`, or `org.gradle.java.home` in your *personal*
+`~/.gradle/gradle.properties` — not in the repo.
+
+**Firebase is optional.** `app/google-services.json` is not in the repository, and
+the build no longer requires it: without the file the Firebase plugins are skipped
+and the app builds and runs normally with crash reporting inert. Only configured
+release builds report crashes; the maintainer's shipped build is configured this
+way. To build a fully instrumented copy, add your own `google-services.json` from
+a Firebase project of your own.
+
 ## Requirements
 
 - Android 8.0 (API 26) or higher

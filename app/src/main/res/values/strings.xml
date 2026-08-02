@@ -293,4 +293,5 @@
     <string name="share_requires_sign_in">Sign in to FastMask to create a mask for this link.</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Working…</string>
+    <string name="email_list_result_count">Masks: %1$d/%2$d</string>
 </resources>

@@ -66,7 +66,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                isUpdating = false,
+                                updateOperation = null,
                                 email = email,
                                 editedDescription = if (resetEdits) email.description ?: "" else it.editedDescription,
                                 editedForDomain = if (resetEdits) email.forDomain ?: "" else it.editedForDomain,
@@ -77,7 +77,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                isUpdating = false,
+                                updateOperation = null,
                                 errorRes = R.string.email_detail_error_load
                             )
                         }
@@ -87,7 +87,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            isUpdating = false,
+                            updateOperation = null,
                             errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
                         )
                     }
@@ -121,7 +121,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private fun updateState(newState: EmailState) {
         if (_uiState.value.isUpdating || _uiState.value.isDeleting) return
         // Set synchronously so the guard above cannot race the launch.
-        _uiState.update { it.copy(isUpdating = true) }
+        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE) }
         viewModelScope.launch {
 
             // Application scope: see the note in create(). Leaving the screen
@@ -137,7 +137,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
-                            isUpdating = false,
+                            updateOperation = null,
                             errorRes = UiErrors.messageRes(error, R.string.email_detail_error_update)
                         )
                     }
@@ -166,7 +166,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         if (!hasChanges) return
 
         // Set synchronously so the guard above cannot race the launch.
-        _uiState.update { it.copy(isUpdating = true) }
+        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
         viewModelScope.launch {
 
             appScope.async { updateMaskedEmailUseCase(emailId, params) }.await().fold(
@@ -177,7 +177,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 onFailure = { error ->
                     _uiState.update {
                         it.copy(
-                            isUpdating = false,
+                            updateOperation = null,
                             errorRes = UiErrors.messageRes(error, R.string.email_detail_error_save)
                         )
                     }
@@ -228,14 +228,21 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
 data class MaskedEmailDetailUiState(
     val isLoading: Boolean = false,
-    val isUpdating: Boolean = false,
+    val updateOperation: MaskedEmailDetailUpdate? = null,
     val isDeleting: Boolean = false,
     val email: MaskedEmail? = null,
     val editedDescription: String = "",
     val editedForDomain: String = "",
     val editedUrl: String = "",
-    val errorRes: Int? = null
-)
+    val errorRes: Int? = null,
+) {
+    val isUpdating: Boolean get() = updateOperation != null
+}
+
+enum class MaskedEmailDetailUpdate {
+    TOGGLE_STATE,
+    SAVE_CHANGES,
+}
 
 sealed class MaskedEmailDetailEvent {
     data object Updated : MaskedEmailDetailEvent()

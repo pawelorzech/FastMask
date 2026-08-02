@@ -1,11 +1,37 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
     kotlin("kapt")
+}
+
+// `google-services.json` is deliberately NOT in the repository (see .gitignore),
+// so applying the Firebase plugins unconditionally made a clean clone unbuildable:
+// `processDebugGoogleServices` fails with "File google-services.json is missing"
+// before a line of Kotlin is compiled — including for the exact `./gradlew
+// assembleDebug` the README, CLAUDE.md and AGENTS.md tell contributors to run.
+//
+// Applying them only when the config is present keeps the maintainer's builds
+// (and every release) fully instrumented, while a contributor without the file
+// gets a working app with crash reporting inert. That degradation is safe by
+// construction, not by luck: `FirebaseCrashlyticsReporter` resolves the SDK
+// handle lazily per call, and `CrashReportingStartup` already catches the
+// `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when
+// no default `FirebaseApp` exists — the path OEM ROMs without content providers
+// already take. `SettingsViewModel.onCrashReportingToggled` wraps its call in
+// `runCatching` for the same reason.
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+} else {
+    logger.lifecycle(
+        "FastMask: app/google-services.json not found — building without Firebase " +
+            "Crashlytics. The app runs normally; crash reporting is inert. See README " +
+            "§ Build from Source."
+    )
 }
 
 android {
@@ -65,8 +91,14 @@ android {
             // reach Crashlytics' upload endpoint on every assemble. Runtime
             // collection is disabled separately and unconditionally by
             // CrashReportingPolicy, whatever the user preference says.
-            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
+            //
+            // Guarded on the same flag as the plugin itself: `configure<T>` looks
+            // the extension up by type and throws UnknownDomainObjectException
+            // when the Crashlytics plugin was not applied.
+            if (hasFirebaseConfig) {
+                configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                    mappingFileUploadEnabled = false
+                }
             }
         }
         release {
@@ -96,10 +128,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10"
     }
 
     packaging {
@@ -144,9 +172,9 @@ dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2024.09.00"))
@@ -168,11 +196,11 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-compiler:2.50")
+    implementation("com.google.dagger:hilt-android:2.58")
+    kapt("com.google.dagger:hilt-compiler:2.58")
 
     // Networking
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
@@ -194,7 +222,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0")
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
 
     // Firebase Crashlytics — crash diagnostics only. Google Analytics is
     // deliberately NOT on the graph: this app reports that it crashed, never
@@ -203,8 +231,8 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
@@ -225,8 +253,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     // Instrumented tests exercise the real Hilt graph, so they need the test
     // Application and the generated test components.
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.50")
-    kaptAndroidTest("com.google.dagger:hilt-compiler:2.50")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.58")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.58")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

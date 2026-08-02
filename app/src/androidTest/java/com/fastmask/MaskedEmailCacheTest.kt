@@ -56,7 +56,7 @@ class MaskedEmailCacheTest {
     fun writeThenReadRoundTripsEveryFieldAndTheTimestamp() {
         val masks = listOf(mask("one"), mask("two", EmailState.DISABLED))
 
-        cache.write(masks, owner = owner, now = takenAt)
+        cache.write(masks, owner = owner, now = takenAt, generation = cache.currentGeneration())
         val restored = cache.read(owner)
 
         assertEquals(takenAt, restored?.cachedAt)
@@ -71,7 +71,7 @@ class MaskedEmailCacheTest {
     /** The mask list must not be readable by anything that gets the file. */
     @Test
     fun theFileOnDiskDoesNotContainTheAddressesInPlaintext() {
-        cache.write(listOf(mask("secret")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("secret")), owner = owner, now = takenAt, generation = cache.currentGeneration())
 
         val raw = cacheFile.readBytes().toString(Charsets.ISO_8859_1)
 
@@ -83,7 +83,7 @@ class MaskedEmailCacheTest {
     /** Derived data: a damaged cache degrades to "no cache", never a crash. */
     @Test
     fun aCorruptCacheReadsAsNull() {
-        cache.write(listOf(mask("one")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("one")), owner = owner, now = takenAt, generation = cache.currentGeneration())
         cacheFile.writeBytes(ByteArray(64) { 0x7A })
 
         assertNull(cache.read(owner))
@@ -91,10 +91,10 @@ class MaskedEmailCacheTest {
 
     @Test
     fun writingTwiceReplacesTheSnapshotRatherThanAppending() {
-        cache.write(listOf(mask("first")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("first")), owner = owner, now = takenAt, generation = cache.currentGeneration())
         val later = takenAt.plusSeconds(3600)
 
-        cache.write(listOf(mask("second")), owner = owner, now = later)
+        cache.write(listOf(mask("second")), owner = owner, now = later, generation = cache.currentGeneration())
         val restored = cache.read(owner)
 
         assertEquals(listOf("second"), restored?.masks?.map { it.id })
@@ -104,12 +104,44 @@ class MaskedEmailCacheTest {
 
     @Test
     fun clearRemovesTheSnapshot() {
-        cache.write(listOf(mask("one")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("one")), owner = owner, now = takenAt, generation = cache.currentGeneration())
 
         cache.clear()
 
         assertNull(cache.read(owner))
         assertTrue("file should be gone after clear", !cacheFile.exists())
+    }
+
+    /*
+     * Audit 2026-08-01. The repository read the token, fetched over the network,
+     * and wrote through on success with no re-check that the session still
+     * existed. Pull-to-refresh on a slow link, then Settings -> Log out before
+     * the response landed, and the in-flight continuation re-encrypted the whole
+     * mask list back onto disk AFTER logout() had deleted it, where it stayed
+     * until the next sign-in. docs/privacy.md promises the offline snapshot is
+     * removed at log-out; it was not. Cancellation could not close this: there
+     * is no suspension point between the response and the write.
+     */
+    @Test
+    fun aWriteFromASessionThatHasSinceEndedIsDropped() {
+        val generation = cache.currentGeneration()
+
+        cache.clear() // the sign-out lands while the fetch is still in flight
+
+        cache.write(listOf(mask("after-logout")), owner = owner, now = takenAt, generation = generation)
+
+        assertNull("a superseded write must not resurrect the snapshot", cache.read(owner))
+        assertTrue("file should not exist after a dropped write", !cacheFile.exists())
+    }
+
+    @Test
+    fun aWriteFromTheCurrentSessionStillLands() {
+        cache.clear()
+
+        // A fetch started after the sign-out belongs to the new session.
+        cache.write(listOf(mask("one")), owner = owner, now = takenAt, generation = cache.currentGeneration())
+
+        assertEquals(listOf("one"), cache.read(owner)?.masks?.map { it.id })
     }
 
     /*
@@ -122,7 +154,7 @@ class MaskedEmailCacheTest {
 
     @Test
     fun aSnapshotWrittenByOneAccountIsInvisibleToAnother() {
-        cache.write(listOf(mask("account-a-mask")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("account-a-mask")), owner = owner, now = takenAt, generation = cache.currentGeneration())
 
         assertNull(cache.read(otherOwner))
     }
@@ -130,7 +162,7 @@ class MaskedEmailCacheTest {
     @Test
     fun aSnapshotFromBeforeOwnersExistedIsTreatedAsAbsent() {
         // A null owner is what an upgrade from the previous build reads back.
-        cache.write(listOf(mask("legacy")), owner = null, now = takenAt)
+        cache.write(listOf(mask("legacy")), owner = null, now = takenAt, generation = cache.currentGeneration())
 
         assertNull(cache.read(owner))
     }
@@ -138,7 +170,7 @@ class MaskedEmailCacheTest {
     /** An interrupted write must leave the previous good snapshot in place. */
     @Test
     fun aStrandedTempFileDoesNotDestroyTheLiveSnapshot() {
-        cache.write(listOf(mask("good")), owner = owner, now = takenAt)
+        cache.write(listOf(mask("good")), owner = owner, now = takenAt, generation = cache.currentGeneration())
         File(context.filesDir, "cache_staging").apply { mkdirs() }
             .resolve("masked_emails_cache.bin").writeBytes(ByteArray(32) { 0x5A })
 

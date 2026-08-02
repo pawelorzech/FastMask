@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
+import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.theme.FastMaskExtras
 
@@ -54,6 +55,7 @@ fun LockScreen(onUnlockClick: () -> Unit) {
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displayMedium,
             color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.screenHeading(),
         )
         Spacer(Modifier.height(8.dp))
         Text(

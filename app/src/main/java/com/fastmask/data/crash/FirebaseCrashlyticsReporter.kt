@@ -50,12 +50,10 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * thread, before `super.onCreate()`: the app could not launch at all because of
  * a diagnostics feature the user is allowed to switch off.
  */
-class FirebaseCrashlyticsReporter(
-    private val crashlytics: () -> FirebaseCrashlytics = { FirebaseCrashlytics.getInstance() },
-) : CrashReporter {
+class FirebaseCrashlyticsReporter : CrashReporter {
 
     override fun setCollectionEnabled(enabled: Boolean) {
-        crashlytics().setCrashlyticsCollectionEnabled(enabled)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(enabled)
     }
 
     /**
@@ -64,6 +62,6 @@ class FirebaseCrashlyticsReporter(
      * awaiting it would block the settings toggle on I/O.
      */
     override fun deleteUnsentReports() {
-        crashlytics().deleteUnsentReports()
+        FirebaseCrashlytics.getInstance().deleteUnsentReports()
     }
 }

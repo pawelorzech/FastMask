@@ -41,9 +41,30 @@
       preferences, so flipping allowBackup back on cannot silently start
       shipping the Fastmail API token to cloud backup or device transfer.
     -->
+    <!--
+      taskAffinity="" is a security setting, not a layout one.
+
+      With the default affinity (the package name) any installed app can declare
+      an activity with android:taskAffinity="com.fastmask" and
+      allowTaskReparenting="true"; on the next FastMask launch the system
+      reparents it to the top of FastMask's task and it is what the user sees
+      (task hijacking / "StrandHogg"). The screen worth spoofing is the login
+      screen — a single field into which the user pastes a Fastmail API token
+      that grants full mailbox access. None of the existing defences apply:
+      FLAG_SECURE protects screenshots, not an overlaid task, and the biometric
+      LockScreen composes behind the attacker's activity.
+
+      Android 12 (API 31) blocks cross-uid task insertion, so the exposure is
+      API 26-30, which minSdk = 26 keeps in scope. QuickMaskActivity already set
+      this; the activity holding the token field did not.
+
+      An empty affinity is compatible with MainActivity's standard launch mode,
+      which must stay standard so a share re-evaluates the lock (see below).
+    -->
     <application
         android:name=".FastMaskApplication"
         android:allowBackup="false"
+        android:taskAffinity=""
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"

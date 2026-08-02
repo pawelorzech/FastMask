@@ -4,6 +4,7 @@ package com.fastmask.ui.detail
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
@@ -12,6 +13,7 @@ import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -113,6 +115,43 @@ class MaskedEmailDetailViewModelTest {
 
         assertEquals(1, repo.updateCalls)
         assertEquals(EmailState.DISABLED, repo.lastUpdateParams?.state)
+    }
+
+    @Test
+    fun `toggle exposes only the toggle loading operation`() = runTest {
+        val releaseUpdate = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1"))).apply {
+            beforeUpdate = { releaseUpdate.await() }
+        }
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.toggleState()
+        runCurrent()
+
+        assertEquals(MaskedEmailDetailUpdate.TOGGLE_STATE, viewModel.uiState.value.updateOperation)
+        releaseUpdate.complete(Unit)
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.updateOperation)
+    }
+
+    @Test
+    fun `save exposes only the save loading operation`() = runTest {
+        val releaseUpdate = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old"))).apply {
+            beforeUpdate = { releaseUpdate.await() }
+        }
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+        viewModel.onDescriptionChange("new")
+
+        viewModel.saveChanges()
+        runCurrent()
+
+        assertEquals(MaskedEmailDetailUpdate.SAVE_CHANGES, viewModel.uiState.value.updateOperation)
+        releaseUpdate.complete(Unit)
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.updateOperation)
     }
 
     // --- in-progress edits survive a post-action reload (regression) --------

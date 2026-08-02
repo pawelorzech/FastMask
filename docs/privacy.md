@@ -7,8 +7,8 @@ permalink: /privacy.html
 
 # Privacy Policy
 
-**Last updated: 2026-07-26**
-**Effective date: 2026-07-26**
+**Last updated: 2026-08-01**
+**Effective date: 2026-08-01**
 
 This Privacy Policy explains how the FastMask Android application ("FastMask", "the app", "we", "our") handles your personal information. FastMask is an unofficial, open‑source client for [Fastmail](https://www.fastmail.com) masked email addresses. It is not affiliated with or endorsed by Fastmail Pty Ltd.
 
@@ -29,7 +29,7 @@ FastMask processes only the minimum data needed to function as a Fastmail masked
 | Data | Where it is stored | Why it is processed |
 |------|-------------------|---------------------|
 | **Fastmail API token** | Locally on your device, encrypted via Android `EncryptedSharedPreferences` (AES‑256‑GCM for values, AES‑256‑SIV for keys) | To authenticate JMAP API calls to `api.fastmail.com` on your behalf |
-| **Masked email addresses, descriptions, domain/URL associations, activity timestamps** | In memory while the app runs; persisted only on Fastmail's servers | To display, create, edit, and search your masked emails |
+| **Masked email addresses, descriptions, domain/URL associations, activity timestamps** | On Fastmail's servers, which remain the source of truth, plus a snapshot on your device — encrypted with a Keystore‑backed key, the same protection the API token gets — so your list is readable without a network connection. The snapshot answers only to the account that wrote it and is deleted when you log out (see § 6). A CSV export, if you make one, is described below | To display, create, edit, and search your masked emails, and to show them offline |
 | **Selected language** | Locally on your device via Android `DataStore` | To remember your language preference between sessions |
 | **App preferences (accent theme, app-lock on/off)** | Locally on your device via Android `DataStore` | To remember your personalization choices |
 | **FastMask Pro entitlement** | Locally on your device via Android `DataStore` — a status flag plus a SHA‑256 digest of the Google Play purchase token (never the token itself, never payment data) | To keep Pro features working offline; Google Play remains the source of truth and is re-checked at every app start |
@@ -37,7 +37,7 @@ FastMask processes only the minimum data needed to function as a Fastmail masked
 
 Crash reporting arrives in **FastMask 1.10.0**; version 1.9.0 and every version before it contain no crash‑reporting SDK and send nothing to Google. It is **on by default** and you can switch it off at any time in **Settings → Crash reports**, which stops collection immediately and deletes reports still queued on your device.
 
-A crash report never contains your masked addresses, mask descriptions, associated domains, Fastmail API token, email address, or message content: the app's only calls to the Crashlytics SDK are "turn collection on/off" and "delete unsent reports", so there is no code path that could attach them. The report itself is only sent when the app actually crashes, but while reporting is on the SDK does two things at app start without any crash involved — it registers the installation with Google (Firebase installation ID) and downloads its own configuration from `firebase-settings.crashlytics.com`, a request that carries the installation ID, your device model, Android version and the app's Firebase ID; switching the toggle off stops both, after which the only network traffic the app makes is to Fastmail. Debug builds never report at all. Firebase's session‑reporting SDK, which would otherwise post an event to Google every time you open the app, is switched off in the app manifest, so no session event is ever sent.
+A crash report never contains your masked addresses, mask descriptions, associated domains, Fastmail API token, email address, or message content: the app's only calls to the Crashlytics SDK are "turn collection on/off" and "delete unsent reports", so there is no code path that could attach them. The report itself is only sent when the app actually crashes, but while reporting is on the SDK does two things at app start without any crash involved — it registers the installation with Google (Firebase installation ID) and downloads its own configuration from `firebase-settings.crashlytics.com`, a request that carries the installation ID, your device model, Android version and the app's Firebase ID. Switching the toggle off stops both and therefore stops Crashlytics traffic; FastMask may still contact Fastmail for its core features and Google Play during purchase or restore flows. Debug builds never report at all. Firebase's session‑reporting SDK, which would otherwise post an event to Google every time you open the app, is switched off in the app manifest, so no session event is ever sent.
 
 We do **not** collect or process any of the following:
 
@@ -119,6 +119,8 @@ FastMask is not directed at children under 18, and we do not knowingly process d
 We may update this policy from time to time. Material changes will be announced through a new app release and reflected in the "Last updated" date at the top of this document. The current version is always available at <https://pawelorzech.github.io/FastMask/privacy.html>.
 
 **Change on 2026-07-27:** crash reporting via Firebase Crashlytics was added, on by default and switchable off in Settings. It applies **from FastMask 1.10.0 onwards**; every earlier version contains no crash‑reporting SDK, so until you update, the previous wording ("no crash reports, no Crashlytics") still describes what is installed on your device.
+
+**Change on 2026-08-01:** correction, not a change in what the app does. The table in section 2 described your masked addresses as living "in memory while the app runs; persisted only on Fastmail's servers", which section 6 already contradicted by promising to delete an offline snapshot at log‑out. The snapshot is real: it has existed since the offline list was added, it is encrypted with a Keystore‑backed key, and it is bound to the account that wrote it. Section 2 now says so. No new data is collected and nothing new leaves your device.
 
 ## 11. Open Source
 

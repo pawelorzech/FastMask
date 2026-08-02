@@ -38,8 +38,8 @@ Reklamy w jakiejkolwiek formie. Subskrypcje. Konsumowalne. RevenueCat / zewnętr
 
 ## Constraints
 
-- Google Play Billing Library **8.3.0, artefakt bazowy Java** (nie -ktx: Kotlin 1.9.22 vs metadane Kotlin 2.x); własne suspend-wrappery.
-- Toolchain bez zmian: Kotlin 1.9.22, AGP 8.5.2, Gradle 8.9, JDK 17 (build przez Android Studio JBR).
+- Google Play Billing Library **8.3.0, artefakt bazowy Java**; własne suspend-wrappery utrzymują małą powierzchnię integracji bez zależności od rozszerzeń KTX.
+- Toolchain: Kotlin 2.2.20, AGP 8.10.1, Gradle 8.11.1, JDK 17–21 (build przez Android Studio JBR).
 - Clean Architecture zachowana: ui→domain→data, Hilt, StateFlow/SharedFlow.
 - Entitlement nie jest gołym booleanem w prefs: DataStore cache stanu zweryfikowanego + odświeżenie z Play przy każdym starcie.
 - Produkt ID bez ceny w nazwie: `pro_lifetime`.

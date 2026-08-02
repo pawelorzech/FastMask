@@ -295,4 +295,5 @@
     <string name="share_requires_sign_in">Accedi a FastMask per creare una maschera per questo link.</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Elaborazione…</string>
+    <string name="email_list_result_count">Maschere: %1$d/%2$d</string>
 </resources>

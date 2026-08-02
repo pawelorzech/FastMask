@@ -287,4 +287,5 @@
     <string name="share_requires_sign_in">এই লিঙ্কের জন্য মাস্ক তৈরি করতে FastMask-এ সাইন ইন করুন।</string>
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">চলছে…</string>
+    <string name="email_list_result_count">মাস্ক: %1$d/%2$d</string>
 </resources>

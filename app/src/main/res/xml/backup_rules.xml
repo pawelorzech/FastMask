@@ -14,6 +14,11 @@
     <exclude domain="sharedpref" path="fastmask_secure_prefs.xml"/>
     <!-- Offline snapshot: every mask on the account. -->
     <exclude domain="file" path="masked_emails_cache.bin"/>
+    <!-- The snapshot's staging copy. Same content, different path: the write
+         stages under cache_staging/ and renames, so a process death between the
+         two leaves a full mask list behind at this path, which the rule above
+         does not match. -->
+    <exclude domain="file" path="cache_staging/"/>
     <!-- Entitlement proof and settings — device-local, nothing to restore. -->
     <exclude domain="file" path="datastore/"/>
 </full-backup-content>
