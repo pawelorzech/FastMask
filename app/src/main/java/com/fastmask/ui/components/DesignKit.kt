@@ -110,6 +110,7 @@ fun StateDot(
     contentDescription: String? = null,
 ) {
     val pair = pairFor(state)
+    val dotSize = size
     val semanticsModifier = if (contentDescription != null) {
         Modifier.semantics { this.contentDescription = contentDescription }
     } else {
@@ -118,12 +119,12 @@ fun StateDot(
     Box(
         modifier = modifier
             .then(semanticsModifier)
-            .size(size + 6.dp)
+            .size(dotSize + 6.dp)
             .clip(CircleShape)
             .background(pair.container),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.size(size)) {
+        Canvas(modifier = Modifier.size(dotSize)) {
             val strokeWidth = 1.75.dp.toPx()
             when (stateDotStyleFor(state)) {
                 StateDotStyle.FILLED_CIRCLE -> drawCircle(color = pair.content)
@@ -132,13 +133,13 @@ fun StateDot(
                     style = Stroke(width = strokeWidth),
                 )
                 StateDotStyle.FILLED_SQUARE -> {
-                    val inset = size.toPx() * 0.12f
+                    val inset = dotSize.toPx() * 0.12f
                     drawRect(
                         color = pair.content,
                         topLeft = Offset(inset, inset),
                         size = Size(
-                            width = size.toPx() - inset * 2,
-                            height = size.toPx() - inset * 2,
+                            width = dotSize.toPx() - inset * 2,
+                            height = dotSize.toPx() - inset * 2,
                         ),
                     )
                 }
