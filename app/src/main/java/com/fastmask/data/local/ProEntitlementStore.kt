@@ -2,8 +2,10 @@ package com.fastmask.data.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fastmask.domain.model.ProStatus
@@ -13,7 +15,27 @@ import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore(name = "pro_entitlement")
+/**
+ * The corruption handler is not optional here, and it is the counterpart of the
+ * one [com.fastmask.data.local.settingsDataStore] already carries.
+ *
+ * A truncated `pro_entitlement.preferences_pb` (interrupted write, full disk)
+ * makes every read *and every write* throw `CorruptionException`. Reads were
+ * already guarded at the call site, so the app degraded to FREE and carried on
+ * — but the write on the next Play reconciliation was not, and it runs inside a
+ * bare `lifecycleScope.launch { proRepository.refresh() }`, where a throwable
+ * reaches the uncaught handler and kills the process. That is a permanent
+ * launch-time crash loop, and it can only happen to someone who actually paid:
+ * a FREE user reconciles to the same status with the same null token, so no
+ * write is attempted.
+ *
+ * Replacing the file costs the offline entitlement cache, which Play restores on
+ * the very next reconciliation. Crashing costs the app.
+ */
+private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "pro_entitlement",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 /**
  * Local cache of the last Play-verified entitlement, so Pro features work

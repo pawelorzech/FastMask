@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
@@ -20,6 +21,8 @@ import com.fastmask.domain.usecase.SetLanguageUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +33,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,6 +44,11 @@ class SettingsViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
     private val exportMasksUseCase: ExportMasksUseCase,
+    // The injected singleton, deliberately: the screen used to construct its own
+    // `ExportCache(context)`, which was harmless while the class was a stateless
+    // wrapper over cacheDir/exports but is not any more — the sign-out guard is
+    // per-instance state, and a second instance would never see the clear.
+    private val exportCache: ExportCache,
     private val analytics: MonetizationAnalytics,
     private val crashReporting: CrashReportingController,
 ) : ViewModel() {
@@ -206,8 +215,27 @@ class SettingsViewModel @Inject constructor(
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
+            // Captured before the fetch. The CSV holds every mask in plaintext —
+            // the one copy of the account's data on the device that is not
+            // Keystore-encrypted — so an export whose fetch outlived a sign-out
+            // must not reach the disk at all. Ageing it out an hour later is the
+            // wrong remedy for a file that should never have been written.
+            val generation = exportCache.currentGeneration()
             exportMasksUseCase()
-                .onSuccess { csv -> _events.send(SettingsEvent.ShareCsv(csv)) }
+                .onSuccess { csv ->
+                    // Writing moved off the composable and onto the injected
+                    // singleton, so the guard and the sign-out cleanup act on
+                    // the same object.
+                    withContext(Dispatchers.IO) {
+                        runCatching { exportCache.write(csv, generation = generation) }
+                    }
+                        .onSuccess { file -> _events.send(SettingsEvent.ShareCsv(file)) }
+                        .onFailure {
+                            _events.send(
+                                SettingsEvent.ExportFailed(R.string.settings_export_failed_write)
+                            )
+                        }
+                }
                 .onFailure { error ->
                     // The export first fetches every mask over the network, so
                     // most failures here are the same ones the rest of the app
@@ -235,7 +263,8 @@ sealed class SettingsEvent {
     data object LoggedOut : SettingsEvent()
     data object GoToSignIn : SettingsEvent()
     data class OpenPro(val source: String) : SettingsEvent()
-    data class ShareCsv(val csv: String) : SettingsEvent()
+    /** The written export file; the screen only turns it into a share intent. */
+    data class ShareCsv(val file: File) : SettingsEvent()
 
     /** @param messageRes the localized reason, already resolved by [UiErrors]. */
     data class ExportFailed(@StringRes val messageRes: Int) : SettingsEvent()

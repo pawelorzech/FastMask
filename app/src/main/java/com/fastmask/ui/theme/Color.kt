@@ -34,7 +34,12 @@ val LightInputBg = Color(0xFFFFFFFF)
 val LightActiveBg = Color(0xFFD9E5CF)
 val LightActiveInk = Color(0xFF3A5724)
 val LightOffBg = Color(0xFFE3DCC9)
-val LightOffInk = Color(0xFF6B6450)
+// Darkened from #6B6450, which sat at 4.31:1 on LightOffBg — under the 4.5:1
+// WCAG AA floor, and the "off" pill label renders at ~11sp, so it does not
+// qualify for the large-text exemption. #645E4B measures 4.73:1 against the same
+// background. Every other status pair already passed (light 5.8-6.3:1, dark
+// 5.3-7.7:1); this was the only one below the line.
+val LightOffInk = Color(0xFF645E4B)
 val LightArchivedBg = Color(0xFFE8D6C9)
 val LightArchivedInk = Color(0xFF7D3D1E)
 val LightPendingBg = Color(0xFFF0DFB0)

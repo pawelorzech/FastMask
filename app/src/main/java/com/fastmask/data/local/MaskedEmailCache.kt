@@ -61,6 +61,28 @@ class MaskedEmailCache @Inject constructor(
      */
     private val lock = Any()
 
+    /**
+     * Bumped by every [clear]. A writer captures it before starting its fetch
+     * and hands it back to [write], which refuses a write stamped with a
+     * generation that has since been superseded.
+     *
+     * [lock] alone was not enough: it orders the two file operations but says
+     * nothing about which one the user asked for first. The sequence that got
+     * through was pull-to-refresh on a slow link, then Settings → Log out
+     * before the response landed. `logout()` clears the snapshot; the in-flight
+     * continuation then re-encrypts the account's full mask list back onto
+     * disk, where it stays until the next sign-in — the file is not readable by
+     * a second account (the owner check sees to that), but `docs/privacy.md`
+     * promises the snapshot is *removed* at log-out, and it was not.
+     *
+     * Cancellation could not close this: the write follows the network call
+     * with no suspension point in between, so there is nothing to preempt.
+     */
+    private val generation = java.util.concurrent.atomic.AtomicLong(0)
+
+    /** Snapshot of the current generation, for a caller about to fetch. */
+    fun currentGeneration(): Long = generation.get()
+
     private fun encryptedFile(target: File): EncryptedFile {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -77,9 +99,24 @@ class MaskedEmailCache @Inject constructor(
      * Replaces the snapshot. Failures are swallowed — caching is best-effort.
      *
      * @param owner identifies the account this snapshot belongs to; see [read].
+     * @param generation what [currentGeneration] returned when this write's
+     *   fetch began. A [clear] since then means the session this data belongs
+     *   to is over, and the write is dropped. Deliberately has no default: a
+     *   default would be read from the *current* value at call time, which is
+     *   exactly the stale-session case the parameter exists to catch, and it
+     *   would let a new call site opt out of the guard by simply not knowing
+     *   about it.
      */
-    fun write(masks: List<MaskedEmail>, owner: String?, now: Instant = Instant.now()) {
+    fun write(
+        masks: List<MaskedEmail>,
+        owner: String?,
+        now: Instant = Instant.now(),
+        generation: Long,
+    ) {
         synchronized(lock) {
+            // Inside the lock, so a clear() cannot land between the check and
+            // the rename.
+            if (generation != this.generation.get()) return
             runCatching {
                 val payload = CachedSnapshot(
                     cachedAtEpochMs = now.toEpochMilli(),
@@ -138,6 +175,9 @@ class MaskedEmailCache @Inject constructor(
     /** Drops the snapshot. Called on sign-out and before a new sign-in. */
     fun clear() {
         synchronized(lock) {
+            // Before the deletes, and inside the lock: any write already
+            // waiting on the lock is invalidated by the time it gets in.
+            generation.incrementAndGet()
             runCatching {
                 file.delete()
                 stagingFile.delete()

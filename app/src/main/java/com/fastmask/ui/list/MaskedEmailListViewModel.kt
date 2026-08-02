@@ -11,9 +11,12 @@ import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
+import com.fastmask.di.ApplicationScope
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +32,7 @@ class MaskedEmailListViewModel @Inject constructor(
     private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val settingsDataStore: SettingsDataStore,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     /** Live app-mode flag used by the screen to gate the demo tutorial overlay. */
@@ -62,7 +66,18 @@ class MaskedEmailListViewModel @Inject constructor(
      */
     fun restoreMask(id: String, restoreTo: EmailState = EmailState.ENABLED) {
         viewModelScope.launch {
-            updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = restoreTo))
+            // The REQUEST runs in the application scope; only the wait for it
+            // belongs to this ViewModel — the same split create and detail
+            // already use. Undo was the last mutation still issued straight
+            // from viewModelScope, and it is the one whose entire promise is
+            // reversal: leaving the app while the restore was in flight
+            // cancelled the PUT, so the mask stayed archived and the .onFailure
+            // branch below — living in the same cancelled coroutine — never ran
+            // to say so. If the request had already reached Fastmail, the mask
+            // came back on the account while the list never reloaded.
+            appScope.async {
+                updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = restoreTo))
+            }.await()
                 .onSuccess { loadMaskedEmails() }
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived

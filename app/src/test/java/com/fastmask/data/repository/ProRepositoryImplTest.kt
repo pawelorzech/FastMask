@@ -296,4 +296,45 @@ class ProRepositoryImplTest {
 
         coVerify(exactly = 1) { store.write(ProStatus.PRO, "token-one") }
     }
+
+    // --- entitlement persistence must never take the process down ---
+
+    // refresh() is called from a bare `lifecycleScope.launch` in MainActivity's
+    // ON_RESUME observer, so anything escaping it reaches the uncaught handler
+    // and kills the app on every launch. A corrupt pro_entitlement file made
+    // every write throw, and only a user who had actually paid ever reached the
+    // write — a FREE user reconciles to the same status and skips it.
+    @Test
+    fun `a failing entitlement write does not propagate out of refresh`() = runTest {
+        coEvery { store.write(any(), any()) } throws IllegalStateException("corrupt store")
+        billing.purchasesResponse = BillingResponse.Ok(listOf(billingPurchase()))
+        val repo = repository()
+        advanceUntilIdle()
+
+        // Would rethrow and fail the test before the assertion if unguarded.
+        assertEquals(RefreshResult.OK, repo.refresh())
+        advanceUntilIdle()
+
+        // The in-memory status is what gates Pro this session; it must still be
+        // correct even though the offline cache could not be updated.
+        assertEquals(ProStatus.PRO, repo.proStatus.value)
+    }
+
+    // A write that failed must not be recorded as done: the entitlement cache
+    // is still stale, so the next reconciliation has to try again.
+    @Test
+    fun `a failed entitlement write is retried on the next reconciliation`() = runTest {
+        coEvery { store.write(any(), any()) } throws IllegalStateException("corrupt store")
+        billing.purchasesResponse = BillingResponse.Ok(listOf(billingPurchase(token = "token-one")))
+        val repo = repository()
+        advanceUntilIdle()
+
+        repo.refresh()
+        repo.refresh()
+        advanceUntilIdle()
+
+        // Both attempts reach the store, unlike the skip-if-unchanged fast path
+        // that a successful write installs.
+        coVerify(exactly = 2) { store.write(ProStatus.PRO, "token-one") }
+    }
 }

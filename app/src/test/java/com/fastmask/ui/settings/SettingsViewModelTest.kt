@@ -1,6 +1,8 @@
 package com.fastmask.ui.settings
 
+import android.content.Context
 import com.fastmask.R
+import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
@@ -36,6 +38,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
@@ -51,6 +54,18 @@ class SettingsViewModelTest {
     private val maskRepository = FakeMaskedEmailRepository()
 
     private val crashReporter = FakeCrashReporter()
+
+    /**
+     * A real [ExportCache] over a temp directory rather than a mock: the export
+     * path's whole point is that a file lands on disk, and the sign-out guard is
+     * state inside this class.
+     */
+    @get:Rule
+    val temp = TemporaryFolder()
+
+    private val exportCache: ExportCache by lazy {
+        ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") })
+    }
 
     /** Stored crash-reporting preference; opt-out, so it starts on. */
     private val storedCrashReporting = MutableStateFlow(true)
@@ -78,6 +93,7 @@ class SettingsViewModelTest {
             settingsDataStore = settingsDataStore,
             proRepository = proRepository,
             exportMasksUseCase = ExportMasksUseCase(maskRepository),
+            exportCache = exportCache,
             analytics = analytics,
             crashReporting = CrashReportingController(
                 reporter = crashReporter,
@@ -155,9 +171,33 @@ class SettingsViewModelTest {
 
         val event = vm.events.first()
         assertTrue(event is SettingsEvent.ShareCsv)
-        val csv = (event as SettingsEvent.ShareCsv).csv
+        // The event now carries the written file, not the string: producing it
+        // belongs to the ViewModel, which holds the ExportCache and can abandon
+        // an export whose fetch outlived the session.
+        val csv = (event as SettingsEvent.ShareCsv).file.readText()
         assertTrue(csv.contains("one@fastmail.com"))
         assertTrue(csv.contains("two@fastmail.com"))
+    }
+
+    // The CSV is the only copy of the account's masks on the device that is not
+    // Keystore-encrypted, so an export whose network fetch outlived a sign-out
+    // must never reach the disk. Nothing to age out an hour later.
+    @Test
+    fun `an export whose fetch outlived a sign-out is abandoned, not written`() = runTest {
+        proRepository.statusFlow.value = ProStatus.PRO
+        maskRepository.emails = listOf(mask("one"))
+        // The sign-out lands while the fetch is still in flight — after the
+        // ViewModel captured the generation, before the CSV is written.
+        maskRepository.beforeGet = { exportCache.clear() }
+        val vm = viewModel()
+
+        vm.onExportClick()
+        advanceUntilIdle()
+
+        assertEquals(
+            SettingsEvent.ExportFailed(R.string.settings_export_failed_write),
+            vm.events.first(),
+        )
     }
 
     @Test

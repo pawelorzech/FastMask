@@ -65,3 +65,6 @@ keystore.properties
 
 # Playwright session artifacts (snapshots, screenshots, console logs)
 .playwright-mcp/
+
+# Riptide artifacts (cloud-synced)
+.humanlayer/tasks/

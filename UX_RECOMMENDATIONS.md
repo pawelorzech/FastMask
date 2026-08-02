@@ -1,126 +1,211 @@
-# FastMask — rekomendacje UX, audyt 2026-07-27
+# UX_RECOMMENDATIONS — FastMask, 2026-08-01
 
-Podstawa: przejście głównych ścieżek na emulatorze (API 36) w trybie demo ze zrzutami ekranu, odczyt wszystkich dziewięciu ekranów, wyliczenia kontrastu WCAG dla obu motywów, przegląd 20 lokali.
+Ten dokument zawiera **oceny i propozycje**. Czyste fakty z audytu są w `AUDIT_REPORT.md`, lista zmian w `CHANGELOG_AGENT.md`. Poprzednie rekomendacje: `Plans/audit-archive/UX_RECOMMENDATIONS-2026-07-27.md`.
 
-Scoring 1–5. `Priority = Impact × Confidence / Effort`. To narzędzie porządkujące, nie automat decyzyjny — kolejność w tabelach jest moją rekomendacją, nie wynikiem wzoru.
-
-> Poprzednie rekomendacje (2026-07-24) leżą w `Plans/audit-archive/UX_RECOMMENDATIONS-2026-07-24.md`.
+Scoring 1-5 dla **Impact / Effort / Confidence / Risk**, `Priority = Impact × Confidence ÷ Effort`. To narzędzie porządkujące, nie automat decyzyjny — przy remisie decyduje kolumna „Wpływ na prostotę".
 
 ---
 
-## Ocena ogólna
+## 0. Ocena ogólna
 
-FastMask jest dopracowany powyżej przeciętnej dla aplikacji jednoosobowej i wyraźnie powyżej przeciętnej dla klienta API. Ekran pusty wyszukiwania mówi pełnym zdaniem, co się stało. Baner demo jest stale widoczny i ma wyjście. Błędy sieciowe mają osobne komunikaty dla braku sieci, 429, 5xx i 401 zamiast jednego „coś poszło nie tak". Tryb offline mówi wprost, że pokazuje snapshot i kiedy go pobrał, zamiast udawać dane bieżące. To rzadkie.
+FastMask jest produktem o nietypowo wysokiej dyscyplinie na to, ile ma powierzchni. Główne ścieżki są krótkie, destrukcyjne akcje mają potwierdzenia i Undo, tryb demo pozwala zobaczyć wartość przed podaniem tokenu, a 20 lokalizacji jest kompletnych bez ani jednego dryfu. To nie jest projekt, w którym trzeba szukać dużych ruchów produktowych.
 
-Trzy rzeczy obniżają tę ocenę i wszystkie trzy mają wspólny mianownik: **aplikacja jest zaprojektowana dla wzroku i dotyku pełnosprawnego użytkownika**, a warstwa niewidoczna — czytnik ekranu, niski kontrast, duża czcionka, drżąca ręka — została pominięta konsekwentnie, nie przypadkowo. Nie ma w całym `ui/` ani jednego `liveRegion`, ani jednego `stateDescription`, ani jednego `heading()`. To nie jest zbiór niedopatrzeń, tylko brakujący wymiar.
+Dwa obserwacje warte uwagi na poziomie produktu, a nie pojedynczych ekranów:
 
-Czwarta obserwacja, mniejsza: **overlay tutoriala wycina „reflektor" w połowie karty listy** (zrzut z demo). Granica przyciemnienia przecina kartę „Quick test" w poziomie, co wygląda jak błąd renderowania, a nie jak celowe podświetlenie.
+**Pierwsze uruchomienie ma jeden twardy próg i wszystko inne jest łatwe.** Użytkownik musi wejść na fastmail.com, znaleźć Settings → Privacy & Security → Integrations → API tokens, utworzyć token o właściwym zakresie i wkleić go. To pięć kroków w cudzym interfejsie, zanim aplikacja pokaże cokolwiek. Tryb demo słusznie łagodzi ten próg, ale nie skraca samej procedury. To jest miejsce, gdzie tracisz najwięcej ludzi, i jedyne miejsce, gdzie warto rozważyć realną pracę projektową (rekomendacja B1).
 
----
-
-## A. Quick wins — małe, tanie, niskiego ryzyka
-
-| # | Rekomendacja | Impact | Effort | Confidence | Risk | Priority |
-|---|---|---|---|---|---|---|
-| A1 | Zdjąć `alpha = 0.7f` z licznika w wybranej pigułce filtra | 3 | 1 | 5 | 1 | **15,0** |
-| A2 | Podnieść cztery obszary dotyku do 48 dp | 4 | 1 | 5 | 1 | **20,0** |
-| A3 | Nie podmieniać etykiety przycisku na `"…"` w trakcie ładowania | 4 | 1 | 5 | 1 | **20,0** |
-| A4 | `heading()` na tytułach ekranów | 3 | 1 | 5 | 1 | **15,0** |
-| A5 | `ImeAction.Next` między polami formularza tworzenia | 3 | 1 | 4 | 1 | **12,0** |
-| A6 | Poprawić przycięcie reflektora tutoriala do granic karty | 2 | 2 | 4 | 1 | **4,0** |
-| A7 | `heightIn(max = 360.dp)` zamiast sztywnego `height` w dialogu języka | 2 | 1 | 4 | 1 | **8,0** |
-| A8 | Separator hero na ekranie logowania jako zasób (pusty w ja/zh/th) | 2 | 1 | 5 | 1 | **10,0** |
-
-**A2 — obszary dotyku.**
-*Problem użytkownika:* pigułki filtrów mają ~32 dp wysokości, przycisk kopiowania na szczegółach ~30×34 dp, „Skip" w tutorialu ~30 dp. Przy drżeniu rąk, w ruchu albo jedną ręką to są cele, w które się nie trafia. *Rozwiązanie:* `Modifier.heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically)` przed `.padding(...)` — wzorem `ProScreen.kt:368`, gdzie zrobiono to poprawnie. Wygląd się nie zmienia, rośnie tylko obszar reakcji. *Walidacja:* Accessibility Scanner przestaje zgłaszać te cztery. *Metryka:* liczba ostrzeżeń w raporcie pre-launch Play.
-
-**A3 — etykieta „…".**
-*Problem:* w trakcie logowania, tworzenia i zapisu tekst przycisku jest podmieniany na `"…"`. Dla TalkBacka to „wielokropek, przycisk" — użytkownik traci nazwę akcji dokładnie wtedy, gdy najbardziej potrzebuje wiedzieć, co trwa. *Rozwiązanie:* zostawić etykietę, dodać `Modifier.semantics { stateDescription = … }` na `PillButton`, który już przyjmuje parametr `loading`. *Metryka:* porzucenia formularza logowania.
-
-**A1 — licznik w pigułce.** Kontrast 3,27:1 przy 10 sp — najgorsza para w aplikacji. Zdjęcie alphy daje 5,02:1 bez dotykania palety.
+**Aplikacja jest bardzo dobra dla użytkownika czytnika ekranu i wyraźnie gorsza dla widzącego użytkownika z zaburzeniem widzenia barw.** To nietypowy rozkład i wynika wprost z tego, jak szły poprzednie audyty: dodawano `contentDescription`, bo to dało się zrobić w kodzie bez dotykania wyglądu. Stan maski na liście jest nadal zakodowany wyłącznie kolorem, i to kolorami o niemal identycznej luminancji (A1).
 
 ---
 
-## B. Średni zakres — nowe stany, zmiany w kilku miejscach
+## A. Quick wins
 
-| # | Rekomendacja | Impact | Effort | Confidence | Risk | Priority |
-|---|---|---|---|---|---|---|
-| B1 | Podnieść kontrast granic pól do 3:1 (zmiana dwóch kolorów palety) | 4 | 2 | 5 | 3 | **10,0** |
-| B2 | Akcja „Zaloguj ponownie" w banerze błędu przy 401 | 4 | 2 | 4 | 2 | **8,0** |
-| B3 | Tutorial modalny dla czytnika ekranu | 3 | 2 | 4 | 1 | **6,0** |
-| B4 | Pobieranie pojedynczej maski (`MaskedEmail/get` z `ids`) | 3 | 3 | 5 | 3 | **5,0** |
-| B5 | Ogłaszanie stanów ładowania i banera offline (`liveRegion`) | 3 | 2 | 4 | 1 | **6,0** |
-| B6 | Powiązanie błędów walidacji z polem przez `error()` | 3 | 2 | 5 | 1 | **7,5** |
-| B7 | Respektowanie systemowego wyłączenia animacji | 2 | 2 | 4 | 1 | **4,0** |
+Małe, tanie, niskiego ryzyka.
 
-**B1 — kontrast granic pól.**
-*Problem:* pole edycji jest wizualnie nieodróżnialne od tła: 1,15:1 w jasnym motywie, 1,04:1 w ciemnym; ramka 1,28:1 i 1,25:1. WCAG 1.4.11 wymaga 3:1 dla granic komponentów. Dotyczy ekranu logowania (wklejanie tokenu), tworzenia maski i edycji szczegółów — czyli każdego miejsca, gdzie użytkownik ma coś wpisać. *Rozwiązanie:* pociemnić `LightLineStrong` do ok. `#8E846E`, rozjaśnić `DarkLineStrong` do ok. `#6E6555`, i użyć `outlineVariant` zamiast `outline` dla stanu nieaktywnego. *Ryzyko:* to jest zmiana palety „warm ink", która jest świadomym elementem produktu — dlatego nie zrobiłem tego w audycie. *Walidacja:* zdjęcie ekranu w słońcu; wyliczenie kontrastu skryptem. *Metryka:* ukończenia logowania.
+### A1 · Rozróżnij stan maski kształtem, nie tylko kolorem ⭐ *najwyższy priorytet*
 
-**B2 — martwa pętla po odwołaniu tokenu.**
-*Problem:* po odwołaniu tokenu w panelu Fastmaila każdy ekran pokazuje „Authentication failed", a jedyne wyjście to samodzielne znalezienie Ustawień → Wyloguj. Sesja JMAP nie ma TTL i nic jej nie czyści. *Rozwiązanie:* na 401/403 czyścić sesję JMAP (nie token) i pokazać w banerze akcję „Zaloguj ponownie". *Dlaczego nie automatyczne wylogowanie:* przejściowe 401 z proxy skasowałoby poprawny token. *Metryka:* zgłoszenia supportu na „aplikacja nie działa".
+**Problem użytkownika.** Na liście — najczęściej przewijanym ekranie aplikacji — jedynym wskaźnikiem stanu jest kolorowa kropka. Policzone kontrasty *między* wypełnieniami: archived vs pending w motywie jasnym **1,04:1**, enabled vs pending w ciemnym **1,02:1**. Odcień jest jedyną różnicą; luminancja praktycznie identyczna, więc dla użytkownika z deuteranopią albo protanopią te stany zlewają się całkowicie. Użytkownik czytnika ekranu ma tę informację (`stateContentDescription`), widzący z zaburzeniem widzenia barw — nie. To potwierdzona niezgodność z **WCAG 1.4.1 (poziom A)**.
 
-**B4 — pobieranie pojedynczej maski.**
-*Problem:* ekran szczegółów pobiera całą listę, żeby pokazać jedną maskę — przy otwarciu, po zapisie i po każdym przełączeniu stanu. Przy ~265 maskach jedna edycja to trzy pełne pobrania listy. *Rozwiązanie:* `MaskedEmail/get` przyjmuje `ids`; dodać wariant i użyć go na szczegółach. *Ryzyko (istotne):* pobranie jednej maski **nie może** nadpisać całego snapshotu offline — to trzeba obsłużyć jawnie, inaczej cache zredukuje się do jednej pozycji. *Metryka:* czas do wyświetlenia szczegółów, transfer na sesję.
+**Rozwiązanie.** Zachowaj kolory, dodaj drugi nośnik w `StateDot`: wypełnione koło (enabled) · pierścień (disabled/off) · koło z ukośnikiem albo kwadrat (archived) · kropka z obwódką przerywaną (pending). Cztery kształty, ten sam rozmiar i ta sama pozycja, zero zmian w układzie wiersza.
+
+**Dlaczego nie etykieta tekstowa.** Poprzedni audyt rozważał czwartą linię tekstu w wierszu i odrzucił — słusznie, bo to zagęszcza najgęstszy ekran. Kształt rozwiązuje 1.4.1 bez tego kosztu.
+
+**Walidacja.** Zrzuty listy przepuszczone przez symulator dichromatyczny: cztery stany muszą być rozróżnialne w skali szarości. **Metryka:** brak — to zgodność, nie eksperyment.
+
+**Dlaczego nie zrobiłem tego w audycie:** zmienia język wizualny centralnego ekranu produktu, którego „warm-ink design" jest deklarowaną wartością. To Twoja decyzja projektowa, nie naprawa defektu.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 4 | 2 | 5 | 1 | **10,0** |
+
+### A2 · Ogłaszaj stany ładowania, pustki i błędu czytnikowi ekranu
+
+**Problem.** Po naprawie `PillButton` w tym audycie w aplikacji zostają trzy miejsca z `liveRegion`, a ciche przejścia to: ładowanie listy (sześć nieopisanych `Box`-ów — ekran czyta się jako **pusty**, nie „ładuję"), wyszukiwanie bez wyników, błąd wczytania listy, nieudany zapis na szczegółach, nieudane tworzenie, ostrzeżenie o pustym wklejeniu przy logowaniu, eksport CSV w toku.
+
+**Rozwiązanie.** `Modifier.semantics { liveRegion = LiveRegionMode.Polite }` na kontenerach tych stanów. Banery offline i błędu inline (`MaskedEmailListScreen.kt:851`, `:884`) są zrobione poprawnie — użyj ich jako wzorca.
+
+**Walidacja.** Przejście TalkBackiem. **Metryka:** brak sensownej ilościowej; to zgodność.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 3 | 2 | 4 | 1 | **6,0** |
+
+### A3 · `heading()` na czterech brakujących ekranach
+
+Jest na liście, tworzeniu, ustawieniach i Pro. Brakuje na logowaniu, powitaniu, **szczegółach maski** (tytuł ekranu = nazwa maski) i ekranie zamka. Bez tego nawigacja po nagłówkach w TalkBacku pomija połowę aplikacji.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 1 | 5 | 1 | **10,0** |
+
+### A4 · `ImeAction.Next` w formularzu tworzenia
+
+Cztery pola na `KeyboardOptions.Default`, więc klawiatura pokazuje „gotowe" zamiast „dalej" i użytkownik musi tapać w każde pole osobno. Jedna linia na pole. Pozycja otwarta od audytu 2026-07-24.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 1 | 5 | 1 | **10,0** |
+
+### A5 · `selectableGroup()` na trzech grupach wyboru
+
+Aktywna/Wyłączona przy tworzeniu, akcenty i języki w ustawieniach. `Role.RadioButton` jest ustawione poprawnie na elementach, ale bez grupy TalkBack nie powie „1 z 5".
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 1 | 4 | 1 | **8,0** |
+
+### A6 · Nie sklejaj stringów w Kotlinie
+
+Trzy miejsca: `append(" ")` między fragmentami hero na logowaniu (psuje japoński `静かな場所へ マスクメール。`, chiński, i w arabskim odrywa proklitykę `لـ` od `البريد المقنّع`), `createdMessageTemplate.replace("%s", email)` na liście (omija kontrolę placeholderów w loncie — jeden tłumacz piszący `%1$s` daje snackbar z dosłownym placeholderem) i `"FastMask · ${…}"` w ustawieniach (kolejność bidi w arabskim nie do wysterowania z zasobu). Każde to zamiana na `stringResource(R.string.x, arg)`.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 1 | 4 | 1 | **8,0** |
+
+### A7 · Ręczne odświeżanie osiągalne bez gestu
+
+`PullToRefreshBox` to jedyny sposób ręcznego odświeżenia, gdy lista ma treść; przycisk „Ponów" istnieje tylko w gałęzi „pusto + błąd", a baner nieudanego odświeżenia nie oferuje żadnej akcji. Dla użytkownika klawiatury albo kogoś z ograniczoną motoryką nie ma alternatywy. Dodaj akcję „Ponów" do banera błędu inline.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 1 | 4 | 1 | **8,0** |
 
 ---
 
-## C. Eksperymenty — wartość niepewna, najpierw walidacja
+## B. Średni zakres
 
-| # | Hipoteza | Jak sprawdzić przed budową |
-|---|---|---|
-| C1 | Ekran powitalny marnuje ~40% wysokości na tanich telefonach — wyśrodkowanie treści poprawia pierwsze wrażenie | Zrzuty na 5" i 6,7" obok siebie; ocena własna Pawła. Zero kodu, zero danych |
-| C2 | Chipy filtrów pokazujące liczniki całej kolekcji przy zerze wyników są mylące („All 10" nad „Brak dopasowań") | Pokazać trzem osobom zrzut z pustym wyszukiwaniem i zapytać, ile masek pasuje |
-| C3 | Sortowanie po aktywności to nie zawsze to, czego szuka użytkownik z 265 maskami — może brakować sortowania po nazwie/domenie | Zapytać, po czym Paweł szuka maski, gdy jej szuka. Jeśli odpowiedź brzmi „wpisuję domenę w wyszukiwarkę", to funkcja już istnieje i nic nie trzeba dodawać |
-| C4 | Stan maski zakodowany wyłącznie kolorem kropki jest nieczytelny dla daltonisty (aktywna/wyłączona/zarchiwizowana to trzy odcienie) | TalkBack **czyta** stan poprawnie, więc problem dotyczy tylko widzącego daltonisty. Sprawdzić symulatorem deuteranopii, zanim cokolwiek się doda |
+### B1 · Skróć drogę do pierwszego tokenu
 
-**Uwaga do C4:** kuszące jest dodanie tekstowej etykiety stanu na każdą kartę. Odradzam bez walidacji — karta ma już nazwę, adres i czas; czwarty element to zagracenie listy, którą użytkownik przewija setki razy. Kropka o innym *kształcie* dla każdego stanu rozwiązałaby to samo za mniejszą cenę.
+**Problem.** Najkosztowniejszy moment produktu: pięć kroków w cudzym interfejsie, zanim aplikacja pokaże cokolwiek. Instrukcja jest tekstem, a użytkownik przełącza się między aplikacją a przeglądarką, próbując zapamiętać ścieżkę menu.
+
+**Rozwiązanie.** (a) Przycisk otwierający **bezpośredni** deep link do ekranu tokenów Fastmaila zamiast strony głównej ustawień, jeśli taki URL jest stabilny. (b) Automatyczne wykrycie tokenu w schowku po powrocie do aplikacji, z jawnym potwierdzeniem („Wykryto token w schowku — użyć?"), nigdy cichym wklejeniem. (c) Konkretny komunikat, gdy token nie ma zakresu Masked Email — dziś `MaskedEmailScopeMissingException` istnieje, warto sprawdzić, czy jego komunikat mówi użytkownikowi **co zrobić**, a nie tylko co poszło źle.
+
+**Ryzyko.** Odczyt schowka to wrażliwa operacja — na Androidzie 12+ system pokazuje toast przy każdym odczycie. Robić to **wyłącznie** po jawnym geście użytkownika, nigdy w tle. Wpływ na prostotę: neutralny, jeśli (b) jest potwierdzeniem, a nie automatem.
+
+**Walidacja.** Test użyteczności na 3-5 osobach, które nigdy nie generowały tokenu API. **Metryka:** odsetek sesji, które od powitania dochodzą do listy z prawdziwym tokenem, i mediana czasu do pierwszej maski.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 5 | 3 | 3 | 3 | **5,0** |
+
+### B2 · Ścieżka wyjścia z „token odrzucony"
+
+Komunikat `error_auth` brzmi „Fastmail odrzucił token. Zaloguj się ponownie", a jedyna droga do tego to Ustawienia → Wyloguj, bez podpowiedzi. Napis obiecuje akcję, której interfejs nie oferuje. Minimalnie: akcja „Zaloguj ponownie" bezpośrednio w banerze błędu. Docelowo: wykrycie 401 przenoszące na ekran logowania z zachowanym kontekstem.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 3 | 2 | 4 | 2 | **6,0** |
+
+### B3 · Potwierdzenie przed eksportem CSV
+
+Eksport wysyła **każdą maskę w plaintekście** do dowolnie wybranej aplikacji z arkusza udostępniania, bez ostrzeżenia. Archiwizacja i wylogowanie mają potwierdzenia; ta operacja, która wyprowadza komplet danych konta poza aplikację, nie ma. Jeden dialog, spójny z resztą — mówiący wprost, że plik zawiera adresy i opisy w postaci jawnej i że znika z pamięci podręcznej po godzinie.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 3 | 1 | 4 | 1 | **12,0** |
+
+### B4 · Licznik wyników po wyszukaniu
+
+Po wpisaniu frazy lista podmienia się bez żadnego komunikatu. Linia „n z m masek" pod polem filtra pomaga wszystkim, a użytkownikowi czytnika ekranu domyka najgorszy przypadek z A2 (przejście do „brak wyników" jest dziś całkowicie ciche).
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 3 | 2 | 4 | 1 | **6,0** |
+
+### B5 · Adres maski czytelny przy dużej czcionce
+
+`MaskedEmailDetailScreen.kt:265-274` — sam adres ma `maxLines = 1` z wielokropkiem, podobnie wiersze metadanych. Kopiowanie działa, ale **przeczytanie** pełnego adresu przy skalowaniu czcionki 200% już nie; tekst nie jest zaznaczalny i nie ma rozwinięcia. Zawijanie w dwie linie albo zaznaczalny tekst.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 2 | 4 | 1 | **4,0** |
+
+### B6 · Snackbar Undo przeżywający obrót ekranu
+
+`MaskedEmailListScreen.kt:149` używa `remember`, nie `rememberSaveable`, a stan archiwizacji jest czyszczony z `SavedStateHandle` zanim snackbar zostanie obsłużony. Obrót przy widocznym „Zarchiwizowano — Cofnij" i afordancja znika bezpowrotnie. Odzyskanie istnieje (filtr Archiwum → szczegóły → przełącz stan), więc to nie jest utrata danych — ale to dokładnie odwrotność poprawki z poprzedniego audytu, która usuwała *zombie* snackbar.
+
+| Impact | Effort | Confidence | Risk | Priority |
+|---|---|---|---|---|
+| 2 | 2 | 4 | 1 | **4,0** |
+
+---
+
+## C. Eksperymenty — wartość niepewna, najpierw dowód
+
+### C1 · Czy pola edycyjne są poprawnie czytane przez TalkBack
+
+`DesignInput.kt:106-114` i pole wyszukiwania nazywają pola przez `contentDescription`. Rozwiązywanie tekstu węzła w TalkBacku preferuje `contentDescription` nad treścią węzła edytowalnego, więc **istnieje ryzyko, że użytkownik edytujący prefiks, domenę, URL czy opis słyszy etykietę i nigdy nie słyszy tego, co w polu jest**. To zostało wprowadzone przez poprawkę dostępności `d1e3edd` i mogłoby być regresją netto. **Nie potwierdzone — wymaga urządzenia z TalkBackiem.** Jeśli się potwierdzi, właściwym wzorcem jest powiązanie etykiety, nie opis. To pierwsza rzecz do sprawdzenia, gdy będziesz miał TalkBacka pod ręką.
+
+### C2 · Tutorial bez cofania i bez pozycji
+
+Pięć kroków, tylko „Dalej" i „Pomiń"; mistap na „Dalej" traci krok bezpowrotnie, a nigdzie nie widać „2 z 5". Kroki zmieniają się też bez `liveRegion` i bez przeniesienia fokusu, więc dla czytnika ekranu tapnięcie „Dalej" nie produkuje żadnego komunikatu. Zanim to rozbudujesz — sprawdź, ilu ludzi w ogóle dochodzi do końca; jeśli większość pomija, właściwym ruchem jest skrócenie tutorialu, nie dodanie mu nawigacji.
+
+### C3 · Czy ktokolwiek używa filtrów listy
+
+Filtry Aktywne / Wyłączone / Archiwum zajmują stałe miejsce nad najczęściej przewijaną listą. Jeśli udział sesji, w których ktoś ich dotyka, jest niski, ten pasek jest kandydatem do zwinięcia pod ikonę — co da miejsce na licznik wyników z B4 bez zagęszczania ekranu. Wymaga danych, których świadomie nie zbierasz, więc realnie: obserwacja na sobie i na kilku użytkownikach, nie analityka.
 
 ---
 
 ## D. Odrzucone
 
-| Pomysł | Dlaczego nie |
+| Propozycja | Dlaczego odrzucona |
 |---|---|
-| Automatyczne wylogowanie przy 401 | Przejściowe 401 z proxy skasowałoby poprawny token. Ryzyko utraty dostępu przewyższa wygodę — patrz B2 po właściwe rozwiązanie |
-| Etykieta tekstowa stanu na każdej karcie listy | Zagraca najczęściej używany ekran, żeby rozwiązać problem, który TalkBack już rozwiązuje. Najpierw C4 |
-| Cache pojedynczych masek obok snapshotu listy | Druga ścieżka spójności danych w aplikacji, która właśnie naprawiła jedną. Koszt utrzymania nieproporcjonalny do zysku |
-| Przypomnienia/powiadomienia o nieużywanych maskach | Wprost odrzucone przez Pawła 2026-07-27 po zobaczeniu na realnych danych (265 masek, ekran ogłaszał „221 wymaga uwagi"). Maska założona przy rejestracji, przez którą nic nigdy nie przyszło, to stan normalny — nie usterka. Sam próg tego nie naprawi |
-| Onboarding przy pierwszym uruchomieniu poza demo | Tryb demo **jest** onboardingiem i jest lepszy: pokazuje działającą aplikację zamiast opowiadać o niej |
-| Pinning certyfikatu dla `api.fastmail.com` | Scaffold jest w `network_security_config.xml` z uzasadnieniem. Pinning wymaga rotacji hashy poza pasmem; nieodświeżony pin to aplikacja, która przestaje działać na całym świecie w jeden dzień. Bez procesu rotacji to ryzyko, nie zabezpieczenie |
-| Zbieranie metryk użycia, żeby priorytetyzować powyższe | Sprzeczne z tym, czym jest ten produkt i co obiecuje polityka prywatności. Metryki poniżej są celowo takie, które da się odczytać z Play Console i Crashlyticsa bez śledzenia użytkownika |
+| Etykieta tekstowa stanu przy każdym wierszu listy | Rozwiązuje ten sam problem co A1, ale kosztem czwartej linii tekstu na najgęstszym ekranie. Kształt jest tańszy wizualnie |
+| Analityka produktowa, żeby zasilić C2/C3 | Wprost sprzeczne z tożsamością produktu i z polityką prywatności, która obiecuje zero telemetrii. Nie warto tego handlować za dane o użyciu filtrów |
+| Cache'owanie treści maili / podgląd wiadomości w aplikacji | Poza zakresem produktu (menedżer masek, nie klient poczty) i wprowadziłby na urządzenie kategorię danych, której dziś tam nie ma |
+| Certificate pinning dla `api.fastmail.com` | Rozważone i **słusznie** odrzucone w kodzie: pinning wymaga hashy SPKI zdobywanych poza pasmem i rotowanych na harmonogram; przeoczona rotacja to aplikacja, która przestaje działać dla wszystkich naraz. Ograniczenie zaufania do systemowego magazynu CA już blokuje MITM przez CA zainstalowane przez użytkownika, czyli realny model zagrożenia |
+| Automatyczny odczyt schowka przy starcie (bez potwierdzenia) | Toast systemowy na Androidzie 12+ przy każdym odczycie, i cichy odczyt schowka w aplikacji trzymającej token to dokładnie ten rodzaj zachowania, którego ten produkt unika. Wersja z jawnym potwierdzeniem jest w B1 |
+| Migracja na najnowsze Compose BOM / Hilt / AGP w ramach audytu | 27 ostrzeżeń `GradleDependency` mówi o nieaktualności, nie o podatności. Masowy bump bez powodu to ryzyko bez korzyści — i akurat teraz ma sens dopiero po tym, jak CI faktycznie buduje PR-y Dependabota (nowy `build.yml`), bo wtedy każdy bump przychodzi z dowodem |
+| Rozbicie `MaskedEmailListScreen.kt` na mniejsze pliki | ~880 linii to dużo, ale plik jest spójny tematycznie i dobrze skomentowany. Podział bez konkretnego problemu do rozwiązania to ruch kosmetyczny o realnym koszcie w konfliktach merge'a |
 
 ---
 
-## Metryki
+## E. Roadmapa
 
-Wszystkie dostępne bez dokładania choćby jednego zdarzenia telemetrycznego — z Play Console i Crashlyticsa.
+**Najbliższy patch (1.10.2) — same rzeczy tanie i domykające ten audyt**
+A3 (`heading()`), A4 (`ImeAction.Next`), A5 (`selectableGroup()`), A6 (sklejanie stringów), B3 (potwierdzenie eksportu). Wszystkie mają `Priority ≥ 8`, żadna nie dotyka architektury.
 
-| Metryka | Skąd | Co mierzy |
+**Kolejny release (1.11) — dostępność domknięta**
+A1 (kształty stanu — pozycja numer jeden), A2 (`liveRegion` na stanach), A7 (ponów bez gestu), B4 (licznik wyników). Przed tym: sprawdź C1 na urządzeniu, bo jeśli podejrzenie się potwierdzi, jest to pilniejsze niż wszystko powyżej.
+
+**Większy release (1.12+)**
+B1 (droga do pierwszego tokenu) — jedyna pozycja wymagająca realnej pracy projektowej i jedyna, która może ruszyć retencję. B2 (wyjście z odrzuconego tokenu) naturalnie idzie razem z nią.
+
+**Do walidacji, zanim cokolwiek zbudujesz**
+C1 (TalkBack na polach — to jest test, nie eksperyment, i ma najwyższy priorytet z tej trójki), C2 (ukończenia tutorialu), C3 (użycie filtrów).
+
+---
+
+## F. Proponowane metryki
+
+Dobrane tak, żeby **żadna nie wymagała zbierania treści użytkownika ani danych wrażliwych** — co jest twardym ograniczeniem tego produktu, nie preferencją.
+
+| Metryka | Skąd | Po co |
 |---|---|---|
-| Crash-free users | Crashlytics | Czy A3 (crash-loop DataStore) i A7 faktycznie coś zamknęły |
-| ANR rate | Play Console → Vitals | Bezpośredni efekt A5 (zejście szyfrowanego zapisu z wątku głównego) |
-| Ostrzeżenia w raporcie pre-launch | Play Console | Postęp A2 i B1 |
-| Odinstalowania w 7 dni od instalacji | Play Console | Proxy pierwszego wrażenia (C1) |
-| Oceny i treść recenzji | Play Console | Jedyne źródło mówiące, czy „Archiwizuj" kiedykolwiek kogoś zaskoczyło utratą maski |
-| Zgłoszenia na `pawel@orzech.me` | Skrzynka | B2 — pętla „Authentication failed" trafiłaby tutaj |
+| Crash-free users, crash-free sessions | Firebase Crashlytics (już masz) | Jedyne, co dziś realnie mierzysz. Po tym audycie warto obserwować, czy B-3 miało ofiary w polu |
+| ANR rate, wskaźnik czasu startu | Play Console → Android vitals | Zero kosztu prywatnościowego, dane agregowane przez Google |
+| Odinstalowania / instalacje, retencja D1-D7-D30 | Play Console | Proxy dla progu z B1 — jeśli B1 zadziała, D1 rusza pierwsze |
+| Oceny i treść recenzji | Play Console | Najtańsze źródło jakościowe, jakie masz przy zerowej analityce |
+| Liczba kroków do pierwszej maski | Test użyteczności, nie telemetria | Jedyny uczciwy sposób zmierzenia B1 bez łamania obietnicy o braku śledzenia |
 
-**Czego celowo nie proponuję:** zdarzeń ukończenia logowania, czasu do pierwszej maski, lejka onboardingu. Wszystkie byłyby użyteczne i wszystkie wymagają analityki, której ta aplikacja nie ma i której polityka prywatności jawnie się wypiera. Nie warto tego zmieniać dla priorytetyzacji backlogu UX.
-
----
-
-## Roadmapa
-
-**Najbliższy patch (1.10.1) — to, co już jest na `feature/audit-2026-07-27`**
-Poprawki A1–A13 z `AUDIT_REPORT.md`. Blokada wydania: punkty 1–5 listy QA w `CHANGELOG_AGENT.md`, przede wszystkim potwierdzenie archiwizacji na prawdziwym koncie.
-
-**Kolejne wydanie (1.11.0) — dostępność**
-A1–A5, A7, A8 (quick wins) + B5, B6 (ogłaszanie stanów i błędów). Razem to jeden spójny temat i jedna sesja. Wymaga urządzenia z TalkBackiem — bez niego nie ma sensu tego zaczynać.
-
-**Większe wydanie (1.12.0)**
-B1 (paleta — decyzja Pawła), B2 (odzyskiwanie po 401), B3 (tutorial modalny), B4 (pobieranie pojedynczej maski). B4 najlepiej razem z jawnym polem wersji w snapshocie cache'u (B17 z raportu).
-
-**Do walidacji, nie do budowy**
-C1–C4. Każde kosztuje jedną rozmowę albo jeden zrzut ekranu i może zaoszczędzić funkcję, której nikt nie potrzebuje.
-
-**Backlog higieny, kiedykolwiek**
-B10 (log w release), B11 (drugi zamek na receiverze Undo), B14 (README), B15 (martwe stringi), B16 (martwy formatter), B17 (wersja formatu cache'u). Plus selektywny bump zależności — osobny przebieg z własnym zakresem testów.
+Świadomie **nie** proponuję: śledzenia zdarzeń w aplikacji, lejków konwersji, map ciepła ani czegokolwiek, co wymagałoby SDK analitycznego. `CrashReportingPrivacyTest` psuje build, gdy zależność analityczna pojawi się w grafie — to dobra bariera i nie warto jej ruszać dla metryk, które można przybliżyć z Play Console.

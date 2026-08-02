@@ -3,9 +3,34 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
     kotlin("kapt")
+}
+
+// `google-services.json` is deliberately NOT in the repository (see .gitignore),
+// so applying the Firebase plugins unconditionally made a clean clone unbuildable:
+// `processDebugGoogleServices` fails with "File google-services.json is missing"
+// before a line of Kotlin is compiled — including for the exact `./gradlew
+// assembleDebug` the README, CLAUDE.md and AGENTS.md tell contributors to run.
+//
+// Applying them only when the config is present keeps the maintainer's builds
+// (and every release) fully instrumented, while a contributor without the file
+// gets a working app with crash reporting inert. That degradation is safe by
+// construction, not by luck: `FirebaseCrashlyticsReporter` resolves the SDK
+// handle lazily per call, and `CrashReportingStartup` already catches the
+// `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when
+// no default `FirebaseApp` exists — the path OEM ROMs without content providers
+// already take. `SettingsViewModel.onCrashReportingToggled` wraps its call in
+// `runCatching` for the same reason.
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+} else {
+    logger.lifecycle(
+        "FastMask: app/google-services.json not found — building without Firebase " +
+            "Crashlytics. The app runs normally; crash reporting is inert. See README " +
+            "§ Build from Source."
+    )
 }
 
 android {
@@ -65,8 +90,14 @@ android {
             // reach Crashlytics' upload endpoint on every assemble. Runtime
             // collection is disabled separately and unconditionally by
             // CrashReportingPolicy, whatever the user preference says.
-            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
-                mappingFileUploadEnabled = false
+            //
+            // Guarded on the same flag as the plugin itself: `configure<T>` looks
+            // the extension up by type and throws UnknownDomainObjectException
+            // when the Crashlytics plugin was not applied.
+            if (hasFirebaseConfig) {
+                configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                    mappingFileUploadEnabled = false
+                }
             }
         }
         release {

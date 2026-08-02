@@ -29,6 +29,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.role
+import com.fastmask.R
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -225,6 +228,15 @@ fun PillButton(
      * which reads out as "ellipsis, button": the name of the action disappears
      * at the exact moment the user needs to know what is happening. The label
      * now stays put and the progress is carried here.
+     *
+     * Optional, and it falls back to the generic "working" string rather than
+     * going silent. The announcement used to require BOTH this and [loading],
+     * and no call site in the app ever set both: the four screens that passed a
+     * description signalled progress with `enabled = !isLoading` and a spinner
+     * of their own, so `loading` stayed false, while the two that set `loading`
+     * passed no description. The result was a translated string, in 20 locales,
+     * for a branch that could not execute. A default keeps the next call site
+     * from re-creating that gap by omission.
      */
     loadingDescription: String? = null,
     leading: (@Composable () -> Unit)? = null,
@@ -255,12 +267,22 @@ fun PillButton(
         }
         .padding(horizontal = 20.dp, vertical = 14.dp)
 
+    // Resolved outside the semantics lambda: it is not a @Composable scope.
+    val working = loadingDescription ?: stringResource(R.string.state_working)
+
     Row(
         modifier = modifier
             .then(base)
             .semantics {
-                if (loading && loadingDescription != null) {
-                    stateDescription = loadingDescription
+                // Every PillButton in the app routes through here — sign in,
+                // create, save, archive, retry, both dialog buttons, buy,
+                // restore, unlock. Without a role a screen reader announces the
+                // label and leaves the user to guess it is actionable. The
+                // earlier pass set Role.Button on five leaf composables and
+                // missed the component they all share.
+                role = Role.Button
+                if (loading) {
+                    stateDescription = working
                     liveRegion = LiveRegionMode.Polite
                 }
             },
@@ -304,7 +326,10 @@ fun DesignCard(
             .border(BorderStroke(1.dp, border), shape)
             .then(
                 if (onClick != null) {
-                    Modifier.clickable {
+                    // Role on the clickable itself, so every mask row on the
+                    // list screen announces as a button rather than as a bare
+                    // run of text that happens to respond to a tap.
+                    Modifier.clickable(role = Role.Button) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onClick()
                     }

@@ -8,10 +8,12 @@ import com.fastmask.domain.usecase.QuickMaskResult
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,13 @@ class QuickMaskRunner @Inject constructor(
     @ApplicationContext private val context: Context,
     private val quickMaskCreator: QuickMaskCreator,
     private val notifier: QuickMaskNotifier,
+    /**
+     * Injected so the create and undo guards can be tested deterministically.
+     * With `Dispatchers.IO` hardcoded there is nothing a test can advance, so
+     * assertions raced the real thread pool and the double-tap behaviour this
+     * class exists to enforce could not be pinned down at all.
+     */
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
 
     /**
@@ -39,14 +48,13 @@ class QuickMaskRunner @Inject constructor(
      */
     private val crashGuard = CoroutineExceptionHandler { _, throwable ->
         Log.w(TAG, "quick mask work failed", throwable)
-        createInFlight.set(false)
         notifyFailure(throwable)
     }
 
     // The shade can tear down TileService as soon as it collapses; this scope
     // belongs to the singleton runner so create/undo work survives that.
     private val scope: CoroutineScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.IO + crashGuard)
+        CoroutineScope(SupervisorJob() + dispatcher + crashGuard)
 
     /**
      * True from the moment a create is accepted until it settles.
@@ -65,6 +73,26 @@ class QuickMaskRunner @Inject constructor(
      * arrive on the main thread, but the release happens on Dispatchers.IO.
      */
     private val createInFlight = AtomicBoolean(false)
+
+    /**
+     * Ids whose undo has already been accepted.
+     *
+     * `launchCreate` got a double-tap guard in a previous audit; undo did not,
+     * and it is reachable the same way. `notifier.cancel` runs inside the
+     * coroutine on Dispatchers.IO, so the notification's Undo button is still on
+     * screen for tens of milliseconds after the first tap. Two broadcasts meant
+     * two `destroy` calls for one id: the first succeeded, the second came back
+     * `notFound` — which `JmapApi` reports as a failure — and the resulting
+     * "Undo failed" overwrote the truthful "Undone" in the same notification
+     * slot. The user was told the mask was still on their account when it was
+     * already gone, which is the more dangerous of the two possible lies.
+     *
+     * A set rather than a single flag: two different masks can legitimately be
+     * undone in sequence, and each id needs its own answer.
+     */
+    private val undoneIds = java.util.Collections.newSetFromMap(
+        java.util.concurrent.ConcurrentHashMap<String, Boolean>()
+    )
 
     fun launchCreate(openApp: (() -> Unit)? = null) {
         if (!createInFlight.compareAndSet(false, true)) {
@@ -107,6 +135,14 @@ class QuickMaskRunner @Inject constructor(
      *   live component, so the delete is not racing the low-memory killer.
      */
     fun launchUndo(id: String, onFinished: () -> Unit = {}) {
+        if (!undoneIds.add(id)) {
+            // Already undone (or being undone) — dismiss the notification the
+            // second tap came from and stop. Re-running destroy would fail with
+            // notFound and report that failure over the truthful result.
+            notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
+            onFinished()
+            return
+        }
         scope.launch {
             try {
                 // Dismiss FIRST. The tap is the user's decision; leaving the
@@ -115,6 +151,10 @@ class QuickMaskRunner @Inject constructor(
                 // The "mask created" slot is the only one carrying an Undo.
                 notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
                 val success = runCatching { quickMaskCreator.undo(id) }.getOrDefault(false)
+                // Only a mask that is actually gone stays latched. A failed undo
+                // releases the id, so this guard can never be the reason a later
+                // attempt at the same mask is refused.
+                if (!success) undoneIds.remove(id)
                 notifier.showUndoResult(success = success)
             } finally {
                 onFinished()

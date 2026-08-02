@@ -2,6 +2,14 @@
 
 ## Build & Test
 
+Requires JDK 17–21 — Gradle 8.9 refuses anything newer, so a machine whose
+default `java` is 22+ must point `JAVA_HOME` at a supported JDK (Android Studio's
+bundled JBR is one). Machine-specific paths belong in `~/.gradle/gradle.properties`,
+never in the repo.
+
+`app/google-services.json` is not in the repository and is not required: without
+it the Firebase plugins are skipped and the app builds with crash reporting inert.
+
 ```bash
 # Build debug APK
 ./gradlew assembleDebug
@@ -23,4 +31,10 @@ APK outputs: `app/build/outputs/apk/`
 
 ## Development
 
-TODO: Document how to run the app from Android Studio/emulator once confirmed.
+Open the project in Android Studio and run the `app` configuration on an emulator
+or a device (API 26+). Android Studio supplies its own JDK, so no `JAVA_HOME`
+setup is needed there.
+
+From the command line, `./gradlew connectedDebugAndroidTest` runs the instrumented
+suite against a booted emulator; `./gradlew testDebugUnitTest lintDebug` is the
+fast pre-commit gate.
