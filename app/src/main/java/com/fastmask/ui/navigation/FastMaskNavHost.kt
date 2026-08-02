@@ -140,6 +140,14 @@ fun FastMaskNavHost(
                             launchSingleTop = true
                         }
                     },
+                    onReauthenticate = {
+                        // Keep the list entry underneath Login so cancelling the
+                        // flow returns to the user's filters and scroll position.
+                        // Login success still replaces the stack with a fresh list.
+                        navController.navigate(NavRoutes.LOGIN) {
+                            launchSingleTop = true
+                        }
+                    },
                     justArchivedId = justArchivedId,
                     justArchivedState = justArchivedState
                         ?.let { runCatching { EmailState.valueOf(it) }.getOrNull() },

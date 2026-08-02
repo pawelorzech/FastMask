@@ -115,6 +115,7 @@ fun MaskedEmailListScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onSignInFromBanner: () -> Unit,
+    onReauthenticate: () -> Unit,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
     animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     justArchivedId: String? = null,
@@ -281,7 +282,21 @@ fun MaskedEmailListScreen(
                 // still usable. Keep the data on screen, but do not turn the
                 // failed request into a silent no-op.
                 uiState.inlineErrorRes?.let { errorRes ->
-                    InlineErrorBanner(text = stringResource(errorRes))
+                    val action = listErrorActionFor(errorRes)
+                    InlineErrorBanner(
+                        text = stringResource(errorRes),
+                        actionLabel = stringResource(
+                            when (action) {
+                                ListErrorAction.RETRY -> R.string.error_retry
+                                ListErrorAction.REAUTHENTICATE ->
+                                    R.string.settings_signin_with_fastmail
+                            },
+                        ),
+                        onAction = when (action) {
+                            ListErrorAction.RETRY -> viewModel::loadMaskedEmails
+                            ListErrorAction.REAUTHENTICATE -> onReauthenticate
+                        },
+                    )
                 }
 
                 // Header
@@ -390,9 +405,21 @@ fun MaskedEmailListScreen(
                         )
                     }
                     uiState.errorRes != null && uiState.emails.isEmpty() -> {
+                        val errorRes = uiState.errorRes ?: R.string.error_load_emails
+                        val action = listErrorActionFor(errorRes)
                         ErrorBlock(
-                            message = stringResource(uiState.errorRes ?: R.string.error_load_emails),
-                            onRetry = viewModel::loadMaskedEmails,
+                            message = stringResource(errorRes),
+                            actionLabel = stringResource(
+                                when (action) {
+                                    ListErrorAction.RETRY -> R.string.error_retry
+                                    ListErrorAction.REAUTHENTICATE ->
+                                        R.string.settings_signin_with_fastmail
+                                },
+                            ),
+                            onAction = when (action) {
+                                ListErrorAction.RETRY -> viewModel::loadMaskedEmails
+                                ListErrorAction.REAUTHENTICATE -> onReauthenticate
+                            },
                         )
                     }
                     uiState.filteredEmails.isEmpty() -> {
@@ -803,7 +830,11 @@ private fun LoadingShimmer(loadingDescription: String) {
 }
 
 @Composable
-private fun ErrorBlock(message: String, onRetry: () -> Unit) {
+internal fun ErrorBlock(
+    message: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+) {
     val extras = FastMaskExtras.current
     Column(
         modifier = Modifier
@@ -827,8 +858,8 @@ private fun ErrorBlock(message: String, onRetry: () -> Unit) {
         )
         Spacer(Modifier.height(20.dp))
         PillButton(
-            text = stringResource(R.string.error_retry),
-            onClick = onRetry,
+            text = actionLabel,
+            onClick = onAction,
             variant = PillButtonVariant.Secondary,
         )
     }
@@ -905,29 +936,43 @@ private fun OfflineBanner(text: String) {
 }
 
 @Composable
-private fun InlineErrorBanner(text: String) {
-    Row(
+internal fun InlineErrorBanner(
+    text: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.errorContainer)
             .padding(horizontal = 24.dp, vertical = 8.dp)
-            .semantics(mergeDescendants = true) {
+            // Keep the recovery button as a separate semantics node. Merging
+            // descendants here used to make the banner readable as one phrase,
+            // but would hide the newly actionable control from TalkBack.
+            .semantics {
                 liveRegion = LiveRegionMode.Polite
-                contentDescription = text
             },
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = Icons.Filled.ErrorOutline,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.size(14.dp),
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = text,
-            style = MonoSmallStyle,
-            color = MaterialTheme.colorScheme.onErrorContainer,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Filled.ErrorOutline,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(14.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = text,
+                style = MonoSmallStyle,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        PillButton(
+            text = actionLabel,
+            onClick = onAction,
+            variant = PillButtonVariant.Secondary,
+            fullWidth = true,
         )
     }
 }

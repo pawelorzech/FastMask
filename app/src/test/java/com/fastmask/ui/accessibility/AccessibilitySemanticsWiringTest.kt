@@ -69,7 +69,7 @@ class AccessibilitySemanticsWiringTest {
         )
         assertInFunction(
             "list/MaskedEmailListScreen.kt",
-            "private fun ErrorBlock(",
+            "internal fun ErrorBlock(",
             ".politeLiveRegion()",
         )
     }
