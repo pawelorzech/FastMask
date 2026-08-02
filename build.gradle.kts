@@ -1,8 +1,9 @@
 plugins {
-    id("com.android.application") version "8.5.2" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
-    id("com.google.dagger.hilt.android") version "2.59.2" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22" apply false
+    id("com.android.application") version "8.10.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" apply false
+    id("com.google.dagger.hilt.android") version "2.58" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20" apply false
     id("com.google.gms.google-services") version "4.4.2" apply false
     id("com.google.firebase.crashlytics") version "3.0.2" apply false
 }
