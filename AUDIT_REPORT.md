@@ -71,7 +71,7 @@ Wykonane polecenia i ich dosłowne wyniki. JDK: bundlowany JBR Android Studio 17
 
 > **Zielony build nie jest dowodem, że aplikacja działa poprawnie.** Punkt 5 to pokazuje wprost: punkty 1–4 były zielone u mnie, a repozytorium było niebudowalne dla kogokolwiek innego.
 
-**Propozycja naprawy.** Zachować kolory, dodać drugi kanał do `StateDot` — ten sam rozmiar, ta sama pozycja, bez zmiany układu:
+---
 
 ## 4. Znalezione problemy
 
