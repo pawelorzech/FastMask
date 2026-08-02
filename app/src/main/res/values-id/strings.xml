@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">Kirim laporan kerusakan ke Google Firebase agar bug bisa diperbaiki. Tidak pernah memuat topeng, e-mail, atau data login Anda. Bisa dimatikan kapan saja.</string>
     <string name="settings_export_title">Ekspor topeng</string>
     <string name="settings_export_description">Bagikan semua topeng sebagai file CSV</string>
+    <string name="settings_export_confirm_message">File teks biasa ini berisi setiap alamat dan deskripsi topeng. Aplikasi yang Anda pilih dapat membaca dan menyimpan salinannya sendiri. FastMask menghapus ekspor cache yang berusia lebih dari satu jam saat aplikasi dimulai atau mengekspor lagi.</string>
     <string name="settings_export_failed">Ekspor gagal. Coba lagi.</string>
     <string name="app_lock_locked_subtitle">Terkunci. Buka untuk melanjutkan.</string>
     <string name="app_lock_unlock">Buka</string>

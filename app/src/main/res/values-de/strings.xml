@@ -245,6 +245,7 @@
     <string name="settings_crash_reporting_description">Absturzberichte an Google Firebase senden, damit Fehler behoben werden. Masken, E-Mail-Adresse und Zugangsdaten sind nie enthalten. Jederzeit abschaltbar.</string>
     <string name="settings_export_title">Masken exportieren</string>
     <string name="settings_export_description">Alle Masken als CSV-Datei freigeben</string>
+    <string name="settings_export_confirm_message">Diese unverschlüsselte Textdatei enthält alle Maskenadressen und Beschreibungen. Die ausgewählte App kann sie lesen und eine eigene Kopie behalten. FastMask löscht zwischengespeicherte Exporte, die älter als eine Stunde sind, beim nächsten App-Start oder Export.</string>
     <string name="settings_export_failed">Export fehlgeschlagen. Versuche es erneut.</string>
     <string name="app_lock_locked_subtitle">Gesperrt. Entsperre zum Fortfahren.</string>
     <string name="app_lock_unlock">Entsperren</string>

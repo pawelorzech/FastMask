@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">버그 수정을 위해 충돌 보고서를 Google Firebase로 보냅니다. 마스크, 이메일, 로그인 정보는 절대 포함되지 않습니다. 언제든지 끌 수 있습니다.</string>
     <string name="settings_export_title">마스크 내보내기</string>
     <string name="settings_export_description">모든 마스크를 CSV 파일로 공유</string>
+    <string name="settings_export_confirm_message">이 암호화되지 않은 텍스트 파일에는 모든 마스크 주소와 설명이 포함됩니다. 선택한 앱에서 내용을 읽고 자체 사본을 보관할 수 있습니다. FastMask는 다음 앱 실행 또는 내보내기 때 한 시간보다 오래된 캐시 내보내기를 삭제합니다.</string>
     <string name="settings_export_failed">내보내기 실패. 다시 시도하세요.</string>
     <string name="app_lock_locked_subtitle">잠금됨. 계속하려면 잠금 해제하세요.</string>
     <string name="app_lock_unlock">잠금 해제</string>

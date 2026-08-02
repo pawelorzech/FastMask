@@ -257,6 +257,7 @@
     <string name="settings_crash_reporting_description">Надсилати звіти про збої до Google Firebase, щоб помилки виправляли швидше. Вони ніколи не містять ваших масок, пошти чи даних для входу. Можна вимкнути будь-коли.</string>
     <string name="settings_export_title">Експортувати маски</string>
     <string name="settings_export_description">Поділіться всіма масками як файлом CSV</string>
+    <string name="settings_export_confirm_message">Цей незашифрований текстовий файл містить усі адреси масок та їхні описи. Вибраний застосунок зможе прочитати й зберегти власну копію. FastMask видаляє кешовані експорти старші за годину під час наступного запуску або експорту.</string>
     <string name="settings_export_failed">Експорт не вдався. Спробуйте ще раз.</string>
     <string name="app_lock_locked_subtitle">Заблоковано. Розблокуйте для продовження.</string>
     <string name="app_lock_unlock">Розблокувати</string>

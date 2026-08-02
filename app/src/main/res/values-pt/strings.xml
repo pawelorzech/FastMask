@@ -251,6 +251,7 @@
     <string name="settings_crash_reporting_description">Envie relatórios de falhas ao Google Firebase para que os bugs sejam corrigidos. Nunca incluem seus endereços, e-mail ou dados de login. Pode ser desativado quando quiser.</string>
     <string name="settings_export_title">Exportar endereços</string>
     <string name="settings_export_description">Compartilhe todos os endereços como arquivo CSV</string>
+    <string name="settings_export_confirm_message">Este arquivo de texto não criptografado contém todos os endereços mascarados e suas descrições. O aplicativo escolhido poderá lê-lo e manter sua própria cópia. O FastMask remove exportações em cache com mais de uma hora na próxima inicialização ou exportação.</string>
     <string name="settings_export_failed">Exportação falhou. Tente novamente.</string>
     <string name="app_lock_locked_subtitle">Bloqueado. Desbloqueie para continuar.</string>
     <string name="app_lock_unlock">Desbloquear</string>

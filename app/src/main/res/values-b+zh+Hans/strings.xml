@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">向 Google Firebase 发送崩溃报告，以便修复问题。绝不包含你的掩码、邮箱或登录信息。可随时关闭。</string>
     <string name="settings_export_title">导出掩码</string>
     <string name="settings_export_description">以 CSV 文件共享所有掩码</string>
+    <string name="settings_export_confirm_message">此纯文本文件包含所有掩码地址和描述。你选择的应用可以读取并保留自己的副本。FastMask 会在应用下次启动或导出时删除缓存中超过一小时的导出文件。</string>
     <string name="settings_export_failed">导出失败。重试。</string>
     <string name="app_lock_locked_subtitle">已锁定。解锁继续。</string>
     <string name="app_lock_unlock">解锁</string>

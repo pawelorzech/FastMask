@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">不具合の修正のため、クラッシュレポートを Google Firebase に送信します。マスクやメールアドレス、ログイン情報が含まれることはありません。いつでもオフにできます。</string>
     <string name="settings_export_title">マスクをエクスポート</string>
     <string name="settings_export_description">すべてのマスクをCSVファイルとして共有</string>
+    <string name="settings_export_confirm_message">この暗号化されていないテキストファイルには、すべてのマスクアドレスと説明が含まれます。選択したアプリは内容を読み取り、独自のコピーを保持できます。FastMask は次回の起動またはエクスポート時に、1時間を超えたキャッシュ済みエクスポートを削除します。</string>
     <string name="settings_export_failed">エクスポートに失敗しました。もう一度試してください。</string>
     <string name="app_lock_locked_subtitle">ロック中。続行するにはロック解除してください。</string>
     <string name="app_lock_unlock">ロック解除</string>

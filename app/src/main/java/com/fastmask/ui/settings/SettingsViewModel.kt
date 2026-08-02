@@ -212,6 +212,26 @@ class SettingsViewModel @Inject constructor(
             viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "export")) }
             return
         }
+        if (_uiState.value.exportInFlight) return
+        _uiState.update { it.copy(showExportConfirmation = true) }
+    }
+
+    fun onExportConfirmationDismissed() {
+        _uiState.update { it.copy(showExportConfirmation = false) }
+    }
+
+    fun onExportConfirmed() {
+        if (!_uiState.value.showExportConfirmation) return
+        _uiState.update { it.copy(showExportConfirmation = false) }
+
+        // Entitlement can change while the confirmation dialog is open. Do not
+        // let a stale Pro snapshot bypass the same gate as the original tap.
+        if (!proStatus.value.isPro) {
+            analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "export")
+            viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "export")) }
+            return
+        }
+
         // In UI state, not a private var: the export does a network fetch of
         // every mask, and the row must show progress instead of looking dead.
         if (_uiState.value.exportInFlight) return
@@ -258,6 +278,7 @@ class SettingsViewModel @Inject constructor(
 data class SettingsUiState(
     val selectedLanguage: Language? = null,
     val showAccentDialog: Boolean = false,
+    val showExportConfirmation: Boolean = false,
     val exportInFlight: Boolean = false,
 )
 

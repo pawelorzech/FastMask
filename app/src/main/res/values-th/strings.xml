@@ -239,6 +239,7 @@
     <string name="settings_crash_reporting_description">ส่งรายงานข้อขัดข้องไปยัง Google Firebase เพื่อให้แก้ไขข้อบกพร่องได้ ไม่มีที่อยู่ อีเมล หรือข้อมูลการเข้าสู่ระบบของคุณรวมอยู่ด้วย ปิดได้ทุกเมื่อ</string>
     <string name="settings_export_title">ส่งออกที่อยู่</string>
     <string name="settings_export_description">แชร์ที่อยู่ทั้งหมดเป็นไฟล์ CSV</string>
+    <string name="settings_export_confirm_message">ไฟล์ข้อความที่ไม่ได้เข้ารหัสนี้มีที่อยู่และคำอธิบายของมาสก์ทั้งหมด แอปที่คุณเลือกสามารถอ่านและเก็บสำเนาของตนเองได้ FastMask จะลบไฟล์ส่งออกในแคชที่เก่ากว่าหนึ่งชั่วโมงเมื่อเปิดแอปหรือส่งออกครั้งถัดไป</string>
     <string name="settings_export_failed">การส่งออกล้มเหลว ลองอีกครั้ง</string>
     <string name="app_lock_locked_subtitle">ล็อกแล้ว ปลดล็อกเพื่อดำเนินการต่อ</string>
     <string name="app_lock_unlock">ปลดล็อก</string>

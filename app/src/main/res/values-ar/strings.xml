@@ -269,6 +269,7 @@
     <string name="settings_crash_reporting_description">إرسال تقارير الأعطال إلى Google Firebase لإصلاح الأخطاء. لا تحتوي أبداً على أقنعتك أو بريدك الإلكتروني أو بيانات تسجيل دخولك. يمكن إيقافها في أي وقت.</string>
     <string name="settings_export_title">تصدير الأقنعة</string>
     <string name="settings_export_description">شارك جميع الأقنعة في ملف CSV</string>
+    <string name="settings_export_confirm_message">يحتوي هذا الملف النصي العادي على جميع عناوين الأقنعة وأوصافها. يمكن للتطبيق الذي تختاره قراءته والاحتفاظ بنسخته الخاصة. يحذف FastMask ملفات التصدير المخزنة مؤقتًا الأقدم من ساعة عند تشغيل التطبيق أو التصدير في المرة التالية.</string>
     <string name="settings_export_failed">فشل التصدير. حاول مرة أخرى.</string>
     <string name="app_lock_locked_subtitle">مقفول. فتح للمتابعة.</string>
     <string name="app_lock_unlock">فتح</string>
