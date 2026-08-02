@@ -1,6 +1,7 @@
 package com.fastmask.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
@@ -79,19 +84,33 @@ fun MonoEyebrow(
 }
 
 // ============================================================
-// State dot — small filled circle with halo ring (list cards)
+// State dot — colour plus shape, so every state survives greyscale/CVD viewing
 // ============================================================
+internal enum class StateDotStyle {
+    FILLED_CIRCLE,
+    RING,
+    FILLED_SQUARE,
+    DASHED_RING,
+}
+
+internal fun stateDotStyleFor(state: EmailState): StateDotStyle = when (state) {
+    EmailState.ENABLED -> StateDotStyle.FILLED_CIRCLE
+    EmailState.DISABLED -> StateDotStyle.RING
+    EmailState.DELETED -> StateDotStyle.FILLED_SQUARE
+    EmailState.PENDING -> StateDotStyle.DASHED_RING
+}
+
 @Composable
 fun StateDot(
     state: EmailState,
     modifier: Modifier = Modifier,
     size: Dp = 10.dp,
-    // When set, exposes the mask's state to TalkBack — the dot otherwise conveys
-    // state by color alone, invisible to screen readers and hard to tell apart
-    // for colorblind users. Pass null where a text label already sits beside it.
+    // When set, exposes the mask's state to TalkBack. Shape is the visual
+    // non-colour channel; pass null where a text label already sits beside it.
     contentDescription: String? = null,
 ) {
     val pair = pairFor(state)
+    val dotSize = size
     val semanticsModifier = if (contentDescription != null) {
         Modifier.semantics { this.contentDescription = contentDescription }
     } else {
@@ -100,17 +119,41 @@ fun StateDot(
     Box(
         modifier = modifier
             .then(semanticsModifier)
-            .size(size + 6.dp)
+            .size(dotSize + 6.dp)
             .clip(CircleShape)
             .background(pair.container),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .background(pair.content),
-        )
+        Canvas(modifier = Modifier.size(dotSize)) {
+            val strokeWidth = 1.75.dp.toPx()
+            when (stateDotStyleFor(state)) {
+                StateDotStyle.FILLED_CIRCLE -> drawCircle(color = pair.content)
+                StateDotStyle.RING -> drawCircle(
+                    color = pair.content,
+                    style = Stroke(width = strokeWidth),
+                )
+                StateDotStyle.FILLED_SQUARE -> {
+                    val inset = dotSize.toPx() * 0.12f
+                    drawRect(
+                        color = pair.content,
+                        topLeft = Offset(inset, inset),
+                        size = Size(
+                            width = dotSize.toPx() - inset * 2,
+                            height = dotSize.toPx() - inset * 2,
+                        ),
+                    )
+                }
+                StateDotStyle.DASHED_RING -> drawCircle(
+                    color = pair.content,
+                    style = Stroke(
+                        width = strokeWidth,
+                        pathEffect = PathEffect.dashPathEffect(
+                            intervals = floatArrayOf(2.5.dp.toPx(), 1.5.dp.toPx()),
+                        ),
+                    ),
+                )
+            }
+        }
     }
 }
 
