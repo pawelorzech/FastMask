@@ -225,7 +225,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0")
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
 
     // Firebase Crashlytics — crash diagnostics only. Google Analytics is
     // deliberately NOT on the graph: this app reports that it crashed, never
