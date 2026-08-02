@@ -1,6 +1,7 @@
 package com.fastmask.data.local
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -27,6 +28,10 @@ class ExportCache @Inject constructor(
 ) {
 
     private val dir: File get() = File(context.cacheDir, EXPORTS_DIR)
+    private val lock = Any()
+
+    @VisibleForTesting
+    internal var fileWriter: (File, String) -> Unit = { file, text -> file.writeText(text) }
 
     /**
      * Bumped by every [clear], mirroring `MaskedEmailCache`. An export is built
@@ -57,13 +62,13 @@ class ExportCache @Inject constructor(
         csv: String,
         now: Long = System.currentTimeMillis(),
         generation: Long = this.generation.get(),
-    ): File {
+    ): File = synchronized(lock) {
         check(generation == this.generation.get()) {
             "Export abandoned: the session ended before the file was written"
         }
         val dir = dir.apply { mkdirs() }
         pruneExpired(now)
-        return File(dir, "fastmask-masks-$now.csv").apply { writeText(csv) }
+        File(dir, "fastmask-masks-$now.csv").also { fileWriter(it, csv) }
     }
 
     /**
@@ -77,13 +82,13 @@ class ExportCache @Inject constructor(
      * the offline snapshot — is Keystore-encrypted; this one is not, so its
      * lifetime is the only thing protecting it.
      */
-    fun pruneExpired(now: Long = System.currentTimeMillis()) {
+    fun pruneExpired(now: Long = System.currentTimeMillis()) = synchronized(lock) {
         val cutoff = now - MAX_AGE_MS
         dir.listFiles()?.forEach { if (it.lastModified() < cutoff) it.delete() }
     }
 
     /** Drops every export regardless of age. Called on sign-out. */
-    fun clear() {
+    fun clear() = synchronized(lock) {
         generation.incrementAndGet()
         dir.listFiles()?.forEach { it.delete() }
     }

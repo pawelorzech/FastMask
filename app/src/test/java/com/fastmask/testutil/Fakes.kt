@@ -58,6 +58,7 @@ class FakeMaskedEmailRepository(
      * in-flight request — e.g. a sign-out landing before the response does.
      */
     var beforeGet: (suspend () -> Unit)? = null
+    var beforeUpdate: (suspend () -> Unit)? = null
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
         getCalls++
@@ -77,6 +78,7 @@ class FakeMaskedEmailRepository(
         updateCalls++
         lastUpdateId = id
         lastUpdateParams = params
+        beforeUpdate?.invoke()
         failure?.let { return Result.failure(it) }
         return Result.success(Unit)
     }

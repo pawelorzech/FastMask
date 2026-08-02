@@ -9,6 +9,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -138,5 +140,44 @@ class ExportCacheTest {
         cache.write("email,state\n", generation = cache.currentGeneration())
 
         assertEquals(1, dir.listFiles()?.size)
+    }
+
+    @Test
+    fun `clear cannot finish between generation check and file write`() {
+        val (cache, dir) = cache()
+        val executor = Executors.newFixedThreadPool(2)
+        val writeReachedDiskBoundary = CountDownLatch(1)
+        val releaseWrite = CountDownLatch(1)
+        val clearStarted = CountDownLatch(1)
+        val clearFinished = CountDownLatch(1)
+        cache.fileWriter = { file, text ->
+            writeReachedDiskBoundary.countDown()
+            check(releaseWrite.await(2, TimeUnit.SECONDS))
+            file.writeText(text)
+        }
+
+        try {
+            val write = executor.submit<File> { cache.write("every,mask") }
+            assertTrue(writeReachedDiskBoundary.await(2, TimeUnit.SECONDS))
+
+            val clear = executor.submit {
+                clearStarted.countDown()
+                cache.clear()
+                clearFinished.countDown()
+            }
+            assertTrue(clearStarted.await(2, TimeUnit.SECONDS))
+            assertTrue(
+                "clear must wait until the in-flight file write leaves the critical section",
+                !clearFinished.await(100, TimeUnit.MILLISECONDS),
+            )
+
+            releaseWrite.countDown()
+            write.get(2, TimeUnit.SECONDS)
+            clear.get(2, TimeUnit.SECONDS)
+            assertEquals("clear must leave no plaintext export behind", 0, dir.listFiles()?.size ?: 0)
+        } finally {
+            releaseWrite.countDown()
+            executor.shutdownNow()
+        }
     }
 }

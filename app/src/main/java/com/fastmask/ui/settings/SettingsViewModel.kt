@@ -18,10 +18,11 @@ import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
+import com.fastmask.di.IoDispatcher
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -49,6 +50,7 @@ class SettingsViewModel @Inject constructor(
     // wrapper over cacheDir/exports but is not any more — the sign-out guard is
     // per-instance state, and a second instance would never see the clear.
     private val exportCache: ExportCache,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val analytics: MonetizationAnalytics,
     private val crashReporting: CrashReportingController,
 ) : ViewModel() {
@@ -226,7 +228,7 @@ class SettingsViewModel @Inject constructor(
                     // Writing moved off the composable and onto the injected
                     // singleton, so the guard and the sign-out cleanup act on
                     // the same object.
-                    withContext(Dispatchers.IO) {
+                    withContext(ioDispatcher) {
                         runCatching { exportCache.write(csv, generation = generation) }
                     }
                         .onSuccess { file -> _events.send(SettingsEvent.ShareCsv(file)) }

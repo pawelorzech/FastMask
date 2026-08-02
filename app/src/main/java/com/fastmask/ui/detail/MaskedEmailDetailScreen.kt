@@ -301,16 +301,18 @@ private fun DetailContent(
 
         // Toggle button (single)
         val isActive = email.state == EmailState.ENABLED || email.state == EmailState.PENDING
+        val isToggling = uiState.updateOperation == MaskedEmailDetailUpdate.TOGGLE_STATE
         PillButton(
             text = stringResource(if (isActive) R.string.email_detail_disable else R.string.email_detail_enable),
-            loading = uiState.isUpdating,
+            loading = isToggling,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onToggleState,
             variant = if (isActive) PillButtonVariant.Ghost else PillButtonVariant.Active,
+            enabled = !uiState.isUpdating,
             fullWidth = true,
             // PillButton substitutes its own spinner for `leading` while
             // loading, so this branch only has to supply the resting icon.
-            leading = if (uiState.isUpdating) {
+            leading = if (isToggling) {
                 null
             } else {
                 {
@@ -386,11 +388,11 @@ private fun DetailContent(
 
         PillButton(
             text = stringResource(R.string.email_detail_save),
-            loading = uiState.isUpdating,
+            loading = uiState.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onSaveChanges,
             variant = PillButtonVariant.Secondary,
-            enabled = hasChanges,
+            enabled = hasChanges && !uiState.isUpdating,
             fullWidth = true,
         )
     }

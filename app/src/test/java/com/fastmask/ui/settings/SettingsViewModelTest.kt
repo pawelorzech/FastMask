@@ -94,6 +94,7 @@ class SettingsViewModelTest {
             proRepository = proRepository,
             exportMasksUseCase = ExportMasksUseCase(maskRepository),
             exportCache = exportCache,
+            ioDispatcher = mainDispatcherRule.dispatcher,
             analytics = analytics,
             crashReporting = CrashReportingController(
                 reporter = crashReporter,
