@@ -107,31 +107,42 @@ fun LoginScreen(
             MonoEyebrow(text = stringResource(R.string.login_eyebrow, BuildConfig.VERSION_NAME))
             Spacer(Modifier.height(14.dp))
 
-            // Hero — A quiet place for [accent]masked mail[/accent].
-            val heroPrefix = stringResource(R.string.login_hero_prefix)
+            // Hero — "A quiet place for masked mail". login_hero pre-joins the
+            // prefix and accent fragments per locale, replacing a hardcoded
+            // single-space join that rendered with no inter-word space in
+            // ja/zh and split Arabic's لـ proclitic from the word it must
+            // stay attached to. login_hero_accent still carries just the
+            // "masked mail" fragment (verbatim, as it appears inside
+            // login_hero for that locale) purely so it can be located here
+            // and given its accent colour + italic — the join itself never
+            // happens in Kotlin.
+            val heroCombined = stringResource(R.string.login_hero)
             val heroAccent = stringResource(R.string.login_hero_accent)
             val heroSuffix = stringResource(R.string.login_hero_suffix)
+            val baseStyle = SpanStyle(
+                color = MaterialTheme.colorScheme.onBackground,
+                fontFamily = InstrumentSerif,
+            )
+            val accentStyle = SpanStyle(
+                color = extras.accent,
+                fontStyle = FontStyle.Italic,
+                fontFamily = InstrumentSerif,
+            )
+            val accentStart = heroCombined.indexOf(heroAccent)
             val annotated = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontFamily = InstrumentSerif,
-                    ),
-                ) { append(heroPrefix) }
-                append(" ")
-                withStyle(
-                    SpanStyle(
-                        color = extras.accent,
-                        fontStyle = FontStyle.Italic,
-                        fontFamily = InstrumentSerif,
-                    ),
-                ) { append(heroAccent) }
-                withStyle(
-                    SpanStyle(
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontFamily = InstrumentSerif,
-                    ),
-                ) { append(heroSuffix) }
+                if (heroAccent.isNotEmpty() && accentStart >= 0) {
+                    val accentEnd = accentStart + heroAccent.length
+                    withStyle(baseStyle) { append(heroCombined.substring(0, accentStart)) }
+                    withStyle(accentStyle) { append(heroCombined.substring(accentStart, accentEnd)) }
+                    withStyle(baseStyle) { append(heroCombined.substring(accentEnd)) }
+                } else {
+                    // Fallback: a translation edit broke containment of the
+                    // accent fragment inside login_hero. Render the whole
+                    // line in the base style rather than crash or highlight
+                    // the wrong text.
+                    withStyle(baseStyle) { append(heroCombined) }
+                }
+                withStyle(baseStyle) { append(heroSuffix) }
             }
             Text(
                 text = annotated,

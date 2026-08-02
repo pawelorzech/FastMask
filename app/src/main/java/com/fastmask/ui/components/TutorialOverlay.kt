@@ -2,6 +2,7 @@ package com.fastmask.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,6 +52,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import com.fastmask.ui.accessibility.politeLiveRegion
 
 /**
  * Position of the tooltip relative to the highlighted target.
@@ -153,6 +157,18 @@ fun TutorialOverlay(
                 modifier = Modifier.fillMaxSize(),
             ) { idx ->
                 val active = steps[idx]
+                // AnimatedContent keeps both the outgoing and incoming
+                // TooltipBubble mounted for the full crossfade. A live region
+                // on the shared ancestor (the AnimatedContent container
+                // itself) merged both instances' text, so TalkBack announced
+                // the old step and the new step concatenated, then repeated
+                // the new step again once the old one left composition.
+                //
+                // Scoping the live region to just the entering instance's
+                // subtree, and stripping the exiting instance out of the
+                // accessibility tree entirely, means only the new step's
+                // title/body can ever be part of the announcement.
+                val isEntering = transition.targetState == EnterExitState.Visible
                 TooltipBubble(
                     step = active,
                     isLast = idx == steps.lastIndex,
@@ -163,6 +179,17 @@ fun TutorialOverlay(
                         } else {
                             currentStep = idx + 1
                         }
+                    },
+                    modifier = if (isEntering) {
+                        Modifier.politeLiveRegion()
+                    } else {
+                        // Not @ExperimentalComposeUiApi (unlike
+                        // Modifier.semantics { invisibleToUser() }), and the
+                        // repo doesn't opt into experimental Compose APIs
+                        // elsewhere — this mirrors the same pattern already
+                        // used to hide the background screen while the
+                        // tutorial is up (MaskedEmailListScreen.kt).
+                        Modifier.clearAndSetSemantics { }
                     },
                 )
             }
@@ -204,6 +231,7 @@ private fun TooltipBubble(
     isLast: Boolean,
     onSkip: () -> Unit,
     onNext: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val extras = FastMaskExtras.current
 
@@ -214,7 +242,7 @@ private fun TooltipBubble(
     // makes rendering deterministic — the spotlight cutout still visually
     // points at the target.
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding(),
     ) {
@@ -257,7 +285,7 @@ private fun TooltipBubble(
                         color = extras.inkMuted,
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable(onClick = onSkip)
+                            .clickable(role = Role.Button, onClick = onSkip)
                             // Text draws at ~30dp tall; the target stays 48dp.
                             .heightIn(min = 48.dp)
                             .wrapContentHeight(Alignment.CenterVertically)

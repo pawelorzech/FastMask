@@ -100,7 +100,7 @@
     <string name="settings_contact_description">أرسل لنا ملاحظاتك</string>
     <string name="settings_logout">تسجيل الخروج</string>
     <string name="settings_logout_description">الخروج من حسابك</string>
-    <string name="settings_version">الإصدار %s</string>
+    <string name="settings_footer">FastMask · الإصدار %s</string>
     <string name="settings_select_language">اختر اللغة</string>
     <string name="settings_feedback_subject">ملاحظات FastMask</string>
 
@@ -128,7 +128,7 @@
 
     <!-- Login Screen - Additional -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">مكان هادئ لـ</string>
+    <string name="login_hero">مكان هادئ لـالبريد المقنّع</string>
     <string name="login_hero_accent">البريد المقنّع</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">مكان هادئ لعناوينك المقنّعة. الصق رمز API الخاص بـ Fastmail للبدء.</string>

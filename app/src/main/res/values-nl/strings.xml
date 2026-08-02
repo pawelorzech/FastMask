@@ -100,7 +100,7 @@
     <string name="settings_contact_description">Stuur ons uw feedback</string>
     <string name="settings_logout">Uitloggen</string>
     <string name="settings_logout_description">Afmelden bij uw account</string>
-    <string name="settings_version">Versie %s</string>
+    <string name="settings_footer">FastMask · Versie %s</string>
     <string name="settings_select_language">Taal selecteren</string>
     <string name="settings_feedback_subject">FastMask Feedback</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Keys (Login/Welcome/Intro) -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">Een rustige plek voor</string>
+    <string name="login_hero">Een rustige plek voor gemaskeerde e-mail</string>
     <string name="login_hero_accent">gemaskeerde e-mail</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Een rustige plek voor uw gemaskeerde adressen. Plak uw Fastmail API-token om te beginnen.</string>

@@ -207,7 +207,6 @@ fun MaskedEmailListScreen(
     // same Copy action the create screen used to offer. Latched before
     // consuming for the same reason as the undo snackbar above: consuming
     // writes null, which would otherwise cancel this effect mid-snackbar.
-    val createdMessageTemplate = stringResource(R.string.create_email_created)
     val copyAction = stringResource(R.string.create_email_copy_action)
     var pendingCreated by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(justCreatedEmail) {
@@ -216,10 +215,17 @@ fun MaskedEmailListScreen(
             onCreatedConsumed()
         }
     }
+    // stringResource() is composable, so the formatted message is resolved
+    // here in the composable body — not inside the LaunchedEffect below,
+    // which runs in a plain coroutine and can't call it.
+    val createdMessage = pendingCreated?.let { email ->
+        stringResource(R.string.create_email_created, email)
+    }
     LaunchedEffect(pendingCreated) {
         val email = pendingCreated ?: return@LaunchedEffect
+        val message = createdMessage ?: return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(
-            message = createdMessageTemplate.replace("%s", email),
+            message = message,
             actionLabel = copyAction,
             duration = SnackbarDuration.Long,
         )

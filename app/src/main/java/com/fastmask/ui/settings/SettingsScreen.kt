@@ -412,7 +412,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(48.dp))
 
                 Text(
-                    text = "FastMask · ${stringResource(R.string.settings_version, BuildConfig.VERSION_NAME)}",
+                    text = stringResource(R.string.settings_footer, BuildConfig.VERSION_NAME),
                     style = MonoSmallStyle,
                     color = extras.inkMuted,
                     modifier = Modifier.fillMaxWidth(),

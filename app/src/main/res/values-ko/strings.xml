@@ -100,7 +100,7 @@
     <string name="settings_contact_description">피드백을 보내주세요</string>
     <string name="settings_logout">로그아웃</string>
     <string name="settings_logout_description">계정에서 로그아웃</string>
-    <string name="settings_version">버전 %s</string>
+    <string name="settings_footer">FastMask · 버전 %s</string>
     <string name="settings_select_language">언어 선택</string>
     <string name="settings_feedback_subject">FastMask 피드백</string>
 
@@ -128,7 +128,7 @@
 
     <!-- New Keys (Login/Welcome/Intro) -->
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">조용한 장소</string>
+    <string name="login_hero">조용한 장소 마스크 이메일</string>
     <string name="login_hero_accent">마스크 이메일</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">마스크 주소를 위한 조용한 장소입니다. Fastmail API 토큰을 붙여넣어 시작하세요.</string>

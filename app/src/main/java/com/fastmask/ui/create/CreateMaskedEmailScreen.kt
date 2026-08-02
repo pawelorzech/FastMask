@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,12 +40,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -197,6 +202,11 @@ fun CreateMaskedEmailScreen(
                 Spacer(Modifier.height(16.dp))
 
                 // Form
+                val prefixFocus = remember { FocusRequester() }
+                val domainFocus = remember { FocusRequester() }
+                val descriptionFocus = remember { FocusRequester() }
+                val urlFocus = remember { FocusRequester() }
+
                 DesignInput(
                     value = uiState.emailPrefix,
                     onValueChange = viewModel::onPrefixChange,
@@ -207,6 +217,11 @@ fun CreateMaskedEmailScreen(
                     isError = uiState.prefixErrorRes != null,
                     enabled = !uiState.isLoading,
                     mono = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { domainFocus.requestFocus() }
+                    ),
+                    modifier = Modifier.focusRequester(prefixFocus),
                 )
                 Spacer(Modifier.height(14.dp))
                 DesignInput(
@@ -215,6 +230,11 @@ fun CreateMaskedEmailScreen(
                     label = stringResource(R.string.create_email_domain_label),
                     placeholder = stringResource(R.string.create_email_domain_placeholder),
                     enabled = !uiState.isLoading,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { descriptionFocus.requestFocus() }
+                    ),
+                    modifier = Modifier.focusRequester(domainFocus),
                 )
                 Spacer(Modifier.height(14.dp))
                 DesignInput(
@@ -223,6 +243,11 @@ fun CreateMaskedEmailScreen(
                     label = stringResource(R.string.create_email_description_label),
                     placeholder = stringResource(R.string.create_email_description_placeholder),
                     enabled = !uiState.isLoading,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { urlFocus.requestFocus() }
+                    ),
+                    modifier = Modifier.focusRequester(descriptionFocus),
                 )
                 Spacer(Modifier.height(14.dp))
                 DesignInput(
@@ -232,6 +257,8 @@ fun CreateMaskedEmailScreen(
                     placeholder = stringResource(R.string.create_email_url_placeholder),
                     enabled = !uiState.isLoading,
                     mono = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    modifier = Modifier.focusRequester(urlFocus),
                 )
 
                 Spacer(Modifier.height(24.dp))

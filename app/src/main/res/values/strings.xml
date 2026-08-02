@@ -6,7 +6,7 @@
     <!-- Login Screen -->
     <string name="login_subtitle">A quiet place for your masked addresses.</string>
     <string name="login_eyebrow">FastMask · v%s</string>
-    <string name="login_hero_prefix">A quiet place for</string>
+    <string name="login_hero">A quiet place for masked mail</string>
     <string name="login_hero_accent">masked mail</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">A quiet place for your masked addresses. Paste your Fastmail API token to begin.</string>
@@ -139,7 +139,7 @@
     <string name="settings_contact_description">pawel@orzech.me</string>
     <string name="settings_logout">Sign out</string>
     <string name="settings_logout_description">Forget this token on this device</string>
-    <string name="settings_version">Version %s</string>
+    <string name="settings_footer">FastMask · Version %s</string>
     <string name="settings_select_language">Language</string>
     <string name="settings_feedback_subject">FastMask Feedback</string>
 
