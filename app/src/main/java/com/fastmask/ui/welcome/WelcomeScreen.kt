@@ -69,9 +69,22 @@ fun WelcomeScreen(
             MonoEyebrow(text = stringResource(R.string.login_eyebrow, BuildConfig.VERSION_NAME))
             Spacer(Modifier.height(36.dp))
 
-            // App icon — uses launcher foreground (same hidden-eyes mark).
+            // App icon — the same hidden-eyes mark as the launcher, but the VECTOR
+            // copy, not drawable-*/ic_launcher_foreground.png.
+            //
+            // That PNG exists only in density-qualified folders (mdpi…xxxhdpi), and
+            // Play splits an AAB by density, so a device that ends up without its
+            // density split — a sideloaded single APK, a partial split restore —
+            // has the R id but no resource behind it. painterResource then throws
+            // Resources$NotFoundException and kills the first screen of the app
+            // (Crashlytics 51f5240..., 1.10.1). A vector carries no density
+            // qualifier, ships in the base split, and is always there.
+            //
+            // ic_shortcut_quick_mask_foreground is that same launcher art re-drawn
+            // as curves at the same 1:4 scale in a 108dp viewport, so this renders
+            // pixel-for-pixel like the PNG did at 88dp.
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.ic_shortcut_quick_mask_foreground),
                 contentDescription = null,
                 modifier = Modifier.size(88.dp),
             )

@@ -14,9 +14,18 @@
     -->
     <style name="Theme.FastMask" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
+    <!--
+      The splash icon is the VECTOR copy of the launcher mark, not
+      drawable-*/ic_launcher_foreground.png. That PNG only exists in
+      density-qualified folders, and Play splits an AAB by density, so a device
+      without its density split has the R id but nothing behind it — the same
+      missing 0x7f080077 that crashed the welcome screen in 1.10.1. A vector
+      carries no density qualifier and ships in the base split, so the very
+      first frame of the app cannot depend on split delivery.
+    -->
     <style name="Theme.FastMask.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_shortcut_quick_mask_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.FastMask</item>
     </style>
 
