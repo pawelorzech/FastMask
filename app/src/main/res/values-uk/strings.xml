@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">5. Скопіюйте токен і вставте вище</string>
     <string name="login_instructions_full">1. Увійдіть у веб-застосунок Fastmail\n2. Перейдіть до Налаштування > Конфіденційність і безпека\n3. Натисніть Інтеграції > API токени\n4. Створіть новий токен з правами \"Masked Email\"\n5. Скопіюйте токен і вставте вище</string>
     <string name="login_open_token_settings">Відкрити налаштування токенів Fastmail</string>
+    <string name="login_clipboard_token_detected">Знайдено токен Fastmail у буфері обміну — використати?</string>
+    <string name="login_clipboard_token_use">Використати токен</string>
+    <string name="login_clipboard_token_dismiss">Пропустити</string>
+    <string name="login_error_missing_scope_action">Відкрити налаштування токенів Fastmail</string>
     <string name="login_paste_empty">Немає чого вставляти — спочатку скопіюйте токен у Fastmail.</string>
     <string name="login_token_warning_shape">Це не схоже на токен API Fastmail. Зазвичай вони починаються з fmu1-. Ви все одно можете спробувати.</string>
     <string name="login_error_missing_masked_email_scope">Токен працює, але не має прав керувати замаскованими адресами. Створіть у Fastmail новий токен і позначте дозвіл Masked Email.</string>

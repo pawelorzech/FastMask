@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
     <string name="login_instructions_full">1. Fastmail वेब ऐप में लॉग इन करें\n2. सेटिंग्स > गोपनीयता और सुरक्षा पर जाएं\n3. इंटीग्रेशन > API टोकन पर क्लिक करें\n4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं\n5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
     <string name="login_open_token_settings">Fastmail टोकन सेटिंग्स खोलें</string>
+    <string name="login_clipboard_token_detected">क्लिपबोर्ड पर Fastmail टोकन मिला — क्या इसका उपयोग करें?</string>
+    <string name="login_clipboard_token_use">टोकन उपयोग करें</string>
+    <string name="login_clipboard_token_dismiss">अस्वीकार करें</string>
+    <string name="login_error_missing_scope_action">Fastmail टोकन सेटिंग्स खोलें</string>
     <string name="login_paste_empty">पेस्ट करने के लिए कुछ नहीं है — पहले Fastmail में अपना टोकन कॉपी करें।</string>
     <string name="login_token_warning_shape">यह Fastmail API टोकन जैसा नहीं लगता। ये आमतौर पर fmu1- से शुरू होते हैं। आप फिर भी कोशिश कर सकते हैं।</string>
     <string name="login_error_missing_masked_email_scope">यह टोकन काम करता है, लेकिन इसे मास्क्ड पते प्रबंधित करने की अनुमति नहीं है। Fastmail में नया टोकन बनाएं और Masked Email अनुमति चुनें।</string>

@@ -31,12 +31,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,6 +94,19 @@ fun LoginScreen(
                 is LoginEvent.LoginSuccess -> onLoginSuccess()
                 is LoginEvent.EnterDemo -> onEnterDemo()
             }
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onCheckClipboardForToken(clipboardManager.getText()?.text?.toString().orEmpty())
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -208,6 +225,50 @@ fun LoginScreen(
                 },
                 hint = uiState.errorRes?.let { stringResource(it) },
             )
+
+            // Action shortcut when missing Masked Email scope error is displayed
+            if (uiState.errorRes == R.string.login_error_missing_masked_email_scope) {
+                Spacer(Modifier.height(10.dp))
+                PillButton(
+                    text = stringResource(R.string.login_error_missing_scope_action),
+                    onClick = {
+                        settingsOpenFailed = !openExternalIntent(
+                            context,
+                            Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL))
+                                .addCategory(Intent.CATEGORY_BROWSABLE),
+                        )
+                    },
+                    variant = PillButtonVariant.Secondary,
+                )
+            }
+
+            // Explicit confirmation banner when a token shape is found on clipboard
+            uiState.detectedClipboardToken?.let { detectedToken ->
+                Spacer(Modifier.height(12.dp))
+                DesignCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        MonoLabel(text = stringResource(R.string.login_clipboard_token_detected))
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            PillButton(
+                                text = stringResource(R.string.login_clipboard_token_use),
+                                onClick = viewModel::onUseDetectedClipboardToken,
+                                variant = PillButtonVariant.Primary,
+                                modifier = Modifier.weight(1f),
+                            )
+                            PillButton(
+                                text = stringResource(R.string.login_clipboard_token_dismiss),
+                                onClick = viewModel::onDismissDetectedClipboardToken,
+                                variant = PillButtonVariant.Ghost,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            }
 
             uiState.warningRes?.let { warningRes ->
                 Spacer(Modifier.height(8.dp))

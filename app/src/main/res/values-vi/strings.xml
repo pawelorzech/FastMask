@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">5. Sao chép mã và dán ở trên</string>
     <string name="login_instructions_full">1. Đăng nhập vào ứng dụng web Fastmail\n2. Vào Cài đặt > Quyền riêng tư &amp; Bảo mật\n3. Nhấp vào Tích hợp > Mã API\n4. Tạo mã mới với phạm vi \"Masked Email\"\n5. Sao chép mã và dán ở trên</string>
     <string name="login_open_token_settings">Mở cài đặt mã API Fastmail</string>
+    <string name="login_clipboard_token_detected">Đã tìm thấy mã Fastmail trong khay nhớ tạm — sử dụng?</string>
+    <string name="login_clipboard_token_use">Dùng mã</string>
+    <string name="login_clipboard_token_dismiss">Bỏ qua</string>
+    <string name="login_error_missing_scope_action">Mở cài đặt mã Fastmail</string>
     <string name="login_paste_empty">Không có gì để dán — hãy sao chép mã của bạn trong Fastmail trước.</string>
     <string name="login_token_warning_shape">Đây có vẻ không phải là mã API Fastmail. Chúng thường bắt đầu bằng fmu1-. Bạn vẫn có thể thử.</string>
     <string name="login_error_missing_masked_email_scope">Mã này hoạt động, nhưng không có quyền quản lý địa chỉ email ẩn danh. Hãy tạo mã mới trong Fastmail và chọn quyền Masked Email.</string>

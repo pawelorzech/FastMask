@@ -618,4 +618,58 @@ class LoginViewModelTest {
 
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
+
+    // --- clipboard token detection (UX Recommendation B1) ------------------
+
+    @Test
+    fun `checking clipboard with a valid token shape detects it without auto filling`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onCheckClipboardForToken("fmu1-8f2c1d9e4a")
+
+        assertEquals("fmu1-8f2c1d9e4a", viewModel.uiState.value.detectedClipboardToken)
+        assertEquals("", viewModel.uiState.value.token)
+    }
+
+    @Test
+    fun `checking clipboard with non token content does not set detected token`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onCheckClipboardForToken("some random text")
+
+        assertNull(viewModel.uiState.value.detectedClipboardToken)
+    }
+
+    @Test
+    fun `checking clipboard when token matches current input does not set detected token`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onTokenChange("fmu1-8f2c1d9e4a")
+
+        viewModel.onCheckClipboardForToken("fmu1-8f2c1d9e4a")
+
+        assertNull(viewModel.uiState.value.detectedClipboardToken)
+    }
+
+    @Test
+    fun `confirming detected clipboard token populates field and clears prompt`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onCheckClipboardForToken("  fmu1-8f2c1d9e4a\n")
+        assertEquals("fmu1-8f2c1d9e4a", viewModel.uiState.value.detectedClipboardToken)
+
+        viewModel.onUseDetectedClipboardToken()
+
+        assertEquals("fmu1-8f2c1d9e4a", viewModel.uiState.value.token)
+        assertNull(viewModel.uiState.value.detectedClipboardToken)
+    }
+
+    @Test
+    fun `dismissing detected clipboard token clears prompt without changing field`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+        viewModel.onCheckClipboardForToken("fmu1-8f2c1d9e4a")
+
+        viewModel.onDismissDetectedClipboardToken()
+
+        assertNull(viewModel.uiState.value.detectedClipboardToken)
+        assertEquals("", viewModel.uiState.value.token)
+    }
 }

@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">5. トークンをコピーして上に貼り付け</string>
     <string name="login_instructions_full">1. Fastmail Webアプリにログイン\n2. 設定 > プライバシーとセキュリティに移動\n3. 連携 > APIトークンをクリック\n4. 「Masked Email」スコープで新しいトークンを作成\n5. トークンをコピーして上に貼り付け</string>
     <string name="login_open_token_settings">Fastmailのトークン設定を開く</string>
+    <string name="login_clipboard_token_detected">クリップボードに Fastmail トークンが見つかりました。使用しますか？</string>
+    <string name="login_clipboard_token_use">トークンを使用</string>
+    <string name="login_clipboard_token_dismiss">無視</string>
+    <string name="login_error_missing_scope_action">Fastmail トークン設定を開く</string>
     <string name="login_paste_empty">貼り付けるものがありません。先にFastmailでトークンをコピーしてください。</string>
     <string name="login_token_warning_shape">これはFastmailのAPIトークンではないようです。通常はfmu1-で始まります。このまま試すこともできます。</string>
     <string name="login_error_missing_masked_email_scope">このトークンは有効ですが、マスクアドレスを管理する権限がありません。Fastmailで新しいトークンを作成し、Masked Emailの権限にチェックを入れてください。</string>

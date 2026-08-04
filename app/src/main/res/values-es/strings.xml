@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">5. Copia el token y pégalo arriba</string>
     <string name="login_instructions_full">1. Inicia sesión en la aplicación web de Fastmail\n2. Ve a Configuración > Privacidad y Seguridad\n3. Haz clic en Integraciones > Tokens de API\n4. Crea un nuevo token con el alcance \"Masked Email\"\n5. Copia el token y pégalo arriba</string>
     <string name="login_open_token_settings">Abrir la configuración de tokens de Fastmail</string>
+    <string name="login_clipboard_token_detected">Se detectó un token de Fastmail en el portapapeles. ¿Usarlo?</string>
+    <string name="login_clipboard_token_use">Usar token</string>
+    <string name="login_clipboard_token_dismiss">Descartar</string>
+    <string name="login_error_missing_scope_action">Abrir configuración de tokens de Fastmail</string>
     <string name="login_paste_empty">No hay nada que pegar: copia primero tu token en Fastmail.</string>
     <string name="login_token_warning_shape">Esto no parece un token de API de Fastmail. Suelen empezar por fmu1-. Aun así puedes intentarlo.</string>
     <string name="login_error_missing_masked_email_scope">Este token funciona, pero no tiene permiso para gestionar direcciones enmascaradas. Crea un token nuevo en Fastmail y marca el permiso Masked Email.</string>

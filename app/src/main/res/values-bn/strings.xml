@@ -19,6 +19,10 @@
     <string name="login_instructions_step5">৫. টোকেন কপি করুন এবং উপরে পেস্ট করুন</string>
     <string name="login_instructions_full">১. Fastmail ওয়েব অ্যাপে লগইন করুন\n২. সেটিংস > প্রাইভেসি এবং সিকিউরিটিতে যান\n৩. ইন্টিগ্রেশন > API টোকেনে ক্লিক করুন\n৪. \"Masked Email\" স্কোপ সহ একটি নতুন টোকেন তৈরি করুন\n৫. টোকেন কপি করুন এবং উপরে পেস্ট করুন</string>
     <string name="login_open_token_settings">Fastmail টোকেন সেটিংস খুলুন</string>
+    <string name="login_clipboard_token_detected">ক্লিপবোর্ডে Fastmail টোকেন পাওয়া গেছে — এটি ব্যবহার করবেন?</string>
+    <string name="login_clipboard_token_use">টোকেন ব্যবহার করুন</string>
+    <string name="login_clipboard_token_dismiss">বাতিল করুন</string>
+    <string name="login_error_missing_scope_action">Fastmail টোকেন সেটআপ খুলুন</string>
     <string name="login_paste_empty">পেস্ট করার মতো কিছু নেই — প্রথমে Fastmail-এ আপনার টোকেন কপি করুন।</string>
     <string name="login_token_warning_shape">এটি Fastmail API টোকেনের মতো দেখাচ্ছে না। সাধারণত এগুলি fmu1- দিয়ে শুরু হয়। তবুও আপনি চেষ্টা করতে পারেন।</string>
     <string name="login_error_missing_masked_email_scope">এই টোকেনটি কাজ করে, কিন্তু এতে মাস্কড ঠিকানা পরিচালনার অনুমতি নেই। Fastmail-এ একটি নতুন টোকেন তৈরি করুন এবং Masked Email অনুমতি নির্বাচন করুন।</string>
