@@ -133,7 +133,7 @@
     <!-- New Login and Welcome Screens -->
     <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">Maskeli postalar için sessiz bir yer</string>
-    <string name="login_hero_accent">sessiz bir yer</string>
+    <string name="login_hero_accent">Maskeli postalar için</string>
     <string name="login_hero_suffix">.</string>
     <string name="login_intro">Maskeli adresleriniz için sessiz bir yer. Başlamak için Fastmail API jetonunuzu yapıştırın.</string>
     <string name="login_error_empty_token">Lütfen API jetonunuzu girin</string>
