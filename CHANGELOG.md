@@ -3,6 +3,11 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.2] — 2026-08-04
+
+### Fixed
+- **The welcome screen crashed on some devices instead of opening.** The app icon on that screen was drawn from the launcher artwork, which ships only as density-specific images. Google Play splits an app bundle by screen density, so a device that ends up without its matching piece — a sideloaded install, an incomplete restore — had nothing to draw and the app died on its first screen. The icon is now a vector that travels with every install, and the splash screen, which had the same dependency, was moved to it as well.
+
 ## [1.10.1] — 2026-07-27
 
 Fifth audit pass. 442 → 446 unit tests, 16 → 19 instrumented. Full reports in `AUDIT_REPORT.md`, `UX_RECOMMENDATIONS.md` and `CHANGELOG_AGENT.md`.

@@ -30,7 +30,7 @@
 
 ## What it does
 
-FastMask talks directly to Fastmail's JMAP API using a token limited to the **Masked Email** permission. The current source tree builds app version **1.10.1** (`versionCode 22`); downloadable GitHub releases may trail the source.
+FastMask talks directly to Fastmail's JMAP API using a token limited to the **Masked Email** permission. The current source tree builds app version **1.10.2** (`versionCode 23`); downloadable GitHub releases may trail the source.
 
 ### Core features
 
