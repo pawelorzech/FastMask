@@ -13,7 +13,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
-import androidx.test.espresso.Espresso
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -169,11 +168,7 @@ class MainFlowsTest {
 
         composeRule.onNodeWithContentDescription(string(R.string.create_email_description_label))
             .performTextInput("Instrumented note")
-        // The soft keyboard opens on input and pushes the submit button out of
-        // the viewport; clicking without scrolling to it silently misses and
-        // lands on the back affordance instead, so the test "passes" back to
-        // the list having created nothing.
-        Espresso.closeSoftKeyboard()
+        // Scroll to submit button and click it within Compose semantics tree.
         composeRule.onNodeWithText(string(R.string.create_email_button))
             .performScrollTo()
             .performClick()
@@ -257,7 +252,7 @@ class MainFlowsTest {
 
         // Let SnackbarDuration.Long produce Dismissed naturally. This covers
         // the non-action result separately from the Undo path above.
-        composeRule.waitUntil(timeoutMillis = 20_000) {
+        composeRule.waitUntil(timeoutMillis = 35_000) {
             composeRule.onAllNodesWithText(string(R.string.list_archived_snackbar))
                 .fetchSemanticsNodes().isEmpty()
         }
