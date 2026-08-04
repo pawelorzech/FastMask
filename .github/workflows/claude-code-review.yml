@@ -12,11 +12,14 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Dependabot pull requests run with the Dependabot secrets store, not the
+    # Actions one, so `secrets.CLAUDE_CODE_OAUTH_TOKEN` resolves to an empty
+    # string and this job fails in ~10s on every dependency bump. Mirroring the
+    # token into Dependabot secrets would make it run — but a version-number
+    # diff has nothing for a code reviewer to say, and the `build` job is the
+    # check that actually decides whether a bump is safe. Skipping keeps the
+    # red X off bumps without weakening any real gate.
+    if: github.actor != 'dependabot[bot]'
 
     runs-on: ubuntu-latest
     permissions:
