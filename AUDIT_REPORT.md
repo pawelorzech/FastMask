@@ -1,6 +1,6 @@
-# AUDIT_REPORT — FastMask, 2026-08-01
+# AUDIT_REPORT — FastMask, 2026-08-09
 
-**Repozytorium:** `~/Programowanie/FastMask` · **Wersja:** 1.10.1 (versionCode 22)
+**Repozytorium:** `~/Programowanie/FastMask` · **Wersja:** 1.10.2 (versionCode 23)
 **Punkt wyjścia:** `main` @ `b3d6dca` · **Gałąź poprawek:** `feature/audit-2026-08-01`
 **Przebieg:** szósty audyt. Poprzednie raporty: `Plans/audit-archive/`.
 

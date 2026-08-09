@@ -1,4 +1,4 @@
-# UX_RECOMMENDATIONS — FastMask, 2026-08-01
+# UX_RECOMMENDATIONS — FastMask, 2026-08-09
 
 Ten dokument zawiera **oceny i propozycje**. Czyste fakty z audytu są w `AUDIT_REPORT.md`, lista zmian w `CHANGELOG_AGENT.md`. Poprzednie rekomendacje: `Plans/audit-archive/UX_RECOMMENDATIONS-2026-07-27.md`.
 

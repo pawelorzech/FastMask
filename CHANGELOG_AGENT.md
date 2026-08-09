@@ -1,6 +1,6 @@
-# CHANGELOG_AGENT — audyt 2026-08-01
+# CHANGELOG_AGENT — audyt 2026-08-09
 
-**Gałąź:** `feature/audit-2026-08-01` (z `main`, `b3d6dca`, v1.10.1 / versionCode 22)
+**Gałąź:** `main` (v1.10.2 / versionCode 23)
 **Charakter zmian:** wyłącznie poprawki defektów, testy regresyjne i dokumentacja. Żadnej nowej funkcji, żadnej migracji frameworka, żadnego masowego bumpu zależności, żadnej zmiany modelu biznesowego.
 
 > Raporty z poprzedniego przebiegu (2026-07-27) leżą w `Plans/audit-archive/`.
