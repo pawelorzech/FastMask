@@ -196,8 +196,8 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.58")
-    kapt("com.google.dagger:hilt-compiler:2.58")
+    implementation("com.google.dagger:hilt-android:2.60.1")
+    kapt("com.google.dagger:hilt-compiler:2.60.1")
 
     // Networking
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
@@ -253,8 +253,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     // Instrumented tests exercise the real Hilt graph, so they need the test
     // Application and the generated test components.
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.58")
-    kaptAndroidTest("com.google.dagger:hilt-compiler:2.58")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.60.1")
+    kaptAndroidTest("com.google.dagger:hilt-compiler:2.60.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
