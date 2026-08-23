@@ -38,6 +38,12 @@ class FakeMaskedEmailRepository(
     var failure: Throwable? = null,
     /** Snapshot an offline read returns; null means "nothing cached". */
     var cached: CachedMasks? = null,
+    /**
+     * Overrides what [getMaskedEmail] answers; null derives from [emails].
+     * Lets a test distinguish "server does not know this id" (`success(null)`)
+     * from a transport failure.
+     */
+    var singleResult: Result<MaskedEmail?>? = null,
 ) : MaskedEmailRepository {
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = cached
@@ -47,11 +53,19 @@ class FakeMaskedEmailRepository(
     var updateCalls = 0
     var archiveCalls = 0
     var destroyCalls = 0
+    var getSingleCalls = 0
     var lastArchiveId: String? = null
     var lastDestroyId: String? = null
     var lastUpdateId: String? = null
     var lastUpdateParams: UpdateMaskedEmailParams? = null
     var lastCreateParams: CreateMaskedEmailParams? = null
+    var lastGetSingleId: String? = null
+
+    /**
+     * Runs before the single-mask fetch answers, so a test can hold the fresh
+     * response back and assert against what the cache seed rendered first.
+     */
+    var beforeGetSingle: (suspend () -> Unit)? = null
 
     /**
      * Runs before the fetch answers, so a test can interleave something with an
@@ -65,6 +79,15 @@ class FakeMaskedEmailRepository(
         beforeGet?.invoke()
         failure?.let { return Result.failure(it) }
         return Result.success(emails)
+    }
+
+    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> {
+        getSingleCalls++
+        lastGetSingleId = id
+        beforeGetSingle?.invoke()
+        singleResult?.let { return it }
+        failure?.let { return Result.failure(it) }
+        return Result.success(emails.find { it.id == id })
     }
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {

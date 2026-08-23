@@ -49,6 +49,8 @@ import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -150,25 +152,32 @@ class MainActivity : AppCompatActivity() {
             var loggedInAtLaunch = false
             val startDestination = try {
                 withContext(Dispatchers.IO) {
-                    // Read for the ACCENT fallback below, not for the lock.
-                    cachedPro = proEntitlementStore.read() == ProStatus.PRO
-                    // The lock engages from the preference ALONE, deliberately
-                    // not `&& cachedPro`. It used to carry the entitlement, and
-                    // that made the gate disagree with itself: the ON_STOP
-                    // observer below re-locks on the raw flag, so a user whose
-                    // Pro lapsed (refund, Play account switch) got the worst of
-                    // both — no lock on a cold start, where the mask list sits
-                    // exposed, but a biometric prompt on every return from the
-                    // background, while Settings showed the toggle as OFF.
-                    // A privacy control the user switched on must not switch
-                    // itself off when a purchase lapses; Pro gates ENABLING it
-                    // (SettingsViewModel.onAppLockToggled), and turning it off
-                    // is always allowed, so this cannot lock anyone out.
-                    lockAtLaunch = settingsDataStore.appLockEnabled.first()
-                    cachedAccent = settingsDataStore.accent.first()
-                    notificationPromptShown = settingsDataStore.notificationPromptShown()
-                    cachedAppMode = settingsDataStore.appMode.first()
-                    loggedInAtLaunch = authRepository.isLoggedIn()
+                    coroutineScope {
+                        // The token check constructs EncryptedSharedPreferences —
+                        // Tink + Android Keystore, the slowest read here. Launch it
+                        // FIRST so its initialization overlaps the DataStore reads
+                        // below instead of queuing behind them on the splash clock.
+                        val loggedIn = async { authRepository.isLoggedIn() }
+                        // Read for the ACCENT fallback below, not for the lock.
+                        cachedPro = proEntitlementStore.read() == ProStatus.PRO
+                        // The lock engages from the preference ALONE, deliberately
+                        // not `&& cachedPro`. It used to carry the entitlement, and
+                        // that made the gate disagree with itself: the ON_STOP
+                        // observer below re-locks on the raw flag, so a user whose
+                        // Pro lapsed (refund, Play account switch) got the worst of
+                        // both — no lock on a cold start, where the mask list sits
+                        // exposed, but a biometric prompt on every return from the
+                        // background, while Settings showed the toggle as OFF.
+                        // A privacy control the user switched on must not switch
+                        // itself off when a purchase lapses; Pro gates ENABLING it
+                        // (SettingsViewModel.onAppLockToggled), and turning it off
+                        // is always allowed, so this cannot lock anyone out.
+                        lockAtLaunch = settingsDataStore.appLockEnabled.first()
+                        cachedAccent = settingsDataStore.accent.first()
+                        notificationPromptShown = settingsDataStore.notificationPromptShown()
+                        cachedAppMode = settingsDataStore.appMode.first()
+                        loggedInAtLaunch = loggedIn.await()
+                    }
                 }
                 if (loggedInAtLaunch) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
             } catch (cancellation: CancellationException) {

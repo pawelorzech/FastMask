@@ -56,6 +56,18 @@ class MaskedEmailRepositoryImpl @Inject constructor(
             .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
     }
 
+    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> = withContext(Dispatchers.IO) {
+        val token = tokenStorage.getToken()
+            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+
+        // Deliberately NO write-through: the disk cache holds whole-list
+        // snapshots, and merging a single fresh mask into one would mean a
+        // read-modify-write of the encrypted file on every detail open — the
+        // exact cost this method exists to avoid. The snapshot catches up on
+        // the next full list fetch.
+        jmapApi.getMaskedEmail(token, id).map { it?.toDomain() }
+    }
+
     override suspend fun cachedMaskedEmails(): CachedMasks? = withContext(Dispatchers.IO) {
         val token = tokenStorage.getToken() ?: return@withContext null
         cache.read(owner = cacheOwner(token))

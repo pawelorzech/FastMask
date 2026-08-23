@@ -80,14 +80,12 @@ import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.sizeIn
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
     onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
-    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
-    animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()

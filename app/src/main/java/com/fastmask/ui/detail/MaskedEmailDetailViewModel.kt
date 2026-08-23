@@ -8,7 +8,8 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
+import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
+import com.fastmask.domain.usecase.GetMaskedEmailUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.di.ApplicationScope
@@ -28,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
+    private val getMaskedEmailUseCase: GetMaskedEmailUseCase,
+    private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val archiveMaskedEmailUseCase: ArchiveMaskedEmailUseCase,
     @ApplicationScope private val appScope: CoroutineScope,
@@ -50,48 +52,97 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     /**
+     * True from the moment a load starts until its network leg settles. Set
+     * synchronously so a retry double-tap cannot stack two fetches whose
+     * results would race.
+     */
+    private var loadInFlight = false
+
+    /**
      * @param resetEdits when true (initial load / retry) the editable fields are
      *   (re)seeded from the server value. The reload triggered AFTER a save or a
      *   state toggle passes false: overwriting `edited*` there would drop any
      *   keystrokes the user typed while the network call was in flight.
      */
     fun loadEmail(resetEdits: Boolean = true) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorRes = null) }
+        if (loadInFlight) return
+        loadInFlight = true
 
-            getMaskedEmailsUseCase().fold(
-                onSuccess = { emails ->
-                    val email = emails.find { it.id == emailId }
-                    if (email != null) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                updateOperation = null,
-                                email = email,
-                                editedDescription = if (resetEdits) email.description ?: "" else it.editedDescription,
-                                editedForDomain = if (resetEdits) email.forDomain ?: "" else it.editedForDomain,
-                                editedUrl = if (resetEdits) email.url ?: "" else it.editedUrl
-                            )
-                        }
-                    } else {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                updateOperation = null,
-                                errorRes = R.string.email_detail_error_load
-                            )
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            updateOperation = null,
-                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
-                        )
-                    }
+        // Stale-while-revalidate, two legs:
+        //
+        // 1. The encrypted last-known-good snapshot usually already holds this
+        //    mask — the user just saw it on the list. Seeding from it renders
+        //    the screen instantly instead of holding a spinner for a network
+        //    round trip.
+        // 2. A single-mask JMAP get (`ids: [id]`) then confirms or corrects it.
+        //    This replaced the old full-account fetch that ran on every open
+        //    and every post-edit reload — on large accounts the most expensive
+        //    read in the app for the least data.
+        //
+        // When the refresh fails but a mask is already on screen (cache seed
+        // or an earlier success), the failure degrades to the inline error
+        // text above Save; replacing usable content with the full-screen
+        // error state would throw away what the user is looking at.
+        val hadEmail = _uiState.value.email != null
+        if (!hadEmail) {
+            _uiState.update { it.copy(isLoading = true, errorRes = null) }
+        }
+
+        viewModelScope.launch {
+            try {
+                if (!hadEmail && _uiState.value.email == null) {
+                    seedFromCache(resetEdits)
                 }
+
+                getMaskedEmailUseCase(emailId).fold(
+                    onSuccess = { email ->
+                        if (email != null) {
+                            applyLoadedEmail(email, resetEdits)
+                        } else {
+                            // Server does not know this id: deleted elsewhere,
+                            // or a stale deep link. Same surface as before —
+                            // full-screen only when nothing is on screen yet.
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    updateOperation = null,
+                                    errorRes = R.string.email_detail_error_load
+                                )
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                updateOperation = null,
+                                errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
+                            )
+                        }
+                    }
+                )
+            } finally {
+                loadInFlight = false
+            }
+        }
+    }
+
+    private suspend fun seedFromCache(resetEdits: Boolean) {
+        val cached = getCachedMaskedEmailsUseCase()?.masks?.find { it.id == emailId } ?: return
+        // The fresh fetch may have landed while the cache was being decrypted.
+        if (_uiState.value.email != null) return
+        applyLoadedEmail(cached, resetEdits)
+    }
+
+    private fun applyLoadedEmail(email: MaskedEmail, resetEdits: Boolean) {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                updateOperation = null,
+                email = email,
+                editedDescription = if (resetEdits) email.description ?: "" else it.editedDescription,
+                editedForDomain = if (resetEdits) email.forDomain ?: "" else it.editedForDomain,
+                editedUrl = if (resetEdits) email.url ?: "" else it.editedUrl
             )
         }
     }

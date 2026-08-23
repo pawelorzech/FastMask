@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -110,6 +111,16 @@ fun TutorialOverlay(
     if (steps.isEmpty()) return
 
     var currentStep by remember { mutableIntStateOf(0) }
+
+    // The composable stays in composition across show/hide cycles (the caller
+    // only flips `visible`), so `currentStep` outlived a completed tutorial.
+    // A second demo session re-opened the overlay on its LAST card instead of
+    // the first. Restart from step 1 every time it becomes visible again.
+    LaunchedEffect(visible) {
+        if (visible) {
+            currentStep = 0
+        }
+    }
 
     AnimatedVisibility(
         visible = visible,

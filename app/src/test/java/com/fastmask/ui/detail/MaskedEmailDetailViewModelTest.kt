@@ -3,11 +3,14 @@
 package com.fastmask.ui.detail
 
 import androidx.lifecycle.SavedStateHandle
+import com.fastmask.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CompletableDeferred
+import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
+import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
+import com.fastmask.domain.usecase.GetMaskedEmailUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
@@ -19,6 +22,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import java.time.Instant
+import java.io.IOException
 
 class MaskedEmailDetailViewModelTest {
 
@@ -28,7 +33,8 @@ class MaskedEmailDetailViewModelTest {
     private fun vm(repo: FakeMaskedEmailRepository, emailId: String = "m1") =
         MaskedEmailDetailViewModel(
             savedStateHandle = SavedStateHandle(mapOf("emailId" to emailId)),
-            getMaskedEmailsUseCase = GetMaskedEmailsUseCase(repo),
+            getMaskedEmailUseCase = GetMaskedEmailUseCase(repo),
+            getCachedMaskedEmailsUseCase = GetCachedMaskedEmailsUseCase(repo),
             updateMaskedEmailUseCase = UpdateMaskedEmailUseCase(repo),
             archiveMaskedEmailUseCase = ArchiveMaskedEmailUseCase(repo),
             // Shares the rule's scheduler so application-scoped mutations still
@@ -183,5 +189,71 @@ class MaskedEmailDetailViewModelTest {
 
         assertEquals("seed note", viewModel.uiState.value.editedDescription)
         assertEquals("seed.com", viewModel.uiState.value.editedForDomain)
+    }
+
+    // --- stale-while-revalidate load (regression: full-list fetch per open) --
+
+    @Test
+    fun `initial load uses a single-mask fetch not the whole list`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertEquals(1, repo.getSingleCalls)
+        assertEquals("m1", repo.lastGetSingleId)
+        assertEquals(0, repo.getCalls)
+    }
+
+    @Test
+    fun `cache seed renders the mask before the network answers`() = runTest {
+        val releaseNetwork = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", description = "fresh")),
+            cached = CachedMasks(
+                masks = listOf(mask("m1", description = "cached copy")),
+                cachedAt = Instant.now(),
+            ),
+        ).apply {
+            beforeGetSingle = { releaseNetwork.await() }
+        }
+        val viewModel = vm(repo)
+        runCurrent() // cache seed has run; network fetch is parked
+
+        assertEquals("cached copy", viewModel.uiState.value.email?.description)
+        assertNull(viewModel.uiState.value.errorRes)
+
+        releaseNetwork.complete(Unit)
+        advanceUntilIdle()
+        // The fresh answer wins once it lands.
+        assertEquals("fresh", viewModel.uiState.value.email?.description)
+    }
+
+    @Test
+    fun `network failure keeps cached content and degrades to inline error`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", description = "cached copy")),
+            cached = CachedMasks(masks = listOf(mask("m1")), cachedAt = Instant.now()),
+            failure = IOException("offline"),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        // The user still has something to look at and edit…
+        assertEquals("m1", viewModel.uiState.value.email?.id)
+        // …and the failure is surfaced, not swallowed.
+        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+    }
+
+    @Test
+    fun `mask missing on the server shows the load error state`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = emptyList(),
+            singleResult = Result.success(null),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.email)
+        assertEquals(R.string.email_detail_error_load, viewModel.uiState.value.errorRes)
     }
 }

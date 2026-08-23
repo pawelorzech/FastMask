@@ -50,6 +50,10 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         return Result.success(state.value)
     }
 
+    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> {
+        return Result.success(state.value.find { it.id == id })
+    }
+
     /** Demo data already lives in memory and is never persisted. */
     override suspend fun cachedMaskedEmails(): CachedMasks? = null
 

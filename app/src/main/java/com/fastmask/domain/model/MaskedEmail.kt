@@ -1,9 +1,6 @@
 package com.fastmask.domain.model
 
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 data class MaskedEmail(
     val id: String,
@@ -15,9 +12,7 @@ data class MaskedEmail(
     val url: String?,
     val emailPrefix: String?,
     val createdAt: Instant?,
-    val lastMessageAt: Instant?,
-    val formattedCreatedAt: String? = createdAt?.let { formatInstant(it) },
-    val formattedLastMessageAt: String? = lastMessageAt?.let { formatInstant(it) }
+    val lastMessageAt: Instant?
 ) {
     val displayName: String
         get() = description?.takeIf { it.isNotBlank() }
@@ -26,13 +21,6 @@ data class MaskedEmail(
 
     val isActive: Boolean
         get() = state == EmailState.ENABLED || state == EmailState.PENDING
-
-    companion object {
-        private val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
-            .withZone(ZoneId.systemDefault())
-
-        fun formatInstant(instant: Instant): String = formatter.format(instant)
-    }
 }
 
 enum class EmailState {

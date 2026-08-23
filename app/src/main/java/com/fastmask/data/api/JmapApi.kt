@@ -69,6 +69,24 @@ class JmapApi @Inject constructor(
     }
 
     suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runSuspendCatching {
+        fetchMaskedEmails(token, ids = null)
+    }
+
+    /**
+     * One mask by id — the same JMAP `MaskedEmail/get` restricted with `ids`.
+     *
+     * The detail screen used to satisfy every open (and every post-edit
+     * reload) with a full account fetch; on large accounts that turned "peek
+     * at one address" into the most expensive read in the app. Returns null
+     * when the server does not know the id (deleted elsewhere / bad deep link)
+     * so callers can distinguish "absent" from "network failed".
+     */
+    suspend fun getMaskedEmail(token: String, id: String): Result<MaskedEmailDto?> =
+        runSuspendCatching {
+            fetchMaskedEmails(token, ids = listOf(id)).firstOrNull()
+        }
+
+    private suspend fun fetchMaskedEmails(token: String, ids: List<String>?): List<MaskedEmailDto> {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
@@ -76,6 +94,11 @@ class JmapApi @Inject constructor(
             add(JsonPrimitive("MaskedEmail/get"))
             add(buildJsonObject {
                 put("accountId", JsonPrimitive(accountId))
+                ids?.let { idList ->
+                    put("ids", buildJsonArray {
+                        idList.forEach { add(JsonPrimitive(it)) }
+                    })
+                }
             })
             add(JsonPrimitive("0"))
         }
@@ -91,7 +114,7 @@ class JmapApi @Inject constructor(
             request = request
         )
 
-        parseGetResponse(response)
+        return parseGetResponse(response)
     }
 
     suspend fun createMaskedEmail(

@@ -1,66 +1,123 @@
 # Improvements report
 
+Poprzedni raport (przebieg 2026-07-27) zarchiwizowany w
+`Plans/audit-archive/IMPROVEMENTS_REPORT-2026-07-27.md`.
+
 ## Najważniejsze zmiany UX/UI
 
-- **Wejście do demo nie dawało feedbacku i mogło wyglądać jak martwy przycisk.** Oba entry pointy pokazują teraz postęp dokładnie na wybranym CTA, blokują ponowne wysłanie i po błędzie pokazują lokalizowany komunikat z możliwością ponowienia. Logowanie pozostaje dostępne po nieudanym wejściu do demo, a wpisany token nie jest tracony.
-- **Login pokazywał ten sam loader na niewłaściwej akcji.** Stan operacji rozróżnia teraz logowanie i demo, więc spinner pojawia się tylko na przycisku, który użytkownik nacisnął.
-- **Systemowe wklejenie mogło wprowadzić bardzo duży tekst do maskowanego pola tokenu.** Każda ścieżka edycji tokenu korzysta teraz z tego samego czyszczenia i limitu, nie tylko dedykowany przycisk Paste.
-- **Formularze nie korzystały konsekwentnie z klawiatury platformy.** Prefix używa klawiatury ASCII, domena i URL klawiatury URI, a akcje Next/Done prowadzą kolejno przez pola także na ekranie edycji.
-- **Czyszczenie wyszukiwarki miało target 40 dp.** Target został zwiększony do platformowego minimum 48 dp i zabezpieczony testem UI.
-- Wykonano drugi pass wizualny na emulatorze przy skali fontu 150%. Lista i formularz tworzenia zachowują hierarchię, czytelność i dostęp do akcji bez clippingu.
+- **Ekran szczegółów otwierał się spinnerem i dociągał CAŁE konto.** Każde
+  otwarcie (i każdy reload po zapisie/przełączeniu stanu) wykonywał pełny
+  `MaskedEmail/get` wszystkich masek, a przy okazji ponownie szyfrował i
+  zapisywał cały snapshot offline. Teraz: stale-while-revalidate — ekran od
+  razu renderuje maskę z zaszyfrowanego snapshotu (tę, którą użytkownik właśnie
+  widział na liście), a świeże dane przychodzi jednym `get` z `ids: [id]`.
+  Gdy odświeżenie się nie uda, a treść już jest na ekranie, błąd degraduje się
+  do inline komunikatu nad przyciskiem Save zamiast wyrzucać użytkownikowi
+  zawartość z oczów i podmieniać na pełnoekranowy błąd.
+- **Tutorial demo otwierał się na OSTATNIM kroku przy drugiej sesji demo.**
+  Overlay zostaje skomponowany między pokazaniami, a indeks kroku przeżywał
+  poprzednie przejście — użytkownik, który wyszedł z demo i wrócił, widział
+  kartę „Done" zamiast kroku 1. Reset do kroku 1 przy każdym pokazaniu.
+- **Szybkie dwa tapnięcia w „Sign in" na banerze demo nawigowały dwukrotnie.**
+  `DemoBannerViewModel.exitDemoMode` był jedyną mutującą ścieżką bez
+  synchronicznego guarda in-flight (wzorzec z reszty aplikacji). Dodany, z
+  zwolnieniem na każdym wyniku — także po nieudanym zapisie.
+- **Etykiety mono renderowały „İ" na tureckich/azerskich urządzeniach.**
+  `MonoLabel`/`MonoEyebrow` używały `uppercase()` z locale domyślnym
+  („sign in" → „SİGN İN"). Teraz `Locale.ROOT`, spójnie z resztą kodu.
 
 ## Performance
 
-- **Demo cold start inicjalizował Tink i Android Keystore mimo braku tokenu.** Sprawdzenie trybu demo odbywa się teraz przed wejściem do szyfrowanego magazynu tokenu, dzięki czemu koszt nie leży na krytycznej ścieżce startu demo.
-- **Każdy znak wyszukiwania ponownie sortował całą listę.** Lista jest sortowana raz po pobraniu lub odczycie cache; filtrowanie zachowuje tę kolejność. Zapytanie jest ograniczone do 256 znaków, więc duże wklejenie nie powoduje nieograniczonej pracy na głównym wątku.
-- Zastąpiono przestarzałą konfigurację `kotlinOptions.jvmTarget` aktualnym `compilerOptions`, pozostawiając jeden jawny toolchain JVM 17.
+- **Szczegóły: najdroższy odczyt aplikacji obsługiwał najmniejszy widok.**
+  Pełny fetch konta + write-through całego zaszyfrowanego snapshotu przy
+  każdym otwarciu/reloadzie → jeden mały `MaskedEmail/get` z `ids`, bez
+  zapisu cache (snapshot dogania przy następnym pełnym syncu listy).
+- **Wpisywanie w wyszukiwarkę przerysowywało wszystkie widoczne wiersze.**
+  Lambdy `onClick`/`onCopy` tworzone w `itemsIndexed` łapały `email` wiersza,
+  więc każdy keystroke dawał każdemu wierszowi nowe instancje i bił skipping
+  Compose. Teraz jedna stabilna para callbacków (maska jako parametr,
+  `rememberUpdatedState` dla nawigacji). Dodatkowo: etykieta czasu
+  relative zapamiętywana per wiersz (znika lookup zasobów + plurals na każdą
+  rekompozycję), a cztery przejścia po liście na liczniki filtrów liczą się
+  raz na zmianę danych (`remember(emails)`), nie przy każdym keystroke.
+- **Cold start: inicjalizacja Tink/Keystore nie blokuje już odczytów
+  DataStore.** Sprawdzenie tokenu (`isLoggedIn` → EncryptedSharedPreferences)
+  startuje pierwsze i nakłada się na odczyty DataStore pod splashem zamiast
+  czekać w kolejce za nimi.
+- **Martwa praca w modelu domenowym usunięta.** `formattedCreatedAt`/
+  `formattedLastMessageAt` formatowały daty (2 × DateTimeFormatter × N masek
+  × każdy fetch) i nigdzie nie były czytane — zmodel, formatter, pola.
 
 ## Bugs
 
-- Wszystkie operacje JMAP zachowują teraz `CancellationException`. Zamknięcie ekranu lub timeout nie jest już zamieniany w zwykły `Result.failure`, po którym anulowana operacja mogła jeszcze zmienić stary stan UI.
-- Quick Mask również nie połyka anulowania. Anulowany create/undo nie publikuje spóźnionego komunikatu o błędzie, a blokady double-tap są zwalniane, więc akcję można bezpiecznie ponowić.
-- Nieudana aktywacja demo nie nawiguje do częściowo ustawionej sesji, nie zostawia spinnera i nie kończy się cichym brakiem reakcji.
-- Rapid tap na wejściu do demo jest odrzucany synchronicznie, zanim druga korutyna lub drugi event nawigacji zdążą wystartować.
+- Tutorial demo: druga sesja startowała na ostatnim kroku (opisane wyżej).
+- Podwójna nawigacja z banera demo przy rapid tap (opisane wyżej).
+- Turecki „İ" w etykietach mono (opisane wyżej).
+- `QuickMaskRunner.undoneIds` rósł nieograniczenie przez życie procesu
+  (singleton; każdy udany undo latchował id na zawsze). Teraz LRU z limitem
+  256 — gwarancja guarda bez wycieku.
+- Usunięty przedawniony TODO w strings.xml (20 locale jest przetłumaczonych).
 
 ## Architecture/refactoring
 
-- Stan logowania opisuje konkretną operację (`LOGIN` / `ENTER_DEMO`) zamiast jednego niejednoznacznego booleana.
-- Welcome ma mały, jawny `UiState` dla progress/error zamiast cichego `CoroutineExceptionHandler`.
-- Wspólny wrapper suspend w warstwie JMAP centralizuje zasadę: błędy domenowe wracają jako `Result`, anulowanie pozostaje anulowaniem.
-- Istniejący podział Compose + ViewModel + use case + repository pozostał bez zmian; refaktoryzacje były ograniczone do miejsc z mierzalnym lub produktowym skutkiem.
+- Nowy `GetMaskedEmailUseCase` + `MaskedEmailRepository.getMaskedEmail(id)`
+  (interfejs, impl JMAP, demo, dispatcher router, fake testowy). JMAP `get`
+  z `ids` w `JmapApi` współdzieli parsowanie ze ścieżką pełnej listy.
+- Usunięte martwe okablowanie SharedTransition: `SharedTransitionLayout`
+  opakowywał całą nawigację i przepinał scope do listy i szczegółów, ale
+  `sharedElement`/`sharedBounds` nie istnieje nigdzie w kodzie. Mniejszy drzewo
+  kompozycji, mniej opt-inów do eksperymentalnych API.
+- `MaskedEmailDetailViewModel`: dwuetapowe ładowanie SWR z synchronicznym
+  guarda `loadInFlight` (retry double-tap nie ustawia dwóch wyścigowych
+  fetchy); semantyka `resetEdits` zachowana 1:1.
 
 ## Testy
 
-- `testDebugUnitTest`: **498/498**, 0 failures, 0 errors, 0 skipped.
-- `connectedDebugAndroidTest` na emulatorze API 35: **44/44**, 0 failures, 0 errors, 0 skipped.
-- `lintDebug`: **0 issues**.
-- `assembleDebug`: sukces.
-- `assembleRelease` z R8/lint vital: sukces; APK **4,1 MB**.
-- `git diff --check`: sukces.
-- Manualnie: fresh start, welcome → demo → tutorial → lista → tworzenie; ponowne uruchomienia demo; lista i formularz przy font scale 150%.
-
-Dodane regresje obejmują: anulowanie JMAP i Quick Mask, retry po anulowaniu, nieudane i wielokrotne wejście do demo, właściwy loader logowania/demo, limit wklejania tokenu i wyszukiwania, zachowanie sortowania podczas filtrowania, ominięcie Keystore w demo, target 48 dp oraz Next/Done w edycji szczegółów.
+- `testDebugUnitTest`: **504/504**, 0 failures (było 498; +6 regresji:
+  seed z cache przed odpowiedzią sieci, degradacja błędu do inline przy
+  widocznej treści, single-get zamiast pełnej listy, brak maski na serwerze,
+  kształt żądania `ids` w JMAP, mapowanie nieznane id → `success(null)`).
+- `lintDebug`: **0 errors**, 101 warnings.
+- `assembleRelease` (R8): sukces, APK 4,37 MB.
+- `connectedDebugAndroidTest`: **42/44** na emulatorze API 35. Dwa padające
+  testy (`creatingAMaskReturnsToTheListWithTheNewMaskOnIt`,
+  `archivingAMaskOffersAnUndoThatPutsItBack` — licznik chipa nie aktualizuje
+  się po powrocie z innego ekranu) reprodukują się **identycznie na
+  niemodyfikowanym main** (zweryfikowane: stash → run → te same 2). To
+  problem istniejący przed tą sesją; poprzednia sesja raportowała 44/44, więc
+  podejrzane są zmiany środowiska emulatora albo dependabotowe bumpy
+  (activity-compose/coroutines) z ostatnich tygodni. Emulator został zajęty
+  przez inną sesję przed root-cause.
+- Uwaga procesowa: podczas tej sesji jedna „optymalizacja" (kotwica
+  lastRefreshTime na „teraz", usuwająca drugi fetch przy otwarciu) została
+  cofnięta po analizie testów — refresh na powrót do listy jest mechanizmem,
+  którym lista dowiaduje się o maskach utworzonych/zarchiwizowanych na innych
+  ekranach; jego usunięcie psuje aktualizację liczników. Guard `fetchInFlight`
+  i tak deduplikuje nakładające się fetchy przy zimnym starcie.
 
 ## Before/After
 
-Pomiar wykonano tym samym poleceniem `am force-stop` + `am start -W`, na tym samym emulatorze API 35 i debug buildzie, w istniejącej sesji demo. Pierwszy start bezpośrednio po instalacji nie jest wliczony.
+Pomiary latency (startup, frame times) nie zostały zebrane — emulator stał się
+niedostępny w trakcie sesji. Poniżej zmiany strukturalne, weryfikowalne w kodzie:
 
-| Metryka | Przed | Po | Zmiana |
-| --- | ---: | ---: | ---: |
-| Cold start, mediana | 2229 ms (4 poprawne próby) | 1688 ms (5/5 COLD) | **-541 ms / -24,3%** |
-| Zakres cold start | 1735–2890 ms | 1494–1744 ms | mniejszy rozrzut |
-| Sortowania przy zmianie query | 1 na każdą zmianę | 0 | usunięte z hot path |
-| Maks. długość query | bez limitu | 256 znaków | ograniczona praca wejścia |
-| APK release | 4,1 MB | 4,1 MB | bez wzrostu |
-| Testy JVM | 487 | 498 | +11 regresji |
-| Testy UI | 43 | 44 | +1 flow regresyjny |
-
-Frame time/jank, pamięć i request latency nie mają wiarygodnego pomiaru before/after, więc nie są estymowane.
+| Metryka | Przed | Po |
+| --- | --- | --- |
+| Zapytanie sieciowe otwarcia szczegółów | 1 × pełny `MaskedEmail/get` konta | 1 × `get` z `ids: [id]` |
+| Zapis cache przy otwarciu szczegółów | szyfrowanie + zapis całego snapshotu | brak |
+| Prace per keystroke wyszukiwania | rekompozycja wszystkich wierszy + 4 × count + plurals per wiersz | brak (stabilne callbacki, remember) |
+| Formatowania daty per fetch listy | 2 × N (martwe, nigdy niewyświetlane) | 0 |
+| Cold start (ścieżka splasha) | Tink/Keystore sekwencyjnie po DataStore | równolegle |
+| Testy JVM | 498 | 504 |
+| Lint | 0 errors / 111 warnings (07-27) | 0 errors / 101 warnings |
 
 ## Remaining limitations
 
-- Realne logowanie, błędy 401/403/429/5xx i operacje na koncie Fastmail nie zostały wykonane bez produkcyjnego/testowego tokenu; warstwa błędów i anulowania jest pokryta testami jednostkowymi.
-- Zakupy wymagają konta Play/test tracku, a biometria i Quick Settings tile wymagają pełnej weryfikacji na fizycznym urządzeniu.
-- Manualny TalkBack, API 26, tablet/foldable i split-screen nie były dostępne w tej sesji; test wykonano na telefonicznym emulatorze API 35 oraz przy font scale 150%.
-- AndroidX Security Crypto używane przez istniejący szyfrowany cache/token store jest oznaczone jako deprecated. Migracja formatu danych bez testów upgrade/downgrade mogłaby wylogować użytkowników lub utracić cache, dlatego nie została wykonana w tym zakresie.
-- AGP 8.10.1 emituje ostrzeżenia zgodności z Gradle 10. Równoległe uruchomienie lint i kompilacji release raz trafiło na znany wyścig brakującego stubu KAPT; osobne, sekwencyjne `assembleRelease` i `lintDebug` zakończyły się zielono.
+- Dwa przedistniejące failure w instrumented suite (patrz Testy) — wymagają
+  wyłącznego emulatora do root-cause; reprodukują się na czystym main.
+- Prawdziwe logowanie do Fastmail i operacje na produkcyjnym API nie były
+  wykonywane (brak tokenu); kształt żądania single-get pokryty testem
+  jednostkowym względem kontraktu JMAP.
+- Before/after startup i frame times niezmierzone (kontencja emulatora).
+- Fonty wciąż doładowywane z Google Fonts provider (FOUT przy pierwszym
+  uruchomieniu bez GMS-cache). Bundling fontów rozważony i odrzucony w tej
+  sesji: wymaga weryfikacji wizualnej i ~1 MB assetów.

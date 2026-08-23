@@ -88,12 +88,33 @@ class QuickMaskRunner @Inject constructor(
      * slot. The user was told the mask was still on their account when it was
      * already gone, which is the more dangerous of the two possible lies.
      *
-     * A set rather than a single flag: two different masks can legitimately be
+     * A map rather than a single flag: two different masks can legitimately be
      * undone in sequence, and each id needs its own answer.
+     *
+     * Bounded on purpose: this singleton lives for the whole process and a
+     * successful undo latched its id forever, so the set grew without limit.
+     * An insertion-ordered LRU keeps exactly the same guarantee for any id a
+     * live notification can still reference while never holding more than
+     * [UNDONE_LATCH_LIMIT] entries.
      */
-    private val undoneIds = java.util.Collections.newSetFromMap(
-        java.util.concurrent.ConcurrentHashMap<String, Boolean>()
-    )
+    private val undoneLock = Any()
+    private val undoneIds = LinkedHashMap<String, Unit>(64)
+
+    /** @return true when THIS call is the one accepted for [id]. */
+    private fun latchUndone(id: String): Boolean = synchronized(undoneLock) {
+        if (undoneIds.containsKey(id)) return false
+        undoneIds[id] = Unit
+        if (undoneIds.size > UNDONE_LATCH_LIMIT) {
+            val eldest = undoneIds.keys.iterator()
+            eldest.next()
+            eldest.remove()
+        }
+        true
+    }
+
+    private fun unlatchUndone(id: String) {
+        synchronized(undoneLock) { undoneIds.remove(id) }
+    }
 
     fun launchCreate(openApp: (() -> Unit)? = null) {
         if (!createInFlight.compareAndSet(false, true)) {
@@ -141,7 +162,7 @@ class QuickMaskRunner @Inject constructor(
      *   live component, so the delete is not racing the low-memory killer.
      */
     fun launchUndo(id: String, onFinished: () -> Unit = {}) {
-        if (!undoneIds.add(id)) {
+        if (!latchUndone(id)) {
             // Already undone (or being undone) — dismiss the notification the
             // second tap came from and stop. Re-running destroy would fail with
             // notFound and report that failure over the truthful result.
@@ -161,7 +182,7 @@ class QuickMaskRunner @Inject constructor(
                 } catch (cancellation: CancellationException) {
                     // A cancelled attempt did not settle the mask's state. Let a
                     // later notification action retry it.
-                    undoneIds.remove(id)
+                    unlatchUndone(id)
                     throw cancellation
                 } catch (_: Throwable) {
                     false
@@ -169,7 +190,7 @@ class QuickMaskRunner @Inject constructor(
                 // Only a mask that is actually gone stays latched. A failed undo
                 // releases the id, so this guard can never be the reason a later
                 // attempt at the same mask is refused.
-                if (!success) undoneIds.remove(id)
+                if (!success) unlatchUndone(id)
                 notifier.showUndoResult(success = success)
             } finally {
                 onFinished()
@@ -211,5 +232,12 @@ class QuickMaskRunner @Inject constructor(
 
     private companion object {
         const val TAG = "QuickMask"
+
+        /**
+         * Latch ceiling. A notification can only reference the most recent
+         * quick-create; 256 successful undos deep, no live UI can still name
+         * an evicted id.
+         */
+        const val UNDONE_LATCH_LIMIT = 256
     }
 }

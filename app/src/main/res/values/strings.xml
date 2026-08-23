@@ -176,7 +176,6 @@
     </plurals>
 
     <!-- Welcome Screen / Demo Mode -->
-    <!-- TODO: translate to remaining 18 locales in v1.6 -->
     <string name="welcome_signin_cta">Sign in with Fastmail</string>
     <string name="welcome_demo_cta">Try demo</string>
     <string name="welcome_tagline">A quiet place for your masked addresses.</string>

@@ -51,6 +51,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -132,7 +133,7 @@ private val PendingArchiveUndoStateSaver = Saver<MutableState<PendingArchiveUndo
     },
 )
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
@@ -140,8 +141,6 @@ fun MaskedEmailListScreen(
     onNavigateToSettings: () -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
-    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope,
-    animatedContentScope: androidx.compose.animation.AnimatedContentScope,
     justArchivedId: String? = null,
     justArchivedState: EmailState? = null,
     onArchivedConsumed: (String) -> Unit = {},
@@ -238,7 +237,38 @@ fun MaskedEmailListScreen(
     val appMode by viewModel.appMode.collectAsState()
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
 
+    // One stable callback pair for ALL rows. Lambdas created inside
+    // itemsIndexed capture their row's `email`, so every recomposition of this
+    // screen — every search keystroke, every filter tap — handed each visible
+    // MaskRow a fresh lambda pair, defeated skipping, and re-ran every row's
+    // composition while the user was only typing. Taking the mask as a
+    // parameter and remembering the wrapper keeps the instances (and the
+    // recompositions) away from the hot typing path.
+    val currentOnNavigateToDetail by rememberUpdatedState(onNavigateToDetail)
+    val onRowOpen = remember {
+        { email: MaskedEmail -> currentOnNavigateToDetail(email.id) }
+    }
+    val onRowCopy = remember(copiedFormat) {
+        { email: MaskedEmail ->
+            copyToClipboard(context, email.email)
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    copiedFormat.format(email.email),
+                    duration = SnackbarDuration.Short,
+                )
+            }
+            Unit
+        }
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
+    // Deliberately starts at 0: the resume refresh is not only a freshness
+    // nicety — it is how this screen learns about masks created or archived
+    // on other screens (those mutations do not write back into this list).
+    // Anchoring at "now" skipped the refetch after every return from
+    // create/detail, leaving stale counts and rows. The 30 s throttle only
+    // guards rapid background/foreground toggles while staying composed.
     var lastRefreshTime by remember { mutableLongStateOf(0L) }
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -253,6 +283,19 @@ fun MaskedEmailListScreen(
 
     val activeCount = uiState.emails.count { it.state == EmailState.ENABLED || it.state == EmailState.PENDING }
     val totalCount = uiState.emails.size
+
+    // Per-filter counts only change with the data. Computing them in plain
+    // composition meant four passes over the whole list on EVERY recomposition
+    // of this screen — including every search keystroke — for numbers that
+    // almost never move.
+    val filterCounts = remember(uiState.emails) {
+        mapOf(
+            EmailFilter.ALL to uiState.emails.size,
+            EmailFilter.ENABLED to activeCount,
+            EmailFilter.DISABLED to uiState.emails.count { it.state == EmailState.DISABLED },
+            EmailFilter.DELETED to uiState.emails.count { it.state == EmailState.DELETED },
+        )
+    }
 
     // Tutorial coach-mark bounds. Each key corresponds to a step index defined
     // below; values are filled in via Modifier.onGloballyPositioned on the
@@ -395,12 +438,7 @@ fun MaskedEmailListScreen(
 
                     FilterRow(
                         selected = uiState.selectedFilter,
-                        counts = mapOf(
-                            EmailFilter.ALL to totalCount,
-                            EmailFilter.ENABLED to activeCount,
-                            EmailFilter.DISABLED to uiState.emails.count { it.state == EmailState.DISABLED },
-                            EmailFilter.DELETED to uiState.emails.count { it.state == EmailState.DELETED },
-                        ),
+                        counts = filterCounts,
                         onSelect = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.onFilterChange(it)
@@ -483,17 +521,8 @@ fun MaskedEmailListScreen(
                                     MaskRow(
                                         email = email,
                                         nowSec = nowSec,
-                                        onClick = { onNavigateToDetail(email.id) },
-                                        onCopy = {
-                                            copyToClipboard(context, email.email)
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    copiedFormat.format(email.email),
-                                                    duration = SnackbarDuration.Short,
-                                                )
-                                            }
-                                        },
+                                        onOpen = onRowOpen,
+                                        onCopy = onRowCopy,
                                         modifier = if (index == 0) {
                                             Modifier.onGloballyPositioned { coords ->
                                                 // Step 3 highlights the first mask card.
@@ -713,16 +742,23 @@ private fun stateContentDescription(state: EmailState): Int = when (state) {
 private fun MaskRow(
     email: MaskedEmail,
     nowSec: Long,
-    onClick: () -> Unit,
-    onCopy: () -> Unit,
+    onOpen: (MaskedEmail) -> Unit,
+    onCopy: (MaskedEmail) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val extras = FastMaskExtras.current
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
+    // The label depends only on the timestamps and the "now" anchor — not on
+    // anything else happening in this screen. Without remember, every row ran
+    // a resources lookup + plural resolution on each recomposition (e.g. while
+    // the user types in search).
+    val timeLabel = remember(email.lastMessageAt, email.createdAt, nowSec) {
+        RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec)
+    }
     DesignCard(
         modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
+        onClick = { onOpen(email) },
     ) {
         Row(
             modifier = Modifier
@@ -752,7 +788,7 @@ private fun MaskRow(
                             .padding(end = 8.dp),
                     )
                     Text(
-                        text = RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec),
+                        text = timeLabel,
                         style = MonoTimestampStyle,
                         color = extras.inkMuted,
                     )
@@ -773,7 +809,7 @@ private fun MaskRow(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .clickable(role = Role.Button, onClickLabel = copyLabel, onClick = onCopy),
+                    .clickable(role = Role.Button, onClickLabel = copyLabel) { onCopy(email) },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(

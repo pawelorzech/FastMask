@@ -9,6 +9,16 @@ interface MaskedEmailRepository {
     suspend fun getMaskedEmails(): Result<List<MaskedEmail>>
 
     /**
+     * A single mask by id, straight from the server.
+     *
+     * @return `Result.success(null)` when the server does not know the id —
+     *   the mask was deleted elsewhere or the deep link is stale.
+     *   `Result.failure` is a transport/server error; the caller may still
+     *   have a cached copy worth showing (stale-while-revalidate).
+     */
+    suspend fun getMaskedEmail(id: String): Result<MaskedEmail?>
+
+    /**
      * Last known good snapshot, for showing the list without a network.
      *
      * Deliberately NOT folded into [getMaskedEmails]: that call means "tell me

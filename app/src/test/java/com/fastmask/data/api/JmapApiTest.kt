@@ -34,6 +34,7 @@ class JmapApiTest {
     ) : JmapService {
         var lastMethodUrl: String? = null
         var executeCount = 0
+        var lastRequest: JmapRequest? = null
 
         override suspend fun getSession(url: String, authHeader: String): JmapSession =
             sessionFailure?.let { throw it } ?: session ?: error("no session configured")
@@ -45,6 +46,7 @@ class JmapApiTest {
         ): JmapResponse {
             executeFailure?.let { throw it }
             lastMethodUrl = url
+            lastRequest = request
             executeCount++
             return response ?: error("no response configured")
         }
@@ -204,6 +206,57 @@ class JmapApiTest {
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is JmapException)
         assertTrue(result.exceptionOrNull()!!.message!!.contains("unknownAccountId"))
+    }
+
+    // --- single-mask get (detail screen stale-while-revalidate) -------------
+
+    private fun singleGetPayload(vararg ids: String) = buildJsonObject {
+        put("accountId", "acc-1")
+        put("state", "s2")
+        put("list", buildJsonArray {
+            ids.forEach { id ->
+                add(buildJsonObject {
+                    put("id", id)
+                    put("email", "$id@fastmail.com")
+                    put("state", "enabled")
+                })
+            }
+        })
+    }
+
+    @Test
+    fun `getMaskedEmail restricts the fetch with the ids argument`() = runTest {
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1"))
+        )
+        val api = JmapApi(service, json)
+
+        val result = api.getMaskedEmail("tok", "m1")
+
+        assertTrue(result.isSuccess)
+        assertEquals("m1", result.getOrThrow()?.id)
+        // The whole point of this endpoint: the server only returns ONE mask.
+        val invocation = service.lastRequest!!.methodCalls.single()
+        val arguments = invocation[1] as JsonObject
+        val ids = arguments["ids"] as JsonArray
+        assertEquals(listOf(JsonPrimitive("m1")), ids)
+    }
+
+    @Test
+    fun `getMaskedEmail maps an unknown id to success null`() = runTest {
+        // Server answers a well-formed get whose list simply does not contain
+        // the requested mask (deleted elsewhere / stale deep link).
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload())
+        )
+        val api = JmapApi(service, json)
+
+        val result = api.getMaskedEmail("tok", "gone")
+
+        assertTrue(result.isSuccess)
+        assertNull(result.getOrThrow())
     }
 
     // --- set parsing: create ----------------------------------------------

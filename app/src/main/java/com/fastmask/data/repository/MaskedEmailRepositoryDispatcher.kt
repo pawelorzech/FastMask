@@ -38,6 +38,9 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> =
         current().getMaskedEmails()
 
+    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> =
+        current().getMaskedEmail(id)
+
     override suspend fun cachedMaskedEmails(): CachedMasks? =
         current().cachedMaskedEmails()
 

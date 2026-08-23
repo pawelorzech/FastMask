@@ -49,6 +49,7 @@ import com.fastmask.ui.theme.MonoSmallStyle
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
+import java.util.Locale
 
 // ============================================================
 // Mono labels — uppercase tiny markers used throughout the design
@@ -61,7 +62,9 @@ fun MonoLabel(
 ) {
     val resolved = color ?: FastMaskExtras.current.inkMuted
     Text(
-        text = text.uppercase(),
+        // Locale-invariant: the default-locale variant turns every "i" into a
+        // dotted "İ" on Turkish/Azerbaijani devices ("SİGN İN").
+        text = text.uppercase(Locale.ROOT),
         style = MonoLabelStyle,
         color = resolved,
         modifier = modifier,
@@ -76,7 +79,7 @@ fun MonoEyebrow(
 ) {
     val resolved = color ?: FastMaskExtras.current.inkMuted
     Text(
-        text = text.uppercase(),
+        text = text.uppercase(Locale.ROOT),
         style = MonoSmallStyle,
         color = resolved,
         modifier = modifier,

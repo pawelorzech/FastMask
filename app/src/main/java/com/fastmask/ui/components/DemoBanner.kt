@@ -112,14 +112,28 @@ class DemoBannerViewModel @Inject constructor(
      * fired *after* the state flip so that subsequent screens observe REAL mode.
      */
     fun exitDemoMode(onDone: () -> Unit) {
+        // Same synchronous double-tap guard as every other mutating entry
+        // point: the button stays enabled during the two DataStore writes, and
+        // two taps in that window would each fire [onDone] — double navigation.
+        if (exitInFlight) return
+        exitInFlight = true
         // Swallow a DataStore write failure instead of crashing on the main
         // thread (viewModelScope rethrows uncaught exceptions); [onDone] only
         // runs after both writes succeed, so navigation never fires on a
-        // half-applied state change.
-        viewModelScope.launch(CoroutineExceptionHandler { _, _ -> }) {
-            settingsDataStore.setAppMode(AppMode.REAL)
-            settingsDataStore.setTutorialCompleted(false)
-            onDone()
+        // half-applied state change. The guard releases on every terminal
+        // outcome so a failed write can still be retried with the next tap.
+        viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
+            exitInFlight = false
+        }) {
+            try {
+                settingsDataStore.setAppMode(AppMode.REAL)
+                settingsDataStore.setTutorialCompleted(false)
+                onDone()
+            } finally {
+                exitInFlight = false
+            }
         }
     }
+
+    private var exitInFlight = false
 }
