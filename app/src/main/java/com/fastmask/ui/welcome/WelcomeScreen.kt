@@ -19,6 +19,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
 import com.fastmask.R
 import com.fastmask.ui.accessibility.screenHeading
+import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.components.MonoEyebrow
 import com.fastmask.ui.components.PillButton
 import com.fastmask.ui.components.PillButtonVariant
@@ -45,6 +48,7 @@ fun WelcomeScreen(
     onEnterDemo: () -> Unit,
     viewModel: WelcomeViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val extras = FastMaskExtras.current
 
     LaunchedEffect(Unit) {
@@ -123,6 +127,7 @@ fun WelcomeScreen(
                 text = stringResource(R.string.welcome_signin_cta),
                 onClick = viewModel::goToSignIn,
                 variant = PillButtonVariant.Primary,
+                enabled = !uiState.isLoading,
                 fullWidth = true,
                 trailing = {
                     Icon(
@@ -141,8 +146,20 @@ fun WelcomeScreen(
                 text = stringResource(R.string.welcome_demo_cta),
                 onClick = viewModel::enterDemoMode,
                 variant = PillButtonVariant.Ghost,
+                loading = uiState.isLoading,
+                loadingDescription = stringResource(R.string.state_working),
                 fullWidth = true,
             )
+
+            uiState.errorRes?.let { errorRes ->
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = stringResource(errorRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = extras.status.deleted.content,
+                    modifier = Modifier.politeLiveRegion(),
+                )
+            }
 
             Spacer(Modifier.height(36.dp))
 

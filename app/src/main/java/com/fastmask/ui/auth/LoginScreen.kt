@@ -288,13 +288,13 @@ fun LoginScreen(
                 // what drives the screen-reader announcement, and it also
                 // disables the button, so the enabled expression no longer has
                 // to repeat !isLoading.
-                loading = uiState.isLoading,
+                loading = uiState.operation == LoginOperation.LOGIN,
                 loadingDescription = stringResource(R.string.state_working),
                 onClick = { viewModel.login() },
-                enabled = uiState.token.isNotBlank(),
+                enabled = uiState.token.isNotBlank() && !uiState.isLoading,
                 variant = PillButtonVariant.Primary,
                 fullWidth = true,
-                trailing = if (uiState.isLoading) {
+                trailing = if (uiState.operation == LoginOperation.LOGIN) {
                     null
                 } else {
                     {
@@ -362,6 +362,8 @@ fun LoginScreen(
                 text = stringResource(R.string.login_try_demo),
                 onClick = viewModel::enterDemoMode,
                 variant = PillButtonVariant.Ghost,
+                loading = uiState.operation == LoginOperation.ENTER_DEMO,
+                loadingDescription = stringResource(R.string.state_working),
                 enabled = !uiState.isLoading,
                 fullWidth = true,
             )

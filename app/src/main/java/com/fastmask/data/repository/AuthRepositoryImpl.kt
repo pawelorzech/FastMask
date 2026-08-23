@@ -52,7 +52,11 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun isLoggedIn(): Boolean {
-        return tokenStorage.hasToken() || settingsDataStore.appModeBlocking() == AppMode.DEMO
+        // Demo mode is already a complete local session and does not need the
+        // encrypted token store. Check it first: constructing
+        // EncryptedSharedPreferences initializes Tink + Android Keystore and
+        // used to sit on every demo cold-start's critical path for no result.
+        return settingsDataStore.appModeBlocking() == AppMode.DEMO || tokenStorage.hasToken()
     }
 
     override fun getToken(): String? {

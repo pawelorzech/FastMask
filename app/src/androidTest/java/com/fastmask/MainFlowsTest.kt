@@ -1,6 +1,7 @@
 package com.fastmask
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -9,10 +10,13 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.text.input.ImeAction
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,6 +28,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.After
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -295,14 +300,52 @@ class MainFlowsTest {
 
         composeRule.onNodeWithText(string(R.string.email_list_no_matches)).assertIsDisplayed()
 
-        composeRule.onNodeWithContentDescription(string(R.string.email_list_clear_search))
-            .performClick()
+        val clearSearch = composeRule.onNodeWithContentDescription(
+            string(R.string.email_list_clear_search),
+        )
+        val minimumTouchPx = 48f * context.resources.displayMetrics.density
+        assertTrue(clearSearch.fetchSemanticsNode().boundsInRoot.width >= minimumTouchPx - 1f)
+        clearSearch.performClick()
         composeRule.waitForIdle()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("@", substring = true)
                 .fetchSemanticsNodes().size == before
         }
+    }
+
+    @Test
+    fun detailEditorUsesNextAndDoneToMoveThroughTheForm() {
+        enterDemoAndDismissTutorial()
+        composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
+        awaitContentDescription(string(R.string.email_detail_delete))
+
+        val description = composeRule.onNodeWithContentDescription(
+            string(R.string.email_detail_description_label),
+        )
+        val domain = composeRule.onNodeWithContentDescription(
+            string(R.string.email_detail_domain_label),
+        )
+        val url = composeRule.onNodeWithContentDescription(
+            string(R.string.email_detail_url_label),
+        )
+
+        assertEquals(
+            ImeAction.Next,
+            description.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ImeAction),
+        )
+        assertEquals(
+            ImeAction.Next,
+            domain.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ImeAction),
+        )
+        assertEquals(
+            ImeAction.Done,
+            url.fetchSemanticsNode().config.getOrNull(SemanticsProperties.ImeAction),
+        )
+
+        description.performScrollTo().requestFocus().performImeAction()
+        domain.assertIsFocused().performImeAction()
+        url.assertIsFocused()
     }
 
     // --- settings ---------------------------------------------------------

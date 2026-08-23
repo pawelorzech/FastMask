@@ -137,14 +137,15 @@ class MaskedEmailListViewModel @Inject constructor(
             try {
                 getMaskedEmailsUseCase().fold(
                     onSuccess = { emails ->
+                        val sortedEmails = emails.sortedByDescending { email ->
+                            email.lastMessageAt ?: email.createdAt
+                        }
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                emails = emails.sortedByDescending { email ->
-                                    email.lastMessageAt ?: email.createdAt
-                                },
+                                emails = sortedEmails,
                                 filteredEmails = filterEmails(
-                                    emails,
+                                    sortedEmails,
                                     it.searchQuery,
                                     it.selectedFilter,
                                 ),
@@ -167,15 +168,16 @@ class MaskedEmailListViewModel @Inject constructor(
                         } else {
                             null
                         }
+                        val sortedCached = cached?.masks?.sortedByDescending { email ->
+                            email.lastMessageAt ?: email.createdAt
+                        }
                         _uiState.update {
                             when {
                                 cached != null && cached.masks.isNotEmpty() -> it.copy(
                                     isLoading = false,
-                                    emails = cached.masks.sortedByDescending { email ->
-                                        email.lastMessageAt ?: email.createdAt
-                                    },
+                                    emails = sortedCached.orEmpty(),
                                     filteredEmails = filterEmails(
-                                        cached.masks, it.searchQuery, it.selectedFilter,
+                                        sortedCached.orEmpty(), it.searchQuery, it.selectedFilter,
                                     ),
                                     // Shown, never hidden: presenting stale
                                     // masks as current would be a quiet lie
@@ -199,10 +201,15 @@ class MaskedEmailListViewModel @Inject constructor(
     }
 
     fun onSearchQueryChange(query: String) {
+        // A hardware keyboard / IME paste bypasses any custom paste action.
+        // A search term longer than this has no product value, but keeping and
+        // comparing an unbounded document on every keystroke can make typing
+        // visibly lag on large mask lists.
+        val boundedQuery = query.take(MAX_SEARCH_QUERY_LENGTH)
         _uiState.update {
             it.copy(
-                searchQuery = query,
-                filteredEmails = filterEmails(it.emails, query, it.selectedFilter)
+                searchQuery = boundedQuery,
+                filteredEmails = filterEmails(it.emails, boundedQuery, it.selectedFilter)
             )
         }
     }
@@ -240,7 +247,10 @@ class MaskedEmailListViewModel @Inject constructor(
                             email.forDomain?.contains(query, ignoreCase = true) == true
                 }
             }
-            .sortedByDescending { it.lastMessageAt ?: it.createdAt }
+    }
+
+    companion object {
+        internal const val MAX_SEARCH_QUERY_LENGTH = 256
     }
 }
 

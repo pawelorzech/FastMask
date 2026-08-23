@@ -186,6 +186,7 @@
     <string name="welcome_demo_cta">Prova la demo</string>
     <string name="welcome_tagline">Un posto tranquillo per i tuoi indirizzi mascherati.</string>
     <string name="welcome_privacy_note">Privacy first · open source</string>
+    <string name="demo_error_start">Impossibile avviare la demo. Libera spazio e riprova.</string>
     <string name="demo_banner_text">Modalità demo — i cambiamenti non verranno salvati</string>
     <string name="demo_banner_signin">Accedi</string>
     <string name="tutorial_step_1_title">Le tue email mascherate</string>

@@ -9,7 +9,7 @@ import com.fastmask.domain.usecase.DemoModeActivator
 import com.fastmask.domain.usecase.LoginUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -34,15 +34,20 @@ class LoginViewModel @Inject constructor(
     private val _events = Channel<LoginEvent>(Channel.BUFFERED)
     val events: Flow<LoginEvent> = _events.receiveAsFlow()
 
-    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
-
     fun onTokenChange(token: String) {
+        // This path also receives the platform/keyboard paste action, not only
+        // individual keystrokes. The custom Paste button was capped, but a
+        // long-press paste could still put hundreds of thousands of masked
+        // glyphs into a single-line field and stall layout on the main thread.
+        val boundedToken = TokenFormat.sanitizePasted(token)
         _uiState.update {
             it.copy(
-                token = token,
+                token = boundedToken,
                 errorRes = null,
                 warningRes = null,
-                detectedClipboardToken = if (token.isNotBlank() && token == it.detectedClipboardToken) null else it.detectedClipboardToken,
+                detectedClipboardToken = if (
+                    boundedToken.isNotBlank() && boundedToken == it.detectedClipboardToken
+                ) null else it.detectedClipboardToken,
             )
         }
     }
@@ -126,22 +131,30 @@ class LoginViewModel @Inject constructor(
         // exclusive: both buttons are disabled while isLoading, which stops a
         // same-frame Unlock tap from persisting a real token into what is
         // about to become a demo session.
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch(writeErrorHandler) {
+        _uiState.update {
+            it.copy(operation = LoginOperation.ENTER_DEMO, errorRes = null)
+        }
+        viewModelScope.launch {
             try {
                 demoModeActivator.activate()
-            } finally {
-                // Also on the failure path — the handler above swallows the
-                // exception, and a stuck spinner would disable both buttons
-                // for the rest of the screen's life.
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        token = "",
+                        operation = null,
+                        errorRes = null,
+                        warningRes = null,
+                    )
+                }
+                _events.send(LoginEvent.EnterDemo)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Throwable) {
+                // Preserve the token so the user can still retry signing in;
+                // only the failed demo action is reset.
+                _uiState.update {
+                    it.copy(operation = null, errorRes = R.string.demo_error_start)
+                }
             }
-            // Only once the mode flag is persisted, mirroring every other
-            // terminal transition on this screen: the secret leaves UI state
-            // when the screen is done with it. A failed write returns above,
-            // leaving the user's input intact to retry.
-            _uiState.update { it.copy(token = "", errorRes = null, warningRes = null) }
-            _events.send(LoginEvent.EnterDemo)
         }
     }
 
@@ -158,7 +171,7 @@ class LoginViewModel @Inject constructor(
         // double-tap guard above cannot race the launch.
         _uiState.update {
             it.copy(
-                isLoading = true,
+                operation = LoginOperation.LOGIN,
                 errorRes = null,
                 warningRes = if (TokenFormat.shouldWarn(token)) R.string.login_token_warning_shape else null,
             )
@@ -171,7 +184,7 @@ class LoginViewModel @Inject constructor(
                     // standing: it describes what the user submitted, and the
                     // screen navigates away on success anyway — clearing it
                     // here would only matter if the login somehow stayed put.
-                    _uiState.update { it.copy(token = "", isLoading = false) }
+                    _uiState.update { it.copy(token = "", operation = null) }
                     _events.send(LoginEvent.LoginSuccess)
                 },
                 onFailure = { error ->
@@ -179,7 +192,7 @@ class LoginViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 token = "",
-                                isLoading = false,
+                                operation = null,
                                 errorRes = R.string.login_error_missing_masked_email_scope,
                                 // The shape hint describes the field's content;
                                 // once that content is gone it describes
@@ -200,7 +213,7 @@ class LoginViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 token = if (retryable) it.token else "",
-                                isLoading = false,
+                                operation = null,
                                 errorRes = UiErrors.messageRes(error, R.string.login_error_failed),
                                 // Tied to the token: the hint stays while the
                                 // content it describes is still in the field,
@@ -217,7 +230,7 @@ class LoginViewModel @Inject constructor(
 
 data class LoginUiState(
     val token: String = "",
-    val isLoading: Boolean = false,
+    val operation: LoginOperation? = null,
     val errorRes: Int? = null,
     /**
      * Soft, non-blocking hint that the field does not hold something shaped
@@ -231,7 +244,14 @@ data class LoginUiState(
      * automatically without explicit user confirmation.
      */
     val detectedClipboardToken: String? = null,
-)
+) {
+    val isLoading: Boolean get() = operation != null
+}
+
+enum class LoginOperation {
+    LOGIN,
+    ENTER_DEMO,
+}
 
 sealed class LoginEvent {
     data object LoginSuccess : LoginEvent()

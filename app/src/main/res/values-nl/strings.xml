@@ -180,6 +180,7 @@
     <string name="welcome_demo_cta">Demo proberen</string>
     <string name="welcome_tagline">Een rustige plek voor uw gemaskeerde adressen.</string>
     <string name="welcome_privacy_note">Privacy voorop · open source</string>
+    <string name="demo_error_start">Kan de demo niet starten. Maak opslagruimte vrij en probeer het opnieuw.</string>
     <string name="demo_banner_text">Demo-modus — wijzigingen worden niet opgeslagen</string>
     <string name="demo_banner_signin">Aanmelden</string>
     <string name="tutorial_step_1_title">Uw gemaskeerde e-mails</string>

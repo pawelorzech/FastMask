@@ -204,6 +204,7 @@
     <string name="welcome_demo_cta">جرّب النسخة التجريبية</string>
     <string name="welcome_tagline">مكان هادئ لعناوينك المقنّعة.</string>
     <string name="welcome_privacy_note">الخصوصية أولاً · مفتوح المصدر</string>
+    <string name="demo_error_start">تعذّر بدء العرض التجريبي. وفّر بعض مساحة التخزين وحاول مرة أخرى.</string>
     <string name="demo_banner_text">النسخة التجريبية — لن يتم حفظ التغييرات</string>
     <string name="demo_banner_signin">تسجيل الدخول</string>
     <string name="tutorial_step_1_title">رسائلك المقنّعة</string>

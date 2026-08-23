@@ -177,6 +177,7 @@
     <string name="welcome_demo_cta">Wypróbuj demo</string>
     <string name="welcome_tagline">Spokojne miejsce dla ukrytych adresów.</string>
     <string name="welcome_privacy_note">Prywatność · open source</string>
+    <string name="demo_error_start">Nie udało się uruchomić demo. Zwolnij miejsce i spróbuj ponownie.</string>
     <string name="demo_banner_text">Tryb demo — zmiany nie są zapisywane</string>
     <string name="demo_banner_signin">Zaloguj</string>
     <string name="tutorial_step_1_title">Twoje maskowane adresy</string>

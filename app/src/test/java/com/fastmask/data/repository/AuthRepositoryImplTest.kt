@@ -7,9 +7,11 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AuthRepositoryImplTest {
@@ -21,6 +23,25 @@ class AuthRepositoryImplTest {
     private val maskCache = mockk<MaskedEmailCache>(relaxed = true)
 
     private val repository = AuthRepositoryImpl(tokenStorage, jmapApi, settings, exportCache, maskCache)
+
+    @Test
+    fun `demo session skips encrypted token storage on startup`() {
+        every { settings.appModeBlocking() } returns AppMode.DEMO
+
+        assertTrue(repository.isLoggedIn())
+
+        verify(exactly = 0) { tokenStorage.hasToken() }
+    }
+
+    @Test
+    fun `real session still checks encrypted token storage`() {
+        every { settings.appModeBlocking() } returns AppMode.REAL
+        every { tokenStorage.hasToken() } returns true
+
+        assertTrue(repository.isLoggedIn())
+
+        verify(exactly = 1) { tokenStorage.hasToken() }
+    }
 
     /**
      * A CSV export holds every mask in plaintext under cacheDir. Ageing it out

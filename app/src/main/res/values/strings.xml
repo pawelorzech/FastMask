@@ -181,6 +181,7 @@
     <string name="welcome_demo_cta">Try demo</string>
     <string name="welcome_tagline">A quiet place for your masked addresses.</string>
     <string name="welcome_privacy_note">Privacy-first · open source</string>
+    <string name="demo_error_start">Couldn\'t start the demo. Free up some storage and try again.</string>
     <string name="demo_banner_text">Demo mode — changes won\'t be saved</string>
     <string name="demo_banner_signin">Sign in</string>
     <string name="tutorial_step_1_title">Your masked emails</string>

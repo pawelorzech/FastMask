@@ -49,6 +49,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -217,7 +218,10 @@ fun CreateMaskedEmailScreen(
                     isError = uiState.prefixErrorRes != null,
                     enabled = !uiState.isLoading,
                     mono = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Ascii,
+                        imeAction = ImeAction.Next,
+                    ),
                     keyboardActions = KeyboardActions(
                         onNext = { domainFocus.requestFocus() }
                     ),
@@ -230,7 +234,10 @@ fun CreateMaskedEmailScreen(
                     label = stringResource(R.string.create_email_domain_label),
                     placeholder = stringResource(R.string.create_email_domain_placeholder),
                     enabled = !uiState.isLoading,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Next,
+                    ),
                     keyboardActions = KeyboardActions(
                         onNext = { descriptionFocus.requestFocus() }
                     ),
@@ -257,7 +264,10 @@ fun CreateMaskedEmailScreen(
                     placeholder = stringResource(R.string.create_email_url_placeholder),
                     enabled = !uiState.isLoading,
                     mono = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done,
+                    ),
                     modifier = Modifier.focusRequester(urlFocus),
                 )
 

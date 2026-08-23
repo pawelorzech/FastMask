@@ -2,11 +2,13 @@ package com.fastmask.quickmask
 
 import android.content.Context
 import com.fastmask.domain.usecase.QuickMaskCreator
+import com.fastmask.domain.usecase.QuickMaskResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import io.mockk.verify
@@ -115,5 +117,38 @@ class QuickMaskUndoIdempotenceTest {
         advanceUntilIdle()
 
         verify(exactly = 2) { notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID) }
+    }
+
+    @Test
+    fun `a cancelled create releases the in-flight guard`() = runTest {
+        coEvery { creator.create() } throws CancellationException("stopped")
+        val runner = runner()
+
+        runner.launchCreate(openApp = {})
+        advanceUntilIdle()
+
+        verify(exactly = 0) { notifier.showFailure(any()) }
+        coEvery { creator.create() } returns QuickMaskResult.NotSignedIn
+        runner.launchCreate(openApp = {})
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { creator.create() }
+    }
+
+    @Test
+    fun `a cancelled undo releases the id for retry`() = runTest {
+        coEvery { creator.undo("m1") } throws CancellationException("stopped")
+        val runner = runner()
+
+        runner.launchUndo("m1")
+        advanceUntilIdle()
+
+        verify(exactly = 0) { notifier.showUndoResult(success = false) }
+        coEvery { creator.undo("m1") } returns true
+        runner.launchUndo("m1")
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { creator.undo("m1") }
+        verify(exactly = 1) { notifier.showUndoResult(success = true) }
     }
 }

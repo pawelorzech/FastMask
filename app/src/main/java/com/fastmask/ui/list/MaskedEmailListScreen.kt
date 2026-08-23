@@ -365,7 +365,7 @@ fun MaskedEmailListScreen(
                             Text(
                                 text = stringResource(R.string.email_list_title),
                                 style = MaterialTheme.typography.displayMedium,
-                    modifier = Modifier.semantics { heading() },
+                                modifier = Modifier.semantics { heading() },
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
                         }
@@ -601,11 +601,10 @@ private fun SearchField(
             }
         }
         if (query.isNotEmpty()) {
-            // 40dp touch target (visual glyph stays 16dp) — a11y minimum for a
-            // secondary inline control inside the 44dp-tall search field.
+            // Full 48dp platform touch target; the visual glyph stays 16dp.
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(48.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .clickable(role = Role.Button) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)

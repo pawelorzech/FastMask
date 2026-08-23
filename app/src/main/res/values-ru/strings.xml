@@ -192,6 +192,7 @@
     <string name="welcome_demo_cta">Попробовать демо</string>
     <string name="welcome_tagline">Тихое место для ваших защищённых адресов.</string>
     <string name="welcome_privacy_note">Конфиденциальность в приоритете · открытый код</string>
+    <string name="demo_error_start">Не удалось запустить демо. Освободите место и попробуйте снова.</string>
     <string name="demo_banner_text">Режим демо — изменения не будут сохранены</string>
     <string name="demo_banner_signin">Войти</string>
     <string name="tutorial_step_1_title">Ваши защищённые письма</string>

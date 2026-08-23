@@ -186,6 +186,7 @@
     <string name="welcome_demo_cta">Prueba la demostración</string>
     <string name="welcome_tagline">Un lugar tranquilo para tus direcciones enmascaradas.</string>
     <string name="welcome_privacy_note">Privacidad primero · código abierto</string>
+    <string name="demo_error_start">No se pudo iniciar la demostración. Libera espacio e inténtalo de nuevo.</string>
     <string name="demo_banner_text">Modo de demostración — los cambios no se guardarán</string>
     <string name="demo_banner_signin">Iniciar sesión</string>
     <string name="tutorial_step_1_title">Tus correos enmascarados</string>

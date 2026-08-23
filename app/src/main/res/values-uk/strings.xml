@@ -192,6 +192,7 @@
     <string name="welcome_demo_cta">Спробувати демо</string>
     <string name="welcome_tagline">Тихе місце для ваших замаскованих адрес.</string>
     <string name="welcome_privacy_note">Конфіденційність — пріоритет · відкритий код</string>
+    <string name="demo_error_start">Не вдалося запустити демо. Звільніть місце та спробуйте ще раз.</string>
     <string name="demo_banner_text">Режим демо — зміни не буде збережено</string>
     <string name="demo_banner_signin">Увійти</string>
     <string name="tutorial_step_1_title">Ваші замасковані листи</string>

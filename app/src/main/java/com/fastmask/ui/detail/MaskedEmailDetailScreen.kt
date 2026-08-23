@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -47,10 +49,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
@@ -234,6 +240,8 @@ private fun DetailContent(
     val email = uiState.email!!
     val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
+    val domainFocus = remember { FocusRequester() }
+    val urlFocus = remember { FocusRequester() }
 
     Column(
         modifier = Modifier
@@ -347,6 +355,8 @@ private fun DetailContent(
             onValueChange = onDescriptionChange,
             label = stringResource(R.string.email_detail_description_label),
             enabled = !uiState.isUpdating,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { domainFocus.requestFocus() }),
         )
         Spacer(Modifier.height(14.dp))
 
@@ -355,6 +365,12 @@ private fun DetailContent(
             onValueChange = onForDomainChange,
             label = stringResource(R.string.email_detail_domain_label),
             enabled = !uiState.isUpdating,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Next,
+            ),
+            keyboardActions = KeyboardActions(onNext = { urlFocus.requestFocus() }),
+            modifier = Modifier.focusRequester(domainFocus),
         )
         Spacer(Modifier.height(14.dp))
 
@@ -364,6 +380,11 @@ private fun DetailContent(
             label = stringResource(R.string.email_detail_url_label),
             mono = true,
             enabled = !uiState.isUpdating,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Done,
+            ),
+            modifier = Modifier.focusRequester(urlFocus),
         )
 
         if (uiState.errorRes != null) {

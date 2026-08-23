@@ -2,6 +2,7 @@
 
 package com.fastmask.ui.welcome
 
+import com.fastmask.R
 import com.fastmask.domain.usecase.LoginUseCase
 import com.fastmask.testutil.FakeAuthRepository
 import com.fastmask.testutil.FakeDemoModeActivator
@@ -54,6 +55,22 @@ class WelcomeViewModelTest {
 
         assertEquals(1, demo.activateCalls)
         assertNull(received)
+        assertEquals(R.string.demo_error_start, viewModel.uiState.value.errorRes)
+        assertEquals(false, viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `rapid demo taps activate once and expose immediate progress`() = runTest {
+        val demo = FakeDemoModeActivator()
+        val viewModel = WelcomeViewModel(demo)
+
+        viewModel.enterDemoMode()
+        assertEquals(true, viewModel.uiState.value.isLoading)
+        viewModel.enterDemoMode()
+        advanceUntilIdle()
+
+        assertEquals(1, demo.activateCalls)
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
     @Test

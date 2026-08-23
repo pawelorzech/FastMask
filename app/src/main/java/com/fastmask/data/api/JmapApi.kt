@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.decodeFromJsonElement
 import java.net.URI
 import javax.inject.Inject
@@ -32,7 +33,7 @@ class JmapApi @Inject constructor(
     private var cachedAccountId: String? = null
     private val sessionMutex = Mutex()
 
-    suspend fun getSession(token: String): Result<JmapSession> = runCatching {
+    suspend fun getSession(token: String): Result<JmapSession> = runSuspendCatching {
         val authHeader = "Bearer $token"
         val session = jmapService.getSession(authHeader = authHeader)
         require(isFastmailHttpsUrl(session.apiUrl)) {
@@ -67,7 +68,7 @@ class JmapApi @Inject constructor(
         }
     }
 
-    suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runCatching {
+    suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runSuspendCatching {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
@@ -96,7 +97,7 @@ class JmapApi @Inject constructor(
     suspend fun createMaskedEmail(
         token: String,
         create: MaskedEmailCreate
-    ): Result<MaskedEmailDto> = runCatching {
+    ): Result<MaskedEmailDto> = runSuspendCatching {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
@@ -137,7 +138,7 @@ class JmapApi @Inject constructor(
         token: String,
         id: String,
         update: MaskedEmailUpdate
-    ): Result<Unit> = runCatching {
+    ): Result<Unit> = runSuspendCatching {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
@@ -173,7 +174,7 @@ class JmapApi @Inject constructor(
         parseSetResponseUpdated(response, id)
     }
 
-    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runCatching {
+    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runSuspendCatching {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
@@ -303,3 +304,18 @@ class JmapApi @Inject constructor(
 }
 
 class JmapException(message: String) : Exception(message)
+
+/**
+ * Result wrapper for suspend I/O that preserves structured cancellation.
+ * Kotlin's standard runCatching also catches CancellationException, turning a
+ * closed screen or timeout into an ordinary UI error and allowing the cancelled
+ * coroutine to continue mutating stale state.
+ */
+private suspend fun <T> runSuspendCatching(block: suspend () -> T): Result<T> =
+    try {
+        Result.success(block())
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (error: Throwable) {
+        Result.failure(error)
+    }

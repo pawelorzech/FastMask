@@ -16,6 +16,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -99,32 +100,37 @@ class QuickMaskRunner @Inject constructor(
             return
         }
         scope.launch {
-            // A throwable escaping the gates (storage) is the same outcome as an
-            // API rejection: no mask, and the user gets told why.
-            val result = runCatching { quickMaskCreator.create() }
-                .getOrElse { throwable -> QuickMaskResult.Failed(cause = throwable) }
-
-            when (result) {
-                is QuickMaskResult.Created -> {
-                    copyToClipboard(context, result.email)
-                    notifier.showCreated(id = result.id)
+            try {
+                // A throwable escaping the gates (storage) is the same outcome
+                // as an API rejection. Cancellation is different: swallowing it
+                // could post a stale failure after Android has cancelled the
+                // work, so it must keep its structured-concurrency meaning.
+                val result = try {
+                    quickMaskCreator.create()
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (throwable: Throwable) {
+                    QuickMaskResult.Failed(cause = throwable)
                 }
-                // Nothing was created on any of these. Signing in, leaving demo
-                // mode and passing the biometric gate all happen in the app —
-                // the tile lives above the lock screen and must not be a way
-                // around it.
-                QuickMaskResult.NotSignedIn,
-                QuickMaskResult.DemoMode,
-                QuickMaskResult.LockRequired -> handOffToApp(openApp)
-                // The domain layer reports the cause; mapping it to a localized
-                // message happens here, in the Android layer, and nowhere else.
-                is QuickMaskResult.Failed -> notifyFailure(result.cause)
+
+                when (result) {
+                    is QuickMaskResult.Created -> {
+                        copyToClipboard(context, result.email)
+                        notifier.showCreated(id = result.id)
+                    }
+                    // Nothing was created on any of these. Signing in, leaving
+                    // demo mode and passing the biometric gate all happen in
+                    // the app — the tile must not be a way around it.
+                    QuickMaskResult.NotSignedIn,
+                    QuickMaskResult.DemoMode,
+                    QuickMaskResult.LockRequired -> handOffToApp(openApp)
+                    is QuickMaskResult.Failed -> notifyFailure(result.cause)
+                }
+            } finally {
+                // Also release after cancellation, otherwise one cancelled tile
+                // action disables Quick Mask for the rest of the process.
+                createInFlight.set(false)
             }
-            // In the coroutine's own body rather than a finally: a throwable
-            // escaping here is caught by crashGuard, which releases the flag
-            // too. Both paths must release, or the tile is dead for the rest
-            // of the process.
-            createInFlight.set(false)
         }
     }
 
@@ -150,7 +156,16 @@ class QuickMaskRunner @Inject constructor(
                 // forever, when it fails) reads as "the button did nothing".
                 // The "mask created" slot is the only one carrying an Undo.
                 notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
-                val success = runCatching { quickMaskCreator.undo(id) }.getOrDefault(false)
+                val success = try {
+                    quickMaskCreator.undo(id)
+                } catch (cancellation: CancellationException) {
+                    // A cancelled attempt did not settle the mask's state. Let a
+                    // later notification action retry it.
+                    undoneIds.remove(id)
+                    throw cancellation
+                } catch (_: Throwable) {
+                    false
+                }
                 // Only a mask that is actually gone stays latched. A failed undo
                 // releases the id, so this guard can never be the reason a later
                 // attempt at the same mask is refused.

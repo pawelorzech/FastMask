@@ -180,6 +180,7 @@
     <string name="welcome_demo_cta">Denemesini dene</string>
     <string name="welcome_tagline">Maskeli adresleriniz için sessiz bir yer.</string>
     <string name="welcome_privacy_note">Gizlilik öncelikli · açık kaynak</string>
+    <string name="demo_error_start">Demo başlatılamadı. Depolama alanı açıp tekrar deneyin.</string>
     <string name="demo_banner_text">Deneme modu — değişiklikler kaydedilmeyecek</string>
     <string name="demo_banner_signin">Oturum aç</string>
     <string name="tutorial_step_1_title">Maskeli e-postalarınız</string>

@@ -180,6 +180,7 @@
     <string name="welcome_demo_cta">Demo versuchen</string>
     <string name="welcome_tagline">Ein ruhiger Ort für Ihre maskierten Adressen.</string>
     <string name="welcome_privacy_note">Datenschutz zuerst · Open Source</string>
+    <string name="demo_error_start">Die Demo konnte nicht gestartet werden. Geben Sie Speicherplatz frei und versuchen Sie es erneut.</string>
     <string name="demo_banner_text">Demo-Modus — Änderungen werden nicht gespeichert</string>
     <string name="demo_banner_signin">Anmelden</string>
     <string name="tutorial_step_1_title">Ihre maskierten E-Mails</string>

@@ -180,6 +180,7 @@
     <string name="welcome_demo_cta">ডেমো চেষ্টা করুন</string>
     <string name="welcome_tagline">আপনার মাস্কড ঠিকানাগুলির জন্য একটি শান্ত জায়গা।</string>
     <string name="welcome_privacy_note">গোপনীয়তা-প্রথম · খোলা উৎস</string>
+    <string name="demo_error_start">ডেমো চালু করা যায়নি। কিছু স্টোরেজ খালি করে আবার চেষ্টা করুন।</string>
     <string name="demo_banner_text">ডেমো মোড — পরিবর্তনগুলি সংরক্ষণ করা হবে না</string>
     <string name="demo_banner_signin">সাইন ইন করুন</string>
     <string name="tutorial_step_1_title">আপনার মাস্কড ইমেইল</string>

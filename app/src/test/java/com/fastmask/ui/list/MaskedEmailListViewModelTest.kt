@@ -137,6 +137,37 @@ class MaskedEmailListViewModelTest {
         assertEquals(listOf("m3"), viewModel.uiState.value.filteredEmails.map { it.id })
     }
 
+    @Test
+    fun `oversized search paste is bounded before filtering`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository(emails = listOf(mask("m1"))))
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChange("x".repeat(500_000))
+
+        assertEquals(
+            MaskedEmailListViewModel.MAX_SEARCH_QUERY_LENGTH,
+            viewModel.uiState.value.searchQuery.length,
+        )
+    }
+
+    @Test
+    fun `filtering preserves the server list activity order`() = runTest {
+        val viewModel = vm(
+            FakeMaskedEmailRepository(
+                emails = listOf(
+                    mask("old", description = "match", createdAt = t1),
+                    mask("new", description = "match", createdAt = t3),
+                    mask("middle", description = "other", createdAt = t2),
+                ),
+            ),
+        )
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChange("match")
+
+        assertEquals(listOf("new", "old"), viewModel.uiState.value.filteredEmails.map { it.id })
+    }
+
     // --- duplicate fetch guard (regression: double fetch on first entry) ---
 
     @Test

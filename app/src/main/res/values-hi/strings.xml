@@ -180,6 +180,7 @@
     <string name="welcome_demo_cta">डेमो आजमाएं</string>
     <string name="welcome_tagline">आपके मास्क्ड पतों के लिए एक शांत जगह।</string>
     <string name="welcome_privacy_note">गोपनीयता पहले · खुला स्रोत</string>
+    <string name="demo_error_start">डेमो शुरू नहीं हो सका। कुछ स्टोरेज खाली करके फिर कोशिश करें।</string>
     <string name="demo_banner_text">डेमो मोड — परिवर्तन सहेजे नहीं जाएंगे</string>
     <string name="demo_banner_signin">साइन इन करें</string>
     <string name="tutorial_step_1_title">आपके मास्क्ड ईमेल</string>

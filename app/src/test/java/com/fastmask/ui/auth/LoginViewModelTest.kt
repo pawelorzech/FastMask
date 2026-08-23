@@ -521,6 +521,7 @@ class LoginViewModelTest {
 
         assertEquals(1, demo.activateCalls)
         assertNull(received)
+        assertEquals(R.string.demo_error_start, viewModel.uiState.value.errorRes)
     }
 
     @Test
@@ -595,6 +596,26 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, demo.activateCalls)
+    }
+
+    @Test
+    fun `demo progress is attached to the demo action not the login action`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.enterDemoMode()
+
+        assertEquals(LoginOperation.ENTER_DEMO, viewModel.uiState.value.operation)
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.operation)
+    }
+
+    @Test
+    fun `native field paste is capped before text layout`() = runTest {
+        val viewModel = vm(FakeAuthRepository())
+
+        viewModel.onTokenChange("x".repeat(500_000))
+
+        assertEquals(TokenFormat.MAX_PASTED_CHARS, viewModel.uiState.value.token.length)
     }
 
     /** A failed activation must not leave both buttons disabled for good. */

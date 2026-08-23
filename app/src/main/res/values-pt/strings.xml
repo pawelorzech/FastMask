@@ -186,6 +186,7 @@
     <string name="welcome_demo_cta">Experimentar demo</string>
     <string name="welcome_tagline">Um lugar tranquilo para seus endereços mascarados.</string>
     <string name="welcome_privacy_note">Privacidade em primeiro lugar · código aberto</string>
+    <string name="demo_error_start">Não foi possível iniciar a demo. Libere espaço e tente novamente.</string>
     <string name="demo_banner_text">Modo demo — as alterações não serão salvas</string>
     <string name="demo_banner_signin">Entrar</string>
     <string name="tutorial_step_1_title">Seus emails mascarados</string>

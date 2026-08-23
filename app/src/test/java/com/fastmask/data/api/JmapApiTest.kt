@@ -1,6 +1,7 @@
 package com.fastmask.data.api
 
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -28,18 +29,21 @@ class JmapApiTest {
     private class FakeJmapService(
         var session: JmapSession? = null,
         var response: JmapResponse? = null,
+        var sessionFailure: Throwable? = null,
+        var executeFailure: Throwable? = null,
     ) : JmapService {
         var lastMethodUrl: String? = null
         var executeCount = 0
 
         override suspend fun getSession(url: String, authHeader: String): JmapSession =
-            session ?: error("no session configured")
+            sessionFailure?.let { throw it } ?: session ?: error("no session configured")
 
         override suspend fun executeMethod(
             url: String,
             authHeader: String,
             request: JmapRequest
         ): JmapResponse {
+            executeFailure?.let { throw it }
             lastMethodUrl = url
             executeCount++
             return response ?: error("no response configured")
@@ -72,6 +76,39 @@ class JmapApiTest {
         )
 
     // --- apiUrl validation -------------------------------------------------
+
+    @Test
+    fun `session cancellation is rethrown instead of wrapped as a failure`() = runTest {
+        val api = JmapApi(
+            FakeJmapService(sessionFailure = CancellationException("screen closed")),
+            json,
+        )
+
+        try {
+            api.getSession("tok")
+            throw AssertionError("CancellationException should escape")
+        } catch (_: CancellationException) {
+            // Expected: structured cancellation is not an ordinary API error.
+        }
+    }
+
+    @Test
+    fun `method cancellation is rethrown instead of mutating stale UI state`() = runTest {
+        val api = JmapApi(
+            FakeJmapService(
+                session = session("https://api.fastmail.com/jmap/api/"),
+                executeFailure = CancellationException("screen closed"),
+            ),
+            json,
+        )
+
+        try {
+            api.getMaskedEmails("tok")
+            throw AssertionError("CancellationException should escape")
+        } catch (_: CancellationException) {
+            // Expected.
+        }
+    }
 
     @Test
     fun `valid fastmail apiUrl is accepted and cached`() = runTest {
