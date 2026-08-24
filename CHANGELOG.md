@@ -3,6 +3,11 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.11.0] — 2026-08-24
+
+### Added
+- **The app now offers updates itself.** When a new version is on Google Play, the app shows Play's update offer; the download runs in the background and the app stays usable, then a small dialog asks to restart. Declining a version silences exactly that version, never the next one. Urgent releases (publisher-marked, or when the installed build is more than two weeks behind) use Play's blocking update flow instead. Nothing about it is reported anywhere — the only thing remembered, on the device, is which version you said no to.
+
 ## [1.10.2] — 2026-08-04
 
 ### Fixed
