@@ -286,4 +286,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">กำลังดำเนินการ…</string>
     <string name="email_list_result_count">อีเมลซ่อน: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">อัปเดตพร้อมแล้ว</string>
+    <string name="update_ready_message">ดาวน์โหลด FastMask เวอร์ชันใหม่แล้ว การรีสตาร์ทใช้เวลาครู่เดียว และมาสก์กับการตั้งค่าของคุณจะยังคงอยู่</string>
+    <string name="update_ready_install">รีสตาร์ทตอนนี้</string>
+    <string name="update_ready_later">ภายหลัง</string>
 </resources>

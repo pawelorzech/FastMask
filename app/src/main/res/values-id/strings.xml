@@ -286,4 +286,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Memproses…</string>
     <string name="email_list_result_count">Email tersamar: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">Pembaruan siap</string>
+    <string name="update_ready_message">Versi baru FastMask telah diunduh. Mulai ulang hanya sebentar, dan mask serta pengaturan Anda tetap tersimpan.</string>
+    <string name="update_ready_install">Mulai ulang sekarang</string>
+    <string name="update_ready_later">Nanti</string>
 </resources>

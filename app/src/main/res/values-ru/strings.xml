@@ -310,4 +310,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Выполняется…</string>
     <string name="email_list_result_count">Маски: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">Обновление готово</string>
+    <string name="update_ready_message">Загружена новая версия FastMask. Перезапуск займёт мгновение, ваши маски и настройки сохранятся.</string>
+    <string name="update_ready_install">Перезапустить</string>
+    <string name="update_ready_later">Позже</string>
 </resources>

@@ -294,4 +294,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">कार्य जारी…</string>
     <string name="email_list_result_count">मास्क: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">अपडेट तैयार है</string>
+    <string name="update_ready_message">FastMask का नया संस्करण डाउनलोड हो गया है। पुनः आरंभ में एक पल लगेगा, और आपके मास्क और सेटिंग्स सुरक्षित रहेंगे।</string>
+    <string name="update_ready_install">अभी पुनः आरंभ करें</string>
+    <string name="update_ready_later">बाद में</string>
 </resources>

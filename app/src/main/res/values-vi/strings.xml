@@ -286,4 +286,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Đang xử lý…</string>
     <string name="email_list_result_count">Email ẩn danh: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">Bản cập nhật đã sẵn sàng</string>
+    <string name="update_ready_message">Phiên bản mới của FastMask đã được tải xuống. Khởi động lại chỉ mất một lát, mask và cài đặt của bạn vẫn được giữ nguyên.</string>
+    <string name="update_ready_install">Khởi động lại ngay</string>
+    <string name="update_ready_later">Để sau</string>
 </resources>

@@ -326,4 +326,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">جارٍ التنفيذ…</string>
     <string name="email_list_result_count">الأقنعة: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">التحديث جاهز</string>
+    <string name="update_ready_message">تم تنزيل إصدار جديد من FastMask. تستغرق إعادة التشغيل لحظة، وسيتم الاحتفاظ بأقنعتك وإعداداتك.</string>
+    <string name="update_ready_install">إعادة التشغيل الآن</string>
+    <string name="update_ready_later">لاحقًا</string>
 </resources>

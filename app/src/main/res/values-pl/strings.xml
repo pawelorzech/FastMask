@@ -312,4 +312,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Pracuję…</string>
     <string name="email_list_result_count">Maski: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">Aktualizacja gotowa</string>
+    <string name="update_ready_message">Pobrano nową wersję FastMask. Ponowne uruchomienie zajmie chwilę, a Twoje maski i ustawienia zostaną zachowane.</string>
+    <string name="update_ready_install">Uruchom ponownie</string>
+    <string name="update_ready_later">Później</string>
 </resources>

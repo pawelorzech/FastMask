@@ -211,6 +211,12 @@ dependencies {
     // Biometric app lock (Pro feature)
     implementation("androidx.biometric:biometric:1.1.0")
 
+    // Google Play In-App Updates. Never gated on Pro, collects nothing: the
+    // dismissed version code lives on the device and goes nowhere. The base
+    // (Java) artifact rather than `app-update-ktx` — AppUpdateController
+    // hand-rolls its one suspending call, same as the Billing seam.
+    implementation("com.google.android.play:app-update:2.1.0")
+
     // Security for encrypted storage
     // 1.1.0 stable (same API line as the previously pinned 1.1.0-alpha06 —
     // TokenStorage's MasterKey.Builder API is unchanged). Closes the alpha-pin

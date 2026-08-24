@@ -286,4 +286,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">処理中…</string>
     <string name="email_list_result_count">マスク：%1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">アップデートの準備ができました</string>
+    <string name="update_ready_message">FastMask の新しいバージョンをダウンロードしました。再起動には少し時間がかかりますが、マスクと設定はそのまま保持されます。</string>
+    <string name="update_ready_install">今すぐ再起動</string>
+    <string name="update_ready_later">後で</string>
 </resources>

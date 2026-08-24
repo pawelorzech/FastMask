@@ -9,6 +9,8 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +26,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.data.local.ProEntitlementStore
@@ -46,6 +50,9 @@ import com.fastmask.ui.lock.showUnlockPrompt
 import com.fastmask.ui.navigation.FastMaskNavHost
 import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.theme.FastMaskTheme
+import com.fastmask.ui.update.AppUpdateController
+import com.fastmask.ui.update.AppUpdateUiState
+import com.fastmask.ui.update.UpdateReadyDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -83,6 +90,18 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     private val notificationPermissionGate = NotificationPermissionGate(Build.VERSION.SDK_INT)
+
+    private val appUpdateController by lazy { AppUpdateController.get(this) }
+
+    /**
+     * Play's update flow hands its result back through the Activity Result API.
+     * Registered as a property initializer, like the permission launcher above,
+     * because `registerForActivityResult` must be called before STARTED.
+     */
+    private val appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            appUpdateController.onFlowResult(result.resultCode)
+        }
 
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
@@ -143,6 +162,18 @@ class MainActivity : AppCompatActivity() {
                 lifecycleScope.launch { proRepository.refresh() }
             }
         })
+
+        // On every resume, not only on a cold start. That is what re-enters an
+        // immediate update the user was pulled out of mid-install, and what
+        // notices a background download that finished while FastMask was in
+        // another app — including across process death, since the state being
+        // read belongs to Play rather than to this process. The controller owns
+        // every rule about whether any of that turns into a prompt.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                appUpdateController.checkAndStart(this@MainActivity, appUpdateLauncher)
+            }
+        }
 
         lifecycleScope.launch {
             var lockAtLaunch = false
@@ -334,6 +365,19 @@ class MainActivity : AppCompatActivity() {
                                 navController = navController,
                                 startDestination = startDestination
                             )
+
+                            // Inside the unlocked branch on purpose: a restart
+                            // prompt must not be the first thing drawn over the
+                            // biometric gate. It reappears on the next check
+                            // anyway, and the download it offers to install is
+                            // not going anywhere.
+                            val updateState by appUpdateController.state.collectAsStateWithLifecycle()
+                            if (updateState == AppUpdateUiState.ReadyToInstall) {
+                                UpdateReadyDialog(
+                                    onInstall = appUpdateController::completeInstall,
+                                    onDismiss = appUpdateController::dismissInstallPrompt,
+                                )
+                            }
                         }
                     }
                 }

@@ -286,4 +286,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">处理中…</string>
     <string name="email_list_result_count">隐藏邮箱：%1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">更新已就绪</string>
+    <string name="update_ready_message">已下载新版本的 FastMask。重新启动只需片刻，您的掩码和设置将保留。</string>
+    <string name="update_ready_install">立即重新启动</string>
+    <string name="update_ready_later">稍后</string>
 </resources>

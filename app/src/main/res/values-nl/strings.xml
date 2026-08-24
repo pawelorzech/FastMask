@@ -294,4 +294,9 @@
     <!-- Announced by a screen reader while a button is busy. -->
     <string name="state_working">Bezig…</string>
     <string name="email_list_result_count">Maskers: %1$d/%2$d</string>
+    <!-- In-app updates -->
+    <string name="update_ready_title">Update gereed</string>
+    <string name="update_ready_message">Een nieuwe versie van FastMask is gedownload. Opnieuw starten duurt even; je maskers en instellingen blijven bewaard.</string>
+    <string name="update_ready_install">Nu opnieuw starten</string>
+    <string name="update_ready_later">Later</string>
 </resources>
