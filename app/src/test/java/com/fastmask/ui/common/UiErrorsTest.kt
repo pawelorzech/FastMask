@@ -1,6 +1,7 @@
 package com.fastmask.ui.common
 
 import com.fastmask.R
+import com.fastmask.data.api.JmapRateLimitException
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -63,6 +64,11 @@ class UiErrorsTest {
     @Test
     fun `429 maps to rate limit error`() {
         assertEquals(R.string.error_rate_limit, UiErrors.messageRes(httpException(429), fallback))
+        assertEquals(
+            R.string.error_rate_limit,
+            UiErrors.messageRes(JmapRateLimitException("rateLimit"), fallback),
+        )
+        assertEquals(true, UiErrors.isRetryable(JmapRateLimitException("rateLimit")))
     }
 
     @Test

@@ -96,6 +96,7 @@ fun FastMaskTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
+            shapes = FastMaskShapes,
             content = content,
         )
     }

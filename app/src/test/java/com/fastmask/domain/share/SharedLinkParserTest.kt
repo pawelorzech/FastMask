@@ -20,12 +20,12 @@ class SharedLinkParserTest {
     // --- the canonical case -------------------------------------------------
 
     @Test
-    fun `bare https link yields domain without www, the full url and a domain description`() {
+    fun `bare https link yields only the Fastmail origin metadata`() {
         val prefill = SharedLinkParser.parse("https://www.github.com/signup")
 
-        assertEquals("github.com", prefill?.forDomain)
-        assertEquals("https://www.github.com/signup", prefill?.url)
-        assertEquals("github.com", prefill?.description)
+        assertEquals("https://www.github.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
+        assertEquals("", prefill?.description)
     }
 
     // --- links inside prose -------------------------------------------------
@@ -35,16 +35,16 @@ class SharedLinkParserTest {
         val prefill =
             SharedLinkParser.parse("Sign up here: https://example.com/promo and get 10% off")
 
-        assertEquals("example.com", prefill?.forDomain)
-        assertEquals("https://example.com/promo", prefill?.url)
+        assertEquals("https://example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     @Test
     fun `sentence-ending punctuation is not part of the url`() {
         val prefill = SharedLinkParser.parse("Visit https://example.com/promo.")
 
-        assertEquals("https://example.com/promo", prefill?.url)
-        assertEquals("example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
+        assertEquals("https://example.com", prefill?.forDomain)
     }
 
     @Test
@@ -52,8 +52,8 @@ class SharedLinkParserTest {
         val prefill =
             SharedLinkParser.parse("https://first.example.com/a then https://second.example.com/b")
 
-        assertEquals("first.example.com", prefill?.forDomain)
-        assertEquals("https://first.example.com/a", prefill?.url)
+        assertEquals("https://first.example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     // --- schemes ------------------------------------------------------------
@@ -62,48 +62,47 @@ class SharedLinkParserTest {
     fun `http scheme is preserved, not silently upgraded`() {
         val prefill = SharedLinkParser.parse("http://example.com/a")
 
-        assertEquals("http://example.com/a", prefill?.url)
-        assertEquals("example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
+        assertEquals("http://example.com", prefill?.forDomain)
     }
 
     @Test
     fun `schemeless link is normalized with https`() {
         val prefill = SharedLinkParser.parse("github.com/x")
 
-        assertEquals("github.com", prefill?.forDomain)
-        assertEquals("https://github.com/x", prefill?.url)
+        assertEquals("https://github.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     // --- host shapes --------------------------------------------------------
 
     @Test
-    fun `port stays in the url but never in the domain`() {
+    fun `port stays in the origin while path is removed`() {
         val prefill = SharedLinkParser.parse("https://example.com:8443/panel")
 
-        assertEquals("example.com", prefill?.forDomain)
-        assertEquals("https://example.com:8443/panel", prefill?.url)
+        assertEquals("https://example.com:8443", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     @Test
     fun `a subdomain that is not www is kept`() {
         val prefill = SharedLinkParser.parse("https://shop.example.co.uk/cart")
 
-        assertEquals("shop.example.co.uk", prefill?.forDomain)
+        assertEquals("https://shop.example.co.uk", prefill?.forDomain)
     }
 
     @Test
-    fun `only a leading www label is stripped, never a www prefix of the name`() {
-        // Regression trap: a naive removePrefix("www") turns wwf.org into f.org.
-        assertEquals("wwf.org", SharedLinkParser.parse("https://wwf.org/donate")?.forDomain)
-        assertEquals("www2.example.com", SharedLinkParser.parse("https://www2.example.com/")?.forDomain)
+    fun `www labels are preserved as part of the origin`() {
+        assertEquals("https://wwf.org", SharedLinkParser.parse("https://wwf.org/donate")?.forDomain)
+        assertEquals("https://www2.example.com", SharedLinkParser.parse("https://www2.example.com/")?.forDomain)
     }
 
     @Test
     fun `host is lowercased so masks group by domain regardless of casing`() {
         val prefill = SharedLinkParser.parse("HTTPS://WWW.GitHub.COM/Signup")
 
-        assertEquals("github.com", prefill?.forDomain)
-        assertEquals("github.com", prefill?.description)
+        assertEquals("https://www.github.com", prefill?.forDomain)
+        assertEquals("", prefill?.description)
     }
 
     // --- nothing to extract -------------------------------------------------
@@ -145,17 +144,17 @@ class SharedLinkParserTest {
     fun `a bare domain introduced by a colon is still extracted`() {
         val prefill = SharedLinkParser.parse("Sign up here: example.com/promo")
 
-        assertEquals("example.com", prefill?.forDomain)
-        assertEquals("https://example.com/promo", prefill?.url)
+        assertEquals("https://example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     @Test
     fun `a bare domain after a colon in prose is extracted in any language`() {
         assertEquals(
-            "sklep.example.pl",
+            "https://sklep.example.pl",
             SharedLinkParser.parse("Zapisz sie tutaj: sklep.example.pl")?.forDomain,
         )
-        assertEquals("github.com", SharedLinkParser.parse("Link: github.com")?.forDomain)
+        assertEquals("https://github.com", SharedLinkParser.parse("Link: github.com")?.forDomain)
     }
 
     @Test
@@ -172,10 +171,9 @@ class SharedLinkParserTest {
         // The dropped guard was written to stop this and never did (the scan
         // restarts at every character, and the run at 'e' is preceded by '@',
         // not ':'). Pinned deliberately: example.com IS the domain the user is
-        // dealing with, and forDomain/description are a prefill the user can
-        // edit — not an action taken on their behalf.
+        // dealing with. The parser stores it as the API's origin metadata.
         assertEquals(
-            "example.com",
+            "https://example.com",
             SharedLinkParser.parse("mailto:foo@example.com")?.forDomain,
         )
     }
@@ -191,8 +189,8 @@ class SharedLinkParserTest {
 
         val elapsedMs = (System.nanoTime() - started) / 1_000_000
         assertNotNull("a link at the end of a long share must still be found", prefill)
-        assertEquals("example.com", prefill?.forDomain)
-        assertEquals("https://example.com/deal", prefill?.url)
+        assertEquals("https://example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
         assertTrue("parsing took ${elapsedMs}ms — the pattern backtracks", elapsedMs < 1_000)
     }
 
@@ -236,8 +234,8 @@ class SharedLinkParserTest {
         // Skipping a rejected run must not skip past a real link behind it.
         val prefill = SharedLinkParser.parse("b".repeat(100_000) + " https://example.com/deal")
 
-        assertEquals("example.com", prefill?.forDomain)
-        assertEquals("https://example.com/deal", prefill?.url)
+        assertEquals("https://example.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 
     // --- input types --------------------------------------------------------
@@ -252,7 +250,7 @@ class SharedLinkParserTest {
 
         val prefill = SharedLinkParser.parse(shared)
 
-        assertEquals("github.com", prefill?.forDomain)
-        assertEquals("https://www.github.com/signup", prefill?.url)
+        assertEquals("https://www.github.com", prefill?.forDomain)
+        assertEquals("", prefill?.url)
     }
 }

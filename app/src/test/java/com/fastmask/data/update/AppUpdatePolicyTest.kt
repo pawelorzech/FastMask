@@ -165,15 +165,18 @@ class AppUpdatePolicyTest {
         )
     }
 
-    /**
-     * A flexible download already running finishes by itself. Turning it into a full-screen block
-     * would take the app away from a user who chose the flow that does not.
-     */
     @Test
-    fun `an in-progress routine update is left alone`() {
+    fun `an interrupted immediate update resumes without relying on undefined urgency fields`() {
         assertEquals(
-            AppUpdateDecision.None,
-            decide(snapshot(availability = AppUpdateAvailability.IN_PROGRESS))
+            AppUpdateDecision.Start(AppUpdateFlowType.IMMEDIATE),
+            decide(
+                snapshot(
+                    availability = AppUpdateAvailability.IN_PROGRESS,
+                    priority = 0,
+                    stalenessDays = null,
+                ),
+            ),
         )
     }
+
 }

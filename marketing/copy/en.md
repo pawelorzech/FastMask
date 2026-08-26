@@ -22,9 +22,13 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 • Create new masks with custom descriptions and domain associations
 • Enable, disable, or archive masks without losing the address
 • Edit description, domain, and forwarding URL
+• An encrypted snapshot of the last downloaded list when you are offline
+• Quick Mask creation from a shared page, Quick Settings tile, or app shortcut
 • One-tap copy to clipboard with subtle haptic feedback
 • Search and filter by Active / Off / Archived
 • Quick stats: how many messages each mask has received, when the last one arrived
+• Optional one-time Pro unlock for app lock and extra accents — no subscription
+• Safe updates delivered directly by Google Play
 • Settings screen with language picker, crash-report switch, contact link, and logout
 
 ⸻ DESIGN ⸻
@@ -32,7 +36,7 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 • Warm-ink palette — parchment cream and ink navy, not the usual blue
 • Instrument Serif headings, Inter Tight body, JetBrains Mono for addresses
 • Light and dark mode, both following your system setting
-• Smooth shared-element transitions between list and detail
+• Material 3 with a distinctive shape scale and the new Privacy Fold icon
 • Subtle, restrained motion — never in the way
 
 ⸻ PRIVACY & SECURITY ⸻
@@ -43,7 +47,7 @@ FastMask brings the masked-email features that already exist on Fastmail's web a
 • Network Security Config pins trust to the system CA store
 • Release builds log nothing about your network traffic
 • Screens are FLAG_SECURE — the token never leaks to screenshots or screen recording
-• Crash reports: on by default, off in one tap (Settings → Crash reports). A crash sends Firebase Crashlytics technical diagnostics about the app and the device — never your addresses, descriptions, domains, API token or email. While it's on, the SDK also checks in with Google at startup; the toggle stops that too.
+• Crash reports: on by default and switchable off in Settings. The preference and queued-report deletion request are immediate; Firebase documents that automatic collection is disabled from the next app launch. Reports never contain your addresses, descriptions, domains, API token or email.
 • Open source under MIT license — verify everything for yourself. The Crashlytics SDK is called from exactly one file, there is no way to pass data into a report, and a test fails the build if either ever changes.
 
 ⸻ LANGUAGES ⸻
@@ -85,7 +89,7 @@ Released under the MIT License. Pull requests welcome.
 • New: if the app crashes, it can send technical diagnostics about the app and the device to Firebase Crashlytics so the bug gets fixed
 • Never sends your masks, descriptions, domains, token or email
 • Still no analytics and no ad tracking
-• Don't want it? Settings → Crash reports → off. Stops right away.
+• Don't want it? Turn it off in Settings, then restart the app so Firebase applies the collection setting
 • Full detail in the updated privacy policy
 
 (392 chars, full field)

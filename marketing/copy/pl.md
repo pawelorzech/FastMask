@@ -22,9 +22,13 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Tworzenie nowych masek z własnym opisem i przypisaniem do domeny
 • Włączanie, wyłączanie i archiwizacja masek bez utraty adresu
 • Edycja opisu, domeny i adresu przekierowania
+• Zaszyfrowany podgląd ostatnio pobranej listy także bez sieci
+• Quick Mask: tworzenie z udostępnionej strony, kafelka i skrótu ikony
 • Kopiowanie do schowka jednym dotknięciem z delikatnym haptic feedback
 • Wyszukiwanie i filtrowanie po statusie: Aktywne / Wyłączone / Zarchiwizowane
 • Szybkie statystyki: ile maili każda maska odebrała i kiedy ostatnio
+• Opcjonalne jednorazowe Pro: blokada aplikacji i dodatkowe akcenty, bez subskrypcji
+• Bezpieczne aktualizacje bezpośrednio przez Google Play
 • Ustawienia: wybór języka, przełącznik raportów o awariach, kontakt i wylogowanie
 
 ⸻ DESIGN ⸻
@@ -32,7 +36,7 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Paleta warm‑ink — pergamin i atramentowy granat, zamiast typowego niebieskiego
 • Nagłówki Instrument Serif, treść Inter Tight, adresy JetBrains Mono
 • Tryb jasny i ciemny, oba zgodne z motywem systemu
-• Płynne shared‑element przejścia między listą a szczegółem
+• Material 3 z własną, wyrazistą skalą kształtów i nową ikoną Privacy Fold
 • Subtelna, oszczędna animacja — nigdy nie przeszkadza
 
 ⸻ PRYWATNOŚĆ I BEZPIECZEŃSTWO ⸻
@@ -43,7 +47,7 @@ FastMask przenosi funkcje masek dostępne w webowym Fastmailu na telefon, w spok
 • Network Security Config przypina zaufanie do systemowego magazynu CA
 • Wydania Release nie logują żadnego ruchu sieciowego
 • Ekrany mają FLAG_SECURE — token nie trafia do zrzutów ani nagrań ekranu
-• Raporty o awariach: domyślnie włączone, wyłączasz jednym dotknięciem (Ustawienia → Raporty o awariach). Awaria wysyła do Firebase Crashlytics diagnostykę techniczną aplikacji i urządzenia — nigdy Twoich masek, opisów, domen, tokenu API ani adresu e‑mail. Dopóki jest włączone, SDK melduje się też u Google przy starcie; przełącznik zatrzymuje i to.
+• Raporty o awariach: domyślnie włączone, wyłączasz w ustawieniach. Preferencja i żądanie usunięcia raportów oczekujących zapisują się od razu; zgodnie z dokumentacją Firebase wyłączenie automatycznego zbierania obowiązuje od następnego uruchomienia aplikacji. Raport nigdy nie zawiera masek, opisów, domen, tokenu API ani adresu e‑mail.
 • Open source na licencji MIT — wszystko możesz sam zweryfikować. SDK Crashlytics jest wołane z dokładnie jednego pliku, nie ma czym przekazać do raportu żadnych danych, a test wywala build, gdyby któreś z tego się zmieniło.
 
 ⸻ JĘZYKI ⸻
@@ -85,7 +89,7 @@ Licencja MIT. Pull requesty mile widziane.
 • Nowość: gdy aplikacja się wywali, może wysłać diagnostykę techniczną aplikacji i urządzenia do Firebase Crashlytics, żeby błąd dało się naprawić
 • Nigdy nie wysyła Twoich masek, opisów, domen, tokenu ani e‑maila
 • Nadal bez analityki i bez śledzenia reklamowego
-• Nie chcesz? Ustawienia → Raporty o awariach → wyłącz. Działa od razu.
+• Nie chcesz? Wyłącz w ustawieniach, a następnie uruchom aplikację ponownie, aby Firebase zastosował wyłączenie zbierania
 • Szczegóły w zaktualizowanej polityce prywatności
 
 (459 znaków, całe pole)

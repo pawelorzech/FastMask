@@ -31,7 +31,10 @@ object MaskedEmailScope {
             return primaryAccountId
         }
 
-        return session.accounts.entries.firstOrNull { (_, account) ->
+        // Without a primary account, exactly one capable account is still
+        // unambiguous. Picking the first of several would depend on JSON map
+        // order and could write to the wrong Fastmail account.
+        return session.accounts.entries.singleOrNull { (_, account) ->
             account.accountCapabilities.containsKey(CAPABILITY_URI)
         }?.key
     }

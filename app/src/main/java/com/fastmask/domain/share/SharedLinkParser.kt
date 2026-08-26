@@ -1,16 +1,16 @@
 package com.fastmask.domain.share
 
-import java.util.Locale
+import com.fastmask.domain.model.MaskedEmailMetadata
 
 /**
  * Prefill for the create screen, derived from text shared into FastMask
  * (ACTION_SEND, text/plain).
  *
- * @param forDomain host with a leading `www.` label removed, lowercased.
- * @param url the full link as it appeared in the shared text; a schemeless
- *   match is normalized with an `https://` prefix.
- * @param description defaults to [forDomain] — the most useful label a share
- *   can offer without asking the user anything.
+ * @param forDomain the HTTP(S) origin required by Fastmail's Masked Email API.
+ * @param url deliberately empty: Fastmail reserves this for a deep link back to
+ *   the integrator's record, not the website for which the mask is created.
+ * @param description deliberately empty: Fastmail says this must be a short
+ *   user-supplied description and must not duplicate [forDomain].
  */
 data class SharePrefill(
     val forDomain: String,
@@ -22,8 +22,7 @@ data class SharePrefill(
  * Pure Kotlin, no Android dependencies, so it is unit-testable in `src/test`.
  *
  * The parser walks shared text left-to-right, returns the FIRST usable link,
- * preserves the original URL text (except for trimmed trailing sentence
- * punctuation), and derives `forDomain`/`description` from a validated host.
+ * reduces the original URL to the origin Fastmail expects in `forDomain`.
  */
 object SharedLinkParser {
     private val trailingPunctuation: Set<Char> = setOf('.', ',', ';', ':', '!', '?', ')', ']', '}', '"', '\'')
@@ -107,9 +106,9 @@ object SharedLinkParser {
             return null
         }
 
-        val forDomain: String = host.lowercase(Locale.ROOT).removePrefix("www.")
-        val url: String = if (hasScheme) candidate else "https://$candidate"
-        return SharePrefill(forDomain = forDomain, url = url, description = forDomain)
+        val pageUrl: String = if (hasScheme) candidate else "https://$candidate"
+        val forDomain = MaskedEmailMetadata.normalizeForDomain(pageUrl) ?: return null
+        return SharePrefill(forDomain = forDomain, url = "", description = "")
     }
 
     private fun schemeCandidateEnd(text: CharSequence, start: Int): Int? {

@@ -193,6 +193,29 @@ class JmapApiTest {
     }
 
     @Test
+    fun `missing state uses Fastmail documented pending default`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            put("state", "s2")
+            put("list", buildJsonArray {
+                add(buildJsonObject {
+                    put("id", "m1")
+                    put("email", "pending@fastmail.com")
+                })
+            })
+        }
+        val api = JmapApi(
+            FakeJmapService(
+                session = session("https://api.fastmail.com/jmap/api/"),
+                response = methodResponse("MaskedEmail/get", payload),
+            ),
+            json,
+        )
+
+        assertEquals(MaskedEmailState.PENDING, api.getMaskedEmails("tok").getOrThrow().single().state)
+    }
+
+    @Test
     fun `jmap error method response surfaces as failure not crash`() = runTest {
         val payload = buildJsonObject { put("type", "unknownAccountId") }
         val service = FakeJmapService(
@@ -281,6 +304,38 @@ class JmapApiTest {
         val result = api.createMaskedEmail("tok", MaskedEmailCreate())
 
         assertEquals("m9", result.getOrThrow().id)
+        assertEquals(
+            "a partial SetResponse must retain the state sent in the request",
+            MaskedEmailState.ENABLED,
+            result.getOrThrow().state,
+        )
+    }
+
+    @Test
+    fun `create sends empty description instead of repurposing another metadata field`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            putJsonObject("created") {
+                putJsonObject("new1") {
+                    put("id", "m9")
+                    put("email", "calm.bridge500@fastmail.com")
+                }
+            }
+        }
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/set", payload),
+        )
+        val api = JmapApi(service, json)
+
+        api.createMaskedEmail("tok", MaskedEmailCreate()).getOrThrow()
+
+        val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
+        val create = arguments["create"] as JsonObject
+        val newMask = create["new1"] as JsonObject
+        assertEquals(JsonPrimitive(""), newMask["description"])
+        assertFalse(newMask.containsKey("url"))
+        assertFalse(newMask.containsKey("forDomain"))
     }
 
     @Test
@@ -304,6 +359,27 @@ class JmapApiTest {
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull()!!.message!!.contains("invalidProperties"))
+    }
+
+    @Test
+    fun `create rate limit is exposed as a typed retryable failure`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            putJsonObject("notCreated") {
+                putJsonObject("new1") { put("type", "rateLimit") }
+            }
+        }
+        val api = JmapApi(
+            FakeJmapService(
+                session = session("https://api.fastmail.com/jmap/api/"),
+                response = methodResponse("MaskedEmail/set", payload),
+            ),
+            json,
+        )
+
+        val result = api.createMaskedEmail("tok", MaskedEmailCreate())
+
+        assertTrue(result.exceptionOrNull() is JmapRateLimitException)
     }
 
     // --- set parsing: update ----------------------------------------------
@@ -336,6 +412,26 @@ class JmapApiTest {
         val api = JmapApi(service, json)
 
         assertTrue(api.updateMaskedEmail("tok", "m1", MaskedEmailUpdate(description = "x")).isSuccess)
+    }
+
+    @Test
+    fun `clearing url sends explicit json null`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            putJsonObject("updated") { put("m1", JsonPrimitive(null as String?)) }
+        }
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/set", payload),
+        )
+        val api = JmapApi(service, json)
+
+        api.updateMaskedEmail("tok", "m1", MaskedEmailUpdate(clearUrl = true)).getOrThrow()
+
+        val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
+        val update = arguments["update"] as JsonObject
+        val patch = update["m1"] as JsonObject
+        assertEquals(kotlinx.serialization.json.JsonNull, patch["url"])
     }
 
     // --- set parsing: destroy (regression for silent no-op delete) ---------

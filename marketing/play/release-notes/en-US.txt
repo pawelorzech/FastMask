@@ -1,8 +1,7 @@
-What's new in 1.10.0
+What's new in 1.12.0
 
-• Create a mask without opening the app — share a page from the browser, use the quick settings tile, or long-press the icon. The address lands on your clipboard.
-• The confirmation notification offers Open and Undo
-• The sign-in screen walks you through creating the API token, and says plainly when a token lacks the Masked Email permission
-• New: crash reports. If the app crashes, technical diagnostics go to Firebase Crashlytics so the bug gets fixed — never your masks, descriptions, domains, token or email
-• Don't want them? Settings → Crash reports → off. Stops right away.
-• Still zero tracking, no ads, no subscriptions
+• A completely new icon and refreshed Material 3 styling
+• Better Masked Email API compatibility for domains, descriptions and clearing links
+• More reliable Pro purchases with clear Google Play error handling
+• Interrupted urgent updates now resume correctly
+• A clearer, retryable message when the mask-creation limit is reached

@@ -49,12 +49,30 @@ data class MaskedEmailSetResponse(
     val accountId: String,
     val oldState: String? = null,
     val newState: String? = null,
-    val created: Map<String, MaskedEmailDto>? = null,
+    val created: Map<String, MaskedEmailCreated>? = null,
     val updated: Map<String, JsonElement?>? = null,
     val destroyed: List<String>? = null,
     val notCreated: Map<String, JmapSetError>? = null,
     val notUpdated: Map<String, JmapSetError>? = null,
     val notDestroyed: Map<String, JmapSetError>? = null
+)
+
+/**
+ * JMAP SetResponse only has to return server-set/defaulted properties. Fields
+ * supplied in the create request may therefore be absent and are merged back
+ * by JmapApi instead of being guessed by serializer defaults.
+ */
+@Serializable
+data class MaskedEmailCreated(
+    val id: String,
+    val email: String,
+    val state: MaskedEmailState? = null,
+    val forDomain: String? = null,
+    val description: String? = null,
+    val createdBy: String? = null,
+    val url: String? = null,
+    val createdAt: String? = null,
+    val lastMessageAt: String? = null,
 )
 
 @Serializable
@@ -67,7 +85,9 @@ data class JmapSetError(
 data class MaskedEmailDto(
     val id: String,
     val email: String,
-    val state: MaskedEmailState = MaskedEmailState.ENABLED,
+    // Fastmail's documented default is pending. A response should normally
+    // include the property, but a defensive default must preserve API semantics.
+    val state: MaskedEmailState = MaskedEmailState.PENDING,
     val forDomain: String? = null,
     val description: String? = null,
     val createdBy: String? = null,
@@ -103,5 +123,7 @@ data class MaskedEmailUpdate(
     val state: MaskedEmailState? = null,
     val forDomain: String? = null,
     val description: String? = null,
-    val url: String? = null
+    val url: String? = null,
+    /** True means send JSON null; a null [url] alone means omit the patch. */
+    val clearUrl: Boolean = false,
 )

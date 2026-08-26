@@ -57,9 +57,8 @@ class FirebaseCrashlyticsReporter : CrashReporter {
     }
 
     /**
-     * Drops reports captured before an opt-out. Fire-and-forget: the SDK
-     * returns a Task, but there is nothing useful to do with its result and
-     * awaiting it would block the settings toggle on I/O.
+     * Requests deletion of reports captured before an opt-out. Fire-and-forget:
+     * the SDK returns a Task, but awaiting it would block the settings toggle on I/O.
      */
     override fun deleteUnsentReports() {
         FirebaseCrashlytics.getInstance().deleteUnsentReports()

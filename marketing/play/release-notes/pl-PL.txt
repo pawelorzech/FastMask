@@ -1,8 +1,7 @@
-Nowości w 1.10.0
+Nowości w 1.12.0
 
-• Maska bez otwierania aplikacji — udostępnij stronę z przeglądarki, użyj kafelka w szybkich ustawieniach albo przytrzymaj ikonę. Adres ląduje w schowku.
-• Powiadomienie z potwierdzeniem ma przyciski Otwórz i Cofnij
-• Ekran logowania prowadzi przez tworzenie tokenu API i wprost mówi, gdy token nie ma uprawnienia Masked Email
-• Nowość: raporty o awariach. Gdy aplikacja się wywali, diagnostyka techniczna trafia do Firebase Crashlytics, żeby błąd dało się naprawić — nigdy Twoje maski, opisy, domeny, token ani e-mail
-• Nie chcesz? Ustawienia → Raporty o awariach → wyłącz. Działa od razu.
-• Nadal zero śledzenia, bez reklam i subskrypcji
+• Całkowicie nowa ikona i odświeżony wygląd Material 3
+• Poprawiona zgodność z API Masked Email — domeny, opisy i czyszczenie linków są wysyłane zgodnie z kontraktem Fastmail
+• Pewniejsze zakupy Pro oraz czytelna obsługa błędów Google Play
+• Przerwane pilne aktualizacje są prawidłowo wznawiane
+• Lepszy komunikat i możliwość ponowienia po limicie tworzenia masek

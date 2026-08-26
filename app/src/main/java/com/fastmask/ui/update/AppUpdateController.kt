@@ -161,7 +161,7 @@ class AppUpdateController private constructor(context: Context) {
                 launcher,
                 AppUpdateOptions.newBuilder(playType).build(),
             )
-        }.isSuccess
+        }.getOrDefault(false)
 
         if (!started) {
             unregisterListener()
@@ -189,10 +189,16 @@ class AppUpdateController private constructor(context: Context) {
 
         if (resultCode == Activity.RESULT_OK) return
         if (flow != AppUpdateFlowType.FLEXIBLE) return
-        if (versionCode == AppUpdatePolicy.NO_VERSION) return
-        preferences.dismissedVersionCode = versionCode
+
         unregisterListener()
         uiState.value = AppUpdateUiState.Idle
+
+        // RESULT_IN_APP_UPDATE_FAILED is a Play failure, not a user refusal.
+        // Persist only an explicit cancellation; otherwise a transient Play
+        // problem would suppress this release forever on this device.
+        if (resultCode != Activity.RESULT_CANCELED) return
+        if (versionCode == AppUpdatePolicy.NO_VERSION) return
+        preferences.dismissedVersionCode = versionCode
     }
 
     /** Hands the finished download back to Play, which restarts FastMask into the new version. */

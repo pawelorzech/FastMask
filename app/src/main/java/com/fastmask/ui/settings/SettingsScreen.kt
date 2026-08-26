@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -111,6 +112,7 @@ fun SettingsScreen(
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
     val crashReportingEnabled by viewModel.crashReportingEnabled.collectAsState()
     val context = LocalContext.current
+    val resources = LocalResources.current
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLockUnavailableDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -119,6 +121,7 @@ fun SettingsScreen(
     val exportWriteFailedMessage = stringResource(R.string.settings_export_failed_write)
     val exportChooserTitle = stringResource(R.string.settings_export_title)
     val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
+    val feedbackSubject = stringResource(R.string.settings_feedback_subject)
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -128,7 +131,7 @@ fun SettingsScreen(
                 is SettingsEvent.GoToSignIn -> onSignInFromDemo()
                 is SettingsEvent.OpenPro -> onNavigateToPro(event.source)
                 is SettingsEvent.ExportFailed ->
-                    snackbarHostState.showSnackbar(context.getString(event.messageRes))
+                    snackbarHostState.showSnackbar(resources.getString(event.messageRes))
                 is SettingsEvent.ShareCsv -> {
                     // The file is already written: producing it belongs to the
                     // ViewModel, which holds the injected ExportCache and so can
@@ -388,7 +391,7 @@ fun SettingsScreen(
                             putExtra(Intent.EXTRA_EMAIL, arrayOf("pawel@orzech.me"))
                             putExtra(
                                 Intent.EXTRA_SUBJECT,
-                                context.getString(R.string.settings_feedback_subject),
+                                feedbackSubject,
                             )
                         }
                         // No resolveActivity() pre-check: on Android 11+ it is

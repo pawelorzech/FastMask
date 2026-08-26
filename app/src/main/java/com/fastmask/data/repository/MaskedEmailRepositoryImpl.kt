@@ -11,6 +11,7 @@ import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.model.MaskedEmailMetadata
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.Dispatchers
@@ -92,10 +93,14 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = withContext(Dispatchers.IO) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+        val forDomain = params.forDomain?.let { raw ->
+            MaskedEmailMetadata.normalizeForDomain(raw)
+                ?: return@withContext Result.failure(IllegalArgumentException("Invalid web origin"))
+        }
 
         val create = MaskedEmailCreate(
             state = params.state.toApi(),
-            forDomain = params.forDomain?.takeIf { it.isNotBlank() },
+            forDomain = forDomain?.takeIf { it.isNotBlank() },
             description = params.description?.takeIf { it.isNotBlank() },
             emailPrefix = params.emailPrefix?.takeIf { it.isNotBlank() },
             url = params.url?.takeIf { it.isNotBlank() }
@@ -107,12 +112,17 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = withContext(Dispatchers.IO) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+        val forDomain = params.forDomain?.let { raw ->
+            MaskedEmailMetadata.normalizeForDomain(raw)
+                ?: return@withContext Result.failure(IllegalArgumentException("Invalid web origin"))
+        }
 
         val update = MaskedEmailUpdate(
             state = params.state?.toApi(),
-            forDomain = params.forDomain,
+            forDomain = forDomain,
             description = params.description,
-            url = params.url
+            url = params.url?.takeIf { it.isNotEmpty() },
+            clearUrl = params.url != null && params.url.isEmpty(),
         )
 
         jmapApi.updateMaskedEmail(token, id, update)

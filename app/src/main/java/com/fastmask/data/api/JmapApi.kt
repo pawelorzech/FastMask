@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -127,7 +128,9 @@ class JmapApi @Inject constructor(
         val createObject = buildJsonObject {
             put("state", JsonPrimitive(create.state.name.lowercase()))
             create.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
-            create.description?.let { put("description", JsonPrimitive(it)) }
+            // Fastmail requires an empty string when the user supplied no
+            // description; omitting it leaves interoperability to server defaults.
+            put("description", JsonPrimitive(create.description.orEmpty()))
             create.emailPrefix?.let { put("emailPrefix", JsonPrimitive(it)) }
             create.url?.let { put("url", JsonPrimitive(it)) }
         }
@@ -154,7 +157,7 @@ class JmapApi @Inject constructor(
             request = request
         )
 
-        parseSetResponseCreated(response, "new1")
+        parseSetResponseCreated(response, "new1", create)
     }
 
     suspend fun updateMaskedEmail(
@@ -169,7 +172,10 @@ class JmapApi @Inject constructor(
             update.state?.let { put("state", JsonPrimitive(it.name.lowercase())) }
             update.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
             update.description?.let { put("description", JsonPrimitive(it)) }
-            update.url?.let { put("url", JsonPrimitive(it)) }
+            when {
+                update.clearUrl -> put("url", JsonNull)
+                update.url != null -> put("url", JsonPrimitive(update.url))
+            }
         }
 
         val methodCall = buildJsonArray {
@@ -242,7 +248,11 @@ class JmapApi @Inject constructor(
         return getResponse.list
     }
 
-    private fun parseSetResponseCreated(response: JmapResponse, createId: String): MaskedEmailDto {
+    private fun parseSetResponseCreated(
+        response: JmapResponse,
+        createId: String,
+        request: MaskedEmailCreate,
+    ): MaskedEmailDto {
         val methodResponse = response.methodResponses.firstOrNull()
             ?: throw IllegalStateException("Empty response")
 
@@ -259,11 +269,22 @@ class JmapApi @Inject constructor(
         val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
 
         setResponse.notCreated?.get(createId)?.let { error ->
-            throw JmapException("Failed to create: ${error.type} - ${error.description}")
+            throw jmapSetException("Failed to create", error)
         }
 
-        return setResponse.created?.get(createId)
+        val created = setResponse.created?.get(createId)
             ?: throw IllegalStateException("Created email not found in response")
+        return MaskedEmailDto(
+            id = created.id,
+            email = created.email,
+            state = created.state ?: request.state,
+            forDomain = created.forDomain ?: request.forDomain,
+            description = created.description ?: request.description.orEmpty(),
+            createdBy = created.createdBy,
+            url = created.url ?: request.url,
+            createdAt = created.createdAt,
+            lastMessageAt = created.lastMessageAt,
+        )
     }
 
     private fun parseSetResponseUpdated(response: JmapResponse, id: String) {
@@ -283,7 +304,7 @@ class JmapApi @Inject constructor(
         val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
 
         setResponse.notUpdated?.get(id)?.let { error ->
-            throw JmapException("Failed to update: ${error.type} - ${error.description}")
+            throw jmapSetException("Failed to update", error)
         }
 
         // Verify the update actually succeeded
@@ -309,7 +330,7 @@ class JmapApi @Inject constructor(
         val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
 
         setResponse.notDestroyed?.get(id)?.let { error ->
-            throw JmapException("Failed to delete: ${error.type} - ${error.description}")
+            throw jmapSetException("Failed to delete", error)
         }
 
         // Verify the destroy actually succeeded — mirrors the positive check in
@@ -324,9 +345,20 @@ class JmapApi @Inject constructor(
         cachedSession = null
         cachedAccountId = null
     }
+
+    private fun jmapSetException(operation: String, error: JmapSetError): JmapException {
+        val message = "$operation: ${error.type} - ${error.description}"
+        return if (error.type == "rateLimit") {
+            JmapRateLimitException(message)
+        } else {
+            JmapException(message)
+        }
+    }
 }
 
-class JmapException(message: String) : Exception(message)
+open class JmapException(message: String) : Exception(message)
+
+class JmapRateLimitException(message: String) : JmapException(message)
 
 /**
  * Result wrapper for suspend I/O that preserves structured cancellation.

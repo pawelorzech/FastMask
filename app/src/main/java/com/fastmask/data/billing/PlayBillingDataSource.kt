@@ -13,6 +13,7 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.UnfetchedProduct
 import com.fastmask.BuildConfig
 import com.fastmask.di.ApplicationScope
 import com.fastmask.domain.repository.ProProduct
@@ -28,7 +29,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -54,9 +54,6 @@ class PlayBillingDataSource @Inject constructor(
         )
     override val purchaseUpdates: SharedFlow<BillingResponse<List<BillingPurchase>>> =
         _purchaseUpdates.asSharedFlow()
-
-    /** ProductDetails must be passed back to launchBillingFlow — cache by id. */
-    private val productDetailsCache = ConcurrentHashMap<String, ProductDetails>()
 
     private val client: BillingClient by lazy {
         BillingClient.newBuilder(context)
@@ -113,7 +110,18 @@ class PlayBillingDataSource @Inject constructor(
         }
     }
 
-    override suspend fun queryProduct(productId: String): BillingResponse<ProProduct?> {
+    override suspend fun queryProduct(productId: String): BillingResponse<ProProduct?> =
+        when (val response = queryFreshProductDetails(productId)) {
+            is BillingResponse.Error -> response
+            is BillingResponse.Ok -> BillingResponse.Ok(response.value?.toProProduct())
+        }
+
+    /**
+     * ProductDetails are deliberately never cached. Google warns that stale
+     * instances can make launchBillingFlow fail, so the buy action queries a
+     * fresh instance immediately before handing it back to Play.
+     */
+    private suspend fun queryFreshProductDetails(productId: String): BillingResponse<ProductDetails?> {
         val connection = ensureConnected()
         if (connection is BillingResponse.Error) return connection
 
@@ -138,26 +146,16 @@ class PlayBillingDataSource @Inject constructor(
                 }
                 val details = result.productDetailsList.firstOrNull { it.productId == productId }
                 if (details == null) {
-                    continuation.resume(BillingResponse.Ok(null))
-                } else {
-                    productDetailsCache[productId] = details
-                    val price = details.oneTimePurchaseOfferDetails?.formattedPrice
+                    val unfetched = result.unfetchedProductList.firstOrNull { it.productId == productId }
                     continuation.resume(
-                        if (price == null) {
-                            // A one-time product without an offer is a store
-                            // misconfiguration — treat as not purchasable.
+                        if (unfetched == null) {
                             BillingResponse.Ok(null)
                         } else {
-                            BillingResponse.Ok(
-                                ProProduct(
-                                    productId = details.productId,
-                                    title = details.title,
-                                    description = details.description,
-                                    formattedPrice = price,
-                                )
-                            )
+                            BillingResponse.Error(unfetched.statusCode.toBillingErrorCode())
                         }
                     )
+                } else {
+                    continuation.resume(BillingResponse.Ok(details))
                 }
             }
             }
@@ -216,18 +214,13 @@ class PlayBillingDataSource @Inject constructor(
         activity: Activity,
         productId: String,
     ): BillingResponse<Unit> {
-        // ProductDetails outlives a service disconnect — a cached hit must not
-        // skip the connection check or launch fails with a spurious error.
-        val connection = ensureConnected()
-        if (connection is BillingResponse.Error) return connection
-
-        val details = productDetailsCache[productId] ?: run {
-            when (val queried = queryProduct(productId)) {
-                is BillingResponse.Error -> return BillingResponse.Error(queried.code)
-                is BillingResponse.Ok ->
-                    productDetailsCache[productId]
-                        ?: return BillingResponse.Error(BillingErrorCode.DEVELOPER)
-            }
+        val details = when (val queried = queryFreshProductDetails(productId)) {
+            is BillingResponse.Error -> return queried
+            is BillingResponse.Ok -> queried.value
+                ?: return BillingResponse.Error(BillingErrorCode.DEVELOPER)
+        }
+        if (details.toProProduct() == null) {
+            return BillingResponse.Error(BillingErrorCode.DEVELOPER)
         }
 
         val params = BillingFlowParams.newBuilder()
@@ -261,6 +254,25 @@ class PlayBillingDataSource @Inject constructor(
         isAcknowledged = isAcknowledged,
         purchaseToken = purchaseToken,
     )
+
+    private fun ProductDetails.toProProduct(): ProProduct? {
+        val price = oneTimePurchaseOfferDetails?.formattedPrice ?: return null
+        return ProProduct(
+            productId = productId,
+            title = title,
+            description = description,
+            formattedPrice = price,
+        )
+    }
+
+    private fun Int.toBillingErrorCode(): BillingErrorCode = when (this) {
+        UnfetchedProduct.StatusCode.INVALID_PRODUCT_ID_FORMAT,
+        UnfetchedProduct.StatusCode.PRODUCT_NOT_FOUND,
+        UnfetchedProduct.StatusCode.NO_ELIGIBLE_OFFER,
+        -> BillingErrorCode.DEVELOPER
+
+        else -> BillingErrorCode.OTHER
+    }
 
     private fun Purchase.isSignatureValid(): Boolean {
         val key = BuildConfig.PLAY_LICENSE_KEY

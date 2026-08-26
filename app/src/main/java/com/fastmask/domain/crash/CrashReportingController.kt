@@ -2,8 +2,9 @@ package com.fastmask.domain.crash
 
 /**
  * Applies [CrashReportingPolicy] to a [CrashReporter]. Called at app start and
- * again every time the user flips the settings switch, so the change takes
- * effect without a restart.
+ * again every time the user flips the settings switch. Firebase persists a
+ * runtime opt-out immediately but documents that `false` takes effect on the
+ * next app run; queued-report deletion is requested at the same time.
  */
 class CrashReportingController(
     private val reporter: CrashReporter,
@@ -14,9 +15,9 @@ class CrashReportingController(
      * @param userEnabled the opt-out preference as stored (or its default).
      */
     fun apply(userEnabled: Boolean) {
-        // Order is load-bearing: collection stops first, then the queue is
-        // purged. Reversed, a crash landing between the two calls would be
-        // written back after the purge and uploaded despite the opt-out.
+        // Persist the SDK override first, then request deletion of reports
+        // already queued. Firebase applies a false override on the next app run,
+        // so the privacy policy must not claim the current process stops instantly.
         reporter.setCollectionEnabled(
             CrashReportingPolicy.shouldCollect(
                 isDebugBuild = isDebugBuild,

@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # 17 is the project's toolchain target; Gradle 8.9 refuses to run on
+      # 17 is the project's toolchain target; Gradle 8.11.1 refuses to run on
       # anything newer than 21, so this pin is a real constraint, not a default.
       - name: Set up JDK 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
@@ -53,8 +53,8 @@ jobs:
       # ProGuard keep rules for kotlinx.serialization / Retrofit / Tink, and the
       # task-graph guard that refuses a signed release with no Play licence key.
       # Unsigned here, which that guard deliberately still allows.
-      - name: Release build
-        run: ./gradlew assembleRelease
+      - name: Release bundle
+        run: ./gradlew bundleRelease
 
       - name: Upload test and lint reports
         if: always()

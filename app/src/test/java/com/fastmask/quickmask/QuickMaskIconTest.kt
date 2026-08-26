@@ -7,7 +7,7 @@ import org.junit.Test
 import java.io.File
 
 /**
- * The two entry-point icons, and why they cannot be one file.
+ * The feature glyph and brand mark, and why they cannot be one file.
  *
  * `ic_quick_mask` was an envelope filled with hard white. Two failures came out
  * of that single resource:
@@ -15,9 +15,8 @@ import java.io.File
  *  - In the launcher's long-press menu the "New mask" row showed an empty white
  *    circle. Launcher3 wraps a non-adaptive shortcut icon in a white disc and
  *    tints nothing, so white ink landed on white paper.
- *  - In the Quick Settings tile picker the app was represented by an envelope,
- *    which reads as "something about mail" and shares nothing with the domino
- *    mask on the home screen.
+ *  - A Quick Settings tile needs a literal action glyph, while the launcher
+ *    shortcut needs the broader FastMask brand mark.
  *
  * A tinting surface wants a bare silhouette; a non-tinting one wants an icon
  * that brings its own background. Hence two resources.
@@ -51,14 +50,17 @@ class QuickMaskIconTest {
     }
 
     @Test
-    fun `both icons draw the same silhouette`() {
-        // The tile glyph is the shortcut's foreground scaled from 108 to 24, so
-        // the two must agree on the number of contours. If someone redraws one
-        // of them, this is the tripwire.
+    fun `the shortcut uses the three-part privacy fold brand mark`() {
+        // Quick Mask remains a literal action glyph. The launcher shortcut uses
+        // the brand's two paper folds plus the amber turnover accent.
         assertEquals(
-            "the shortcut foreground and the tile glyph have drifted apart",
-            Regex("""[Mm]-?[\d.]""").findAll(pathData(glyph)).count(),
-            Regex("""[Mm]-?[\d.]""").findAll(pathData(shortcutForeground)).count(),
+            "the Privacy Fold must keep two paper planes and one turnover accent",
+            3,
+            Regex("<path").findAll(shortcutForeground).count(),
+        )
+        assertFalse(
+            "the brand mark regressed to the old punched-eye domino mask",
+            shortcutForeground.contains("evenOdd"),
         )
     }
 
@@ -108,7 +110,11 @@ class QuickMaskIconTest {
             shortcutIcon.contains("<background android:drawable="),
         )
         assertTrue(
-            "the shortcut icon must draw the mask foreground",
+            "launcher navy would hide the navy brand mark on the shortcut",
+            shortcutIcon.contains("@drawable/ic_shortcut_background"),
+        )
+        assertTrue(
+            "the shortcut icon must draw the brand foreground",
             shortcutIcon.contains("@drawable/ic_shortcut_quick_mask_foreground"),
         )
     }
@@ -118,7 +124,7 @@ class QuickMaskIconTest {
         // The whole point: on the cream background a white mask would be the
         // same invisible icon in a new file.
         assertFalse(
-            "the shortcut foreground is hard white — that is the bug being fixed",
+            "the shortcut foreground is hard white — it would disappear on its light background",
             Regex("""fillColor="#(FF)?FFFFFF"""", RegexOption.IGNORE_CASE)
                 .containsMatchIn(shortcutForeground),
         )
@@ -145,11 +151,62 @@ class QuickMaskIconTest {
         }!!
         val radius = kotlin.math.hypot(worst.first - 54.0, worst.second - 54.0)
         assertTrue(
-            "the mask reaches $radius dp from the centre of the 108dp viewport; the safe " +
+            "the mark reaches $radius dp from the centre of the 108dp viewport; the safe " +
                 "circle is 33dp and a launcher may crop the rest (worst point: $worst)",
             radius <= 33.0,
         )
     }
+
+    @Test
+    fun `the Play icon is an opaque 512 square`() {
+        val icon = pngInfo(File("../marketing/play/icon-512.png"))
+
+        assertEquals(512, icon.width)
+        assertEquals(512, icon.height)
+        assertFalse("Google Play icon must not carry alpha", icon.hasAlpha)
+    }
+
+    @Test
+    fun `every adaptive density has matching color and monochrome layers`() {
+        val expectedSizes = mapOf(
+            "mdpi" to 108,
+            "hdpi" to 162,
+            "xhdpi" to 216,
+            "xxhdpi" to 324,
+            "xxxhdpi" to 432,
+        )
+
+        expectedSizes.forEach { (density, size) ->
+            val color = pngInfo(res("drawable-$density/ic_launcher_foreground.png"))
+            val mono = pngInfo(res("drawable-$density/ic_launcher_monochrome.png"))
+            assertEquals("wrong $density foreground width", size, color.width)
+            assertEquals("wrong $density foreground height", size, color.height)
+            assertEquals("wrong $density monochrome width", size, mono.width)
+            assertEquals("wrong $density monochrome height", size, mono.height)
+            assertTrue("$density foreground lost transparency", color.hasAlpha)
+            assertTrue("$density monochrome lost transparency", mono.hasAlpha)
+        }
+    }
+
+    /** Reads only PNG signature + IHDR, keeping this JVM test independent of java.desktop. */
+    private fun pngInfo(file: File): PngInfo {
+        val bytes = file.readBytes()
+        assertTrue("${file.path} is too short to be a PNG", bytes.size >= 26)
+        val signature = byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
+        assertTrue("${file.path} has no PNG signature", bytes.copyOfRange(0, 8).contentEquals(signature))
+        assertEquals("${file.path} has no IHDR first", "IHDR", bytes.copyOfRange(12, 16).toString(Charsets.US_ASCII))
+
+        fun intAt(offset: Int): Int =
+            ((bytes[offset].toInt() and 0xff) shl 24) or
+                ((bytes[offset + 1].toInt() and 0xff) shl 16) or
+                ((bytes[offset + 2].toInt() and 0xff) shl 8) or
+                (bytes[offset + 3].toInt() and 0xff)
+
+        // PNG colour types 4 and 6 carry an alpha channel.
+        return PngInfo(intAt(16), intAt(20), bytes[25].toInt() in setOf(4, 6))
+    }
+
+    private data class PngInfo(val width: Int, val height: Int, val hasAlpha: Boolean)
 
     private fun pathData(vectorXml: String): String =
         Regex("""android:pathData="([^"]*)"""").find(vectorXml)?.groupValues?.get(1)

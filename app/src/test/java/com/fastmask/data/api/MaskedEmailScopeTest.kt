@@ -149,6 +149,18 @@ class MaskedEmailScopeTest {
         assertEquals("acc-masked", MaskedEmailScope.accountId(session))
     }
 
+    @Test
+    fun `multiple capable accounts are rejected when no primary account disambiguates them`() {
+        val session = session(
+            accounts = mapOf(
+                "acc-a" to account(MaskedEmailScope.CAPABILITY_URI),
+                "acc-b" to account(MaskedEmailScope.CAPABILITY_URI),
+            ),
+        )
+
+        assertNull(MaskedEmailScope.accountId(session))
+    }
+
     /**
      * Session-level `capabilities` describe what the *server* supports, not
      * what this token may reach or which account holds it. On their own they

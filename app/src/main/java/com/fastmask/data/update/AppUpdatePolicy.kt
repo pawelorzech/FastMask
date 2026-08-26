@@ -104,13 +104,12 @@ object AppUpdatePolicy {
         return when (snapshot.availability) {
             AppUpdateAvailability.NONE -> AppUpdateDecision.None
 
-            // A flexible download already running needs nothing from us — it finishes on its own
-            // and resurfaces as isDownloaded. Only the blocking flow has to be re-entered, and
-            // only when the same rules that started it still say it is urgent; re-entering an
-            // immediate flow for a routine release would turn a background download into a
-            // full-screen block the user never agreed to.
+            // Play uses DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS for an immediate
+            // flow that this app already started. Priority/staleness are not
+            // defined in this state, so re-evaluating urgency can strand the
+            // interrupted update. Resume it whenever Play allows the flow.
             AppUpdateAvailability.IN_PROGRESS ->
-                if (urgent && snapshot.isImmediateAllowed) {
+                if (snapshot.isImmediateAllowed) {
                     AppUpdateDecision.Start(AppUpdateFlowType.IMMEDIATE)
                 } else {
                     AppUpdateDecision.None

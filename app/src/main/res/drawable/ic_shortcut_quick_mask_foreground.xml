@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Adaptive-icon foreground for the launcher shortcut: the same domino mask as
-    ic_quick_mask.xml, drawn at 1:4 of the 432px launcher art, so the shortcut
-    and the app icon are the same mark at the same size (62dp wide, inside the
-    66dp safe circle every launcher mask is guaranteed to keep).
-
-    Amber #A8530F is the colour the shipped launcher foreground is painted in
-    (theme AccentAmber); it sits at ~5:1 against the cream background this icon
-    is paired with, so the glyph survives whatever mask the launcher applies.
+    Vector copy of the FastMask “Privacy Fold” brand mark. It ships in the base
+    split and is therefore safe for the splash and welcome screen; the adaptive
+    launcher itself uses density-specific raster layers generated from the same
+    SVG master. The navy version is paired with the shortcut's cream background.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -15,7 +11,12 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
+        android:fillColor="#1A2238"
+        android:pathData="M26,40C26,38 27,37 28,36C30,34 32,33 35,33H40L54,43L68,33H73C76,33 78,34 80,36C81,37 82,38 82,40V50C82,54 80,57 77,59L70,63L54,50L38,63L31,59C28,57 26,54 26,50Z" />
+    <path
+        android:fillColor="#1A2238"
+        android:pathData="M26,60L49,76C52,78 56,78 59,76L82,60V73C82,78 79,81 74,81H34C29,81 26,78 26,73Z" />
+    <path
         android:fillColor="#A8530F"
-        android:fillType="evenOdd"
-        android:pathData="M23,50.5C26,41.75 37.5,39.75 53.875,39.75C70.25,39.75 81.75,41.75 84.75,50.5C83.5,58 75.75,64.5 65.25,64.5C60,64.5 57,62.75 53.875,61C50.75,62.75 47.75,64.5 42.5,64.5C32,64.5 24.25,58 23,50.5ZM31.5,50.625C32.5,48 35.5,46.75 39.375,46.75C43.25,46.75 46.25,48.125 47.25,50.625C46.25,53.625 43.25,55.75 39.375,55.75C35.5,55.75 32.5,53.5 31.5,50.625ZM76.25,50.625C75.25,48 72.25,46.75 68.375,46.75C64.5,46.75 61.5,48.125 60.5,50.625C61.5,53.625 64.5,55.75 68.375,55.75C72.25,55.75 75.25,53.5 76.25,50.625Z" />
+        android:pathData="M68,33H73C76,33 78,34 80,36C81,37 82,38 82,40V50C82,54 80,57 77,59L70,63L65,59L75,52C77,51 78,49 78,46V41C78,38 76,36 73,36H70Z" />
 </vector>

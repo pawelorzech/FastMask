@@ -7,6 +7,8 @@ import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.CreateMaskedEmailParams
+import com.fastmask.domain.model.UpdateMaskedEmailParams
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -18,6 +20,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 /** DTO → domain mapping: dates, states, and the not-authenticated guard. */
@@ -94,6 +97,55 @@ class MaskedEmailRepositoryImplTest {
 
         assertTrue(result.isFailure)
         // No stubbing for jmapApi.getMaskedEmails — a call would throw MockKException.
+    }
+
+    @Test
+    fun `create normalizes website input to Fastmail forDomain origin`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        val create = slot<com.fastmask.data.api.MaskedEmailCreate>()
+        coEvery { jmapApi.createMaskedEmail("tok", capture(create)) } returns Result.success(dto())
+
+        val result = repo.createMaskedEmail(
+            CreateMaskedEmailParams(forDomain = "https://WWW.Example.com/signup?ref=mail"),
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals("https://www.example.com", create.captured.forDomain)
+    }
+
+    @Test
+    fun `invalid forDomain fails before a JMAP mutation`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+
+        val result = repo.createMaskedEmail(CreateMaskedEmailParams(forDomain = "not a host"))
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { jmapApi.createMaskedEmail(any(), any()) }
+    }
+
+    @Test
+    fun `update keeps empty forDomain as an explicit clear`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        val update = slot<MaskedEmailUpdate>()
+        coEvery { jmapApi.updateMaskedEmail("tok", "m1", capture(update)) } returns Result.success(Unit)
+
+        val result = repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(forDomain = ""))
+
+        assertTrue(result.isSuccess)
+        assertEquals("", update.captured.forDomain)
+        assertFalse(update.captured.forDomain == null)
+    }
+
+    @Test
+    fun `clearing url is represented as json null intent rather than an empty url`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        val update = slot<MaskedEmailUpdate>()
+        coEvery { jmapApi.updateMaskedEmail("tok", "m1", capture(update)) } returns Result.success(Unit)
+
+        repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(url = "")).getOrThrow()
+
+        assertNull(update.captured.url)
+        assertTrue(update.captured.clearUrl)
     }
 
     // --- offline cache write-through (B1) ----------------------------------

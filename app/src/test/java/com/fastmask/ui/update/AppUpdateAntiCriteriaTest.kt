@@ -114,6 +114,29 @@ class AppUpdateAntiCriteriaTest {
         )
     }
 
+    @Test
+    fun `a false start result is treated as a failed update launch`() {
+        val controller = updateSources.single { it.name == "AppUpdateController.kt" }.readText()
+        assertTrue(
+            "startUpdateFlowForResult returns false when Play did not launch the flow",
+            controller.contains("}.getOrDefault(false)"),
+        )
+        assertTrue(
+            "runCatching success alone must not be mistaken for a launched flow",
+            !controller.contains("}.isSuccess"),
+        )
+    }
+
+    @Test
+    fun `only a user cancellation dismisses an available version`() {
+        val controller = updateSources.single { it.name == "AppUpdateController.kt" }.readText()
+        val resultHandler = controller.substringAfter("fun onFlowResult").substringBefore(
+            "/** Hands the finished download",
+        )
+        assertTrue(resultHandler.contains("resultCode != Activity.RESULT_CANCELED"))
+        assertTrue(resultHandler.indexOf("resultCode != Activity.RESULT_CANCELED") < resultHandler.indexOf("preferences.dismissedVersionCode"))
+    }
+
     /** The restart prompt must never be composed over the biometric lock screen. */
     @Test
     fun `the restart prompt lives behind the app lock`() {

@@ -124,9 +124,9 @@ class CreateMaskedEmailViewModelTest {
     // --- share prefill ------------------------------------------------------
 
     private val githubPrefill = SharePrefill(
-        forDomain = "github.com",
-        url = "https://www.github.com/signup",
-        description = "github.com",
+        forDomain = "https://www.github.com",
+        url = "",
+        description = "",
     )
 
     @Test
@@ -136,9 +136,9 @@ class CreateMaskedEmailViewModelTest {
         viewModel.applyPrefill(githubPrefill)
 
         val state = viewModel.uiState.value
-        assertEquals("github.com", state.forDomain)
-        assertEquals("https://www.github.com/signup", state.url)
-        assertEquals("github.com", state.description)
+        assertEquals("https://www.github.com", state.forDomain)
+        assertEquals("", state.url)
+        assertEquals("", state.description)
         assertTrue(state.prefilled)
     }
 
@@ -151,9 +151,9 @@ class CreateMaskedEmailViewModelTest {
         viewModel.create()
         advanceUntilIdle()
 
-        assertEquals("github.com", repo.lastCreateParams?.forDomain)
-        assertEquals("https://www.github.com/signup", repo.lastCreateParams?.url)
-        assertEquals("github.com", repo.lastCreateParams?.description)
+        assertEquals("https://www.github.com", repo.lastCreateParams?.forDomain)
+        assertNull(repo.lastCreateParams?.url)
+        assertNull(repo.lastCreateParams?.description)
         // A share never asks for a prefix, and it must not force a state.
         assertNull(repo.lastCreateParams?.emailPrefix)
         assertEquals(EmailState.ENABLED, repo.lastCreateParams?.state)

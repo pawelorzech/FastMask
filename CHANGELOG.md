@@ -3,6 +3,24 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] — 2026-08-26
+
+### Changed
+- Replaced the launcher, monochrome, round and Quick Mask artwork with a new visual identity and refreshed the Material 3 shape language.
+- Updated the stable Compose stack and Material 3 to 1.4.0; experimental Material 3 Expressive APIs remain intentionally excluded from the production build.
+- Fastmail metadata now follows the Masked Email contract: domains are sent as HTTP(S) origins, descriptions are explicit, deep links can be cleared with JSON `null`, and partial `/set` responses preserve client-supplied fields.
+- Google Play Billing fetches current product details before purchase and reports Billing 8 per-product fetch failures instead of hiding the paywall silently.
+- Migrated Crashlytics from the discontinued Firebase KTX artifact to the maintained main module and current Firebase BoM.
+
+### Fixed
+- Interrupted immediate Play updates are always resumed, a failed-to-start update flow is not treated as active, and only an explicit user cancellation suppresses that version.
+- JMAP `rateLimit` errors now produce a retryable, specific UI error; ambiguous Masked Email account discovery now fails safely.
+- Crash-reporting copy now states Firebase's real opt-out behavior: the preference and queued-report deletion request are immediate, while automatic collection is disabled on the next app launch.
+
+### Build
+- `versionCode` 24 → 25, `versionName` "1.11.0" → "1.12.0".
+- Restored the Gradle 8.11.1 wrapper supported by AGP 8.10.1 and made CI exercise the release AAB path.
+
 ## [1.11.0] — 2026-08-24
 
 ### Added
