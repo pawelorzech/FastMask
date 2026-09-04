@@ -244,7 +244,8 @@ class MaskedEmailListViewModel @Inject constructor(
                 else {
                     email.email.contains(query, ignoreCase = true) ||
                             email.description?.contains(query, ignoreCase = true) == true ||
-                            email.forDomain?.contains(query, ignoreCase = true) == true
+                            email.forDomain?.contains(query, ignoreCase = true) == true ||
+                            email.url?.contains(query, ignoreCase = true) == true
                 }
             }
     }

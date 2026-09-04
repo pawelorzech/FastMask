@@ -94,13 +94,7 @@ fun MaskedEmailDetailScreen(
     var showDiscardDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Unsaved edits guard: trimmed compare mirrors the save logic.
-    val loadedEmail = uiState.email
-    val isDirty = loadedEmail != null && (
-        uiState.editedDescription.trim() != (loadedEmail.description ?: "") ||
-            uiState.editedForDomain.trim() != (loadedEmail.forDomain ?: "") ||
-            uiState.editedUrl.trim() != (loadedEmail.url ?: "")
-        )
+    val isDirty = uiState.hasChanges
     val onBack = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
     BackHandler(enabled = isDirty) { showDiscardDialog = true }
     val scope = rememberCoroutineScope()
@@ -397,22 +391,13 @@ private fun DetailContent(
 
         Spacer(Modifier.height(16.dp))
 
-        // Trim before comparing so the Save button's enabled state matches the
-        // ViewModel's save guard (which trims): otherwise a whitespace-only edit
-        // enables Save but the tap is a silent no-op.
-        val hasChanges = (
-            uiState.editedDescription.trim() != (email.description ?: "") ||
-                uiState.editedForDomain.trim() != (email.forDomain ?: "") ||
-                uiState.editedUrl.trim() != (email.url ?: "")
-            )
-
         PillButton(
             text = stringResource(R.string.email_detail_save),
             loading = uiState.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES,
             loadingDescription = stringResource(R.string.state_working),
             onClick = onSaveChanges,
             variant = PillButtonVariant.Secondary,
-            enabled = hasChanges && !uiState.isUpdating,
+            enabled = uiState.hasChanges && !uiState.isUpdating,
             fullWidth = true,
         )
     }

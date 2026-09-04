@@ -95,6 +95,26 @@ class MaskedEmailDetailViewModelTest {
         assertEquals(0, repo.updateCalls)
     }
 
+    @Test
+    fun `dirty state and save request agree on trimming clearing and missing email`() {
+        val unchanged = MaskedEmailDetailUiState(
+            email = mask("m1", description = "note"),
+            editedDescription = "  note  ",
+        )
+        assertEquals(false, unchanged.hasChanges)
+        assertNull(unchanged.pendingChanges)
+
+        val cleared = unchanged.copy(editedDescription = "   ")
+        assertEquals(true, cleared.hasChanges)
+        assertEquals("", cleared.pendingChanges?.description)
+        assertNull(cleared.pendingChanges?.forDomain)
+        assertNull(cleared.pendingChanges?.url)
+
+        val missing = cleared.copy(email = null)
+        assertEquals(false, missing.hasChanges)
+        assertNull(missing.pendingChanges)
+    }
+
     // --- double-tap guards -------------------------------------------------
 
     @Test
@@ -226,6 +246,36 @@ class MaskedEmailDetailViewModelTest {
         advanceUntilIdle()
         // The fresh answer wins once it lands.
         assertEquals("fresh", viewModel.uiState.value.email?.description)
+    }
+
+    @Test
+    fun `network refresh preserves edited fields and refreshes untouched fields`() = runTest {
+        for (field in listOf("description", "domain", "url")) {
+            val releaseNetwork = CompletableDeferred<Unit>()
+            val repo = FakeMaskedEmailRepository(
+                emails = listOf(mask("m1", description = "fresh", forDomain = "fresh.com", url = "https://fresh.com")),
+                cached = CachedMasks(
+                    masks = listOf(mask("m1", description = "cached", forDomain = "cached.com", url = "https://cached.com")),
+                    cachedAt = Instant.now(),
+                ),
+            ).apply { beforeGetSingle = { releaseNetwork.await() } }
+            val viewModel = vm(repo)
+            runCurrent()
+
+            when (field) {
+                "description" -> viewModel.onDescriptionChange("draft")
+                "domain" -> viewModel.onForDomainChange("draft.com")
+                "url" -> viewModel.onUrlChange("") // Clearing is also an edit.
+            }
+            releaseNetwork.complete(Unit)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals("fresh", state.email?.description)
+            assertEquals(if (field == "description") "draft" else "fresh", state.editedDescription)
+            assertEquals(if (field == "domain") "draft.com" else "fresh.com", state.editedForDomain)
+            assertEquals(if (field == "url") "" else "https://fresh.com", state.editedUrl)
+        }
     }
 
     @Test

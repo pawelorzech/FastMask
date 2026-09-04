@@ -59,9 +59,9 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private var loadInFlight = false
 
     /**
-     * @param resetEdits when true (initial load / retry) the editable fields are
-     *   (re)seeded from the server value. The reload triggered AFTER a save or a
-     *   state toggle passes false: overwriting `edited*` there would drop any
+     * @param resetEdits when true (initial load / retry) untouched editable fields
+     *   are seeded from the server value. Drafts entered after cache rendering survive.
+     *   The reload triggered AFTER a save or a state toggle passes false: overwriting `edited*` there would drop any
      *   keystrokes the user typed while the network call was in flight.
      */
     fun loadEmail(resetEdits: Boolean = true) {
@@ -136,13 +136,18 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     private fun applyLoadedEmail(email: MaskedEmail, resetEdits: Boolean) {
         _uiState.update {
+            // Compare against the previous snapshot before replacing it. Cache
+            // rendering enables editing while the network request is still pending.
+            fun refreshedField(draft: String, previous: String?, fresh: String?): String =
+                if (resetEdits && draft == previous.orEmpty()) fresh.orEmpty() else draft
+
             it.copy(
                 isLoading = false,
                 updateOperation = null,
                 email = email,
-                editedDescription = if (resetEdits) email.description ?: "" else it.editedDescription,
-                editedForDomain = if (resetEdits) email.forDomain ?: "" else it.editedForDomain,
-                editedUrl = if (resetEdits) email.url ?: "" else it.editedUrl
+                editedDescription = refreshedField(it.editedDescription, it.email?.description, email.description),
+                editedForDomain = refreshedField(it.editedForDomain, it.email?.forDomain, email.forDomain),
+                editedUrl = refreshedField(it.editedUrl, it.email?.url, email.url)
             )
         }
     }
@@ -199,22 +204,8 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     fun saveChanges() {
         val state = _uiState.value
-        val email = state.email ?: return
         if (state.isUpdating || state.isDeleting) return
-
-        // Send only the fields that actually changed. A field cleared by the user
-        // is sent as "" (which clears it server-side) — `null` means "not changed"
-        // and is omitted from the JMAP update entirely. Previously a cleared field
-        // was mapped to null, so the server kept the old value and the UI silently
-        // reverted the user's deletion.
-        val params = UpdateMaskedEmailParams(
-            description = state.editedDescription.trim().takeIf { it != (email.description ?: "") },
-            forDomain = state.editedForDomain.trim().takeIf { it != (email.forDomain ?: "") },
-            url = state.editedUrl.trim().takeIf { it != (email.url ?: "") }
-        )
-
-        val hasChanges = params.description != null || params.forDomain != null || params.url != null
-        if (!hasChanges) return
+        val params = state.pendingChanges ?: return
 
         // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
@@ -288,6 +279,21 @@ data class MaskedEmailDetailUiState(
     val errorRes: Int? = null,
 ) {
     val isUpdating: Boolean get() = updateOperation != null
+
+    /** Shared by navigation, Save availability, and the actual update request. */
+    val hasChanges: Boolean get() = pendingChanges != null
+
+    val pendingChanges: UpdateMaskedEmailParams?
+        get() {
+            val current = email ?: return null
+            // Empty string clears a field; null leaves its server value unchanged.
+            val params = UpdateMaskedEmailParams(
+                description = editedDescription.trim().takeIf { it != current.description.orEmpty() },
+                forDomain = editedForDomain.trim().takeIf { it != current.forDomain.orEmpty() },
+                url = editedUrl.trim().takeIf { it != current.url.orEmpty() },
+            )
+            return params.takeIf { it.description != null || it.forDomain != null || it.url != null }
+        }
 }
 
 enum class MaskedEmailDetailUpdate {

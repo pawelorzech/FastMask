@@ -138,6 +138,22 @@ class MaskedEmailListViewModelTest {
     }
 
     @Test
+    fun `search matches URL case-insensitively and respects state filter`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(
+            mask("active", state = EmailState.ENABLED, url = "https://example.com/UniquePath"),
+            mask("off", state = EmailState.DISABLED, url = "https://example.com/UniquePath"),
+            mask("unrelated", state = EmailState.ENABLED),
+        ))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChange("uniquepath")
+        assertEquals(setOf("active", "off"), viewModel.uiState.value.filteredEmails.map { it.id }.toSet())
+        viewModel.onFilterChange(EmailFilter.ENABLED)
+        assertEquals(listOf("active"), viewModel.uiState.value.filteredEmails.map { it.id })
+    }
+
+    @Test
     fun `oversized search paste is bounded before filtering`() = runTest {
         val viewModel = vm(FakeMaskedEmailRepository(emails = listOf(mask("m1"))))
         advanceUntilIdle()
