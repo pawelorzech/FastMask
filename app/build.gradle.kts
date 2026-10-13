@@ -176,7 +176,7 @@ dependencies {
     // 2026.06 is the current production-safe Compose BOM for this API 36 /
     // AGP 8.10 toolchain. Material3 1.4.0 is the latest stable release; the
     // newer Expressive APIs remain alpha and are deliberately not shipped.
-    implementation(platform("androidx.compose:compose-bom:2026.06.00"))
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -256,7 +256,7 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test:core-ktx:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2026.06.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     // Instrumented tests exercise the real Hilt graph, so they need the test
     // Application and the generated test components.
