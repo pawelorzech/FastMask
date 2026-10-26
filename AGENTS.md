@@ -1,5 +1,7 @@
 # AGENTS.md
 
+Last verified: 60b798c | 2026-10-26
+
 ## Build & Test
 
 Requires JDK 17–21 — the Gradle 8.11.1 wrapper does not run on Java 26, so a machine whose

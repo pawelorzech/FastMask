@@ -1,84 +1,31 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Last verified: 60b798c | 2026-10-26
 
-## Build Commands
+Android app (Kotlin, Compose, Hilt, Retrofit) for Fastmail Masked Email over JMAP. Package `com.fastmask`, SDK compile/target 36, min 26, JDK 17-21 (see `AGENTS.md` for JDK and `google-services.json` caveats), Kotlin 2.2.20.
+
+## Commands
 
 ```bash
-# Build debug APK
-./gradlew assembleDebug
-
-# Build release APK (with ProGuard/R8 minification)
-./gradlew assembleRelease
-
-# Run unit tests
-./gradlew test
-
-# Run instrumented tests (requires emulator/device)
-./gradlew connectedAndroidTest
-
-# Clean build
-./gradlew clean
+./gradlew assembleDebug                      # debug APK -> app/build/outputs/apk/
+./gradlew assembleRelease                    # R8-minified release
+./gradlew testDebugUnitTest lintDebug        # fast verify gate, run after every change
+./gradlew connectedDebugAndroidTest          # instrumented, needs emulator/device
 ```
-
-APK outputs: `app/build/outputs/apk/`
-
-## Project Configuration
-
-- **SDK**: Compile/Target 36, Min 26
-- **JDK**: 17
-- **Kotlin**: 2.2.20
-- **Package**: `com.fastmask`
 
 ## Architecture
 
-Clean Architecture with MVVM pattern. Three distinct layers:
+Clean Architecture + MVVM under `app/src/main/java/com/fastmask/`: `data/` (JMAP client with cached session in `api/`, local storage, repositories), `domain/` (models, repository interfaces, use cases), `ui/` (feature screens + ViewModels, Compose, Material 3 dynamic colors), `di/` (Hilt: `NetworkModule`, `RepositoryModule`, billing/crash modules), `quickmask/` (notification/tile quick-create).
 
-### Data Layer (`data/`)
-- `api/` - JMAP protocol integration (Fastmail's native API)
-  - `JmapApi.kt` - API client with session caching
-  - `JmapService.kt` - Retrofit service interface
-  - `JmapModels.kt` - Kotlinx Serialization models
-- `local/` - Persistence
-  - `TokenStorage.kt` - EncryptedSharedPreferences (lazy-initialized for Hilt compatibility)
-  - `SettingsDataStore.kt` - DataStore for language preferences
-- `repository/` - Repository implementations
+- State: `StateFlow<UiState>` for state, `SharedFlow<Event>` for one-shot events (navigation, logout).
+- API: JMAP with Bearer token; session (accountId, apiUrl) cached after first call.
+- Tokens live in EncryptedSharedPreferences. `TokenStorage` must stay lazily initialized, otherwise Hilt injection breaks.
 
-### Domain Layer (`domain/`)
-- `model/` - Domain models (`MaskedEmail`, `Language`, `EmailState` enum)
-- `repository/` - Abstract interfaces
-- `usecase/` - Business logic (Login, Logout, CRUD for masked emails, language settings)
+## Gotchas
 
-### UI Layer (`ui/`)
-- `auth/`, `list/`, `create/`, `detail/`, `settings/` - Feature screens with ViewModels
-- `components/` - Reusable composables (DesignKit, DesignInput, ErrorMessage, DemoBanner, TutorialOverlay)
-- `navigation/` - Jetpack Navigation with shared element transitions
-- `theme/` - Material 3 theming with dynamic colors
+- 20 locales in `res/values-*/strings.xml`; in-app language switch uses AppCompatDelegate (no restart).
+- Release uses R8; rules in `app/proguard-rules.pro` keep Kotlinx Serialization/JMAP models, Tink and Retrofit/OkHttp. Any new serialized model needs a keep check on a release build.
 
-## Key Patterns
+## Commit messages
 
-**State Management**: `StateFlow<UiState>` for reactive state, `SharedFlow<Event>` for one-time events (navigation, logout)
-
-**Dependency Injection**: Hilt with `NetworkModule` (Retrofit, OkHttp, Json) and `RepositoryModule` (repository bindings)
-
-**API Protocol**: JMAP (JSON Mail Access Protocol) with Bearer token auth. Session (accountId, apiUrl) is cached after first call.
-
-**Security**: Tokens stored in EncryptedSharedPreferences using Android Security Crypto library. TokenStorage uses lazy initialization to prevent Hilt injection issues.
-
-## Localization
-
-20 languages supported. String resources in `res/values-*/strings.xml`. In-app language override uses AppCompatDelegate for runtime switching without restart.
-
-## ProGuard/R8
-
-Release builds use minification. Key rules in `app/proguard-rules.pro`:
-- Keep Kotlinx Serialization and JMAP models
-- Keep Google Tink classes (security-crypto dependency)
-- Retrofit and OkHttp configurations
-
-## Commit Message Format
-
-- `Add: new feature description`
-- `Fix: bug description`
-- `Update: what was changed`
-- `Refactor: what was refactored`
+`Add:` / `Fix:` / `Update:` / `Refactor:` prefix, then the description.
