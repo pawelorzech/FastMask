@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title }}</title>
+<meta name="description" content="{{ page.description }}">
+<meta name="theme-color" content="#FFF8F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1008" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:title" content="{{ page.title }}">
+<meta property="og:description" content="{{ page.description }}">
+<meta property="og:image" content="https://pawelorzech.github.io/FastMask/assets/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,100..1000,0..100&amp;display=swap">
+<style>
+:root {
+  --bg: #FFF8F0; --surface: #FFE6C8; --surface-2: #FFEFDC; --ink: #2B1708; --ink-soft: #5E4330;
+  --link: #753200; --amber: #C76B00; --glyph: #753200; --line: #E9CFAE; --focus: #1B5FD1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1008; --surface: #2F1B0D; --surface-2: #26160A; --ink: #FFEBD6; --ink-soft: #D9B999;
+    --link: #FFB765; --amber: #E28A1F; --glyph: #FFE6C8; --line: #4A2E18; --focus: #8EB6FF;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1008; --surface: #2F1B0D; --surface-2: #26160A; --ink: #FFEBD6; --ink-soft: #D9B999;
+  --link: #FFB765; --amber: #E28A1F; --glyph: #FFE6C8; --line: #4A2E18; --focus: #8EB6FF;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.7 "Google Sans Flex", "Google Sans", system-ui, sans-serif; font-variation-settings: "ROND" 0; overflow-x: hidden; }
+a { color: var(--link); text-underline-offset: .2em; text-decoration-thickness: .08em; }
+a:hover { text-decoration-thickness: .16em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+.skip { position: absolute; left: 12px; top: -80px; background: var(--ink); color: var(--bg); padding: .6rem 1rem; border-radius: 999px; z-index: 10; }
+.skip:focus { top: 12px; }
+.wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 800; font-variation-settings: "ROND" 100, "opsz" 24; font-size: 1.2rem; }
+.brand img { width: 36px; height: 36px; border-radius: 10px; }
+.back { color: var(--ink); text-decoration: none; font-weight: 600; padding: .55rem 1rem; border-radius: 999px; background: var(--surface); min-height: 44px; display: inline-flex; align-items: center; }
+.back:hover { filter: brightness(.96); }
+.doc { width: min(70ch, 100% - 40px); margin: 32px auto 80px; }
+.doc h1, .doc h2, .doc h3 { font-variation-settings: "ROND" 100, "opsz" 72; letter-spacing: -.015em; line-height: 1.12; }
+.doc h1 { font-size: clamp(2.4rem, 8vw, 3.8rem); font-weight: 800; margin: 0 0 .5em; }
+.doc h2 { font-size: 1.6rem; font-weight: 750; margin: 2.2em 0 .6em; padding-top: .3em; }
+.doc h3 { font-size: 1.2rem; font-weight: 700; margin: 1.8em 0 .4em; }
+.doc p, .doc li { overflow-wrap: anywhere; }
+.doc ul, .doc ol { padding-left: 1.3em; }
+.doc li { margin: .3em 0; }
+.doc li::marker { color: var(--amber); }
+.doc hr { border: 0; border-top: 1px solid var(--line); margin: 2.5em 0; }
+.doc code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; background: var(--surface); padding: .1em .4em; border-radius: 6px; }
+.doc blockquote { margin: 1.4em 0; padding: .2em 1.2em; background: var(--surface-2); border-left: 6px solid var(--amber); border-radius: 4px 20px 20px 4px; }
+.tablewrap { overflow-x: auto; margin: 1.4em 0; border: 1px solid var(--line); border-radius: 20px; }
+.doc table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .96rem; line-height: 1.5; }
+.doc th { text-align: left; background: var(--surface); font-weight: 700; }
+.doc th, .doc td { padding: .7em 1em; vertical-align: top; border-bottom: 1px solid var(--line); }
+.doc tr:last-child td { border-bottom: 0; }
+footer { border-top: 1px solid var(--line); padding: 32px 0 56px; color: var(--ink-soft); font-size: .95rem; }
+footer nav { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-bottom: 14px; }
+footer p { margin: 0 0 .6em; max-width: 80ch; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap top">
+  <a class="brand" href="./"><img src="assets/icon-512.webp" width="36" height="36" alt="">FastMask</a>
+  <a class="back" href="./">Back to home</a>
+</header>
+<main id="main" class="doc">
+{{ content }}
+</main>
+<footer>
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="./">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://github.com/pawelorzech/FastMask">GitHub</a></nav>
+    <p>FastMask is an unofficial, independent client. It is not affiliated with or endorsed by Fastmail Pty Ltd.</p>
+    <p>Google Play and the Google Play logo are trademarks of Google LLC.</p>
+  </div>
+</footer>
+<script>
+document.querySelectorAll(".doc table").forEach(function (t) {
+  var w = document.createElement("div"); w.className = "tablewrap"; w.tabIndex = 0; w.setAttribute("role", "region"); w.setAttribute("aria-label", "Table");
+  t.parentNode.insertBefore(w, t); w.appendChild(t);
+});
+</script>
+</body>
+</html>
