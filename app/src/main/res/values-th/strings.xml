@@ -203,8 +203,8 @@
     <string name="pro_label">สนับสนุนซอฟต์แวร์โอเพนซอร์ส</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">การซื้อเล็กน้อยช่วยสนับสนุนแอปที่เป็นอิสระและโอเพนซอร์ส — และปลดล็อกเพิ่มเติม</string>
-    <string name="pro_feature_accents_title">ธีมสีเน้น</string>
-    <string name="pro_feature_accents_body">สีห้ากสำหรับปรับแต่ง FastMask</string>
+    <string name="pro_feature_accents_title">ธีมสี</string>
+    <string name="pro_feature_accents_body">สีพื้นฐานห้าสี หรือใช้สีจากวอลเปเปอร์ของคุณ</string>
     <string name="pro_feature_lock_title">ล็อกแอป</string>
     <string name="pro_feature_lock_body">ล็อกชีววิทยาสำหรับชั้นเพิ่มเติมของความเป็นส่วนตัว</string>
     <string name="pro_feature_export_title">ส่งออก CSV</string>
@@ -227,11 +227,11 @@
     <string name="pro_terms">เงื่อนไข</string>
     <string name="settings_pro_section">FastMask Pro</string>
     <string name="settings_pro_row_title">FastMask Pro</string>
-    <string name="settings_pro_value_free">ปลดล็อกสีเน้น ล็อกแอป และส่งออก</string>
+    <string name="settings_pro_value_free">ปลดล็อกสี ล็อกแอป และส่งออก</string>
     <string name="settings_pro_value_active">เปิดใช้งาน — ขอบคุณ!</string>
-    <string name="settings_accent">สีเน้น</string>
+    <string name="settings_accent">สี</string>
     <string name="settings_accent_locked">คุณสมบัติ FastMask Pro</string>
-    <string name="settings_select_accent">เลือกสีเน้น</string>
+    <string name="settings_select_accent">เลือกสี</string>
     <string name="accent_amber">สีทอง</string>
     <string name="accent_ink">สีดำ</string>
     <string name="accent_sage">สีเขียว</string>

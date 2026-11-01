@@ -222,7 +222,7 @@
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Небольшая покупка поддерживает независимое приложение с открытым исходным кодом — и разблокирует дополнительные функции.</string>
     <string name="pro_feature_accents_title">Цветовые темы</string>
-    <string name="pro_feature_accents_body">Пять цветов для персонализации FastMask.</string>
+    <string name="pro_feature_accents_body">Пять базовых цветов или цвета ваших обоев.</string>
     <string name="pro_feature_lock_title">Блокировка приложения</string>
     <string name="pro_feature_lock_body">Биометрическая блокировка для дополнительного уровня приватности.</string>
     <string name="pro_feature_export_title">Экспорт CSV</string>
@@ -247,9 +247,9 @@
     <string name="settings_pro_row_title">FastMask Pro</string>
     <string name="settings_pro_value_free">Разблокировать цвета, блокировку и экспорт</string>
     <string name="settings_pro_value_active">Активно — спасибо!</string>
-    <string name="settings_accent">Цвет</string>
+    <string name="settings_accent">Цвета</string>
     <string name="settings_accent_locked">Функция FastMask Pro</string>
-    <string name="settings_select_accent">Выбрать цвет</string>
+    <string name="settings_select_accent">Выбрать цвета</string>
     <string name="accent_amber">Янтарный</string>
     <string name="accent_ink">Тёмный</string>
     <string name="accent_sage">Мудрец</string>

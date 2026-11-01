@@ -209,8 +209,8 @@
     <string name="pro_label">Ondersteuning voor open source</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Een kleine aankoop ondersteunt een onafhankelijke, open-source app — en ontgrendelt extra\'s.</string>
-    <string name="pro_feature_accents_title">Accentthema\'s</string>
-    <string name="pro_feature_accents_body">Vijf kleuren om FastMask van jou te maken.</string>
+    <string name="pro_feature_accents_title">Kleurthema’s</string>
+    <string name="pro_feature_accents_body">Vijf basiskleuren, of houd de kleuren van je achtergrond.</string>
     <string name="pro_feature_lock_title">App-vergrendeling</string>
     <string name="pro_feature_lock_body">Biometrische vergrendeling voor een extra beveiligingslaag.</string>
     <string name="pro_feature_export_title">CSV-export</string>
@@ -233,11 +233,11 @@
     <string name="pro_terms">Voorwaarden</string>
     <string name="settings_pro_section">FastMask Pro</string>
     <string name="settings_pro_row_title">FastMask Pro</string>
-    <string name="settings_pro_value_free">Ontgrendel accenten, app-vergrendeling en export</string>
+    <string name="settings_pro_value_free">Ontgrendel kleuren, app-vergrendeling en export</string>
     <string name="settings_pro_value_active">Actief — dank je!</string>
-    <string name="settings_accent">Accent</string>
+    <string name="settings_accent">Kleuren</string>
     <string name="settings_accent_locked">Een FastMask Pro-functie</string>
-    <string name="settings_select_accent">Accent kiezen</string>
+    <string name="settings_select_accent">Kleuren kiezen</string>
     <string name="accent_amber">Amber</string>
     <string name="accent_ink">Inkt</string>
     <string name="accent_sage">Salie</string>

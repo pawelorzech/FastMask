@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">अनलॉक करें</string>
+    <string name="pro_close">बंद करें</string>
+    <string name="pro_done">हो गया</string>
+    <string name="settings_appearance_section">दिखावट</string>
+    <string name="settings_privacy_section">गोपनीयता</string>
+    <string name="settings_data_section">डेटा</string>
+    <string name="settings_about_section">जानकारी</string>
+</resources>

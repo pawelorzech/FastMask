@@ -203,8 +203,8 @@
     <string name="pro_label">오픈소스 지원</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">작은 구매가 독립적인 오픈소스 앱을 지원 — 그리고 추가 기능을 잠금 해제합니다.</string>
-    <string name="pro_feature_accents_title">악센트 테마</string>
-    <string name="pro_feature_accents_body">FastMask를 당신의 것으로 만드는 다섯 가지 색상.</string>
+    <string name="pro_feature_accents_title">색상 테마</string>
+    <string name="pro_feature_accents_body">다섯 가지 시드 색상 중에서 고르거나, 배경화면 색상을 그대로 사용하세요.</string>
     <string name="pro_feature_lock_title">앱 잠금</string>
     <string name="pro_feature_lock_body">추가 개인정보 보호 레이어를 위한 생체 인식 잠금.</string>
     <string name="pro_feature_export_title">CSV 내보내기</string>
@@ -227,11 +227,11 @@
     <string name="pro_terms">이용약관</string>
     <string name="settings_pro_section">FastMask Pro</string>
     <string name="settings_pro_row_title">FastMask Pro</string>
-    <string name="settings_pro_value_free">악센트, 앱 잠금 및 내보내기 잠금 해제</string>
+    <string name="settings_pro_value_free">색상, 앱 잠금 및 내보내기 잠금 해제</string>
     <string name="settings_pro_value_active">활성 — 감사합니다!</string>
-    <string name="settings_accent">악센트</string>
+    <string name="settings_accent">색상</string>
     <string name="settings_accent_locked">FastMask Pro 기능</string>
-    <string name="settings_select_accent">악센트 선택</string>
+    <string name="settings_select_accent">색상 선택</string>
     <string name="accent_amber">앰버</string>
     <string name="accent_ink">잉크</string>
     <string name="accent_sage">세이지</string>

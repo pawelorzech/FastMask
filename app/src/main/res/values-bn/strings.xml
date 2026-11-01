@@ -209,8 +209,8 @@
     <string name="pro_label">ওপেন সোর্স সমর্থন করুন</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">একটি ছোট ক্রয় একটি স্বাধীন, ওপেন-সোর্স অ্যাপ সমর্থন করে — এবং অতিরিক্ত সুবিধা আনলক করে।</string>
-    <string name="pro_feature_accents_title">জোর রঙের থিম</string>
-    <string name="pro_feature_accents_body">FastMask কে আপনার করে তুলতে পাঁচটি রং।</string>
+    <string name="pro_feature_accents_title">রঙের থিম</string>
+    <string name="pro_feature_accents_body">পাঁচটি বেস রং, অথবা আপনার ওয়ালপেপারের রংই রাখুন।</string>
     <string name="pro_feature_lock_title">অ্যাপ লক</string>
     <string name="pro_feature_lock_body">অতিরিক্ত গোপনীয়তার জন্য বায়োমেট্রিক লক।</string>
     <string name="pro_feature_export_title">CSV রপ্তানি</string>
@@ -235,9 +235,9 @@
     <string name="settings_pro_row_title">FastMask Pro</string>
     <string name="settings_pro_value_free">রং, অ্যাপ লক এবং রপ্তানি আনলক করুন</string>
     <string name="settings_pro_value_active">সক্রিয় — ধন্যবাদ!</string>
-    <string name="settings_accent">জোর রঙ</string>
+    <string name="settings_accent">রং</string>
     <string name="settings_accent_locked">একটি FastMask Pro বৈশিষ্ট্য</string>
-    <string name="settings_select_accent">জোর রঙ নির্বাচন করুন</string>
+    <string name="settings_select_accent">রং বেছে নিন</string>
     <string name="accent_amber">পীতরঙ্গ</string>
     <string name="accent_ink">কালি</string>
     <string name="accent_sage">ঋষি</string>
