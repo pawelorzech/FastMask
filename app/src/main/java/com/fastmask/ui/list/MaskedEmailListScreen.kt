@@ -25,10 +25,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,6 +73,7 @@ import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
@@ -149,6 +154,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.isCompactHeight
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -469,7 +477,16 @@ internal fun MaskedEmailListContent(
     initialMenuExpanded: Boolean = false,
 ) {
     val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    // Phones in landscape: a large collapsing bar plus pinned search and filters
+    // left ~30% of the height for the list. There the bar is the small one and
+    // search + filters scroll away with the list.
+    val compactHeight = isCompactHeight()
+    val scrollBehavior = if (compactHeight) {
+        TopAppBarDefaults.pinnedScrollBehavior()
+    } else {
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    }
+    val headerState = remember { CollapsingHeaderState() }
 
     val activeCount = uiState.emails.count { it.state == EmailState.ENABLED || it.state == EmailState.PENDING }
     val totalCount = uiState.emails.size
@@ -499,47 +516,66 @@ internal fun MaskedEmailListContent(
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .nestedScroll(fabScroll.connection),
+            .nestedScroll(fabScroll.connection)
+            .then(if (compactHeight) Modifier.nestedScroll(headerState.connection) else Modifier),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.email_list_title),
-                        style = MaterialTheme.typography.displaySmallEmphasized,
-                        modifier = Modifier.semantics { heading() },
+            val barTitle: @Composable () -> Unit = {
+                Text(
+                    text = stringResource(R.string.email_list_title),
+                    style = if (compactHeight) {
+                        MaterialTheme.typography.titleLargeEmphasized
+                    } else {
+                        MaterialTheme.typography.displaySmallEmphasized
+                    },
+                    modifier = Modifier.semantics { heading() },
+                )
+            }
+            // Two pluralized fragments joined by a translatable
+            // format, rather than one string with two %d.
+            // Polish, Russian, Ukrainian and Arabic inflect the
+            // noun by count ("1 maska / 2 maski / 5 masek"),
+            // which a single %d format cannot express; keeping
+            // the separator in the resource lets RTL locales
+            // reorder the fragments.
+            val barSubtitle: @Composable () -> Unit = {
+                Text(
+                    text = stringResource(
+                        R.string.list_stats,
+                        pluralStringResource(R.plurals.list_stats_active, activeCount, activeCount),
+                        pluralStringResource(R.plurals.list_stats_total, totalCount, totalCount),
+                    ),
+                )
+            }
+            val barActions: @Composable RowScope.() -> Unit = {
+                IconButton(onClick = onNavigateToSettings) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.email_list_settings),
                     )
-                },
-                subtitle = {
-                    // Two pluralized fragments joined by a translatable
-                    // format, rather than one string with two %d.
-                    // Polish, Russian, Ukrainian and Arabic inflect the
-                    // noun by count ("1 maska / 2 maski / 5 masek"),
-                    // which a single %d format cannot express; keeping
-                    // the separator in the resource lets RTL locales
-                    // reorder the fragments.
-                    Text(
-                        text = stringResource(
-                            R.string.list_stats,
-                            pluralStringResource(R.plurals.list_stats_active, activeCount, activeCount),
-                            pluralStringResource(R.plurals.list_stats_total, totalCount, totalCount),
-                        ),
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.email_list_settings),
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-                scrollBehavior = scrollBehavior,
+                }
+            }
+            val barColors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
             )
+            if (compactHeight) {
+                TopAppBar(
+                    title = barTitle,
+                    subtitle = barSubtitle,
+                    actions = barActions,
+                    colors = barColors,
+                    scrollBehavior = scrollBehavior,
+                )
+            } else {
+                LargeFlexibleTopAppBar(
+                    title = barTitle,
+                    subtitle = barSubtitle,
+                    actions = barActions,
+                    colors = barColors,
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
@@ -573,6 +609,7 @@ internal fun MaskedEmailListContent(
                             R.string.list_offline_cached,
                             RelativeTime.format(context, cachedAt),
                         ),
+                        modifier = Modifier.readableWidth(ContentWidth.List),
                     )
                 }
 
@@ -594,6 +631,7 @@ internal fun MaskedEmailListContent(
                             ListErrorAction.RETRY -> onRetry
                             ListErrorAction.REAUTHENTICATE -> onReauthenticate
                         },
+                        modifier = Modifier.readableWidth(ContentWidth.List),
                     )
                 }
 
@@ -604,16 +642,25 @@ internal fun MaskedEmailListContent(
                 // Once the app bar collapses, this block takes the bar's scrolled
                 // colour and real breathing room, so bar + search + filters read as
                 // one header instead of a search pill glued under a grey strip.
-                val headerColor = lerp(
-                    MaterialTheme.colorScheme.background,
-                    MaterialTheme.colorScheme.surfaceContainer,
-                    scrollBehavior.state.collapsedFraction,
-                )
+                // In landscape the whole block scrolls away with the list instead.
+                val headerColor = if (compactHeight) {
+                    MaterialTheme.colorScheme.background
+                } else {
+                    lerp(
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surfaceContainer,
+                        scrollBehavior.state.collapsedFraction,
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .then(if (compactHeight) with(headerState) { Modifier.collapsing() }
+                        else Modifier)
+                        .then(if (compactHeight) Modifier.draggable(headerState.dragState, Orientation.Vertical) else Modifier)
                         .drawBehind { drawRect(headerColor) }
-                        .padding(top = 12.dp, bottom = 12.dp),
+                        .padding(top = 12.dp, bottom = 12.dp)
+                        .readableWidth(ContentWidth.List),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     val gutterPx = with(LocalDensity.current) { FilterGutter.toPx() }
@@ -771,6 +818,11 @@ private fun MaskList(
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
 
+    // Wide windows: the list keeps a readable column. The extra inset lives in the
+    // LazyColumn's contentPadding (not a width cap) so the scrollable area, the
+    // scrollbar and the pull-to-refresh gesture still span the whole window.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val wideInset = ((maxWidth - ContentWidth.List) / 2).coerceAtLeast(0.dp)
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
         onRefresh = onRefresh,
@@ -786,7 +838,7 @@ private fun MaskList(
     ) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 112.dp),
+            contentPadding = PaddingValues(start = wideInset, end = wideInset, top = 0.dp, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(SegmentedGap),
             modifier = Modifier
                 .fillMaxSize()
@@ -797,24 +849,26 @@ private fun MaskList(
         ) {
             item(key = "demo-banner") {
                 // Scrolls away with the list instead of costing permanent height.
-                Box(Modifier.animateItem()) { demoBanner() }
+                Box(Modifier.animateItem().padding(horizontal = 16.dp)) { demoBanner() }
             }
             sections.forEachIndexed { sectionIndex, section ->
                 item(key = "section-${section.section.name}") {
                     SectionHeader(
                         text = stringResource(section.section.titleRes),
-                        modifier = Modifier.animateItem(
-                            fadeInSpec = effects,
-                            placementSpec = spatial,
-                            fadeOutSpec = effects,
-                        ),
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .animateItem(
+                                fadeInSpec = effects,
+                                placementSpec = spatial,
+                                fadeOutSpec = effects,
+                            ),
                     )
                 }
                 itemsIndexed(
                     items = section.items,
                     key = { _, e -> e.id },
                 ) { index, email ->
-                    var rowModifier = Modifier.animateItem(
+                    var rowModifier = Modifier.padding(horizontal = 16.dp).animateItem(
                         fadeInSpec = effects,
                         placementSpec = spatial,
                         fadeOutSpec = effects,
@@ -838,6 +892,7 @@ private fun MaskList(
                 }
             }
         }
+    }
     }
 }
 
@@ -1374,9 +1429,9 @@ internal fun CreateFabMenu(
 }
 
 @Composable
-private fun OfflineBanner(text: String) {
+private fun OfflineBanner(text: String, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clip(MaterialTheme.shapes.large)
@@ -1412,9 +1467,10 @@ internal fun InlineErrorBanner(
     text: String,
     actionLabel: String,
     onAction: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             // Keep the recovery button as a separate semantics node. Merging

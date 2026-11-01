@@ -77,6 +77,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProProduct
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -226,6 +228,7 @@ internal fun ProContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(scroll)
+                .readableWidth(ContentWidth.Form)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

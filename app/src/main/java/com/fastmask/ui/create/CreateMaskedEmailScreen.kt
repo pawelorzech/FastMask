@@ -89,6 +89,8 @@ import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.delayInfinite
 import androidx.lifecycle.Lifecycle
@@ -217,6 +219,7 @@ internal fun CreateMaskedEmailContent(
                 .padding(paddingValues)
                 .imePadding()
                 .verticalScroll(scrollState)
+                .readableWidth(ContentWidth.Form)
                 .padding(horizontal = 16.dp)
                 .padding(top = 4.dp, bottom = 32.dp),
         ) {
