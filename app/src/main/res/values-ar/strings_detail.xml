@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">تعديل التفاصيل</string>
+    <string name="email_detail_edit_stop">إيقاف التعديل</string>
+    <string name="email_detail_no_domain">بلا نطاق</string>
+    <string name="create_email_close">إغلاق</string>
+</resources>

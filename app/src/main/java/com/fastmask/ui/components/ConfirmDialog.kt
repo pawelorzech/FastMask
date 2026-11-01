@@ -1,17 +1,24 @@
 package com.fastmask.ui.components
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
-import com.fastmask.ui.theme.FastMaskExtras
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Shared confirmation dialog matching the app's pill-button design language.
- * Used for destructive/irreversible actions (discard unsaved edits, sign out)
- * so they never happen on a single accidental tap.
+ * Shared Material 3 confirmation dialog for destructive or irreversible actions
+ * (discard unsaved edits, sign out, archive) so they never happen on a single
+ * accidental tap.
+ *
+ * @param destructive when true (default) the confirm action is drawn in the error
+ *   role and confirming gives a haptic tick; pass false for a plain "yes".
+ * @param icon optional hero icon above the title, as in the M3 basic dialog spec.
  */
 @Composable
 fun ConfirmDialog(
@@ -21,32 +28,30 @@ fun ConfirmDialog(
     dismissText: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    confirmVariant: PillButtonVariant = PillButtonVariant.Danger,
+    destructive: Boolean = true,
+    icon: ImageVector? = null,
 ) {
-    val extras = FastMaskExtras.current
+    val haptic = LocalHapticFeedback.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(20.dp),
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        },
-        text = {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = extras.inkSoft,
-            )
-        },
+        icon = icon?.let { vector -> { Icon(imageVector = vector, contentDescription = null) } },
+        title = { Text(text = title) },
+        text = { Text(text = message) },
         confirmButton = {
-            PillButton(text = confirmText, onClick = onConfirm, variant = confirmVariant)
+            TextButton(
+                onClick = {
+                    if (destructive) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onConfirm()
+                },
+                colors = if (destructive) {
+                    ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                } else {
+                    ButtonDefaults.textButtonColors()
+                },
+            ) { Text(confirmText) }
         },
         dismissButton = {
-            PillButton(text = dismissText, onClick = onDismiss, variant = PillButtonVariant.Ghost)
+            TextButton(onClick = onDismiss) { Text(dismissText) }
         },
     )
 }
