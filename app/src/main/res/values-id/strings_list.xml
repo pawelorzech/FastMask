@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Topeng acak</string>
+    <string name="list_section_today">Hari ini</string>
+    <string name="list_section_this_week">Minggu ini</string>
+    <string name="list_section_this_month">Bulan ini</string>
+    <string name="list_section_earlier">Lebih lama</string>
+    <string name="list_fab_close_menu">Tutup menu</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Случайная маска</string>
+    <string name="list_section_today">Сегодня</string>
+    <string name="list_section_this_week">На этой неделе</string>
+    <string name="list_section_this_month">В этом месяце</string>
+    <string name="list_section_earlier">Ранее</string>
+    <string name="list_fab_close_menu">Закрыть меню</string>
+</resources>

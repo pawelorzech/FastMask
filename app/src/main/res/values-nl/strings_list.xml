@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Willekeurig masker</string>
+    <string name="list_section_today">Vandaag</string>
+    <string name="list_section_this_week">Deze week</string>
+    <string name="list_section_this_month">Deze maand</string>
+    <string name="list_section_earlier">Eerder</string>
+    <string name="list_fab_close_menu">Menu sluiten</string>
+</resources>

@@ -155,7 +155,9 @@ class MainFlowsTest {
 
         enterDemoAndDismissTutorial()
 
-        composeRule.onNodeWithText(string(R.string.email_list_title)).assertIsDisplayed()
+        // The large top app bar composes its title for both the expanded and
+        // the collapsed state, so match the title without assuming one node.
+        composeRule.onAllNodesWithText(string(R.string.email_list_title)).onFirst().assertExists()
     }
 
     // --- create -----------------------------------------------------------
@@ -166,9 +168,17 @@ class MainFlowsTest {
 
         val totalBefore = filterCount(R.string.filter_all)
 
+        // The FAB opens a menu; "New mask" is its create entry. The extended FAB
+        // carries the same label until its crossfade into the toggle FAB ends,
+        // so wait for the menu item to be the only match.
         composeRule
             .onNodeWithContentDescription(string(R.string.email_list_create_description))
             .performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(string(R.string.email_list_create_fab))
+                .fetchSemanticsNodes().size == 1
+        }
+        composeRule.onNodeWithText(string(R.string.email_list_create_fab)).performClick()
         awaitText(string(R.string.create_email_title))
 
         composeRule.onNodeWithContentDescription(string(R.string.create_email_description_label))

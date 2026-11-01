@@ -113,6 +113,13 @@ class CreateMaskedEmailImeActionTest {
         composeRule
             .onNodeWithContentDescription(string(R.string.email_list_create_description))
             .performClick()
+        // The FAB opens a menu; its "New mask" entry is the only match for the
+        // label once the extended FAB has crossfaded into the toggle FAB.
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(string(R.string.email_list_create_fab))
+                .fetchSemanticsNodes().size == 1
+        }
+        composeRule.onNodeWithText(string(R.string.email_list_create_fab)).performClick()
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText(string(R.string.create_email_title))
                 .fetchSemanticsNodes().isNotEmpty()

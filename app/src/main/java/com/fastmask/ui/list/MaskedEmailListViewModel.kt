@@ -1,13 +1,16 @@
 package com.fastmask.ui.list
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
@@ -17,10 +20,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,7 +39,46 @@ class MaskedEmailListViewModel @Inject constructor(
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
     private val settingsDataStore: SettingsDataStore,
     @ApplicationScope private val appScope: CoroutineScope,
+    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
 ) : ViewModel() {
+
+    // One-shot results of the FAB menu's "Random mask". Channel-backed so an
+    // event emitted while the screen is mid-rotation is delivered once, later.
+    private val _events = Channel<MaskedEmailListEvent>(Channel.BUFFERED)
+    val events: Flow<MaskedEmailListEvent> = _events.receiveAsFlow()
+
+    /**
+     * Creates a mask with no prefix, domain or note — Fastmail picks the
+     * address — through the same use case, and in the same application scope,
+     * as the create screen (so demo mode behaves identically and leaving the
+     * screen cannot cancel a POST that may already have reached Fastmail).
+     */
+    fun createRandomMask() {
+        // Set synchronously so a double tap cannot start two creations.
+        if (_uiState.value.isCreatingRandom) return
+        _uiState.update { it.copy(isCreatingRandom = true) }
+        viewModelScope.launch {
+            appScope.async {
+                createMaskedEmailUseCase(CreateMaskedEmailParams())
+            }.await().fold(
+                onSuccess = { created ->
+                    _uiState.update { it.copy(isCreatingRandom = false) }
+                    _events.send(MaskedEmailListEvent.RandomCreated(created.email))
+                    // The new mask is not written into the list by the use
+                    // case; pull it in without flashing the spinner.
+                    refreshMaskedEmails()
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(isCreatingRandom = false) }
+                    _events.send(
+                        MaskedEmailListEvent.RandomFailed(
+                            UiErrors.messageRes(error, R.string.create_email_error_failed),
+                        ),
+                    )
+                },
+            )
+        }
+    }
 
     /** Live app-mode flag used by the screen to gate the demo tutorial overlay. */
     val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
@@ -263,11 +308,18 @@ data class MaskedEmailListUiState(
     /** Non-null when the list is a cached snapshot taken at this instant. */
     val cachedAt: java.time.Instant? = null,
     val selectedFilter: EmailFilter = EmailFilter.ALL,
-    val errorRes: Int? = null
+    val errorRes: Int? = null,
+    /** True while the FAB menu's "Random mask" request is in flight. */
+    val isCreatingRandom: Boolean = false,
 ) {
     /** An error shown above an existing list instead of replacing its data. */
     val inlineErrorRes: Int?
         get() = errorRes?.takeIf { emails.isNotEmpty() }
+}
+
+sealed interface MaskedEmailListEvent {
+    data class RandomCreated(val email: String) : MaskedEmailListEvent
+    data class RandomFailed(@StringRes val messageRes: Int) : MaskedEmailListEvent
 }
 
 enum class EmailFilter {
