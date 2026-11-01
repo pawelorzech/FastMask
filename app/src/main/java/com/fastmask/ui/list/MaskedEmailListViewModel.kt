@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -155,6 +156,17 @@ class MaskedEmailListViewModel @Inject constructor(
     private var fetchInFlight = false
 
     /**
+     * A refresh asked for while another fetch was running. Dropping it lost
+     * masks: a mask created while the initial / resume fetch was in flight was
+     * missing from that fetch's answer, and the refresh that should have
+     * picked it up was thrown away, so it never showed. One re-run is enough
+     * however many requests piled up; if any of them was user-initiated the
+     * re-run is too, so its spinner and error reporting are honoured.
+     */
+    private var refetchQueued = false
+    private var refetchUserInitiated = false
+
+    /**
      * Explicit, user-visible load: pull-to-refresh, the error-state retry, and
      * the reload after a successful undo. Always shows the spinner, and always
      * surfaces a failure — the user asked for this and is waiting on it.
@@ -170,7 +182,11 @@ class MaskedEmailListViewModel @Inject constructor(
     fun refreshMaskedEmails() = fetch(userInitiated = false)
 
     private fun fetch(userInitiated: Boolean) {
-        if (fetchInFlight) return
+        if (fetchInFlight) {
+            refetchQueued = true
+            refetchUserInitiated = refetchUserInitiated || userInitiated
+            return
+        }
         fetchInFlight = true
 
         val hadData = _uiState.value.emails.isNotEmpty()
@@ -241,6 +257,14 @@ class MaskedEmailListViewModel @Inject constructor(
                 )
             } finally {
                 fetchInFlight = false
+                if (refetchQueued) {
+                    val queuedUserInitiated = refetchUserInitiated
+                    refetchQueued = false
+                    refetchUserInitiated = false
+                    // Not when this ViewModel is going away: the new coroutine
+                    // would be cancelled anyway.
+                    if (isActive) fetch(queuedUserInitiated)
+                }
             }
         }
     }

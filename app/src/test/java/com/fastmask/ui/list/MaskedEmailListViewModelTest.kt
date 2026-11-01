@@ -189,30 +189,33 @@ class MaskedEmailListViewModelTest {
     // --- duplicate fetch guard (regression: double fetch on first entry) ---
 
     @Test
-    fun `refresh during in-flight initial load does not duplicate the request`() = runTest {
+    fun `refresh during in-flight initial load is queued, not run concurrently`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)
         // Init load dispatched but not yet run — mirrors the on-resume refresh
-        // firing ~250ms after first composition.
+        // firing ~250ms after first composition. It no longer starts a second,
+        // concurrent request, but it is not discarded either: the init fetch may
+        // predate a mask that was just created, so one re-run follows.
         viewModel.refreshMaskedEmails()
         advanceUntilIdle()
 
-        assertEquals(1, repo.getCalls)
+        assertEquals(2, repo.getCalls)
     }
 
     @Test
-    fun `two same-frame refreshes fire only one fetch`() = runTest {
+    fun `two same-frame refreshes coalesce into a single queued re-run`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)
         advanceUntilIdle() // init load → getCalls == 1
 
         // Both calls land before either coroutine dispatches. The synchronous
-        // refreshInFlight guard must stop the second from starting a fetch.
+        // in-flight guard stops the second from starting a concurrent fetch and
+        // remembers it: init + the first + ONE queued re-run (not two).
         viewModel.refreshMaskedEmails()
         viewModel.refreshMaskedEmails()
         advanceUntilIdle()
 
-        assertEquals(2, repo.getCalls)
+        assertEquals(3, repo.getCalls)
     }
 
     @Test
@@ -339,9 +342,11 @@ class MaskedEmailListViewModelTest {
     // The two entry points used to guard on separate flags. A silent refresh
     // does not raise isLoading while the list has data, so a pull-to-refresh
     // arriving mid-refresh passed its own guard and ran a second concurrent
-    // fetch whose result raced the first.
+    // fetch whose result raced the first. The second request is now remembered and
+    // runs after the first ends (init + silent + one queued re-run = 3 calls), still
+    // never two at once — see the in-flight test below.
     @Test
-    fun `pull-to-refresh during a silent refresh does not start a second fetch`() = runTest {
+    fun `pull-to-refresh during a silent refresh queues one re-run instead of a concurrent fetch`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)
         advanceUntilIdle() // init load → getCalls == 1
@@ -350,11 +355,11 @@ class MaskedEmailListViewModelTest {
         viewModel.loadMaskedEmails()    // user pull-to-refresh in the same frame
         advanceUntilIdle()
 
-        assertEquals(2, repo.getCalls)
+        assertEquals(3, repo.getCalls)
     }
 
     @Test
-    fun `a silent refresh during a pull-to-refresh does not start a second fetch`() = runTest {
+    fun `a silent refresh during a pull-to-refresh queues one re-run instead of a concurrent fetch`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)
         advanceUntilIdle()
@@ -363,7 +368,32 @@ class MaskedEmailListViewModelTest {
         viewModel.refreshMaskedEmails()
         advanceUntilIdle()
 
+        assertEquals(3, repo.getCalls)
+    }
+
+    // Device audit: a mask created while the initial / resume fetch was in flight
+    // never appeared, because the refresh that should have picked it up was
+    // dropped on the floor. It is now remembered and runs once the fetch ends.
+    @Test
+    fun `a refresh requested while a fetch is in flight runs once after it`() = runTest {
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        repo.beforeGet = { if (repo.getCalls == 1) gate.await() }
+        val viewModel = vm(repo)
+        advanceUntilIdle() // init fetch is parked on the gate
+        assertEquals(1, repo.getCalls)
+
+        repo.emails = listOf(mask("m1"), mask("created"))
+        viewModel.refreshMaskedEmails()
+        viewModel.refreshMaskedEmails() // coalesced: still just one re-run
+        advanceUntilIdle()
+        assertEquals("never two fetches at once", 1, repo.getCalls)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
         assertEquals(2, repo.getCalls)
+        assertEquals(listOf("m1", "created").toSet(), viewModel.uiState.value.emails.map { it.id }.toSet())
     }
 
     // A user-initiated load must still report failure even with data on

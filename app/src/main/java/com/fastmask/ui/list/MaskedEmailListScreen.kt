@@ -322,6 +322,14 @@ fun MaskedEmailListScreen(
         }
     }
 
+    // The row may never show (filtered out, search active, or the fetch that should
+    // list it failed): a highlight left armed would flash an unrelated moment later.
+    LaunchedEffect(highlightEmail) {
+        if (highlightEmail == null) return@LaunchedEffect
+        delay(HIGHLIGHT_GIVE_UP_MS)
+        highlightEmail = null
+    }
+
     val appMode by viewModel.appMode.collectAsState()
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
 
@@ -978,6 +986,9 @@ private fun FilterGroup(
         }
     }
 }
+
+/** How long a "just created" highlight waits for its row before giving up. */
+private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
 
 /** Font scale from which a mask row drops its trailing time label / state chip. */
 private const val CompactRowFontScale = 1.3f
