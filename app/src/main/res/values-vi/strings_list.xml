@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Mặt nạ ngẫu nhiên</string>
+    <string name="list_section_today">Hôm nay</string>
+    <string name="list_section_this_week">Tuần này</string>
+    <string name="list_section_this_month">Tháng này</string>
+    <string name="list_section_earlier">Trước đó</string>
+    <string name="list_fab_close_menu">Đóng menu</string>
+</resources>

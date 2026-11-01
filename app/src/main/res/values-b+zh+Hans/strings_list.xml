@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">随机邮箱</string>
+    <string name="list_section_today">今天</string>
+    <string name="list_section_this_week">本周</string>
+    <string name="list_section_this_month">本月</string>
+    <string name="list_section_earlier">更早</string>
+    <string name="list_fab_close_menu">关闭菜单</string>
+</resources>

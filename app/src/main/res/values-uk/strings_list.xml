@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Випадкова маска</string>
+    <string name="list_section_today">Сьогодні</string>
+    <string name="list_section_this_week">Цього тижня</string>
+    <string name="list_section_this_month">Цього місяця</string>
+    <string name="list_section_earlier">Раніше</string>
+    <string name="list_fab_close_menu">Закрити меню</string>
+</resources>

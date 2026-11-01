@@ -1,9 +1,10 @@
 package com.fastmask.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -14,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,11 +24,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,7 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -43,28 +46,26 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.fastmask.R
-import com.fastmask.ui.theme.FastMaskExtras
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import com.fastmask.R
 import com.fastmask.ui.accessibility.politeLiveRegion
+import com.fastmask.ui.theme.FastMaskTheme
 
 /**
- * Position of the tooltip relative to the highlighted target.
+ * Where the tooltip card sits relative to the highlighted target.
  *
- * Retained for source compatibility with callers, but the current overlay
- * implementation pins the tooltip to a fixed position at the bottom of the
- * screen regardless of this value. Targets that don't fit comfortably
- * above the tooltip are still highlighted via the spotlight cutout — the
- * tooltip itself simply doesn't try to chase them around the screen.
+ * [AUTO] (what the list passes) puts the card at the bottom of the screen
+ * unless the target is a compact element in the lower part of the screen — the
+ * create FAB — in which case the card moves to the top so it never covers what
+ * it is pointing at. [TOP] and [BOTTOM] force a side.
  */
 enum class TooltipPosition { TOP, BOTTOM, AUTO }
 
@@ -80,21 +81,21 @@ data class TutorialStep(
     val tooltipPosition: TooltipPosition = TooltipPosition.AUTO,
 )
 
-private val ScrimColor = Color.Black.copy(alpha = 0.7f)
-private const val ANIM_DURATION_MS = 300
 private val TooltipMaxWidth = 480.dp
-private val TooltipPadding = 16.dp
-private val ScreenEdgePadding = 20.dp
-private val TooltipBottomMargin = 32.dp
-private val CutoutCornerRadius = 12f
-private val CutoutPadding = 6f
+private val TooltipPadding = 20.dp
+private val ScreenEdgePadding = 16.dp
+private val TooltipEdgeMargin = 24.dp
+private val CutoutCornerRadius = 20.dp
+private val CutoutPadding = 8.dp
 
 /**
- * Full-screen scrim overlay with a punched-out cutout around a target UI
+ * Full-screen scrim overlay with a punched-out spotlight around a target UI
  * element plus a stepped tooltip. The implementation is deliberately
  * library-free: a [Canvas] draws the scrim and clears the cutout using
  * [BlendMode.Clear], wrapped in [CompositingStrategy.Offscreen] so the
- * blend works without bleeding through.
+ * blend works without bleeding through. The spotlight glides between targets
+ * on the theme's spatial spring, and the card is an M3 rich-tooltip: a
+ * `surfaceContainerHigh` card with a title, supporting text and text actions.
  *
  * The caller owns whether the overlay is visible and what happens on
  * complete/skip — typical usage is to flip a `tutorialCompleted` flag in
@@ -124,8 +125,8 @@ fun TutorialOverlay(
 
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(animationSpec = tween(ANIM_DURATION_MS)),
-        exit = fadeOut(animationSpec = tween(ANIM_DURATION_MS)),
+        enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()),
+        exit = fadeOut(MaterialTheme.motionScheme.defaultEffectsSpec()),
     ) {
         val safeIndex = currentStep.coerceIn(0, steps.lastIndex)
         val step = steps[safeIndex]
@@ -152,16 +153,22 @@ fun TutorialOverlay(
         ) {
             ScrimWithCutout(targetBounds = step.targetBounds)
 
+            // Specs are read here: the transitionSpec lambda is not composable.
+            val motion = MaterialTheme.motionScheme
+            val slideInSpec = motion.defaultSpatialSpec<IntOffset>()
+            val slideOutSpec = motion.fastSpatialSpec<IntOffset>()
+            val fadeInSpec = motion.defaultEffectsSpec<Float>()
+            val fadeOutSpec = motion.fastEffectsSpec<Float>()
             AnimatedContent(
                 targetState = safeIndex,
                 transitionSpec = {
                     val forward = targetState > initialState
-                    val slideIn = slideInHorizontally(animationSpec = tween(ANIM_DURATION_MS)) {
-                        full -> if (forward) full else -full
-                    } + fadeIn(animationSpec = tween(ANIM_DURATION_MS))
-                    val slideOut = slideOutHorizontally(animationSpec = tween(ANIM_DURATION_MS)) {
-                        full -> if (forward) -full else full
-                    } + fadeOut(animationSpec = tween(ANIM_DURATION_MS))
+                    val slideIn = slideInHorizontally(animationSpec = slideInSpec) { full ->
+                        if (forward) full else -full
+                    } + fadeIn(fadeInSpec)
+                    val slideOut = slideOutHorizontally(animationSpec = slideOutSpec) { full ->
+                        if (forward) -full else full
+                    } + fadeOut(fadeOutSpec)
                     slideIn togetherWith slideOut
                 },
                 label = "tutorial-step",
@@ -210,17 +217,33 @@ fun TutorialOverlay(
 
 @Composable
 private fun ScrimWithCutout(targetBounds: Rect?) {
+    val density = LocalDensity.current
+    val padPx = with(density) { CutoutPadding.toPx() }
+    val radiusPx = with(density) { CutoutCornerRadius.toPx() }
+    val scrim = MaterialTheme.colorScheme.scrim.copy(alpha = 0.72f)
+
+    // The spotlight glides from one target to the next on the spatial spring.
+    // A step without a target draws no cutout at all (see below).
+    val padded = targetBounds?.let {
+        Rect(it.left - padPx, it.top - padPx, it.right + padPx, it.bottom + padPx)
+    }
+    val animated by animateRectAsState(
+        targetValue = padded ?: Rect.Zero,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Rect>(),
+        label = "spotlight",
+    )
+
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen },
     ) {
-        drawRect(color = ScrimColor, size = size)
-        if (targetBounds != null) {
-            val left = (targetBounds.left - CutoutPadding).coerceAtLeast(0f)
-            val top = (targetBounds.top - CutoutPadding).coerceAtLeast(0f)
-            val right = (targetBounds.right + CutoutPadding).coerceAtMost(size.width)
-            val bottom = (targetBounds.bottom + CutoutPadding).coerceAtMost(size.height)
+        drawRect(color = scrim, size = size)
+        if (padded != null) {
+            val left = animated.left.coerceAtLeast(0f)
+            val top = animated.top.coerceAtLeast(0f)
+            val right = animated.right.coerceAtMost(size.width)
+            val bottom = animated.bottom.coerceAtMost(size.height)
             val width = (right - left).coerceAtLeast(0f)
             val height = (bottom - top).coerceAtLeast(0f)
             if (width > 0f && height > 0f) {
@@ -228,7 +251,7 @@ private fun ScrimWithCutout(targetBounds: Rect?) {
                     color = Color.Transparent,
                     topLeft = Offset(left, top),
                     size = Size(width, height),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(CutoutCornerRadius, CutoutCornerRadius),
+                    cornerRadius = CornerRadius(radiusPx, radiusPx),
                     blendMode = BlendMode.Clear,
                 )
             }
@@ -244,30 +267,36 @@ private fun TooltipBubble(
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val extras = FastMaskExtras.current
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val screenHeight = constraints.maxHeight.toFloat()
+        val bounds = step.targetBounds
+        // Pointing at a compact element in the lower part of the screen (the
+        // FAB): put the card above, otherwise it would sit on top of the
+        // spotlight. A target that is most of the screen (the whole list) or
+        // sits in the upper half keeps the card at the bottom, where the
+        // thumb is. Targets are never chased around the screen: that is what
+        // pushed the card off-screen in earlier revisions.
+        val atTop = when (step.tooltipPosition) {
+            TooltipPosition.TOP -> true
+            TooltipPosition.BOTTOM -> false
+            TooltipPosition.AUTO ->
+                bounds != null && bounds.height < screenHeight * 0.4f && bounds.center.y > screenHeight * 0.55f
+        }
 
-    // Fixed bottom-aligned tooltip. Earlier revisions tried to chase the
-    // highlighted target with dynamic top/bottom placement, but with full-
-    // height targets (e.g. the whole list view) the computed Y ended up
-    // off-screen and the tooltip never appeared. Pinning it to the bottom
-    // makes rendering deterministic — the spotlight cutout still visually
-    // points at the target.
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-    ) {
         Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp,
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            tonalElevation = 3.dp,
+            shadowElevation = 6.dp,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .align(if (atTop) Alignment.TopCenter else Alignment.BottomCenter)
+                .then(if (atTop) Modifier.statusBarsPadding() else Modifier.navigationBarsPadding())
                 .padding(
                     start = ScreenEdgePadding,
                     end = ScreenEdgePadding,
-                    bottom = TooltipBottomMargin,
+                    top = if (atTop) TooltipEdgeMargin else 0.dp,
+                    bottom = if (atTop) 0.dp else TooltipEdgeMargin,
                 )
                 .fillMaxWidth()
                 .widthIn(max = TooltipMaxWidth),
@@ -275,41 +304,71 @@ private fun TooltipBubble(
             Column(modifier = Modifier.padding(TooltipPadding)) {
                 Text(
                     text = step.title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    style = MaterialTheme.typography.titleMediumEmphasized,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = step.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = extras.inkSoft,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = stringResource(R.string.tutorial_skip),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = extras.inkMuted,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable(role = Role.Button, onClick = onSkip)
-                            // Text draws at ~30dp tall; the target stays 48dp.
-                            .heightIn(min = 48.dp)
-                            .wrapContentHeight(Alignment.CenterVertically)
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                    )
-                    PillButton(
-                        text = if (isLast) stringResource(R.string.tutorial_done) else stringResource(R.string.tutorial_next),
-                        onClick = onNext,
-                        variant = PillButtonVariant.Primary,
-                    )
+                    // Stock text buttons: Button role, 48dp target, press morph.
+                    TextButton(onClick = onSkip) {
+                        Text(
+                            text = stringResource(R.string.tutorial_skip),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    TextButton(onClick = onNext) {
+                        Text(
+                            text = if (isLast) stringResource(R.string.tutorial_done) else stringResource(R.string.tutorial_next),
+                            style = MaterialTheme.typography.labelLargeEmphasized,
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+private val previewSteps = listOf(
+    TutorialStep(
+        title = "Your masked emails",
+        description = "Each address forwards mail to your inbox while hiding your real email.",
+        targetBounds = Rect(Offset(40f, 400f), Size(1000f, 700f)),
+    ),
+    TutorialStep(
+        title = "Create a new mask",
+        description = "Tap here to generate a fresh address for any service.",
+        targetBounds = Rect(Offset(700f, 1900f), Size(340f, 168f)),
+    ),
+)
+
+@Preview(name = "Tutorial", showBackground = true, widthDp = 411, heightDp = 860)
+@Composable
+private fun TutorialOverlayPreview() {
+    FastMaskTheme {
+        TutorialOverlay(steps = previewSteps, visible = true, onComplete = {}, onSkip = {})
+    }
+}
+
+@Preview(
+    name = "Tutorial dark",
+    showBackground = true,
+    widthDp = 411,
+    heightDp = 860,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun TutorialOverlayDarkPreview() {
+    FastMaskTheme {
+        TutorialOverlay(steps = previewSteps.reversed(), visible = true, onComplete = {}, onSkip = {})
+    }
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">หน้ากากสุ่ม</string>
+    <string name="list_section_today">วันนี้</string>
+    <string name="list_section_this_week">สัปดาห์นี้</string>
+    <string name="list_section_this_month">เดือนนี้</string>
+    <string name="list_section_earlier">ก่อนหน้านี้</string>
+    <string name="list_fab_close_menu">ปิดเมนู</string>
+</resources>

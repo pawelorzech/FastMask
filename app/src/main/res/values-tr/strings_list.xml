@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Rastgele maske</string>
+    <string name="list_section_today">Bugün</string>
+    <string name="list_section_this_week">Bu hafta</string>
+    <string name="list_section_this_month">Bu ay</string>
+    <string name="list_section_earlier">Daha eski</string>
+    <string name="list_fab_close_menu">Menüyü kapat</string>
+</resources>

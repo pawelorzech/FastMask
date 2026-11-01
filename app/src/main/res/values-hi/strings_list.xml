@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">रैंडम मास्क</string>
+    <string name="list_section_today">आज</string>
+    <string name="list_section_this_week">इस सप्ताह</string>
+    <string name="list_section_this_month">इस महीने</string>
+    <string name="list_section_earlier">पहले</string>
+    <string name="list_fab_close_menu">मेनू बंद करें</string>
+</resources>

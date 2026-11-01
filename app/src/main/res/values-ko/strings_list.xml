@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">무작위 마스크</string>
+    <string name="list_section_today">오늘</string>
+    <string name="list_section_this_week">이번 주</string>
+    <string name="list_section_this_month">이번 달</string>
+    <string name="list_section_earlier">이전</string>
+    <string name="list_fab_close_menu">메뉴 닫기</string>
+</resources>
