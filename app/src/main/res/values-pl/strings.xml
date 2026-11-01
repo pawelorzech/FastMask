@@ -223,8 +223,8 @@
     <string name="pro_label">Wspieraj open source</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Jeden drobny zakup wspiera niezależną, otwartoźródłową aplikację — i odblokowuje dodatki.</string>
-    <string name="pro_feature_accents_title">Motywy akcentów</string>
-    <string name="pro_feature_accents_body">Pięć atramentów, by FastMask był Twój.</string>
+    <string name="pro_feature_accents_title">Motywy kolorystyczne</string>
+    <string name="pro_feature_accents_body">Pięć kolorów bazowych albo kolory Twojej tapety.</string>
     <string name="pro_feature_lock_title">Blokada aplikacji</string>
     <string name="pro_feature_lock_body">Blokada biometryczna dla dodatkowej prywatności.</string>
     <string name="pro_feature_export_title">Eksport CSV</string>
@@ -247,11 +247,11 @@
     <string name="pro_terms">Warunki</string>
     <string name="settings_pro_section">FastMask Pro</string>
     <string name="settings_pro_row_title">FastMask Pro</string>
-    <string name="settings_pro_value_free">Odblokuj akcenty, blokadę i eksport</string>
+    <string name="settings_pro_value_free">Odblokuj kolory, blokadę i eksport</string>
     <string name="settings_pro_value_active">Aktywne — dziękuję!</string>
-    <string name="settings_accent">Akcent</string>
+    <string name="settings_accent">Kolory</string>
     <string name="settings_accent_locked">Funkcja FastMask Pro</string>
-    <string name="settings_select_accent">Wybierz akcent</string>
+    <string name="settings_select_accent">Wybierz kolory</string>
     <string name="accent_amber">Bursztyn</string>
     <string name="accent_ink">Atrament</string>
     <string name="accent_sage">Szałwia</string>

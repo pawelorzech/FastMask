@@ -28,9 +28,9 @@ class AccessibilitySemanticsWiringTest {
             ".radioButtonGroup()",
         )
         assertInFunction(
-            "settings/SettingsScreen.kt",
-            "private fun AccentPickerDialog(",
-            "Column(modifier = Modifier.radioButtonGroup())",
+            "settings/ColorSwatches.kt",
+            "internal fun ColorSwatchRow(",
+            "modifier = modifier.radioButtonGroup()",
         )
         assertInFunction(
             "settings/SettingsScreen.kt",

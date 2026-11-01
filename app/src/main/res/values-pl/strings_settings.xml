@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Odblokuj</string>
+    <string name="pro_close">Zamknij</string>
+    <string name="pro_done">Gotowe</string>
+    <string name="settings_appearance_section">Wygląd</string>
+    <string name="settings_privacy_section">Prywatność</string>
+    <string name="settings_data_section">Dane</string>
+    <string name="settings_about_section">O aplikacji</string>
+</resources>

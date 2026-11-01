@@ -203,8 +203,8 @@
     <string name="pro_label">Dukung sumber terbuka</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Satu pembelian kecil mendukung aplikasi independen sumber terbuka — dan membuka fitur tambahan.</string>
-    <string name="pro_feature_accents_title">Tema aksen</string>
-    <string name="pro_feature_accents_body">Lima warna untuk membuat FastMask milikmu.</string>
+    <string name="pro_feature_accents_title">Tema warna</string>
+    <string name="pro_feature_accents_body">Lima warna dasar, atau tetap pakai warna wallpapermu.</string>
     <string name="pro_feature_lock_title">Kunci aplikasi</string>
     <string name="pro_feature_lock_body">Kunci biometrik untuk lapisan privasi ekstra.</string>
     <string name="pro_feature_export_title">Ekspor CSV</string>
@@ -227,11 +227,11 @@
     <string name="pro_terms">Persyaratan</string>
     <string name="settings_pro_section">FastMask Pro</string>
     <string name="settings_pro_row_title">FastMask Pro</string>
-    <string name="settings_pro_value_free">Buka aksen, kunci aplikasi dan ekspor</string>
+    <string name="settings_pro_value_free">Buka warna, kunci aplikasi dan ekspor</string>
     <string name="settings_pro_value_active">Aktif — terima kasih!</string>
-    <string name="settings_accent">Aksen</string>
+    <string name="settings_accent">Warna</string>
     <string name="settings_accent_locked">Fitur FastMask Pro</string>
-    <string name="settings_select_accent">Pilih aksen</string>
+    <string name="settings_select_accent">Pilih warna</string>
     <string name="accent_amber">Amber</string>
     <string name="accent_ink">Tinta</string>
     <string name="accent_sage">Bijak</string>

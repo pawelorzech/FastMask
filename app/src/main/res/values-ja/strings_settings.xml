@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">アンロック</string>
+    <string name="pro_close">閉じる</string>
+    <string name="pro_done">完了</string>
+    <string name="settings_appearance_section">外観</string>
+    <string name="settings_privacy_section">プライバシー</string>
+    <string name="settings_data_section">データ</string>
+    <string name="settings_about_section">このアプリについて</string>
+</resources>

@@ -233,8 +233,8 @@
     <string name="pro_label">دعم المصدر المفتوح</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">شراء صغير يدعم تطبيقاً مستقلاً ومفتوح المصدر — وفتح المميزات الإضافية.</string>
-    <string name="pro_feature_accents_title">مواضيع اللون</string>
-    <string name="pro_feature_accents_body">خمسة ألوان لجعل FastMask ملكك.</string>
+    <string name="pro_feature_accents_title">سمات الألوان</string>
+    <string name="pro_feature_accents_body">خمسة ألوان أساسية، أو احتفظ بألوان خلفيتك.</string>
     <string name="pro_feature_lock_title">قفل التطبيق</string>
     <string name="pro_feature_lock_body">قفل بيومتري لطبقة إضافية من الخصوصية.</string>
     <string name="pro_feature_export_title">تصدير CSV</string>
@@ -259,9 +259,9 @@
     <string name="settings_pro_row_title">FastMask Pro</string>
     <string name="settings_pro_value_free">فتح الألوان وقفل التطبيق والتصدير</string>
     <string name="settings_pro_value_active">نشط — شكراً!</string>
-    <string name="settings_accent">اللون</string>
+    <string name="settings_accent">الألوان</string>
     <string name="settings_accent_locked">ميزة FastMask Pro</string>
-    <string name="settings_select_accent">اختر اللون</string>
+    <string name="settings_select_accent">اختر الألوان</string>
     <string name="accent_amber">كهرماني</string>
     <string name="accent_ink">حبر</string>
     <string name="accent_sage">حكيم</string>

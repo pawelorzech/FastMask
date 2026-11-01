@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">잠금 해제</string>
+    <string name="pro_close">닫기</string>
+    <string name="pro_done">완료</string>
+    <string name="settings_appearance_section">모양</string>
+    <string name="settings_privacy_section">개인정보 보호</string>
+    <string name="settings_data_section">데이터</string>
+    <string name="settings_about_section">정보</string>
+</resources>

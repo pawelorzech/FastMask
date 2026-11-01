@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Déverrouiller</string>
+    <string name="pro_close">Fermer</string>
+    <string name="pro_done">Terminé</string>
+    <string name="settings_appearance_section">Apparence</string>
+    <string name="settings_privacy_section">Confidentialité</string>
+    <string name="settings_data_section">Données</string>
+    <string name="settings_about_section">À propos</string>
+</resources>

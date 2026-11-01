@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Mở khóa</string>
+    <string name="pro_close">Đóng</string>
+    <string name="pro_done">Xong</string>
+    <string name="settings_appearance_section">Giao diện</string>
+    <string name="settings_privacy_section">Quyền riêng tư</string>
+    <string name="settings_data_section">Dữ liệu</string>
+    <string name="settings_about_section">Giới thiệu</string>
+</resources>

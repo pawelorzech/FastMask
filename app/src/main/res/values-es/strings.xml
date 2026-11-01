@@ -215,8 +215,8 @@
     <string name="pro_label">Apoya el código abierto</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Una pequeña compra apoya una aplicación independiente y de código abierto — y desbloquea extras.</string>
-    <string name="pro_feature_accents_title">Temas de colores</string>
-    <string name="pro_feature_accents_body">Cinco colores para hacer FastMask tuyo.</string>
+    <string name="pro_feature_accents_title">Temas de color</string>
+    <string name="pro_feature_accents_body">Cinco colores base, o conserva los de tu fondo de pantalla.</string>
     <string name="pro_feature_lock_title">Bloqueo de aplicación</string>
     <string name="pro_feature_lock_body">Bloqueo biométrico para privacidad adicional.</string>
     <string name="pro_feature_export_title">Exportación CSV</string>
@@ -241,9 +241,9 @@
     <string name="settings_pro_row_title">FastMask Pro</string>
     <string name="settings_pro_value_free">Desbloquea colores, bloqueo de aplicación y exportación</string>
     <string name="settings_pro_value_active">Activo — ¡gracias!</string>
-    <string name="settings_accent">Color</string>
+    <string name="settings_accent">Colores</string>
     <string name="settings_accent_locked">Una característica de FastMask Pro</string>
-    <string name="settings_select_accent">Elige el color</string>
+    <string name="settings_select_accent">Elige los colores</string>
     <string name="accent_amber">Ámbar</string>
     <string name="accent_ink">Tinta</string>
     <string name="accent_sage">Salvia</string>

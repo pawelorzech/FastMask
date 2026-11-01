@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Ontgrendelen</string>
+    <string name="pro_close">Sluiten</string>
+    <string name="pro_done">Klaar</string>
+    <string name="settings_appearance_section">Uiterlijk</string>
+    <string name="settings_privacy_section">Privacy</string>
+    <string name="settings_data_section">Gegevens</string>
+    <string name="settings_about_section">Over</string>
+</resources>
