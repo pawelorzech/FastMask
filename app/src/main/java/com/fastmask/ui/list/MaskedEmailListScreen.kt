@@ -113,6 +113,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
@@ -978,6 +979,9 @@ private fun FilterGroup(
     }
 }
 
+/** Font scale from which a mask row drops its trailing time label / state chip. */
+private const val CompactRowFontScale = 1.3f
+
 // Reuses the already-translated state labels so TalkBack announces a mask's
 // state (Active / Off / Archived / Pending) that the avatar color conveys visually.
 private fun stateContentDescription(state: EmailState): Int = when (state) {
@@ -988,7 +992,7 @@ private fun stateContentDescription(state: EmailState): Int = when (state) {
 }
 
 @Composable
-private fun MaskRow(
+internal fun MaskRow(
     email: MaskedEmail,
     index: Int,
     count: Int,
@@ -1022,7 +1026,15 @@ private fun MaskRow(
     }
     val domain = email.forDomain?.takeIf { it.isNotBlank() }
     val note = email.description?.takeIf { it.isNotBlank() }
-    val supporting = listOfNotNull(note, domain).joinToString(" · ")
+    // At large font scales the timestamp / state chip beside the address left it a few
+    // characters ("sha…"). Past this threshold they move under the address instead.
+    val compact = LocalDensity.current.fontScale >= CompactRowFontScale
+    val supporting = listOfNotNull(
+        note,
+        domain,
+        stateLabel.takeIf { compact && email.state != EmailState.ENABLED },
+        timeLabel.takeIf { compact },
+    ).joinToString(" · ")
 
     // The freshly created mask flashes a primaryContainer wash that fades out.
     val highlightAlpha by animateFloatAsState(
@@ -1062,7 +1074,7 @@ private fun MaskRow(
             {
                 Text(
                     text = supporting,
-                    maxLines = 1,
+                    maxLines = if (compact) 3 else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -1074,13 +1086,14 @@ private fun MaskRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                if (email.state == EmailState.ENABLED) {
+                // Compact rows carry both in the supporting line instead.
+                if (!compact && email.state == EmailState.ENABLED) {
                     Text(
                         text = timeLabel,
                         style = MaterialTheme.typography.labelMedium,
                         color = mutedColor,
                     )
-                } else {
+                } else if (!compact) {
                     // The row already announces its state; the chip is the
                     // sighted user's non-colour cue only.
                     Box(Modifier.clearAndSetSemantics { }) { StateChip(email.state) }
@@ -1096,9 +1109,10 @@ private fun MaskRow(
             }
         },
         headline = {
+            // The address is the row's identity: wrap it rather than cut off the domain.
             Text(
                 text = headline,
-                maxLines = 1,
+                maxLines = if (compact) 4 else 2,
                 overflow = TextOverflow.Ellipsis,
             )
         },
