@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -49,11 +48,12 @@ fun StateChip(state: EmailState, modifier: Modifier = Modifier) {
     val pair = statusPairFor(state)
     Box(
         modifier = modifier
-            .height(24.dp)
-            .defaultMinSize(minWidth = 24.dp)
+            // A floor, not a fixed height: at 200% font the label is taller than 24dp and a
+            // fixed height clipped it.
+            .defaultMinSize(minWidth = 24.dp, minHeight = 24.dp)
             .clip(CircleShape)
             .background(pair.container)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 2.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(

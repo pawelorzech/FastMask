@@ -114,8 +114,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
 import com.fastmask.R
-import com.fastmask.ui.components.expressive.ConnectedGap
 import com.fastmask.ui.components.expressive.ExpressiveTextField
+import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -732,40 +732,41 @@ private fun StatusControl(
             }
         } else {
             val activeSelected = shown == EmailState.ENABLED || shown == EmailState.PENDING
-            Row(
+            AdaptiveToggleGroup(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .selectableGroup()
                     .semantics { contentDescription = statusDesc },
-                horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
-            ) {
-                StatusToggle(
-                    label = stringResource(R.string.state_enabled),
-                    checked = activeSelected,
-                    loading = toggling && activeSelected,
-                    shapes = connectedToggleShapes(index = 0, count = 2),
-                    modifier = Modifier.weight(1f),
-                    onCheckedChange = { checked ->
-                        if (checked && !busy) {
-                            pending = EmailState.ENABLED
-                            onEnable()
-                        }
-                    },
-                )
-                StatusToggle(
-                    label = stringResource(R.string.state_disabled),
-                    checked = !activeSelected,
-                    loading = toggling && !activeSelected,
-                    shapes = connectedToggleShapes(index = 1, count = 2),
-                    modifier = Modifier.weight(1f),
-                    onCheckedChange = { checked ->
-                        if (checked && !busy) {
-                            pending = EmailState.DISABLED
-                            onDisable()
-                        }
-                    },
-                )
-            }
+                first = { toggleModifier, stacked ->
+                    StatusToggle(
+                        label = stringResource(R.string.state_enabled),
+                        checked = activeSelected,
+                        loading = toggling && activeSelected,
+                        shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
+                        modifier = toggleModifier,
+                        onCheckedChange = { checked ->
+                            if (checked && !busy) {
+                                pending = EmailState.ENABLED
+                                onEnable()
+                            }
+                        },
+                    )
+                },
+                second = { toggleModifier, stacked ->
+                    StatusToggle(
+                        label = stringResource(R.string.state_disabled),
+                        checked = !activeSelected,
+                        loading = toggling && !activeSelected,
+                        shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
+                        modifier = toggleModifier,
+                        onCheckedChange = { checked ->
+                            if (checked && !busy) {
+                                pending = EmailState.DISABLED
+                                onDisable()
+                            }
+                        },
+                    )
+                },
+            )
         }
     }
 }

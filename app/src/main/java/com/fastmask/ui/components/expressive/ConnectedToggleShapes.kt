@@ -14,18 +14,34 @@ val ConnectedGap = 2.dp
  * Shapes for toggle button [index] of [count] in a connected single-select group. Every button keeps
  * full outer corners and small inner corners so the group reads as one segmented unit; the checked
  * button rounds its inner corners further (but never to a full pill, which would make two buttons
- * look like two separate pills) and presses to the smallest radius. Use the same helper for every
+ * look like two separate pills) and presses to the smallest radius. [vertical] is the stacked
+ * layout used at large font scales. Use the same helper for every
  * connected group (filters, status, initial state) so they are identical.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-fun connectedToggleShapes(index: Int, count: Int): ToggleButtonShapes {
+fun connectedToggleShapes(index: Int, count: Int, vertical: Boolean = false): ToggleButtonShapes {
     val full = CornerSize(50)
-    fun shape(inner: Dp) = RoundedCornerShape(
-        topStart = if (index == 0) full else CornerSize(inner),
-        bottomStart = if (index == 0) full else CornerSize(inner),
-        topEnd = if (index == count - 1) full else CornerSize(inner),
-        bottomEnd = if (index == count - 1) full else CornerSize(inner),
-    )
+    val first = index == 0
+    val last = index == count - 1
+    fun shape(inner: Dp): RoundedCornerShape {
+        val i = CornerSize(inner)
+        // Stacked (vertical) groups round the top of the first and the bottom of the last.
+        return if (vertical) {
+            RoundedCornerShape(
+                topStart = if (first) full else i,
+                topEnd = if (first) full else i,
+                bottomStart = if (last) full else i,
+                bottomEnd = if (last) full else i,
+            )
+        } else {
+            RoundedCornerShape(
+                topStart = if (first) full else i,
+                bottomStart = if (first) full else i,
+                topEnd = if (last) full else i,
+                bottomEnd = if (last) full else i,
+            )
+        }
+    }
     return ToggleButtonShapes(
         shape = shape(INNER_REST),
         pressedShape = shape(INNER_PRESSED),

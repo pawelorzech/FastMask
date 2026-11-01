@@ -89,7 +89,7 @@ import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
-import com.fastmask.ui.components.expressive.ConnectedGap
+import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.delayInfinite
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -528,35 +528,35 @@ private fun StateSegmented(
     enabled: Boolean,
 ) {
     val haptic = LocalHapticFeedback.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .radioButtonGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
-    ) {
-        StateOption(
-            label = stringResource(R.string.state_enabled),
-            checked = selected == EmailState.ENABLED,
-            enabled = enabled,
-            shapes = connectedToggleShapes(index = 0, count = 2),
-            modifier = Modifier.weight(1f),
-            onSelect = {
-                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                onSelect(EmailState.ENABLED)
-            },
-        )
-        StateOption(
-            label = stringResource(R.string.state_disabled),
-            checked = selected == EmailState.DISABLED,
-            enabled = enabled,
-            shapes = connectedToggleShapes(index = 1, count = 2),
-            modifier = Modifier.weight(1f),
-            onSelect = {
-                haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                onSelect(EmailState.DISABLED)
-            },
-        )
-    }
+    AdaptiveToggleGroup(
+        modifier = Modifier.radioButtonGroup(),
+        first = { toggleModifier, stacked ->
+            StateOption(
+                label = stringResource(R.string.state_enabled),
+                checked = selected == EmailState.ENABLED,
+                enabled = enabled,
+                shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
+                modifier = toggleModifier,
+                onSelect = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                    onSelect(EmailState.ENABLED)
+                },
+            )
+        },
+        second = { toggleModifier, stacked ->
+            StateOption(
+                label = stringResource(R.string.state_disabled),
+                checked = selected == EmailState.DISABLED,
+                enabled = enabled,
+                shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
+                modifier = toggleModifier,
+                onSelect = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                    onSelect(EmailState.DISABLED)
+                },
+            )
+        },
+    )
 }
 
 @Composable
