@@ -3,6 +3,8 @@ package com.fastmask
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -72,6 +74,16 @@ class MainFlowsTest {
     private lateinit var scenario: ActivityScenario<MainActivity>
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+    /**
+     * The list's create button: the extended FAB is named by its visible "New mask" label,
+     * the icon-only toggle FAB (while scrolling down) by the create description.
+     */
+    private fun createFab(): SemanticsMatcher =
+        hasClickAction() and (
+            hasContentDescription(string(R.string.email_list_create_description)) or
+                hasContentDescription(string(R.string.email_list_create_fab))
+            )
 
     private fun string(id: Int) = context.getString(id)
 
@@ -172,9 +184,7 @@ class MainFlowsTest {
         // The FAB opens a menu; "New mask" is its create entry. The extended FAB
         // carries the same label until its crossfade into the toggle FAB ends,
         // so wait for the menu item to be the only match.
-        composeRule
-            .onNodeWithContentDescription(string(R.string.email_list_create_description))
-            .performClick()
+        composeRule.onNode(createFab()).performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(string(R.string.email_list_create_fab))
                 .fetchSemanticsNodes().size == 1
@@ -192,7 +202,9 @@ class MainFlowsTest {
         // Wait on the FAB, which only exists on the list. ("Masked" would match
         // as a substring while still on the create screen.) The return is now
         // immediate — the create screen no longer waits out its snackbar.
-        awaitContentDescription(string(R.string.email_list_create_description), 10_000)
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodes(createFab()).fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.waitUntil(timeoutMillis = 15_000) {
             filterCount(R.string.filter_all) == totalBefore + 1
         }

@@ -3,6 +3,10 @@ package com.fastmask.ui.create
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -79,6 +83,16 @@ class CreateMaskedEmailImeActionTest {
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 
+    /**
+     * The list's create button: the extended FAB is named by its visible "New mask" label,
+     * the icon-only toggle FAB (while scrolling down) by the create description.
+     */
+    private fun createFab(): SemanticsMatcher =
+        hasClickAction() and (
+            hasContentDescription(string(R.string.email_list_create_description)) or
+                hasContentDescription(string(R.string.email_list_create_fab))
+            )
+
     private fun string(id: Int) = context.getString(id)
 
     @Before
@@ -110,9 +124,7 @@ class CreateMaskedEmailImeActionTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        composeRule
-            .onNodeWithContentDescription(string(R.string.email_list_create_description))
-            .performClick()
+        composeRule.onNode(createFab()).performClick()
         // The FAB opens a menu; its "New mask" entry is the only match for the
         // label once the extended FAB has crossfaded into the toggle FAB.
         composeRule.waitUntil(timeoutMillis = 5_000) {

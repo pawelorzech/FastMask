@@ -1266,7 +1266,7 @@ internal fun ErrorBlock(
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun CreateFabMenu(
+internal fun CreateFabMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     extended: Boolean,
@@ -1305,7 +1305,11 @@ private fun CreateFabMenu(
                             haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
                             onExpandedChange(true)
                         },
-                        modifier = Modifier.semantics { contentDescription = createDescription },
+                        // Material clears the label's semantics inside the extended FAB, so
+                        // without a description the button has no name at all. It must
+                        // equal the visible label (WCAG 2.5.3 Label in Name): "Create new
+                        // masked address" is not "Nowa maska" in Polish.
+                        modifier = Modifier.semantics { contentDescription = newLabel },
                         icon = {
                             if (isCreating) {
                                 LoadingIndicator(modifier = Modifier.size(24.dp))
