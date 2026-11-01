@@ -188,7 +188,8 @@ class SettingsViewModel @Inject constructor(
 
     fun onAccentSelected(accent: Accent) {
         _uiState.update { it.copy(showAccentDialog = false) }
-        if (!proStatus.value.isPro) return
+        // Wallpaper colors are free; only the five seeds are Pro (the picker locks them).
+        if (accent != Accent.DYNAMIC && !proStatus.value.isPro) return
         viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
     }
 

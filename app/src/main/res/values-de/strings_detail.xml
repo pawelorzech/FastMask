@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">Details bearbeiten</string>
+    <string name="email_detail_edit_stop">Bearbeiten beenden</string>
+    <string name="email_detail_no_domain">Keine Domain</string>
+    <string name="create_email_close">Schließen</string>
+</resources>

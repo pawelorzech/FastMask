@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">विवरण संपादित करें</string>
+    <string name="email_detail_edit_stop">संपादन बंद करें</string>
+    <string name="email_detail_no_domain">कोई डोमेन नहीं</string>
+    <string name="create_email_close">बंद करें</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">编辑详情</string>
+    <string name="email_detail_edit_stop">停止编辑</string>
+    <string name="email_detail_no_domain">无域名</string>
+    <string name="create_email_close">关闭</string>
+</resources>

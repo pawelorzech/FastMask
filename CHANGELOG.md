@@ -3,6 +3,29 @@
 All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
+
+## [1.13.0] — 2026-11-01
+
+### Changed
+- Full Material 3 Expressive redesign of every screen: `MaterialExpressiveTheme` with the expressive motion scheme, spring-driven navigation (shared axis, predictive back) and a list-row to detail container transform, connected button groups, segmented lists, flexible app bars, `LoadingIndicator`, a FAB menu, and `MaterialShapes` that morph with state.
+- Colors now come from the wallpaper (dynamic color, Android 12+). FastMask Pro's accents are five seed color themes (Amber, Ink, Sage, Plum, Cobalt) with generated tonal schemes; Amber is the fallback below Android 12.
+- Typography is Google Sans Flex, bundled as a variable font; emphasized headlines use its rounded axis.
+- New Cookie @ launcher icon with a themed (monochrome) layer, matching splash screen in light and dark.
+- Masks are grouped by when they were created; filters show counts.
+
+### Added
+- "Random mask" in the + menu creates a fresh address in one tap.
+- Settings › About › Open-source licenses (Google Sans Flex, SIL OFL 1.1; Material Symbols glyph, Apache 2.0).
+
+### Fixed
+- Mask addresses, status toggles and state chips stay readable at large font sizes; the create button's accessible name matches its label.
+- A refresh or reload requested while another fetch is running is queued instead of dropped, so new masks and saved edits always appear.
+- Free users can pick the wallpaper color option.
+
+### Build
+- `versionCode` 25 → 26, `versionName` "1.12.0" → "1.13.0".
+- AGP 9.5 (built-in Kotlin), Gradle 9.6 with a pinned distribution checksum, compileSdk 37, Hilt on KSP, Compose BOM 2026.09.00, Material 3 1.5.0-beta02, Navigation 2.9.8.
+
 ## [1.12.0] — 2026-08-26
 
 ### Changed

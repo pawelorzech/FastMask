@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">ランダムマスク</string>
+    <string name="list_section_today">今日</string>
+    <string name="list_section_this_week">今週</string>
+    <string name="list_section_this_month">今月</string>
+    <string name="list_section_earlier">それ以前</string>
+    <string name="list_fab_close_menu">メニューを閉じる</string>
+</resources>

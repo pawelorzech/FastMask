@@ -1,7 +1,7 @@
-Nowości w 1.12.0
+Nowości w 1.13.0
 
-• Całkowicie nowa ikona i odświeżony wygląd Material 3
-• Poprawiona zgodność z API Masked Email — domeny, opisy i czyszczenie linków są wysyłane zgodnie z kontraktem Fastmail
-• Pewniejsze zakupy Pro oraz czytelna obsługa błędów Google Play
-• Przerwane pilne aktualizacje są prawidłowo wznawiane
-• Lepszy komunikat i możliwość ponowienia po limicie tworzenia masek
+• Pełny redesign w Material 3 Expressive: każdy ekran od nowa, sprężysta animacja i kształty, które płynnie się zmieniają
+• FastMask bierze kolory z Twojej tapety, a Pro dodaje pięć motywów kolorystycznych
+• Nowa „Losowa maska” w menu +: świeży adres jednym dotknięciem
+• Maski pogrupowane według daty utworzenia, szybsze wyszukiwanie i filtry
+• Krój Google Sans Flex i nowa ikona, gotowa na ikony motywowe

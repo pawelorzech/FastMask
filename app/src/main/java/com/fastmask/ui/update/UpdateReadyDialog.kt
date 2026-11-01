@@ -1,10 +1,19 @@
 package com.fastmask.ui.update
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.fastmask.R
-import com.fastmask.ui.components.ConfirmDialog
-import com.fastmask.ui.components.PillButtonVariant
+import com.fastmask.ui.theme.FastMaskTheme
 
 /**
  * The restart prompt for a flexible update whose download has finished.
@@ -19,13 +28,33 @@ fun UpdateReadyDialog(
     onInstall: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ConfirmDialog(
-        title = stringResource(R.string.update_ready_title),
-        message = stringResource(R.string.update_ready_message),
-        confirmText = stringResource(R.string.update_ready_install),
-        dismissText = stringResource(R.string.update_ready_later),
-        onConfirm = onInstall,
-        onDismiss = onDismiss,
-        confirmVariant = PillButtonVariant.Primary,
+    val haptic = LocalHapticFeedback.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(imageVector = Icons.Filled.SystemUpdate, contentDescription = null) },
+        title = { Text(stringResource(R.string.update_ready_title)) },
+        text = { Text(stringResource(R.string.update_ready_message)) },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onInstall()
+                },
+                shapes = ButtonDefaults.shapes(),
+            ) {
+                Text(stringResource(R.string.update_ready_install))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
+                Text(stringResource(R.string.update_ready_later))
+            }
+        },
     )
+}
+
+@Preview(name = "Update dialog", showBackground = true)
+@Composable
+private fun UpdateReadyDialogPreview() {
+    FastMaskTheme { UpdateReadyDialog(onInstall = {}, onDismiss = {}) }
 }

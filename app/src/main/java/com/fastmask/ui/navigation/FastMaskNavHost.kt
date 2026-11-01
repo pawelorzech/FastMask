@@ -1,8 +1,12 @@
 package com.fastmask.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
@@ -13,7 +17,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
@@ -25,7 +28,6 @@ import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
 
-private const val TRANSITION_DURATION_MS = 220
 private const val KEY_ARCHIVED_ID = "archived_mask_id"
 private const val KEY_ARCHIVED_STATE = "archived_mask_state"
 private const val KEY_CREATED_EMAIL = "created_mask_email"
@@ -43,39 +45,28 @@ fun FastMaskNavHost(
     startDestination: String,
     modifier: Modifier = Modifier
 ) {
+    // M3 Expressive motion: a shared X axis driven by the theme's spatial spring for
+    // movement and its effects spring for fades. Navigation 2.8+ runs the pop pair
+    // against the predictive back gesture, so the same curves follow the finger.
+    val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+    val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+    val isDetail: (androidx.navigation.NavBackStackEntry) -> Boolean = { it.destination.route == NavRoutes.EMAIL_DETAIL }
+
+    SharedTransitionLayout(modifier = modifier) {
+    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier,
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Start,
-                animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
-            )
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
-            )
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.End,
-                animationSpec = tween(TRANSITION_DURATION_MS, easing = FastOutSlowInEasing)
-            )
-        }
+        enterTransition = { slideInHorizontally(spatial) { it / 5 } + fadeIn(fadeInSpec) },
+        exitTransition = { slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
+        popEnterTransition = { slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
+        popExitTransition = { slideOutHorizontally(spatial) { it / 5 } + fadeOut(fadeOutSpec) },
     ) {
-        composable(
+        screen(
             route = NavRoutes.WELCOME,
-            enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
-            exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) },
+            enterTransition = { fadeIn(fadeInSpec) },
+            exitTransition = { fadeOut(fadeOutSpec) },
         ) {
             WelcomeScreen(
                 onSignIn = {
@@ -90,10 +81,10 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(
+        screen(
             route = NavRoutes.LOGIN,
-            enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
-            exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
+            enterTransition = { fadeIn(fadeInSpec) },
+            exitTransition = { fadeOut(fadeOutSpec) }
         ) {
             LoginScreen(
                 onLoginSuccess = {
@@ -113,7 +104,13 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(NavRoutes.EMAIL_LIST) { entry ->
+        screen(
+            NavRoutes.EMAIL_LIST,
+            // Into and back from a mask the row itself carries the motion (container
+            // transform), so the list only fades instead of sliding away under it.
+            exitTransition = { if (isDetail(targetState)) fadeOut(fadeOutSpec) else slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
+            popEnterTransition = { if (isDetail(initialState)) fadeIn(fadeInSpec) else slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
+        ) { entry ->
             // Set by the detail screen after archiving, so the list can show
             // an "archived — undo" snackbar where the mask reappears.
             val justArchivedId by entry.savedStateHandle
@@ -165,7 +162,7 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(NavRoutes.SETTINGS) {
+        screen(NavRoutes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
@@ -188,7 +185,7 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(
+        screen(
             route = NavRoutes.PRO,
             arguments = listOf(
                 navArgument("source") {
@@ -204,7 +201,7 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(
+        screen(
             route = NavRoutes.CREATE_EMAIL,
             arguments = listOf(
                 navArgument("forDomain") {
@@ -254,8 +251,10 @@ fun FastMaskNavHost(
             )
         }
 
-        composable(
+        screen(
             route = NavRoutes.EMAIL_DETAIL,
+            enterTransition = { fadeIn(fadeInSpec) },
+            popExitTransition = { fadeOut(fadeOutSpec) },
             arguments = listOf(
                 navArgument("emailId") { type = NavType.StringType }
             )
@@ -293,5 +292,7 @@ fun FastMaskNavHost(
                 },
             )
         }
+    }
+    }
     }
 }

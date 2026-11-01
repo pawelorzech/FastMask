@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Desbloquear</string>
+    <string name="pro_close">Fechar</string>
+    <string name="pro_done">Concluir</string>
+    <string name="settings_appearance_section">Aparência</string>
+    <string name="settings_privacy_section">Privacidade</string>
+    <string name="settings_data_section">Dados</string>
+    <string name="settings_about_section">Sobre</string>
+    <string name="settings_licenses_title">Licenças de código aberto</string>
+    <string name="settings_licenses_description">Fontes e ícones usados no FastMask</string>
+</resources>

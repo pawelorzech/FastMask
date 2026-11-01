@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">Розблокувати</string>
+    <string name="pro_close">Закрити</string>
+    <string name="pro_done">Готово</string>
+    <string name="settings_appearance_section">Вигляд</string>
+    <string name="settings_privacy_section">Конфіденційність</string>
+    <string name="settings_data_section">Дані</string>
+    <string name="settings_about_section">Про застосунок</string>
+    <string name="settings_licenses_title">Ліцензії відкритого коду</string>
+    <string name="settings_licenses_description">Шрифти та значки, що використовуються у FastMask</string>
+</resources>

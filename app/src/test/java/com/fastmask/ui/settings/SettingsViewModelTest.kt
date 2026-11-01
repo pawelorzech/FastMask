@@ -141,6 +141,26 @@ class SettingsViewModelTest {
         coVerify { settingsDataStore.setAccent(Accent.SAGE) }
     }
 
+    // Wallpaper colors are free for everyone (the picker shows it unlocked), so
+    // choosing it must persist without Pro — e.g. after a lapsed Pro stored a seed.
+    @Test
+    fun `selecting the wallpaper accent without pro persists it`() = runTest {
+        val vm = viewModel()
+        vm.onAccentSelected(Accent.DYNAMIC)
+        advanceUntilIdle()
+
+        coVerify { settingsDataStore.setAccent(Accent.DYNAMIC) }
+    }
+
+    @Test
+    fun `selecting a seed accent without pro persists nothing`() = runTest {
+        val vm = viewModel()
+        vm.onAccentSelected(Accent.SAGE)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { settingsDataStore.setAccent(any()) }
+    }
+
     @Test
     fun `enabling app lock without pro routes to paywall and does not persist`() = runTest {
         val vm = viewModel()

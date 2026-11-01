@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">فتح</string>
+    <string name="pro_close">إغلاق</string>
+    <string name="pro_done">تم</string>
+    <string name="settings_appearance_section">المظهر</string>
+    <string name="settings_privacy_section">الخصوصية</string>
+    <string name="settings_data_section">البيانات</string>
+    <string name="settings_about_section">حول</string>
+    <string name="settings_licenses_title">تراخيص المصدر المفتوح</string>
+    <string name="settings_licenses_description">الخطوط والأيقونات المستخدمة في FastMask</string>
+</resources>

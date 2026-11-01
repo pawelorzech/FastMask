@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_colors_unlock">解锁</string>
+    <string name="pro_close">关闭</string>
+    <string name="pro_done">完成</string>
+    <string name="settings_appearance_section">外观</string>
+    <string name="settings_privacy_section">隐私</string>
+    <string name="settings_data_section">数据</string>
+    <string name="settings_about_section">关于</string>
+    <string name="settings_licenses_title">开源许可</string>
+    <string name="settings_licenses_description">FastMask 使用的字体和图标</string>
+</resources>

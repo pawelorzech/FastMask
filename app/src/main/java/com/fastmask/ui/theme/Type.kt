@@ -3,171 +3,89 @@ package com.fastmask.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontVariation
+import com.fastmask.R
 import androidx.compose.ui.unit.sp
 
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = com.fastmask.R.array.com_google_android_gms_fonts_certs,
+/**
+ * Google Sans Flex, bundled (SIL OFL 1.1, see licenses/GoogleSansFlex-OFL.txt).
+ *
+ * It is NOT in the Google Play services downloadable-fonts catalog, so the
+ * provider silently fell back to Roboto. One variable file serves every weight;
+ * [GoogleSansFlexRounded] turns the ROND axis up for the emphasized styles —
+ * the soft, rounded headline voice of Material 3 Expressive.
+ */
+@OptIn(ExperimentalTextApi::class)
+private fun gsf(weight: FontWeight, round: Float) = Font(
+    resId = R.font.google_sans_flex,
+    weight = weight,
+    variationSettings = FontVariation.Settings(
+        FontVariation.weight(weight.weight),
+        FontVariation.Setting("ROND", round),
+    ),
 )
 
-private val InstrumentSerifGF = GoogleFont("Instrument Serif")
-private val InterTightGF = GoogleFont("Inter Tight")
-private val JetBrainsMonoGF = GoogleFont("JetBrains Mono")
+private val Weights = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold)
 
-val InstrumentSerif = FontFamily(
-    Font(googleFont = InstrumentSerifGF, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = InstrumentSerifGF, fontProvider = provider, weight = FontWeight.Normal, style = FontStyle.Italic),
+val GoogleSansFlex = FontFamily(Weights.map { gsf(it, 0f) })
+
+val GoogleSansFlexRounded = FontFamily(Weights.map { gsf(it, 100f) })
+
+private fun style(
+    size: Int,
+    line: Int,
+    weight: FontWeight,
+    tracking: Float = 0f,
+    family: FontFamily = GoogleSansFlex,
+) = TextStyle(
+    fontFamily = family,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    letterSpacing = tracking.sp,
 )
 
-val InterTight = FontFamily(
-    Font(googleFont = InterTightGF, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = InterTightGF, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = InterTightGF, fontProvider = provider, weight = FontWeight.SemiBold),
-)
+private val W400 = FontWeight.Normal
+private val W500 = FontWeight.Medium
+private val W600 = FontWeight.SemiBold
+private val W700 = FontWeight.Bold
 
-val JetBrainsMono = FontFamily(
-    Font(googleFont = JetBrainsMonoGF, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = JetBrainsMonoGF, fontProvider = provider, weight = FontWeight.Medium),
-)
-
+/**
+ * M3 Expressive type scale. Each role has a baseline and an `…Emphasized`
+ * variant that is one weight step heavier (display/headline jump to 600).
+ */
 val Typography = Typography(
-    displayLarge = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 52.sp,
-        lineHeight = 54.sp,
-        letterSpacing = (-0.02 * 52).sp,
-    ),
-    displayMedium = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 40.sp,
-        lineHeight = 40.sp,
-        letterSpacing = (-0.02 * 40).sp,
-    ),
-    displaySmall = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 32.sp,
-        lineHeight = 34.sp,
-        letterSpacing = (-0.02 * 32).sp,
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 30.sp,
-        letterSpacing = (-0.02 * 28).sp,
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 26.sp,
-        letterSpacing = (-0.02 * 24).sp,
-    ),
-    headlineSmall = TextStyle(
-        fontFamily = InstrumentSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 20.sp,
-        lineHeight = 22.sp,
-        letterSpacing = (-0.02 * 20).sp,
-    ),
-    titleLarge = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        lineHeight = 22.sp,
-        letterSpacing = (-0.01 * 16).sp,
-    ),
-    titleMedium = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.Medium,
-        fontSize = 15.sp,
-        lineHeight = 22.sp,
-        letterSpacing = (-0.01 * 15).sp,
-    ),
-    titleSmall = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.Medium,
-        fontSize = 13.sp,
-        lineHeight = 18.sp,
-        letterSpacing = 0.sp,
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 22.sp,
-        letterSpacing = 0.sp,
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.sp,
-    ),
-    bodySmall = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.sp,
-    ),
-    labelLarge = TextStyle(
-        fontFamily = InterTight,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 15.sp,
-        lineHeight = 18.sp,
-        letterSpacing = (-0.01 * 15).sp,
-    ),
-    labelMedium = TextStyle(
-        fontFamily = JetBrainsMono,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 14.sp,
-        letterSpacing = (0.08 * 11).sp,
-    ),
-    labelSmall = TextStyle(
-        fontFamily = JetBrainsMono,
-        fontWeight = FontWeight.Normal,
-        fontSize = 10.sp,
-        lineHeight = 12.sp,
-        letterSpacing = (0.12 * 10).sp,
-    ),
-)
-
-// Convenience text styles for the design system
-val MonoLabelStyle = TextStyle(
-    fontFamily = JetBrainsMono,
-    fontWeight = FontWeight.Medium,
-    fontSize = 11.sp,
-    letterSpacing = (0.08 * 11).sp,
-)
-
-val MonoSmallStyle = TextStyle(
-    fontFamily = JetBrainsMono,
-    fontWeight = FontWeight.Normal,
-    fontSize = 10.sp,
-    letterSpacing = (0.12 * 10).sp,
-)
-
-val MonoBodyStyle = TextStyle(
-    fontFamily = JetBrainsMono,
-    fontWeight = FontWeight.Normal,
-    fontSize = 13.sp,
-    letterSpacing = 0.sp,
-)
-
-val MonoTimestampStyle = TextStyle(
-    fontFamily = JetBrainsMono,
-    fontWeight = FontWeight.Normal,
-    fontSize = 10.sp,
-    letterSpacing = (0.02 * 10).sp,
+    displayLarge = style(57, 64, W400, -0.25f),
+    displayMedium = style(45, 52, W400),
+    displaySmall = style(36, 44, W400),
+    headlineLarge = style(32, 40, W400),
+    headlineMedium = style(28, 36, W400),
+    headlineSmall = style(24, 32, W400),
+    titleLarge = style(22, 28, W400),
+    titleMedium = style(16, 24, W500, 0.15f),
+    titleSmall = style(14, 20, W500, 0.1f),
+    bodyLarge = style(16, 24, W400, 0.5f),
+    bodyMedium = style(14, 20, W400, 0.25f),
+    bodySmall = style(12, 16, W400, 0.4f),
+    labelLarge = style(14, 20, W500, 0.1f),
+    labelMedium = style(12, 16, W500, 0.5f),
+    labelSmall = style(11, 16, W500, 0.5f),
+    displayLargeEmphasized = style(57, 64, W600, -0.25f, family = GoogleSansFlexRounded),
+    displayMediumEmphasized = style(45, 52, W600, family = GoogleSansFlexRounded),
+    displaySmallEmphasized = style(36, 44, W600, family = GoogleSansFlexRounded),
+    headlineLargeEmphasized = style(32, 40, W600, family = GoogleSansFlexRounded),
+    headlineMediumEmphasized = style(28, 36, W600, family = GoogleSansFlexRounded),
+    headlineSmallEmphasized = style(24, 32, W600, family = GoogleSansFlexRounded),
+    titleLargeEmphasized = style(22, 28, W500, family = GoogleSansFlexRounded),
+    titleMediumEmphasized = style(16, 24, W600, 0.15f),
+    titleSmallEmphasized = style(14, 20, W600, 0.1f),
+    bodyLargeEmphasized = style(16, 24, W500, 0.5f),
+    bodyMediumEmphasized = style(14, 20, W500, 0.25f),
+    bodySmallEmphasized = style(12, 16, W500, 0.4f),
+    labelLargeEmphasized = style(14, 20, W600, 0.1f),
+    labelMediumEmphasized = style(12, 16, W600, 0.5f),
+    labelSmallEmphasized = style(11, 16, W600, 0.5f),
 )

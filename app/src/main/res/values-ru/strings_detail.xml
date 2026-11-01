@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">Изменить сведения</string>
+    <string name="email_detail_edit_stop">Закончить редактирование</string>
+    <string name="email_detail_no_domain">Нет домена</string>
+    <string name="create_email_close">Закрыть</string>
+</resources>

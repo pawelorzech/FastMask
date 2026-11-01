@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">র‍্যান্ডম মাস্ক</string>
+    <string name="list_section_today">আজ</string>
+    <string name="list_section_this_week">এই সপ্তাহ</string>
+    <string name="list_section_this_month">এই মাস</string>
+    <string name="list_section_earlier">আগের</string>
+    <string name="list_fab_close_menu">মেনু বন্ধ করুন</string>
+</resources>

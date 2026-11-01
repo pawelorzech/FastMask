@@ -1,9 +1,21 @@
 package com.fastmask.ui.list
 
+import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,45 +24,76 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -58,59 +101,73 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.graphics.SolidColor
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.R
+import com.fastmask.ui.components.expressive.ConnectedGap
+import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.components.DemoBanner
-import com.fastmask.ui.components.DesignCard
-import com.fastmask.ui.components.MonoEyebrow
-import com.fastmask.ui.components.PillButton
-import com.fastmask.ui.components.PillButtonVariant
-import com.fastmask.ui.components.PillIconButton
-import com.fastmask.ui.components.StateDot
-import com.fastmask.ui.components.TooltipPosition
 import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.DemoBannerContent
+import com.fastmask.ui.components.TooltipPosition
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.components.TutorialStep
-import com.fastmask.ui.theme.FastMaskExtras
-import com.fastmask.ui.theme.JetBrainsMono
-import com.fastmask.ui.theme.MonoSmallStyle
-import com.fastmask.ui.theme.MonoTimestampStyle
+import com.fastmask.ui.components.expressive.MaskAvatar
+import com.fastmask.ui.components.expressive.SectionHeader
+import com.fastmask.ui.components.expressive.SegmentedGap
+import com.fastmask.ui.components.expressive.SegmentedRow
+import com.fastmask.ui.components.expressive.StateChip
+import com.fastmask.ui.components.expressive.segmentedShape
+import com.fastmask.ui.navigation.maskContainer
+import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.util.RelativeTime
 import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.clearAndSetSemantics
 
 private data class PendingArchiveUndo(
     val id: String,
@@ -133,7 +190,6 @@ private val PendingArchiveUndoStateSaver = Saver<MutableState<PendingArchiveUndo
     },
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
@@ -152,7 +208,7 @@ fun MaskedEmailListScreen(
     val listState = rememberLazyListState()
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
-    val extras = FastMaskExtras.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -208,10 +264,32 @@ fun MaskedEmailListScreen(
     // writes null, which would otherwise cancel this effect mid-snackbar.
     val copyAction = stringResource(R.string.create_email_copy_action)
     var pendingCreated by remember { mutableStateOf<String?>(null) }
+    // The address that gets the brief "just created" highlight once it shows up
+    // in the list (the list reloads on resume / after a random mask).
+    var highlightEmail by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(justCreatedEmail) {
         if (justCreatedEmail != null && pendingCreated == null) {
             pendingCreated = justCreatedEmail
+            highlightEmail = justCreatedEmail
             onCreatedConsumed()
+        }
+    }
+    // The FAB menu's "Random mask" reports back through the same confirmation
+    // snackbar (with its Copy action); a failure gets a plain snackbar.
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is MaskedEmailListEvent.RandomCreated -> {
+                    pendingCreated = event.email
+                    highlightEmail = event.email
+                }
+                is MaskedEmailListEvent.RandomFailed -> {
+                    snackbarHostState.showSnackbar(
+                        message = resources.getString(event.messageRes),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
         }
     }
     // stringResource() is composable, so the formatted message is resolved
@@ -233,6 +311,24 @@ fun MaskedEmailListScreen(
         }
         pendingCreated = null
     }
+    // Once the new mask is in the list: bring it into view, hold the highlight
+    // a moment, then let it fade (the row animates its own alpha).
+    LaunchedEffect(highlightEmail, uiState.emails) {
+        val target = highlightEmail ?: return@LaunchedEffect
+        if (uiState.emails.any { it.email == target }) {
+            listState.animateScrollToItem(0)
+            delay(1_600L)
+            highlightEmail = null
+        }
+    }
+
+    // The row may never show (filtered out, search active, or the fetch that should
+    // list it failed): a highlight left armed would flash an unrelated moment later.
+    LaunchedEffect(highlightEmail) {
+        if (highlightEmail == null) return@LaunchedEffect
+        delay(HIGHLIGHT_GIVE_UP_MS)
+        highlightEmail = null
+    }
 
     val appMode by viewModel.appMode.collectAsState()
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
@@ -251,7 +347,7 @@ fun MaskedEmailListScreen(
     val onRowCopy = remember(copiedFormat) {
         { email: MaskedEmail ->
             copyToClipboard(context, email.email)
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
             scope.launch {
                 snackbarHostState.showSnackbar(
                     copiedFormat.format(email.email),
@@ -281,6 +377,97 @@ fun MaskedEmailListScreen(
         }
     }
 
+    // Tutorial coach-mark bounds. Each key corresponds to a step index defined
+    // below; values are filled in via Modifier.onGloballyPositioned on the
+    // respective UI elements as they enter composition.
+    val tutorialBounds = remember { mutableStateMapOf<Int, Rect>() }
+    var showTutorial by remember { mutableStateOf(false) }
+
+    // Show the tutorial once all 5 target elements have measured their bounds
+    // (only relevant in demo mode and only once per demo session). A timeout
+    // ensures the tutorial eventually appears even if a view fails to lay out.
+    val shouldShow = appMode == AppMode.DEMO && !tutorialCompleted && tutorialBounds.size >= 5
+    LaunchedEffect(appMode, tutorialCompleted, shouldShow) {
+        showTutorial = shouldShow
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        MaskedEmailListContent(
+            uiState = uiState,
+            snackbarHostState = snackbarHostState,
+            listState = listState,
+            highlightEmail = highlightEmail,
+            onSearchQueryChange = viewModel::onSearchQueryChange,
+            onFilterSelect = {
+                haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                viewModel.onFilterChange(it)
+            },
+            onRowOpen = onRowOpen,
+            onRowCopy = onRowCopy,
+            onRetry = viewModel::loadMaskedEmails,
+            onReauthenticate = onReauthenticate,
+            onRefresh = viewModel::loadMaskedEmails,
+            onNavigateToCreate = onNavigateToCreate,
+            onRandomMask = viewModel::createRandomMask,
+            onNavigateToSettings = onNavigateToSettings,
+            onTutorialBounds = { index, bounds -> tutorialBounds[index] = bounds },
+            demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+            // While the tutorial is up, drop this whole subtree out of the
+            // semantics tree. The scrim already blocks touch; without this a
+            // screen reader still walked the mask list, the search field and
+            // the filter buttons underneath a 70% black overlay, reading out an
+            // interface the user cannot see or reach.
+            modifier = if (showTutorial) Modifier.clearAndSetSemantics { } else Modifier,
+        )
+
+        // Tutorial coach marks — overlays the whole screen (app bar and FAB
+        // included, so the spotlight can point at them), and while it is up the
+        // content beneath is hidden from screen readers as well as from touch
+        // (see TutorialOverlay).
+        TutorialOverlay(
+            visible = showTutorial,
+            steps = rememberTutorialSteps(bounds = tutorialBounds),
+            onComplete = {
+                viewModel.markTutorialCompleted()
+                showTutorial = false
+            },
+            onSkip = {
+                viewModel.markTutorialCompleted()
+                showTutorial = false
+            },
+        )
+    }
+}
+
+/**
+ * The stateless list screen: everything the user sees, driven by [uiState] and
+ * callbacks, so it can be previewed without Hilt.
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun MaskedEmailListContent(
+    uiState: MaskedEmailListUiState,
+    snackbarHostState: SnackbarHostState,
+    listState: LazyListState,
+    highlightEmail: String?,
+    onSearchQueryChange: (String) -> Unit,
+    onFilterSelect: (EmailFilter) -> Unit,
+    onRowOpen: (MaskedEmail) -> Unit,
+    onRowCopy: (MaskedEmail) -> Unit,
+    onRetry: () -> Unit,
+    onReauthenticate: () -> Unit,
+    onRefresh: () -> Unit,
+    onNavigateToCreate: () -> Unit,
+    onRandomMask: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onTutorialBounds: (Int, Rect) -> Unit,
+    demoBanner: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    initialMenuExpanded: Boolean = false,
+) {
+    val context = LocalContext.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     val activeCount = uiState.emails.count { it.state == EmailState.ENABLED || it.state == EmailState.PENDING }
     val totalCount = uiState.emails.size
 
@@ -297,50 +484,83 @@ fun MaskedEmailListScreen(
         )
     }
 
-    // Tutorial coach-mark bounds. Each key corresponds to a step index defined
-    // below; values are filled in via Modifier.onGloballyPositioned on the
-    // respective UI elements as they enter composition.
-    val tutorialBounds = remember { mutableStateMapOf<Int, Rect>() }
-    var showTutorial by remember { mutableStateOf(false) }
+    var menuExpanded by rememberSaveable { mutableStateOf(initialMenuExpanded) }
+    BackHandler(enabled = menuExpanded) { menuExpanded = false }
 
-    // Show the tutorial once all 5 target elements have measured their bounds
-    // (only relevant in demo mode and only once per demo session). A timeout
-    // ensures the tutorial eventually appears even if a view fails to lay out.
-    val shouldShow = appMode == AppMode.DEMO && !tutorialCompleted && tutorialBounds.size >= 5
-    LaunchedEffect(appMode, tutorialCompleted, shouldShow) {
-        showTutorial = shouldShow
-    }
+    // The FAB shows its label at the top of the list and while the user scrolls
+    // up; it collapses to the icon while they scroll down.
+    val fabScroll = remember { FabScrollState() }
+    val atTop by remember { derivedStateOf { !listState.canScrollBackward } }
+    val fabExtended = atTop || fabScroll.scrollingUp
 
     Scaffold(
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(fabScroll.connection),
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            LargeFlexibleTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.email_list_title),
+                        style = MaterialTheme.typography.displaySmallEmphasized,
+                        modifier = Modifier.semantics { heading() },
+                    )
+                },
+                subtitle = {
+                    // Two pluralized fragments joined by a translatable
+                    // format, rather than one string with two %d.
+                    // Polish, Russian, Ukrainian and Arabic inflect the
+                    // noun by count ("1 maska / 2 maski / 5 masek"),
+                    // which a single %d format cannot express; keeping
+                    // the separator in the resource lets RTL locales
+                    // reorder the fragments.
+                    Text(
+                        text = stringResource(
+                            R.string.list_stats,
+                            pluralStringResource(R.plurals.list_stats_active, activeCount, activeCount),
+                            pluralStringResource(R.plurals.list_stats_total, totalCount, totalCount),
+                        ),
+                    )
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.email_list_settings),
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+                scrollBehavior = scrollBehavior,
+            )
+        },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
-            CreateFab(
-                label = stringResource(R.string.email_list_create_fab),
-                description = stringResource(R.string.email_list_create_description),
-                onClick = onNavigateToCreate,
+            CreateFabMenu(
+                expanded = menuExpanded,
+                onExpandedChange = { menuExpanded = it },
+                extended = fabExtended,
+                isCreating = uiState.isCreatingRandom,
+                onNewMask = {
+                    menuExpanded = false
+                    onNavigateToCreate()
+                },
+                onRandomMask = {
+                    menuExpanded = false
+                    onRandomMask()
+                },
                 modifier = Modifier.onGloballyPositioned { coords ->
-                    tutorialBounds[4] = coords.boundsInRoot()
+                    onTutorialBounds(4, coords.boundsInRoot())
                 },
             )
         },
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // While the tutorial is up, drop this whole subtree out of
-                    // the semantics tree. The scrim already blocks touch; without
-                    // this a screen reader still walked the mask list, the search
-                    // field and the filter chips underneath a 70% black overlay,
-                    // reading out an interface the user cannot see or reach.
-                    .then(
-                        if (showTutorial) Modifier.clearAndSetSemantics { } else Modifier,
-                    ),
-            ) {
-                // Demo mode banner (auto-hides in REAL mode).
-                DemoBanner(onSignInClick = onSignInFromBanner)
-
+            Column(modifier = Modifier.fillMaxSize()) {
                 // The list is a cached snapshot — say so. Showing masks that
                 // may since have been deleted or renamed without marking them
                 // stale would quietly misinform.
@@ -368,190 +588,238 @@ fun MaskedEmailListScreen(
                             },
                         ),
                         onAction = when (action) {
-                            ListErrorAction.RETRY -> viewModel::loadMaskedEmails
+                            ListErrorAction.RETRY -> onRetry
                             ListErrorAction.REAUTHENTICATE -> onReauthenticate
                         },
                     )
                 }
 
-                // Header
+                // Search + filters stay pinned under the (collapsing) app bar
+                // while the list scrolls beneath them.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, end = 20.dp, top = 12.dp, bottom = 8.dp),
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 4.dp, bottom = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            // Two pluralized fragments joined by a translatable
-                            // format, rather than one string with two %d.
-                            // Polish, Russian, Ukrainian and Arabic inflect the
-                            // noun by count ("1 maska / 2 maski / 5 masek"),
-                            // which a single %d format cannot express; keeping
-                            // the separator in the resource lets RTL locales
-                            // reorder the fragments.
-                            MonoEyebrow(
-                                text = stringResource(
-                                    R.string.list_stats,
-                                    pluralStringResource(
-                                        R.plurals.list_stats_active, activeCount, activeCount,
-                                    ),
-                                    pluralStringResource(
-                                        R.plurals.list_stats_total, totalCount, totalCount,
-                                    ),
-                                ),
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = stringResource(R.string.email_list_title),
-                                style = MaterialTheme.typography.displayMedium,
-                                modifier = Modifier.semantics { heading() },
-                                color = MaterialTheme.colorScheme.onBackground,
-                            )
-                        }
-                        PillIconButton(
-                            onClick = onNavigateToSettings,
-                            contentDescription = stringResource(R.string.email_list_settings),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(18.dp))
-
                     SearchField(
                         query = uiState.searchQuery,
-                        onQueryChange = viewModel::onSearchQueryChange,
+                        onQueryChange = onSearchQueryChange,
                         modifier = Modifier.onGloballyPositioned { coords ->
-                            tutorialBounds[1] = coords.boundsInRoot()
+                            onTutorialBounds(1, coords.boundsInRoot())
                         },
                     )
 
-                    Spacer(Modifier.height(12.dp))
-
-                    FilterRow(
+                    FilterGroup(
                         selected = uiState.selectedFilter,
                         counts = filterCounts,
-                        onSelect = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.onFilterChange(it)
-                        },
+                        onSelect = onFilterSelect,
                         modifier = Modifier.onGloballyPositioned { coords ->
-                            tutorialBounds[2] = coords.boundsInRoot()
+                            onTutorialBounds(2, coords.boundsInRoot())
                         },
                     )
 
-                    if (uiState.emails.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
+                    // Live region for TalkBack: announces the hit count while searching. Without a
+                    // query the filter buttons already carry the counts, so it stays out of the way.
+                    if (uiState.emails.isNotEmpty() && uiState.searchQuery.isNotBlank()) {
                         Text(
                             text = stringResource(
                                 R.string.email_list_result_count,
                                 uiState.filteredEmails.size,
                                 uiState.emails.size,
                             ),
+                            modifier = Modifier.fillMaxWidth().politeLiveRegion(),
                             style = MaterialTheme.typography.labelMedium,
-                            color = extras.inkMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.End,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .politeLiveRegion(),
                         )
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
-
                 when {
                     uiState.isLoading && uiState.emails.isEmpty() -> {
-                        LoadingShimmer(
-                            loadingDescription = stringResource(R.string.state_working),
-                        )
+                        Column(Modifier.fillMaxSize()) {
+                            demoBanner()
+                            LoadingShimmer(
+                                loadingDescription = stringResource(R.string.state_working),
+                            )
+                        }
                     }
                     uiState.errorRes != null && uiState.emails.isEmpty() -> {
                         val errorRes = uiState.errorRes ?: R.string.error_load_emails
                         val action = listErrorActionFor(errorRes)
-                        ErrorBlock(
-                            message = stringResource(errorRes),
-                            actionLabel = stringResource(
-                                when (action) {
-                                    ListErrorAction.RETRY -> R.string.error_retry
-                                    ListErrorAction.REAUTHENTICATE ->
-                                        R.string.settings_signin_with_fastmail
+                        Column(Modifier.fillMaxSize()) {
+                            demoBanner()
+                            ErrorBlock(
+                                message = stringResource(errorRes),
+                                actionLabel = stringResource(
+                                    when (action) {
+                                        ListErrorAction.RETRY -> R.string.error_retry
+                                        ListErrorAction.REAUTHENTICATE ->
+                                            R.string.settings_signin_with_fastmail
+                                    },
+                                ),
+                                onAction = when (action) {
+                                    ListErrorAction.RETRY -> onRetry
+                                    ListErrorAction.REAUTHENTICATE -> onReauthenticate
                                 },
-                            ),
-                            onAction = when (action) {
-                                ListErrorAction.RETRY -> viewModel::loadMaskedEmails
-                                ListErrorAction.REAUTHENTICATE -> onReauthenticate
-                            },
-                        )
+                            )
+                        }
                     }
                     uiState.filteredEmails.isEmpty() -> {
                         // Masks exist but none match the search/filter → don't
                         // show the "create your first mask" empty state, which
                         // wrongly implies the account is empty.
-                        if (uiState.emails.isEmpty()) EmptyBlock() else NoMatchesBlock()
-                    }
-                    else -> {
-                        val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
-                        PullToRefreshBox(
-                            isRefreshing = uiState.isLoading,
-                            onRefresh = viewModel::loadMaskedEmails,
-                            modifier = Modifier.fillMaxSize(),
-                        ) {
-                            LazyColumn(
-                                state = listState,
-                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 100.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.onGloballyPositioned { coords ->
-                                    // Step 0 highlights the list as a whole.
-                                    tutorialBounds[0] = coords.boundsInRoot()
-                                },
-                            ) {
-                                itemsIndexed(
-                                    items = uiState.filteredEmails,
-                                    key = { _, e -> e.id },
-                                ) { index, email ->
-                                    MaskRow(
-                                        email = email,
-                                        nowSec = nowSec,
-                                        onOpen = onRowOpen,
-                                        onCopy = onRowCopy,
-                                        modifier = if (index == 0) {
-                                            Modifier.onGloballyPositioned { coords ->
-                                                // Step 3 highlights the first mask card.
-                                                tutorialBounds[3] = coords.boundsInRoot()
-                                            }
-                                        } else Modifier,
-                                    )
-                                }
+                        Column(Modifier.fillMaxSize()) {
+                            demoBanner()
+                            if (uiState.emails.isEmpty()) {
+                                EmptyBlock(onCreate = onNavigateToCreate)
+                            } else {
+                                NoMatchesBlock(
+                                    hasQuery = uiState.searchQuery.isNotEmpty(),
+                                    onClearSearch = { onSearchQueryChange("") },
+                                )
                             }
                         }
+                    }
+                    else -> {
+                        MaskList(
+                            uiState = uiState,
+                            listState = listState,
+                            highlightEmail = highlightEmail,
+                            onRefresh = onRefresh,
+                            onRowOpen = onRowOpen,
+                            onRowCopy = onRowCopy,
+                            onTutorialBounds = onTutorialBounds,
+                            demoBanner = demoBanner,
+                        )
                     }
                 }
             }
 
-            // Tutorial coach marks — overlays the entire scaffold body, and
-            // while it is up the content beneath is hidden from screen readers
-            // as well as from touch (see TutorialOverlay).
-            TutorialOverlay(
-                visible = showTutorial,
-                steps = rememberTutorialSteps(bounds = tutorialBounds),
-                onComplete = {
-                    viewModel.markTutorialCompleted()
-                    showTutorial = false
-                },
-                onSkip = {
-                    viewModel.markTutorialCompleted()
-                    showTutorial = false
-                },
+            // Tap-outside target behind the open FAB menu. M3 FAB menus draw no scrim, so it is
+            // invisible; it only closes the menu.
+            val closeMenuLabel = stringResource(R.string.list_fab_close_menu)
+            if (menuExpanded) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                            onClickLabel = closeMenuLabel,
+                            role = Role.Button,
+                        ) { menuExpanded = false },
+                )
+            }
+        }
+    }
+}
+
+/** Tracks scroll direction for the FAB without consuming any scroll. */
+private class FabScrollState {
+    var scrollingUp by mutableStateOf(true)
+        private set
+
+    val connection = object : NestedScrollConnection {
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (available.y < -SCROLL_SLOP) scrollingUp = false
+            else if (available.y > SCROLL_SLOP) scrollingUp = true
+            return Offset.Zero
+        }
+    }
+
+    private companion object {
+        const val SCROLL_SLOP = 4f
+    }
+}
+
+@Composable
+private fun MaskList(
+    uiState: MaskedEmailListUiState,
+    listState: LazyListState,
+    highlightEmail: String?,
+    onRefresh: () -> Unit,
+    onRowOpen: (MaskedEmail) -> Unit,
+    onRowCopy: (MaskedEmail) -> Unit,
+    onTutorialBounds: (Int, Rect) -> Unit,
+    demoBanner: @Composable () -> Unit,
+) {
+    val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
+    val sections = remember(uiState.filteredEmails, nowSec) {
+        groupMasksBySection(uiState.filteredEmails, nowSec)
+    }
+    val pullState = rememberPullToRefreshState()
+    val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
+    val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = onRefresh,
+        state = pullState,
+        modifier = Modifier.fillMaxSize(),
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullState,
+                isRefreshing = uiState.isLoading,
+                modifier = Modifier.align(Alignment.TopCenter),
             )
+        },
+    ) {
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 112.dp),
+            verticalArrangement = Arrangement.spacedBy(SegmentedGap),
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coords ->
+                    // Step 0 highlights the list as a whole.
+                    onTutorialBounds(0, coords.boundsInRoot())
+                },
+        ) {
+            item(key = "demo-banner") {
+                // Scrolls away with the list instead of costing permanent height.
+                Box(Modifier.animateItem()) { demoBanner() }
+            }
+            sections.forEachIndexed { sectionIndex, section ->
+                item(key = "section-${section.section.name}") {
+                    SectionHeader(
+                        text = stringResource(section.section.titleRes),
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = effects,
+                            placementSpec = spatial,
+                            fadeOutSpec = effects,
+                        ),
+                    )
+                }
+                itemsIndexed(
+                    items = section.items,
+                    key = { _, e -> e.id },
+                ) { index, email ->
+                    var rowModifier = Modifier.animateItem(
+                        fadeInSpec = effects,
+                        placementSpec = spatial,
+                        fadeOutSpec = effects,
+                    )
+                    if (sectionIndex == 0 && index == 0) {
+                        rowModifier = rowModifier.onGloballyPositioned { coords ->
+                            // Step 3 highlights the first mask card.
+                            onTutorialBounds(3, coords.boundsInRoot())
+                        }
+                    }
+                    MaskRow(
+                        email = email,
+                        index = index,
+                        count = section.items.size,
+                        nowSec = nowSec,
+                        highlighted = highlightEmail != null && email.email == highlightEmail,
+                        onOpen = onRowOpen,
+                        onCopy = onRowCopy,
+                        modifier = rowModifier,
+                    )
+                }
+            }
         }
     }
 }
@@ -582,39 +850,55 @@ private fun rememberTutorialSteps(bounds: Map<Int, Rect>): List<TutorialStep> {
     }
 }
 
+/**
+ * Docked search field: a pill on `surfaceContainerHigh` whose corner radius
+ * tightens (spring) while it has focus. The clear button exists only when
+ * there is something to clear.
+ */
 @Composable
 private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(14.dp)
+    val focusManager = LocalFocusManager.current
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    val corner by animateDpAsState(
+        targetValue = if (focused) 16.dp else 28.dp,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "searchCorner",
+    )
+    // Spatial springs overshoot; a negative corner radius is invalid.
+    val shape = RoundedCornerShape(corner.coerceAtLeast(0.dp))
+    val searchLabel = stringResource(R.string.email_list_search_placeholder)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = 56.dp)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surface, shape)
-            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = Icons.Filled.Search,
             contentDescription = null,
-            tint = extras.inkMuted,
-            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.width(10.dp))
-        Box(modifier = Modifier.weight(1f)) {
-            val searchLabel = stringResource(R.string.email_list_search_placeholder)
+        Spacer(Modifier.width(12.dp))
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(extras.accent),
+                interactionSource = interaction,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                 // Visual-only placeholder gives TalkBack nothing to announce for
                 // this field — label it explicitly.
                 modifier = Modifier
@@ -623,114 +907,94 @@ private fun SearchField(
             )
             if (query.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.email_list_search_placeholder),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = extras.inkMuted,
+                    text = searchLabel,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
-        if (query.isNotEmpty()) {
-            // Full 48dp platform touch target; the visual glyph stays 16dp.
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .clickable(role = Role.Button) {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onQueryChange("")
-                    },
-                contentAlignment = Alignment.Center,
+        AnimatedVisibility(
+            visible = query.isNotEmpty(),
+            enter = fadeIn(MaterialTheme.motionScheme.fastEffectsSpec()) +
+                scaleIn(MaterialTheme.motionScheme.fastSpatialSpec(), initialScale = 0.6f),
+            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
+                scaleOut(MaterialTheme.motionScheme.fastSpatialSpec(), targetScale = 0.6f),
+        ) {
+            // IconButton is the full 48dp platform touch target.
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    onQueryChange("")
+                },
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = stringResource(R.string.email_list_clear_search),
-                    tint = extras.inkMuted,
-                    modifier = Modifier.size(16.dp),
                 )
             }
         }
     }
 }
 
+/**
+ * Single-select filter: a connected group of toggle buttons. The selected one is
+ * filled and fully rounded (stock `ToggleButton` shape morph); the rest keep the
+ * flat inner corners of a connected group.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun FilterRow(
+private fun FilterGroup(
     selected: EmailFilter,
     counts: Map<EmailFilter, Int>,
     onSelect: (EmailFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val filters = EmailFilter.entries
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .horizontalScroll(rememberScrollState())
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
     ) {
-        EmailFilter.entries.forEach { f ->
-            FilterPill(
-                filter = f,
-                count = counts[f] ?: 0,
-                selected = selected == f,
-                onClick = { onSelect(f) },
+        filters.forEachIndexed { index, filter ->
+            val label = stringResource(
+                when (filter) {
+                    EmailFilter.ALL -> R.string.filter_all
+                    EmailFilter.ENABLED -> R.string.filter_enabled
+                    EmailFilter.DISABLED -> R.string.filter_disabled
+                    EmailFilter.DELETED -> R.string.filter_deleted
+                },
             )
+            val shapes = connectedToggleShapes(index = index, count = filters.size)
+            ToggleButton(
+                checked = selected == filter,
+                onCheckedChange = { checked -> if (checked) onSelect(filter) },
+                shapes = shapes,
+                // Single-select: announce as a radio, not a checkbox.
+                modifier = Modifier.semantics { role = Role.RadioButton },
+            ) {
+                Text(text = label, style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = (counts[filter] ?: 0).toString(),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         }
     }
 }
 
-@Composable
-private fun FilterPill(
-    filter: EmailFilter,
-    count: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val extras = FastMaskExtras.current
-    val shape = RoundedCornerShape(100.dp)
-    val bg = if (selected) extras.accent else Color.Transparent
-    val fg = if (selected) extras.onAccent else extras.inkSoft
-    val border = if (selected) extras.accent else MaterialTheme.colorScheme.outline
-    val label = stringResource(
-        when (filter) {
-            EmailFilter.ALL -> R.string.filter_all
-            EmailFilter.ENABLED -> R.string.filter_enabled
-            EmailFilter.DISABLED -> R.string.filter_disabled
-            EmailFilter.DELETED -> R.string.filter_deleted
-        },
-    )
-    Row(
-        modifier = Modifier
-            .clip(shape)
-            .background(bg, shape)
-            .border(1.dp, border, shape)
-            .clickable(onClick = onClick)
-            // Expose the filter's on/off state to TalkBack — visually it is
-            // conveyed by color only.
-            .semantics { this.selected = selected; role = Role.Tab }
-            // The pill draws at ~32dp; the touch target must still be 48dp.
-            // Height only — the visual size is unchanged.
-            .heightIn(min = 48.dp)
-            .wrapContentHeight(Alignment.CenterVertically)
-            .padding(horizontal = 12.dp, vertical = 7.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.5.sp),
-            color = fg,
-        )
-        Text(
-            text = count.toString(),
-            style = MonoSmallStyle,
-            // Was onAccent at 70% alpha: 3.27:1 against the accent fill, at
-            // 10sp, the lowest contrast anywhere in the app. Full opacity is
-            // 5.02:1 and costs nothing but a slightly louder number.
-            color = if (selected) extras.onAccent else extras.inkMuted,
-        )
-    }
-}
+/** How long a "just created" highlight waits for its row before giving up. */
+private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
+
+/** Font scale from which a mask row drops its trailing time label / state chip. */
+private const val CompactRowFontScale = 1.3f
 
 // Reuses the already-translated state labels so TalkBack announces a mask's
-// state (Active / Off / Archived / Pending) that the colored dot conveys visually.
+// state (Active / Off / Archived / Pending) that the avatar color conveys visually.
 private fun stateContentDescription(state: EmailState): Int = when (state) {
     EmailState.ENABLED -> R.string.state_enabled
     EmailState.DISABLED -> R.string.state_disabled
@@ -739,16 +1003,19 @@ private fun stateContentDescription(state: EmailState): Int = when (state) {
 }
 
 @Composable
-private fun MaskRow(
+internal fun MaskRow(
     email: MaskedEmail,
+    index: Int,
+    count: Int,
     nowSec: Long,
+    highlighted: Boolean,
     onOpen: (MaskedEmail) -> Unit,
     onCopy: (MaskedEmail) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val extras = FastMaskExtras.current
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
+    val stateLabel = stringResource(stateContentDescription(email.state))
     // The label depends only on the timestamps and the "now" anchor — not on
     // anything else happening in this screen. Without remember, every row ran
     // a resources lookup + plural resolution on each recomposition (e.g. while
@@ -756,143 +1023,223 @@ private fun MaskRow(
     val timeLabel = remember(email.lastMessageAt, email.createdAt, nowSec) {
         RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec)
     }
-    DesignCard(
-        modifier = modifier.fillMaxWidth(),
+    val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val headline = remember(email.email, mutedColor) {
+        val at = email.email.indexOf('@')
+        buildAnnotatedString {
+            if (at < 0) {
+                append(email.email)
+            } else {
+                append(email.email.substring(0, at))
+                withStyle(SpanStyle(color = mutedColor)) { append(email.email.substring(at)) }
+            }
+        }
+    }
+    val domain = email.forDomain?.takeIf { it.isNotBlank() }
+    val note = email.description?.takeIf { it.isNotBlank() }
+    // At large font scales the timestamp / state chip beside the address left it a few
+    // characters ("sha…"). Past this threshold they move under the address instead.
+    val compact = LocalDensity.current.fontScale >= CompactRowFontScale
+    val supporting = listOfNotNull(
+        note,
+        domain,
+        stateLabel.takeIf { compact && email.state != EmailState.ENABLED },
+        timeLabel.takeIf { compact },
+    ).joinToString(" · ")
+
+    // The freshly created mask flashes a primaryContainer wash that fades out.
+    val highlightAlpha by animateFloatAsState(
+        targetValue = if (highlighted) 0.55f else 0f,
+        animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+        label = "justCreated",
+    )
+    val highlightColor = MaterialTheme.colorScheme.primaryContainer
+    val restingShape = segmentedShape(index, count)
+
+    SegmentedRow(
+        index = index,
+        count = count,
         onClick = { onOpen(email) },
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            StateDot(
-                state = email.state,
-                contentDescription = stringResource(stateContentDescription(email.state)),
-            )
-            Spacer(Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = email.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp),
-                    )
-                    Text(
-                        text = timeLabel,
-                        style = MonoTimestampStyle,
-                        color = extras.inkMuted,
+        modifier = modifier
+            .maskContainer(email.id, shape = restingShape)
+            .drawWithContent {
+                drawContent()
+                if (highlightAlpha > 0.001f) {
+                    drawOutline(
+                        outline = restingShape.createOutline(size, layoutDirection, this),
+                        color = highlightColor,
+                        alpha = highlightAlpha,
                     )
                 }
-                Spacer(Modifier.height(2.dp))
+            }
+            // The avatar's color is the only visual cue for the state; say it.
+            .semantics { stateDescription = stateLabel },
+        leading = {
+            MaskAvatar(
+                seedText = domain ?: email.email,
+                state = email.state,
+                size = 40.dp,
+            )
+        },
+        supporting = if (supporting.isNotEmpty()) {
+            {
                 Text(
-                    text = email.email,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = JetBrainsMono),
-                    color = extras.inkMuted,
-                    maxLines = 1,
+                    text = supporting,
+                    maxLines = if (compact) 3 else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(Modifier.width(4.dp))
-            // Quick-copy: the most common action, without opening the detail
-            // screen. 48dp touch target; the glyph stays compact.
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClickLabel = copyLabel) { onCopy(email) },
-                contentAlignment = Alignment.Center,
+        } else {
+            null
+        },
+        trailing = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Filled.ContentCopy,
-                    contentDescription = copyLabel,
-                    tint = extras.inkMuted,
-                    modifier = Modifier.size(18.dp),
-                )
+                // Compact rows carry both in the supporting line instead.
+                if (!compact && email.state == EmailState.ENABLED) {
+                    Text(
+                        text = timeLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = mutedColor,
+                    )
+                } else if (!compact) {
+                    // The row already announces its state; the chip is the
+                    // sighted user's non-colour cue only.
+                    Box(Modifier.clearAndSetSemantics { }) { StateChip(email.state) }
+                }
+                // Quick-copy: the most common action, without opening the
+                // detail screen. Stock IconButton: 48dp target, press morph.
+                IconButton(onClick = { onCopy(email) }) {
+                    Icon(
+                        imageVector = Icons.Filled.ContentCopy,
+                        contentDescription = copyLabel,
+                    )
+                }
+            }
+        },
+        headline = {
+            // The address is the row's identity: wrap it rather than cut off the domain.
+            Text(
+                text = headline,
+                maxLines = if (compact) 4 else 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+    )
+}
+
+/** Big shape + icon used by the empty, no-match and error states. */
+@Composable
+private fun StateIllustration(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    container: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer,
+    content: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSecondaryContainer,
+) {
+    Box(
+        modifier = modifier
+            .size(112.dp)
+            .clip(MaterialShapes.Cookie9Sided.toShape())
+            .background(container)
+            .clearAndSetSemantics { },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = content,
+            modifier = Modifier.size(48.dp),
+        )
+    }
+}
+
+@Composable
+private fun EmptyBlock(onCreate: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        StateIllustration(icon = Icons.Filled.Inbox)
+        Spacer(Modifier.size(24.dp))
+        Text(
+            text = stringResource(R.string.email_list_empty),
+            style = MaterialTheme.typography.headlineSmallEmphasized,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.email_list_empty_sub),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.size(24.dp))
+        Button(onClick = onCreate) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize),
+            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.email_list_create_fab))
+        }
+    }
+}
+
+@Composable
+private fun NoMatchesBlock(hasQuery: Boolean, onClearSearch: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        StateIllustration(icon = Icons.Filled.SearchOff)
+        Spacer(Modifier.size(24.dp))
+        Text(
+            text = stringResource(R.string.email_list_no_matches),
+            style = MaterialTheme.typography.headlineSmallEmphasized,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = stringResource(R.string.email_list_no_matches_sub),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        if (hasQuery) {
+            Spacer(Modifier.size(24.dp))
+            FilledTonalButton(onClick = onClearSearch) {
+                Text(stringResource(R.string.email_list_clear_search))
             }
         }
     }
 }
 
-@Composable
-private fun EmptyBlock() {
-    val extras = FastMaskExtras.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp, vertical = 80.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-    ) {
-        Text(
-            text = stringResource(R.string.email_list_empty),
-            style = MaterialTheme.typography.headlineMedium,
-            color = extras.inkSoft,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.email_list_empty_sub),
-            style = MaterialTheme.typography.bodySmall,
-            color = extras.inkMuted,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun NoMatchesBlock() {
-    val extras = FastMaskExtras.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp, vertical = 80.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-    ) {
-        Text(
-            text = stringResource(R.string.email_list_no_matches),
-            style = MaterialTheme.typography.headlineMedium,
-            color = extras.inkSoft,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.email_list_no_matches_sub),
-            style = MaterialTheme.typography.bodySmall,
-            color = extras.inkMuted,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
+/**
+ * Initial-load state: one centered expressive loading indicator. (The name is a
+ * leftover from the skeleton-card version; `AccessibilitySemanticsWiringTest`
+ * pins the live-region wiring to this function.)
+ */
 @Composable
 private fun LoadingShimmer(loadingDescription: String) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp)
             .politeLiveRegion()
             .semantics { contentDescription = loadingDescription },
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        repeat(6) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(70.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp)),
-            )
-        }
+        ContainedLoadingIndicator()
     }
 }
 
@@ -902,7 +1249,6 @@ internal fun ErrorBlock(
     actionLabel: String,
     onAction: () -> Unit,
 ) {
-    val extras = FastMaskExtras.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -911,72 +1257,151 @@ internal fun ErrorBlock(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        StateIllustration(
+            icon = Icons.Filled.CloudOff,
+            container = MaterialTheme.colorScheme.errorContainer,
+            content = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(Modifier.size(24.dp))
         Text(
             text = stringResource(R.string.error_load_emails),
-            style = MaterialTheme.typography.headlineSmall,
-            color = extras.inkSoft,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodySmall,
-            color = extras.inkMuted,
+            style = MaterialTheme.typography.headlineSmallEmphasized,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(20.dp))
-        PillButton(
-            text = actionLabel,
-            onClick = onAction,
-            variant = PillButtonVariant.Secondary,
+        Spacer(Modifier.size(8.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.size(24.dp))
+        FilledTonalButton(onClick = onAction) {
+            Text(actionLabel)
+        }
     }
 }
 
+/**
+ * The create FAB. Collapsed it is an extended FAB with a label (at the top of
+ * the list / while scrolling up) or an icon-only toggle FAB (while scrolling
+ * down); tapping opens a FAB menu with "Random mask" and "New mask", and the
+ * toggle morphs its + into a ×.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun CreateFab(
-    label: String,
-    description: String,
-    onClick: () -> Unit,
+internal fun CreateFabMenu(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    extended: Boolean,
+    isCreating: Boolean,
+    onNewMask: () -> Unit,
+    onRandomMask: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val extras = FastMaskExtras.current
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(100.dp)
-    Row(
-        modifier = modifier
-            .clip(shape)
-            .background(extras.accent, shape)
-            .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onClick()
+    val createDescription = stringResource(R.string.email_list_create_description)
+    val closeDescription = stringResource(R.string.list_fab_close_menu)
+    val newLabel = stringResource(R.string.email_list_create_fab)
+
+    // Specs are read here: the transitionSpec lambda below is not composable.
+    val motion = MaterialTheme.motionScheme
+    val enterFade = motion.defaultEffectsSpec<Float>()
+    val enterScale = motion.defaultSpatialSpec<Float>()
+    val exitFade = motion.fastEffectsSpec<Float>()
+    val exitScale = motion.fastSpatialSpec<Float>()
+
+    FloatingActionButtonMenu(
+        expanded = expanded,
+        modifier = modifier,
+        button = {
+            AnimatedContent(
+                targetState = extended && !expanded,
+                transitionSpec = {
+                    (fadeIn(enterFade) + scaleIn(enterScale, initialScale = 0.85f))
+                        .togetherWith(fadeOut(exitFade) + scaleOut(exitScale, targetScale = 0.85f))
+                },
+                label = "fabVariant",
+            ) { showExtended ->
+                if (showExtended) {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                            onExpandedChange(true)
+                        },
+                        // Material clears the label's semantics inside the extended FAB, so
+                        // without a description the button has no name at all. It must
+                        // equal the visible label (WCAG 2.5.3 Label in Name): "Create new
+                        // masked address" is not "Nowa maska" in Polish.
+                        modifier = Modifier.semantics { contentDescription = newLabel },
+                        icon = {
+                            if (isCreating) {
+                                LoadingIndicator(modifier = Modifier.size(24.dp))
+                            } else {
+                                Icon(Icons.Filled.Add, contentDescription = null)
+                            }
+                        },
+                        text = { Text(newLabel) },
+                    )
+                } else {
+                    // The toggle starts unchecked and flips a frame later, so the
+                    // + -> x morph plays when the menu opens from the extended FAB.
+                    var checked by remember { mutableStateOf(false) }
+                    LaunchedEffect(expanded) { checked = expanded }
+                    ToggleFloatingActionButton(
+                        checked = checked,
+                        onCheckedChange = { open ->
+                            haptic.performHapticFeedback(
+                                if (open) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
+                            )
+                            onExpandedChange(open)
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = if (expanded) closeDescription else createDescription
+                        },
+                    ) {
+                        if (isCreating && !expanded) {
+                            LoadingIndicator(modifier = Modifier.size(24.dp))
+                        } else {
+                            val icon by remember {
+                                derivedStateOf { if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add }
+                            }
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = with(ToggleFloatingActionButtonDefaults) {
+                                    Modifier.animateIcon(checkedProgress = { checkedProgress })
+                                },
+                            )
+                        }
+                    }
+                }
             }
-            .padding(horizontal = 20.dp, vertical = 14.dp)
-            .semantics { contentDescription = description },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        },
     ) {
-        Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = null,
-            tint = extras.onAccent,
-            modifier = Modifier.size(18.dp),
+        FloatingActionButtonMenuItem(
+            onClick = onRandomMask,
+            text = { Text(stringResource(R.string.list_random_mask)) },
+            icon = { Icon(Icons.Filled.Casino, contentDescription = null) },
         )
-        Text(
-            text = label,
-            color = extras.onAccent,
-            style = MaterialTheme.typography.labelLarge,
+        FloatingActionButtonMenuItem(
+            onClick = onNewMask,
+            text = { Text(newLabel) },
+            icon = { Icon(Icons.Filled.Edit, contentDescription = null) },
         )
     }
 }
 
 @Composable
 private fun OfflineBanner(text: String) {
-    val extras = FastMaskExtras.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
             // The one thing on this screen that changes what the data MEANS —
             // these masks may no longer exist. Drawn only, it never reached a
             // screen reader; the row now announces itself when it appears and
@@ -986,18 +1411,18 @@ private fun OfflineBanner(text: String) {
                 contentDescription = text
             },
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(
             imageVector = Icons.Filled.CloudOff,
             contentDescription = null,
-            tint = extras.inkMuted,
-            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
         )
-        Spacer(Modifier.width(8.dp))
         Text(
             text = text,
-            style = MonoSmallStyle,
-            color = extras.inkMuted,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -1008,38 +1433,171 @@ internal fun InlineErrorBanner(
     actionLabel: String,
     onAction: () -> Unit,
 ) {
-    Column(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
             // Keep the recovery button as a separate semantics node. Merging
             // descendants here used to make the banner readable as one phrase,
             // but would hide the newly actionable control from TalkBack.
             .semantics {
                 liveRegion = LiveRegionMode.Polite
             },
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Icon(
                 imageVector = Icons.Filled.ErrorOutline,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(20.dp),
             )
-            Spacer(Modifier.width(8.dp))
             Text(
                 text = text,
-                style = MonoSmallStyle,
-                color = MaterialTheme.colorScheme.onErrorContainer,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
             )
+            TextButton(
+                onClick = onAction,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
+            ) {
+                Text(actionLabel, style = MaterialTheme.typography.labelLargeEmphasized)
+            }
         }
-        Spacer(Modifier.height(8.dp))
-        PillButton(
-            text = actionLabel,
-            onClick = onAction,
-            variant = PillButtonVariant.Secondary,
-            fullWidth = true,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Previews (stateless content, fake data, no Hilt)
+// ---------------------------------------------------------------------------
+
+private fun previewMask(
+    id: String,
+    email: String,
+    state: EmailState = EmailState.ENABLED,
+    note: String? = null,
+    domain: String? = null,
+    ageSeconds: Long,
+): MaskedEmail {
+    val moment = Instant.now().minusSeconds(ageSeconds)
+    return MaskedEmail(
+        id = id,
+        email = email,
+        state = state,
+        forDomain = domain,
+        description = note,
+        createdBy = null,
+        url = null,
+        emailPrefix = null,
+        createdAt = moment,
+        lastMessageAt = moment,
+    )
+}
+
+private val previewMasks = listOf(
+    previewMask("1", "amber.otter4821@fastmail.com", note = "Newsletter", domain = "news.ycombinator.com", ageSeconds = 600),
+    previewMask("2", "shop.brisk@fastmail.com", state = EmailState.PENDING, domain = "amazon.pl", ageSeconds = 3 * 3_600),
+    previewMask("3", "gh.calm1337@fastmail.com", note = "Work repos", domain = "github.com", ageSeconds = 2 * 86_400L),
+    previewMask("4", "travel.lucid.longaddress.that.truncates@fastmail.com", state = EmailState.DISABLED, domain = "booking.com", ageSeconds = 12 * 86_400L),
+    previewMask("5", "old.grove@fastmail.com", state = EmailState.DELETED, note = "Retired", ageSeconds = 90 * 86_400L),
+)
+
+@Composable
+private fun PreviewList(
+    state: MaskedEmailListUiState,
+    showDemo: Boolean = false,
+    highlight: String? = null,
+    menuExpanded: Boolean = false,
+) {
+    FastMaskTheme {
+        MaskedEmailListContent(
+            uiState = state,
+            snackbarHostState = remember { SnackbarHostState() },
+            listState = rememberLazyListState(),
+            highlightEmail = highlight,
+            onSearchQueryChange = {},
+            onFilterSelect = {},
+            onRowOpen = {},
+            onRowCopy = {},
+            onRetry = {},
+            onReauthenticate = {},
+            onRefresh = {},
+            onNavigateToCreate = {},
+            onRandomMask = {},
+            onNavigateToSettings = {},
+            onTutorialBounds = { _, _ -> },
+            demoBanner = { if (showDemo) DemoBannerContent(onSignInClick = {}) },
+            initialMenuExpanded = menuExpanded,
         )
     }
+}
+
+private fun populated() = MaskedEmailListUiState(emails = previewMasks, filteredEmails = previewMasks)
+
+@Preview(name = "List", showBackground = true, heightDp = 800)
+@Composable
+private fun ListPopulatedPreview() = PreviewList(populated(), showDemo = true, highlight = "1")
+
+@Preview(
+    name = "List dark",
+    showBackground = true,
+    heightDp = 800,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun ListPopulatedDarkPreview() = PreviewList(populated())
+
+@Preview(name = "List FAB menu", showBackground = true, heightDp = 800)
+@Composable
+private fun ListFabMenuPreview() = PreviewList(populated(), menuExpanded = true)
+
+@Preview(name = "List loading", showBackground = true, heightDp = 800)
+@Composable
+private fun ListLoadingPreview() = PreviewList(MaskedEmailListUiState(isLoading = true))
+
+@Preview(name = "List empty", showBackground = true, heightDp = 800)
+@Composable
+private fun ListEmptyPreview() = PreviewList(MaskedEmailListUiState())
+
+@Preview(
+    name = "List empty dark",
+    showBackground = true,
+    heightDp = 800,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun ListEmptyDarkPreview() = PreviewList(MaskedEmailListUiState())
+
+@Preview(name = "List no matches", showBackground = true, heightDp = 800)
+@Composable
+private fun ListNoMatchesPreview() = PreviewList(
+    MaskedEmailListUiState(emails = previewMasks, searchQuery = "zzz"),
+)
+
+@Preview(name = "List error", showBackground = true, heightDp = 800)
+@Composable
+private fun ListErrorPreview() = PreviewList(
+    MaskedEmailListUiState(errorRes = R.string.error_load_emails),
+)
+
+@Preview(name = "List offline", showBackground = true, heightDp = 800)
+@Composable
+private fun ListOfflinePreview() = PreviewList(
+    populated().copy(
+        cachedAt = Instant.now().minusSeconds(7_200),
+        selectedFilter = EmailFilter.ENABLED,
+    ),
+)
+
+@Preview(name = "Inline error", showBackground = true)
+@Composable
+private fun InlineErrorPreview() = FastMaskTheme {
+    InlineErrorBanner(text = "Could not refresh", actionLabel = "Retry", onAction = {})
 }

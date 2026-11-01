@@ -1,68 +1,38 @@
 package com.fastmask.ui.theme
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import com.fastmask.domain.model.Accent
 
-private val LightColorScheme = lightColorScheme(
-    primary = AccentAmber,
-    onPrimary = OnAccent,
-    primaryContainer = LightActiveBg,
-    onPrimaryContainer = LightActiveInk,
-    secondary = LightInkSoft,
-    onSecondary = LightSurface,
-    tertiary = LightInkMuted,
-    onTertiary = LightSurface,
-    error = LightArchivedInk,
-    onError = OnAccent,
-    errorContainer = LightArchivedBg,
-    onErrorContainer = LightArchivedInk,
-    background = LightBg,
-    onBackground = LightInk,
-    surface = LightSurface,
-    onSurface = LightInk,
-    surfaceVariant = LightSurfaceAlt,
-    onSurfaceVariant = LightInkSoft,
-    outline = LightLine,
-    outlineVariant = LightLineStrong,
-    surfaceContainerLowest = LightSurface,
-    surfaceContainerLow = LightSurface,
-    surfaceContainer = LightSurfaceAlt,
-    surfaceContainerHigh = LightSurfaceAlt,
-    surfaceContainerHighest = LightChip,
-)
+/** Fixed seed scheme for [accent], or null for [Accent.DYNAMIC]. */
+internal fun Accent.seedScheme(dark: Boolean): ColorScheme? = when (this) {
+    Accent.DYNAMIC -> null
+    Accent.AMBER -> if (dark) AmberDark else AmberLight
+    Accent.INK -> if (dark) InkDark else InkLight
+    Accent.SAGE -> if (dark) SageDark else SageLight
+    Accent.PLUM -> if (dark) PlumDark else PlumLight
+    Accent.COBALT -> if (dark) CobaltDark else CobaltLight
+}
 
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkAccentAmber,
-    onPrimary = LightInk,
-    primaryContainer = DarkActiveBg,
-    onPrimaryContainer = DarkActiveInk,
-    secondary = DarkInkSoft,
-    onSecondary = DarkSurface,
-    tertiary = DarkInkMuted,
-    onTertiary = DarkSurface,
-    error = DarkArchivedInk,
-    onError = OnAccent,
-    errorContainer = DarkArchivedBg,
-    onErrorContainer = DarkArchivedInk,
-    background = DarkBg,
-    onBackground = DarkInk,
-    surface = DarkSurface,
-    onSurface = DarkInk,
-    surfaceVariant = DarkSurfaceAlt,
-    onSurfaceVariant = DarkInkSoft,
-    outline = DarkLine,
-    outlineVariant = DarkLineStrong,
-    surfaceContainerLowest = DarkBg,
-    surfaceContainerLow = DarkSurface,
-    surfaceContainer = DarkSurfaceAlt,
-    surfaceContainerHigh = DarkSurfaceAlt,
-    surfaceContainerHighest = DarkChip,
-)
+/**
+ * Swatch color for the accent picker: the seed scheme's `primary`. For
+ * [Accent.DYNAMIC] it is the *current* `MaterialTheme.colorScheme.primary`
+ * (wallpaper-derived on API 31+), hence @Composable.
+ */
+@Composable
+fun Accent.swatchColor(dark: Boolean): Color =
+    seedScheme(dark)?.primary ?: MaterialTheme.colorScheme.primary
 
 @Composable
 fun FastMaskTheme(
@@ -70,34 +40,18 @@ fun FastMaskTheme(
     accent: Accent = Accent.DEFAULT,
     content: @Composable () -> Unit,
 ) {
-    val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val baseExtras = if (darkTheme) DarkExtras else LightExtras
-    val colorScheme = if (accent == Accent.DEFAULT) {
-        baseScheme
-    } else {
-        baseScheme.copy(
-            primary = accent.color(darkTheme),
-            onPrimary = accent.onColor(darkTheme),
-        )
-    }
-    val extras = if (accent == Accent.DEFAULT) {
-        baseExtras
-    } else {
-        baseExtras.copy(
-            accent = accent.color(darkTheme),
-            onAccent = accent.onColor(darkTheme),
-        )
-    }
+    val context = LocalContext.current
+    val colorScheme = accent.seedScheme(darkTheme)
+        ?: when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            else -> if (darkTheme) AmberDark else AmberLight
+        }
 
-    CompositionLocalProvider(
-        LocalStatusColors provides extras.status,
-        LocalFastMaskExtras provides extras,
-    ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            shapes = FastMaskShapes,
-            content = content,
-        )
-    }
+    MaterialExpressiveTheme(
+        colorScheme = colorScheme,
+        motionScheme = MotionScheme.expressive(),
+        typography = Typography,
+        content = content,
+    )
 }

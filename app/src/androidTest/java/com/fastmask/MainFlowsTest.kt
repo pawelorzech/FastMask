@@ -1,7 +1,10 @@
 package com.fastmask
 
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -71,6 +74,16 @@ class MainFlowsTest {
     private lateinit var scenario: ActivityScenario<MainActivity>
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+    /**
+     * The list's create button: the extended FAB is named by its visible "New mask" label,
+     * the icon-only toggle FAB (while scrolling down) by the create description.
+     */
+    private fun createFab(): SemanticsMatcher =
+        hasClickAction() and (
+            hasContentDescription(string(R.string.email_list_create_description)) or
+                hasContentDescription(string(R.string.email_list_create_fab))
+            )
 
     private fun string(id: Int) = context.getString(id)
 
@@ -155,7 +168,9 @@ class MainFlowsTest {
 
         enterDemoAndDismissTutorial()
 
-        composeRule.onNodeWithText(string(R.string.email_list_title)).assertIsDisplayed()
+        // The large top app bar composes its title for both the expanded and
+        // the collapsed state, so match the title without assuming one node.
+        composeRule.onAllNodesWithText(string(R.string.email_list_title)).onFirst().assertExists()
     }
 
     // --- create -----------------------------------------------------------
@@ -166,9 +181,15 @@ class MainFlowsTest {
 
         val totalBefore = filterCount(R.string.filter_all)
 
-        composeRule
-            .onNodeWithContentDescription(string(R.string.email_list_create_description))
-            .performClick()
+        // The FAB opens a menu; "New mask" is its create entry. The extended FAB
+        // carries the same label until its crossfade into the toggle FAB ends,
+        // so wait for the menu item to be the only match.
+        composeRule.onNode(createFab()).performClick()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText(string(R.string.email_list_create_fab))
+                .fetchSemanticsNodes().size == 1
+        }
+        composeRule.onNodeWithText(string(R.string.email_list_create_fab)).performClick()
         awaitText(string(R.string.create_email_title))
 
         composeRule.onNodeWithContentDescription(string(R.string.create_email_description_label))
@@ -181,7 +202,9 @@ class MainFlowsTest {
         // Wait on the FAB, which only exists on the list. ("Masked" would match
         // as a substring while still on the create screen.) The return is now
         // immediate — the create screen no longer waits out its snackbar.
-        awaitContentDescription(string(R.string.email_list_create_description), 10_000)
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodes(createFab()).fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.waitUntil(timeoutMillis = 15_000) {
             filterCount(R.string.filter_all) == totalBefore + 1
         }
@@ -209,7 +232,7 @@ class MainFlowsTest {
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
 
-        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performClick()
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performScrollTo().performClick()
         composeRule.onNodeWithText(string(R.string.email_detail_delete_confirm)).performClick()
 
         // Back on the list. The default "All" filter still shows archived
@@ -251,7 +274,7 @@ class MainFlowsTest {
 
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
-        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performClick()
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performScrollTo().performClick()
         composeRule.onNodeWithText(string(R.string.email_detail_delete_confirm)).performClick()
         awaitText(string(R.string.list_archived_snackbar))
 
@@ -304,7 +327,8 @@ class MainFlowsTest {
             string(R.string.email_list_clear_search),
         )
         val minimumTouchPx = 48f * context.resources.displayMetrics.density
-        assertTrue(clearSearch.fetchSemanticsNode().boundsInRoot.width >= minimumTouchPx - 1f)
+        // The 48dp guarantee is the touch target (M3 IconButton draws a 40dp container inside it).
+        assertTrue(clearSearch.fetchSemanticsNode().touchBoundsInRoot.width >= minimumTouchPx - 1f)
         clearSearch.performClick()
         composeRule.waitForIdle()
 
@@ -319,6 +343,12 @@ class MainFlowsTest {
         enterDemoAndDismissTutorial()
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
+
+        // The fields live behind the Details edit toggle on the expressive screen.
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_edit_action))
+            .performScrollTo()
+            .performClick()
+        awaitContentDescription(string(R.string.email_detail_description_label))
 
         val description = composeRule.onNodeWithContentDescription(
             string(R.string.email_detail_description_label),
@@ -371,11 +401,16 @@ class MainFlowsTest {
 
         composeRule.onAllNodesWithText("@", substring = true).onFirst().assertIsDisplayed()
 
-        // The seed list contains active masks, so at least one row must carry
-        // the state as a content description rather than only as a colour.
+        // The seed list contains active masks, so at least one row must carry the state
+        // as a state description (the M3E rows expose it as `stateDescription` on the
+        // row, next to the StateChip text) rather than only as a colour.
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodes(hasContentDescription(string(R.string.state_enabled)))
-                .fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodes(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    string(R.string.state_enabled),
+                ),
+            ).fetchSemanticsNodes().isNotEmpty()
         }
     }
 }

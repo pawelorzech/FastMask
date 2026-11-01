@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,13 +60,27 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private var loadInFlight = false
 
     /**
+     * A reload asked for while one was running — the post-save / post-toggle
+     * reload. It used to be dropped, so nothing refreshed after the write and the
+     * screen kept whatever the older in-flight fetch returned. It re-runs once
+     * the fetch ends; the queued run keeps drafts unless every request asked for
+     * a reset.
+     */
+    private var reloadQueued = false
+    private var queuedResetEdits = true
+
+    /**
      * @param resetEdits when true (initial load / retry) untouched editable fields
      *   are seeded from the server value. Drafts entered after cache rendering survive.
      *   The reload triggered AFTER a save or a state toggle passes false: overwriting `edited*` there would drop any
      *   keystrokes the user typed while the network call was in flight.
      */
     fun loadEmail(resetEdits: Boolean = true) {
-        if (loadInFlight) return
+        if (loadInFlight) {
+            queuedResetEdits = if (reloadQueued) queuedResetEdits && resetEdits else resetEdits
+            reloadQueued = true
+            return
+        }
         loadInFlight = true
 
         // Stale-while-revalidate, two legs:
@@ -123,6 +138,12 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 )
             } finally {
                 loadInFlight = false
+                if (reloadQueued) {
+                    val reset = queuedResetEdits
+                    reloadQueued = false
+                    queuedResetEdits = true
+                    if (isActive) loadEmail(reset)
+                }
             }
         }
     }

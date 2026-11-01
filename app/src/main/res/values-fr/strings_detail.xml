@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">Modifier les détails</string>
+    <string name="email_detail_edit_stop">Arrêter la modification</string>
+    <string name="email_detail_no_domain">Aucun domaine</string>
+    <string name="create_email_close">Fermer</string>
+</resources>

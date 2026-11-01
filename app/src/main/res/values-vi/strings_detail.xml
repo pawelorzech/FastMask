@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">Chỉnh sửa chi tiết</string>
+    <string name="email_detail_edit_stop">Dừng chỉnh sửa</string>
+    <string name="email_detail_no_domain">Không có miền</string>
+    <string name="create_email_close">Đóng</string>
+</resources>

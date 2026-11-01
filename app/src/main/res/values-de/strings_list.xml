@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">Zufällige Maske</string>
+    <string name="list_section_today">Heute</string>
+    <string name="list_section_this_week">Diese Woche</string>
+    <string name="list_section_this_month">Diesen Monat</string>
+    <string name="list_section_earlier">Früher</string>
+    <string name="list_fab_close_menu">Menü schließen</string>
+</resources>

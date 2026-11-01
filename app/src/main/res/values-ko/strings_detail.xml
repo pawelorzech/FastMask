@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">세부 정보 편집</string>
+    <string name="email_detail_edit_stop">편집 중지</string>
+    <string name="email_detail_no_domain">도메인 없음</string>
+    <string name="create_email_close">닫기</string>
+</resources>

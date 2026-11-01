@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="list_random_mask">قناع عشوائي</string>
+    <string name="list_section_today">اليوم</string>
+    <string name="list_section_this_week">هذا الأسبوع</string>
+    <string name="list_section_this_month">هذا الشهر</string>
+    <string name="list_section_earlier">أقدم</string>
+    <string name="list_fab_close_menu">إغلاق القائمة</string>
+</resources>

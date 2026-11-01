@@ -105,6 +105,16 @@ class MainActivity : AppCompatActivity() {
 
     /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
     private val locked = mutableStateOf(false)
+
+    /**
+     * UI-only mirrors for LockScreen's motion; neither one opens the gate.
+     * [unlockPromptUi]: the system prompt is on screen. [unlockSucceeded]: auth
+     * passed and the success animation is playing, after which LockScreen asks
+     * for the gate to open. Re-locking (ON_STOP) clears [unlockSucceeded], so
+     * backgrounding inside that window can never open the gate afterwards.
+     */
+    private val unlockPromptUi = mutableStateOf(false)
+    private val unlockSucceeded = mutableStateOf(false)
     private val pendingShare = mutableStateOf<ShareRequest?>(null)
     private val shareInbox = ShareInbox()
     // Until the persisted flag has been read, the safe answer is "already
@@ -245,10 +255,10 @@ class MainActivity : AppCompatActivity() {
                 val proStatus by proRepository.proStatus.collectAsState()
                 val accentPref by settingsDataStore.accent.collectAsState(initial = cachedAccent)
                 // Accents are a Pro feature — losing Pro gracefully falls back
-                // to the classic amber without touching the stored preference.
+                // to wallpaper colors (Accent.DEFAULT) without touching the stored preference.
                 // The cache snapshot from the IO read above covers the first
                 // frames before the repository's async seed lands, so a Pro
-                // user's accent doesn't flash amber on every cold start. (If
+                // user's accent doesn't flash the default on every cold start. (If
                 // Play revokes Pro mid-session the accent lingers until the
                 // next launch — cosmetic, self-correcting.)
                 val accent = if (proStatus.isPro || (proStatus == ProStatus.FREE && cachedPro)) {
@@ -275,6 +285,7 @@ class MainActivity : AppCompatActivity() {
                 DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
+                            unlockSucceeded.value = false
                             locked.value = true
                         }
                     }
@@ -320,7 +331,18 @@ class MainActivity : AppCompatActivity() {
 
                         if (isLocked) {
                             // Content behind the gate is not composed at all.
-                            LockScreen(onUnlockClick = ::requestUnlock)
+                            LockScreen(
+                                onUnlockClick = ::requestUnlock,
+                                promptActive = unlockPromptUi.value,
+                                unlocked = unlockSucceeded.value,
+                                onUnlockedAnimationFinished = {
+                                    // Guarded: a re-lock during the animation cleared the flag.
+                                    if (unlockSucceeded.value) {
+                                        unlockSucceeded.value = false
+                                        locked.value = false
+                                    }
+                                },
+                            )
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
                             // This must stay INSIDE the unlocked branch: a pending share waits behind
@@ -419,14 +441,19 @@ class MainActivity : AppCompatActivity() {
     private fun requestUnlock() {
         if (unlockPromptShowing) return
         unlockPromptShowing = true
+        unlockPromptUi.value = true
         showUnlockPrompt(
             activity = this,
             title = getString(R.string.app_lock_prompt_title),
-            onSuccess = { locked.value = false },
+            // The gate opens from LockScreen once its success animation is done.
+            onSuccess = { unlockSucceeded.value = true },
             // Device can no longer authenticate at all (screen lock removed) —
             // unlock rather than brick; equivalent to a device without a lock.
             onUnavailable = { locked.value = false },
-            onFinished = { unlockPromptShowing = false },
+            onFinished = {
+                unlockPromptShowing = false
+                unlockPromptUi.value = false
+            },
         )
     }
 
