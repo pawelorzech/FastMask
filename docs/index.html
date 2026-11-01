@@ -1,0 +1,397 @@
+---
+layout: null
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FastMask: Fastmail masked email for Android</title>
+<meta name="description" content="A fast, private Android app for your Fastmail masked email addresses. Create, copy and switch off masks in a couple of taps. Open source, no ads, no analytics.">
+<meta name="theme-color" content="#FFF8F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1008" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://pawelorzech.github.io/FastMask/">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FastMask">
+<meta property="og:title" content="FastMask: Fastmail masked email for Android">
+<meta property="og:description" content="Create, copy and switch off masked email addresses in a couple of taps. Open source, no ads, no analytics.">
+<meta property="og:url" content="https://pawelorzech.github.io/FastMask/">
+<meta property="og:image" content="https://pawelorzech.github.io/FastMask/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FastMask: Fastmail masked email for Android">
+<meta name="twitter:description" content="Create, copy and switch off masked email addresses in a couple of taps.">
+<meta name="twitter:image" content="https://pawelorzech.github.io/FastMask/assets/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,100..1000,0..100&amp;display=swap">
+<style>
+:root {
+  --bg: #FFF8F0;
+  --surface: #FFE6C8;
+  --surface-2: #FFEFDC;
+  --ink: #2B1708;
+  --ink-soft: #5E4330;
+  --link: #753200;
+  --amber: #C76B00;
+  --glyph: #753200;
+  --line: #E9CFAE;
+  --focus: #1B5FD1;
+  --shadow: 0 18px 40px -18px rgb(117 50 0 / .45);
+  --frame: #2B1708;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1008; --surface: #2F1B0D; --surface-2: #26160A; --ink: #FFEBD6; --ink-soft: #D9B999;
+    --link: #FFB765; --amber: #E28A1F; --glyph: #FFE6C8; --line: #4A2E18; --focus: #8EB6FF;
+    --shadow: 0 18px 40px -18px rgb(0 0 0 / .8); --frame: #4A2E18;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1008; --surface: #2F1B0D; --surface-2: #26160A; --ink: #FFEBD6; --ink-soft: #D9B999;
+  --link: #FFB765; --amber: #E28A1F; --glyph: #FFE6C8; --line: #4A2E18; --focus: #8EB6FF;
+  --shadow: 0 18px 40px -18px rgb(0 0 0 / .8); --frame: #4A2E18;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 1.0625rem/1.6 "Google Sans Flex", "Google Sans", system-ui, sans-serif;
+  font-variation-settings: "ROND" 0;
+  overflow-x: hidden;
+}
+h1, h2, h3 { font-variation-settings: "ROND" 100, "opsz" 144; font-weight: 800; line-height: 1.06; letter-spacing: -.005em; margin: 0; }
+h2 { font-size: clamp(2rem, 5vw, 3.25rem); }
+h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; font-variation-settings: "ROND" 100, "opsz" 24; }
+p { margin: 0 0 1em; max-width: 62ch; }
+a { color: var(--link); text-underline-offset: .2em; text-decoration-thickness: .08em; }
+a:hover { text-decoration-thickness: .16em; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
+.skip { position: absolute; left: 12px; top: -80px; background: var(--ink); color: var(--bg); padding: .6rem 1rem; border-radius: 999px; z-index: 10; }
+.skip:focus { top: 12px; }
+.wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+svg.shape { display: block; fill: currentColor; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 800; font-variation-settings: "ROND" 100, "opsz" 24; font-size: 1.2rem; }
+.brand img { width: 36px; height: 36px; border-radius: 10px; }
+.top nav { display: flex; gap: 4px; }
+.top nav a { color: var(--ink); text-decoration: none; padding: .5rem .8rem; border-radius: 999px; font-weight: 500; }
+.top nav a:hover { background: var(--surface); }
+@media (max-width: 640px) { .top nav a:not(.keep) { display: none; } }
+
+/* hero */
+.hero { display: grid; gap: 32px; align-items: center; padding: 24px 0 72px; }
+@media (min-width: 900px) { .hero { grid-template-columns: 1.05fr .95fr; padding: 40px 0 96px; } }
+.hero .icon { width: 96px; height: 96px; border-radius: 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
+.hero h1 { font-size: clamp(3.6rem, 13vw, 7.6rem); color: var(--ink); }
+.hero .lead { font-size: clamp(1.35rem, 3.2vw, 1.8rem); line-height: 1.3; margin: 18px 0 8px; max-width: 22ch; font-weight: 500; font-variation-settings: "ROND" 100, "opsz" 36; }
+.hero .sub { color: var(--ink-soft); max-width: 44ch; }
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; margin-top: 20px; }
+.cta img { height: 76px; width: auto; display: block; }
+.cta .apk { font-weight: 600; }
+.stage { position: relative; aspect-ratio: 1 / 1.02; width: min(100%, 520px); margin-inline: auto; }
+.stage .big { position: absolute; inset: 0; color: #FFE6C8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stage .big { color: #5A3414; } }
+:root[data-theme="dark"] .stage .big { color: #5A3414; }
+.stage .big svg { width: 100%; height: 100%; }
+.stage .a { position: absolute; width: 20%; right: 2%; top: 2%; color: var(--amber); }
+.stage .b { position: absolute; width: 13%; left: 2%; bottom: 10%; color: var(--glyph); }
+.stage .phone { position: absolute; width: 50%; left: 27%; top: 6%; }
+.phone img, .shot img { display: block; width: 100%; height: auto; border-radius: 26px; border: 5px solid var(--frame); background: var(--surface); box-shadow: var(--shadow); }
+@media (max-width: 899px) { .stage { width: min(100%, 400px); } }
+
+/* sections */
+section { padding: 72px 0; }
+.band { background: var(--surface-2); border-block: 1px solid var(--line); }
+.split { display: grid; gap: 40px; }
+@media (min-width: 900px) { .split { grid-template-columns: 5fr 7fr; gap: 72px; align-items: start; } .split.flip { grid-template-columns: 7fr 5fr; } }
+.kicker { font-size: 1.125rem; color: var(--ink-soft); margin-top: 18px; }
+
+/* screenshots */
+.shots { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 20px 28px; margin: 0 -20px; scrollbar-width: thin; }
+.shot { flex: 0 0 min(64vw, 250px); scroll-snap-align: center; margin: 0; }
+.shot figcaption { margin-top: 14px; font-weight: 600; font-size: .98rem; line-height: 1.3; }
+@media (min-width: 1000px) { .shots { overflow: visible; padding-inline: 0; margin-inline: 0; display: grid; grid-template-columns: repeat(5, 1fr); } .shot { flex: none; } .shot:nth-child(even) { margin-top: 28px; } }
+
+/* features */
+.feat { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.feat li { display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.feat li:last-child { border-bottom: 0; }
+.feat svg { width: 44px; height: 44px; color: var(--amber); }
+.feat li:nth-child(even) svg { color: var(--glyph); }
+.feat strong { display: block; font-variation-settings: "ROND" 100, "opsz" 24; font-weight: 700; font-size: 1.12rem; line-height: 1.25; }
+.feat span { color: var(--ink-soft); }
+.note { margin-top: 28px; padding: 20px 22px; background: var(--surface); border-radius: 28px 28px 28px 8px; max-width: 62ch; }
+.note p { margin: 0; }
+
+/* design */
+.morpher { position: relative; width: min(100%, 340px); aspect-ratio: 1; color: var(--amber); margin: 8px 0 20px; }
+.morpher svg { width: 100%; height: 100%; }
+.morpher .mid { position: absolute; inset: 0; display: grid; place-items: center; }
+.morpher .mid img { width: 38%; height: auto; aspect-ratio: 1; border-radius: 24%; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chip { font: inherit; font-weight: 600; color: var(--ink); background: var(--surface); border: 2px solid transparent; padding: .55rem 1.1rem; border-radius: 999px; cursor: pointer; min-height: 44px; }
+.chip:hover { border-color: var(--amber); }
+.chip[aria-pressed="true"] { background: var(--glyph); color: var(--bg); }
+.points { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; }
+.points li { padding-left: 20px; border-left: 6px solid var(--amber); border-radius: 3px; }
+.points li:nth-child(2) { border-color: var(--glyph); }
+.points strong { display: block; font-variation-settings: "ROND" 100, "opsz" 24; font-size: 1.15rem; line-height: 1.3; }
+.points span { color: var(--ink-soft); }
+
+/* pro */
+.pro { display: grid; gap: 40px; }
+@media (min-width: 900px) { .pro { grid-template-columns: 1fr 1fr; align-items: center; gap: 72px; } }
+.demo { background: var(--surface); border-radius: 40px; padding: 28px; display: grid; gap: 22px; --accent: #B05F00; --accent-ink: #fff; --accent-soft: #FFD9A8; box-shadow: var(--shadow); }
+.mask { display: grid; grid-template-columns: 56px 1fr; gap: 14px; align-items: center; background: var(--bg); padding: 14px 16px; border-radius: 24px; }
+.mask .av { width: 56px; height: 56px; position: relative; color: var(--accent-soft); transition: color .3s; }
+.mask .av svg { width: 100%; height: 100%; }
+.mask .av b { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; color: #3b1c00; font-variation-settings: "ROND" 100; }
+.mask .addr { font-weight: 700; font-variation-settings: "ROND" 100, "opsz" 20; overflow-wrap: anywhere; line-height: 1.25; }
+.mask .meta { color: var(--ink-soft); font-size: .92rem; }
+.pill { justify-self: start; background: var(--accent); color: var(--accent-ink); padding: .65rem 1.4rem; border-radius: 999px; font-weight: 700; transition: background .3s; }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.sw { width: 46px; height: 46px; padding: 0; border: 0; background: none; cursor: pointer; color: var(--c); border-radius: 50%; }
+.sw svg { width: 100%; height: 100%; }
+.sw[aria-pressed="true"] { outline: 3px solid var(--ink); outline-offset: 2px; }
+.sw:focus-visible { outline: 3px solid var(--focus); }
+.pro ul.plain { margin: 0 0 1.2em; padding: 0; list-style: none; display: grid; gap: 10px; }
+.pro ul.plain li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; }
+.pro ul.plain svg { width: 24px; height: 24px; color: var(--amber); margin-top: 3px; }
+
+/* privacy */
+.priv { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 14px; }
+@media (min-width: 700px) { .priv { grid-template-columns: 1fr 1fr; } }
+.priv li { background: var(--surface); padding: 22px 24px; border-radius: 28px; }
+.priv li:nth-child(2) { border-radius: 28px 28px 8px 28px; }
+.priv li:nth-child(3) { border-radius: 8px 28px 28px 28px; }
+.priv strong { display: block; font-variation-settings: "ROND" 100, "opsz" 24; font-size: 1.15rem; line-height: 1.25; margin-bottom: 4px; }
+.priv span { color: var(--ink-soft); }
+
+/* footer */
+footer { padding: 48px 0 64px; border-top: 1px solid var(--line); font-size: .95rem; color: var(--ink-soft); }
+footer nav { display: flex; flex-wrap: wrap; gap: 4px 22px; margin-bottom: 20px; font-size: 1.05rem; }
+footer p { max-width: 80ch; margin-bottom: .7em; }
+.oss { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.btn { display: inline-flex; align-items: center; min-height: 48px; padding: .6rem 1.4rem; border-radius: 999px; background: var(--glyph); color: var(--bg); font-weight: 700; text-decoration: none; }
+.btn:hover { filter: brightness(1.15); }
+.btn.alt { background: var(--surface); color: var(--ink); }
+
+/* load moment: hero shape morphs once */
+.stage .phone { animation: rise .7s cubic-bezier(.2,.9,.3,1.2) .15s both; }
+@keyframes rise { from { transform: translateY(28px) rotate(3deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .stage .phone { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="s-cookie4" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.1 54.2,2.4C55.5,2.7 56.9,3.1 58.2,3.6C59.5,4.2 60.7,4.8 61.9,5.6C63.1,6.3 64.2,7.1 65.3,8.0C66.4,8.8 67.4,9.8 68.3,10.7C69.3,11.6 70.2,12.6 71.0,13.6C71.9,14.5 72.7,15.5 73.5,16.4C74.3,17.3 75.1,18.2 75.9,19.1C76.7,20.0 77.5,20.8 78.3,21.7C79.2,22.5 80.0,23.3 80.9,24.1C81.8,24.9 82.7,25.7 83.6,26.5C84.5,27.3 85.5,28.1 86.4,29.0C87.4,29.8 88.4,30.7 89.3,31.7C90.2,32.6 91.2,33.6 92.0,34.7C92.9,35.8 93.7,36.9 94.4,38.1C95.2,39.3 95.8,40.5 96.4,41.8C96.9,43.1 97.3,44.5 97.6,45.8C97.9,47.2 98.0,48.6 98.0,50.0C98.0,51.4 97.9,52.8 97.6,54.2C97.3,55.5 96.9,56.9 96.4,58.2C95.8,59.5 95.2,60.7 94.4,61.9C93.7,63.1 92.9,64.2 92.0,65.3C91.2,66.4 90.2,67.4 89.3,68.3C88.4,69.3 87.4,70.2 86.4,71.0C85.5,71.9 84.5,72.7 83.6,73.5C82.7,74.3 81.8,75.1 80.9,75.9C80.0,76.7 79.2,77.5 78.3,78.3C77.5,79.2 76.7,80.0 75.9,80.9C75.1,81.8 74.3,82.7 73.5,83.6C72.7,84.5 71.9,85.5 71.0,86.4C70.2,87.4 69.3,88.4 68.3,89.3C67.4,90.2 66.4,91.2 65.3,92.0C64.2,92.9 63.1,93.7 61.9,94.4C60.7,95.2 59.5,95.8 58.2,96.4C56.9,96.9 55.5,97.3 54.2,97.6C52.8,97.9 51.4,98.0 50.0,98.0C48.6,98.0 47.2,97.9 45.8,97.6C44.5,97.3 43.1,96.9 41.8,96.4C40.5,95.8 39.3,95.2 38.1,94.4C36.9,93.7 35.8,92.9 34.7,92.0C33.6,91.2 32.6,90.2 31.7,89.3C30.7,88.4 29.8,87.4 29.0,86.4C28.1,85.5 27.3,84.5 26.5,83.6C25.7,82.7 24.9,81.8 24.1,80.9C23.3,80.0 22.5,79.2 21.7,78.3C20.8,77.5 20.0,76.7 19.1,75.9C18.2,75.1 17.3,74.3 16.4,73.5C15.5,72.7 14.5,71.9 13.6,71.0C12.6,70.2 11.6,69.3 10.7,68.3C9.8,67.4 8.8,66.4 8.0,65.3C7.1,64.2 6.3,63.1 5.6,61.9C4.8,60.7 4.2,59.5 3.6,58.2C3.1,56.9 2.7,55.5 2.4,54.2C2.1,52.8 2.0,51.4 2.0,50.0C2.0,48.6 2.1,47.2 2.4,45.8C2.7,44.5 3.1,43.1 3.6,41.8C4.2,40.5 4.8,39.3 5.6,38.1C6.3,36.9 7.1,35.8 8.0,34.7C8.8,33.6 9.8,32.6 10.7,31.7C11.6,30.7 12.6,29.8 13.6,29.0C14.5,28.1 15.5,27.3 16.4,26.5C17.3,25.7 18.2,24.9 19.1,24.1C20.0,23.3 20.8,22.5 21.7,21.7C22.5,20.8 23.3,20.0 24.1,19.1C24.9,18.2 25.7,17.3 26.5,16.4C27.3,15.5 28.1,14.5 29.0,13.6C29.8,12.6 30.7,11.6 31.7,10.7C32.6,9.8 33.6,8.8 34.7,8.0C35.8,7.1 36.9,6.3 38.1,5.6C39.3,4.8 40.5,4.2 41.8,3.6C43.1,3.1 44.5,2.7 45.8,2.4C47.2,2.1 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-cookie6" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.2 54.1,2.6C55.5,3.0 56.8,3.6 58.1,4.3C59.3,5.0 60.5,5.8 61.6,6.7C62.7,7.5 63.8,8.5 64.8,9.3C65.8,10.2 66.8,11.1 67.8,11.8C68.8,12.6 69.8,13.3 70.9,13.9C71.9,14.5 73.0,15.0 74.2,15.5C75.3,16.0 76.6,16.4 77.8,16.8C79.1,17.3 80.4,17.7 81.7,18.3C83.0,18.8 84.4,19.4 85.6,20.2C86.8,20.9 88.0,21.7 89.0,22.7C90.0,23.7 90.9,24.8 91.6,26.0C92.3,27.2 92.8,28.5 93.1,29.9C93.5,31.2 93.6,32.7 93.6,34.1C93.7,35.5 93.5,37.0 93.3,38.4C93.2,39.8 92.9,41.2 92.6,42.5C92.4,43.8 92.1,45.1 92.0,46.3C91.8,47.6 91.7,48.8 91.7,50.0C91.7,51.2 91.8,52.4 92.0,53.7C92.1,54.9 92.4,56.2 92.6,57.5C92.9,58.8 93.2,60.2 93.3,61.6C93.5,63.0 93.7,64.5 93.6,65.9C93.6,67.3 93.5,68.8 93.1,70.1C92.8,71.5 92.3,72.8 91.6,74.0C90.9,75.2 90.0,76.3 89.0,77.3C88.0,78.3 86.8,79.1 85.6,79.8C84.4,80.6 83.0,81.2 81.7,81.7C80.4,82.3 79.1,82.7 77.8,83.2C76.6,83.6 75.3,84.0 74.2,84.5C73.0,85.0 71.9,85.5 70.9,86.1C69.8,86.7 68.8,87.4 67.8,88.2C66.8,88.9 65.8,89.8 64.8,90.7C63.8,91.5 62.7,92.5 61.6,93.3C60.5,94.2 59.3,95.0 58.1,95.7C56.8,96.4 55.5,97.0 54.1,97.4C52.8,97.8 51.4,98.0 50.0,98.0C48.6,98.0 47.2,97.8 45.9,97.4C44.5,97.0 43.2,96.4 41.9,95.7C40.7,95.0 39.5,94.2 38.4,93.3C37.3,92.5 36.2,91.5 35.2,90.7C34.2,89.8 33.2,88.9 32.2,88.2C31.2,87.4 30.2,86.7 29.1,86.1C28.1,85.5 27.0,85.0 25.8,84.5C24.7,84.0 23.4,83.6 22.2,83.2C20.9,82.7 19.6,82.3 18.3,81.7C17.0,81.2 15.6,80.6 14.4,79.8C13.2,79.1 12.0,78.3 11.0,77.3C10.0,76.3 9.1,75.2 8.4,74.0C7.7,72.8 7.2,71.5 6.9,70.1C6.5,68.8 6.4,67.3 6.4,65.9C6.3,64.5 6.5,63.0 6.7,61.6C6.8,60.2 7.1,58.8 7.4,57.5C7.6,56.2 7.9,54.9 8.0,53.7C8.2,52.4 8.3,51.2 8.3,50.0C8.3,48.8 8.2,47.6 8.0,46.3C7.9,45.1 7.6,43.8 7.4,42.5C7.1,41.2 6.8,39.8 6.7,38.4C6.5,37.0 6.3,35.5 6.4,34.1C6.4,32.7 6.5,31.2 6.9,29.9C7.2,28.5 7.7,27.2 8.4,26.0C9.1,24.8 10.0,23.7 11.0,22.7C12.0,21.7 13.2,20.9 14.4,20.2C15.6,19.4 17.0,18.8 18.3,18.3C19.6,17.7 20.9,17.3 22.2,16.8C23.4,16.4 24.7,16.0 25.8,15.5C27.0,15.0 28.1,14.5 29.1,13.9C30.2,13.3 31.2,12.6 32.2,11.8C33.2,11.1 34.2,10.2 35.2,9.3C36.2,8.5 37.3,7.5 38.4,6.7C39.5,5.8 40.7,5.0 41.9,4.3C43.2,3.6 44.5,3.0 45.9,2.6C47.2,2.2 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-cookie9" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.4 54.1,2.8C55.4,3.3 56.7,4.2 57.9,5.0C59.2,5.7 60.3,6.7 61.4,7.4C62.6,8.1 63.7,8.8 64.9,9.2C66.1,9.6 67.3,9.8 68.6,10.0C70.0,10.2 71.4,10.2 72.9,10.4C74.3,10.6 75.8,10.8 77.1,11.2C78.5,11.7 79.8,12.3 80.9,13.2C81.9,14.1 82.8,15.3 83.5,16.5C84.2,17.8 84.6,19.3 85.0,20.6C85.5,22.0 85.7,23.4 86.1,24.7C86.6,26.0 87.0,27.2 87.6,28.3C88.3,29.4 89.1,30.4 90.0,31.4C90.9,32.4 92.0,33.3 93.0,34.4C93.9,35.4 95.0,36.5 95.7,37.7C96.4,39.0 97.0,40.3 97.3,41.7C97.5,43.0 97.4,44.5 97.2,45.9C96.9,47.3 96.3,48.7 95.7,50.0C95.2,51.3 94.4,52.6 93.9,53.8C93.4,55.1 93.0,56.3 92.8,57.5C92.5,58.8 92.6,60.1 92.6,61.4C92.6,62.8 92.9,64.2 93.0,65.6C93.0,67.1 93.1,68.6 92.9,70.0C92.7,71.4 92.3,72.8 91.6,74.0C90.9,75.2 89.9,76.3 88.8,77.1C87.7,78.0 86.3,78.7 85.0,79.4C83.8,80.1 82.4,80.5 81.2,81.2C80.0,81.8 78.9,82.4 77.9,83.3C76.9,84.1 76.1,85.1 75.3,86.1C74.5,87.2 73.7,88.5 72.9,89.6C72.0,90.7 71.1,92.0 70.0,92.9C68.9,93.8 67.7,94.6 66.4,95.1C65.1,95.6 63.7,95.7 62.3,95.7C60.8,95.7 59.3,95.3 57.9,95.0C56.5,94.7 55.2,94.2 53.8,93.9C52.5,93.7 51.3,93.4 50.0,93.4C48.7,93.4 47.5,93.7 46.2,93.9C44.8,94.2 43.5,94.7 42.1,95.0C40.7,95.3 39.2,95.7 37.7,95.7C36.3,95.7 34.9,95.6 33.6,95.1C32.3,94.6 31.1,93.8 30.0,92.9C28.9,92.0 28.0,90.7 27.1,89.6C26.3,88.5 25.5,87.2 24.7,86.1C23.9,85.1 23.1,84.1 22.1,83.3C21.1,82.4 20.0,81.8 18.8,81.2C17.6,80.5 16.2,80.1 15.0,79.4C13.7,78.7 12.3,78.0 11.2,77.1C10.1,76.3 9.1,75.2 8.4,74.0C7.7,72.8 7.3,71.4 7.1,70.0C6.9,68.6 7.0,67.1 7.0,65.6C7.1,64.2 7.4,62.8 7.4,61.4C7.4,60.1 7.5,58.8 7.2,57.5C7.0,56.3 6.6,55.1 6.1,53.8C5.6,52.6 4.8,51.3 4.3,50.0C3.7,48.7 3.1,47.3 2.8,45.9C2.6,44.5 2.5,43.0 2.7,41.7C3.0,40.3 3.6,39.0 4.3,37.7C5.0,36.5 6.1,35.4 7.0,34.4C8.0,33.3 9.1,32.4 10.0,31.4C10.9,30.4 11.7,29.4 12.4,28.3C13.0,27.2 13.4,26.0 13.9,24.7C14.3,23.4 14.5,22.0 15.0,20.6C15.4,19.3 15.8,17.8 16.5,16.5C17.2,15.3 18.1,14.1 19.1,13.2C20.2,12.3 21.5,11.7 22.9,11.2C24.2,10.8 25.7,10.6 27.1,10.4C28.6,10.2 30.0,10.2 31.4,10.0C32.7,9.8 33.9,9.6 35.1,9.2C36.3,8.8 37.4,8.1 38.6,7.4C39.7,6.7 40.8,5.7 42.1,5.0C43.3,4.2 44.6,3.3 45.9,2.8C47.2,2.4 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-clover" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.2 54.1,2.7C55.5,3.1 56.8,3.8 58.0,4.6C59.2,5.4 60.4,6.4 61.4,7.5C62.4,8.6 63.3,9.9 64.2,11.1C65.0,12.4 65.7,13.7 66.3,15.0C67.0,16.3 67.5,17.6 68.0,18.8C68.5,20.0 68.9,21.2 69.4,22.3C69.9,23.3 70.3,24.3 70.9,25.1C71.4,26.0 72.0,26.7 72.6,27.4C73.3,28.0 74.0,28.6 74.9,29.1C75.7,29.7 76.7,30.1 77.7,30.6C78.8,31.1 80.0,31.5 81.2,32.0C82.4,32.5 83.7,33.0 85.0,33.7C86.3,34.3 87.6,35.0 88.9,35.8C90.1,36.7 91.4,37.6 92.5,38.6C93.6,39.6 94.6,40.8 95.4,42.0C96.2,43.2 96.9,44.5 97.3,45.9C97.8,47.2 98.0,48.6 98.0,50.0C98.0,51.4 97.8,52.8 97.3,54.1C96.9,55.5 96.2,56.8 95.4,58.0C94.6,59.2 93.6,60.4 92.5,61.4C91.4,62.4 90.1,63.3 88.9,64.2C87.6,65.0 86.3,65.7 85.0,66.3C83.7,67.0 82.4,67.5 81.2,68.0C80.0,68.5 78.8,68.9 77.7,69.4C76.7,69.9 75.7,70.3 74.9,70.9C74.0,71.4 73.3,72.0 72.6,72.6C72.0,73.3 71.4,74.0 70.9,74.9C70.3,75.7 69.9,76.7 69.4,77.7C68.9,78.8 68.5,80.0 68.0,81.2C67.5,82.4 67.0,83.7 66.3,85.0C65.7,86.3 65.0,87.6 64.2,88.9C63.3,90.1 62.4,91.4 61.4,92.5C60.4,93.6 59.2,94.6 58.0,95.4C56.8,96.2 55.5,96.9 54.1,97.3C52.8,97.8 51.4,98.0 50.0,98.0C48.6,98.0 47.2,97.8 45.9,97.3C44.5,96.9 43.2,96.2 42.0,95.4C40.8,94.6 39.6,93.6 38.6,92.5C37.6,91.4 36.7,90.1 35.8,88.9C35.0,87.6 34.3,86.3 33.7,85.0C33.0,83.7 32.5,82.4 32.0,81.2C31.5,80.0 31.1,78.8 30.6,77.7C30.1,76.7 29.7,75.7 29.1,74.9C28.6,74.0 28.0,73.3 27.4,72.6C26.7,72.0 26.0,71.4 25.1,70.9C24.3,70.3 23.3,69.9 22.3,69.4C21.2,68.9 20.0,68.5 18.8,68.0C17.6,67.5 16.3,67.0 15.0,66.3C13.7,65.7 12.4,65.0 11.1,64.2C9.9,63.3 8.6,62.4 7.5,61.4C6.4,60.4 5.4,59.2 4.6,58.0C3.8,56.8 3.1,55.5 2.7,54.1C2.2,52.8 2.0,51.4 2.0,50.0C2.0,48.6 2.2,47.2 2.7,45.9C3.1,44.5 3.8,43.2 4.6,42.0C5.4,40.8 6.4,39.6 7.5,38.6C8.6,37.6 9.9,36.7 11.1,35.8C12.4,35.0 13.7,34.3 15.0,33.7C16.3,33.0 17.6,32.5 18.8,32.0C20.0,31.5 21.2,31.1 22.3,30.6C23.3,30.1 24.3,29.7 25.1,29.1C26.0,28.6 26.7,28.0 27.4,27.4C28.0,26.7 28.6,26.0 29.1,25.1C29.7,24.3 30.1,23.3 30.6,22.3C31.1,21.2 31.5,20.0 32.0,18.8C32.5,17.6 33.0,16.3 33.7,15.0C34.3,13.7 35.0,12.4 35.8,11.1C36.7,9.9 37.6,8.6 38.6,7.5C39.6,6.4 40.8,5.4 42.0,4.6C43.2,3.8 44.5,3.1 45.9,2.7C47.2,2.2 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-flower" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.6 54.1,3.4C55.3,4.2 56.5,5.6 57.6,6.9C58.7,8.2 59.5,9.9 60.4,11.1C61.3,12.3 62.1,13.5 63.0,14.3C63.9,15.0 64.9,15.4 66.1,15.5C67.3,15.7 68.6,15.3 70.1,15.1C71.6,14.9 73.4,14.3 75.1,14.2C76.8,14.0 78.6,13.8 80.1,14.2C81.6,14.5 83.0,15.1 83.9,16.1C84.9,17.0 85.5,18.4 85.8,19.9C86.2,21.4 86.0,23.2 85.8,24.9C85.7,26.6 85.1,28.4 84.9,29.9C84.7,31.4 84.3,32.7 84.5,33.9C84.6,35.1 85.0,36.1 85.7,37.0C86.5,37.9 87.7,38.7 88.9,39.6C90.1,40.5 91.8,41.3 93.1,42.4C94.4,43.5 95.8,44.7 96.6,45.9C97.4,47.2 98.0,48.6 98.0,50.0C98.0,51.4 97.4,52.8 96.6,54.1C95.8,55.3 94.4,56.5 93.1,57.6C91.8,58.7 90.1,59.5 88.9,60.4C87.7,61.3 86.5,62.1 85.7,63.0C85.0,63.9 84.6,64.9 84.5,66.1C84.3,67.3 84.7,68.6 84.9,70.1C85.1,71.6 85.7,73.4 85.8,75.1C86.0,76.8 86.2,78.6 85.8,80.1C85.5,81.6 84.9,83.0 83.9,83.9C83.0,84.9 81.6,85.5 80.1,85.8C78.6,86.2 76.8,86.0 75.1,85.8C73.4,85.7 71.6,85.1 70.1,84.9C68.6,84.7 67.3,84.3 66.1,84.5C64.9,84.6 63.9,85.0 63.0,85.7C62.1,86.5 61.3,87.7 60.4,88.9C59.5,90.1 58.7,91.8 57.6,93.1C56.5,94.4 55.3,95.8 54.1,96.6C52.8,97.4 51.4,98.0 50.0,98.0C48.6,98.0 47.2,97.4 45.9,96.6C44.7,95.8 43.5,94.4 42.4,93.1C41.3,91.8 40.5,90.1 39.6,88.9C38.7,87.7 37.9,86.5 37.0,85.7C36.1,85.0 35.1,84.6 33.9,84.5C32.7,84.3 31.4,84.7 29.9,84.9C28.4,85.1 26.6,85.7 24.9,85.8C23.2,86.0 21.4,86.2 19.9,85.8C18.4,85.5 17.0,84.9 16.1,83.9C15.1,83.0 14.5,81.6 14.2,80.1C13.8,78.6 14.0,76.8 14.2,75.1C14.3,73.4 14.9,71.6 15.1,70.1C15.3,68.6 15.7,67.3 15.5,66.1C15.4,64.9 15.0,63.9 14.3,63.0C13.5,62.1 12.3,61.3 11.1,60.4C9.9,59.5 8.2,58.7 6.9,57.6C5.6,56.5 4.2,55.3 3.4,54.1C2.6,52.8 2.0,51.4 2.0,50.0C2.0,48.6 2.6,47.2 3.4,45.9C4.2,44.7 5.6,43.5 6.9,42.4C8.2,41.3 9.9,40.5 11.1,39.6C12.3,38.7 13.5,37.9 14.3,37.0C15.0,36.1 15.4,35.1 15.5,33.9C15.7,32.7 15.3,31.4 15.1,29.9C14.9,28.4 14.3,26.6 14.2,24.9C14.0,23.2 13.8,21.4 14.2,19.9C14.5,18.4 15.1,17.0 16.1,16.1C17.0,15.1 18.4,14.5 19.9,14.2C21.4,13.8 23.2,14.0 24.9,14.2C26.6,14.3 28.4,14.9 29.9,15.1C31.4,15.3 32.7,15.7 33.9,15.5C35.1,15.4 36.1,15.0 37.0,14.3C37.9,13.5 38.7,12.3 39.6,11.1C40.5,9.9 41.3,8.2 42.4,6.9C43.5,5.6 44.7,4.2 45.9,3.4C47.2,2.6 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-sunny" viewBox="0 0 100 100"><path d="M50.0,2.0C51.4,2.0 52.8,2.3 54.1,2.7C55.5,3.1 56.8,3.8 58.0,4.4C59.3,5.1 60.5,5.9 61.6,6.6C62.8,7.3 63.9,8.1 65.0,8.7C66.2,9.2 67.4,9.7 68.6,10.1C69.8,10.5 71.1,10.8 72.4,11.1C73.8,11.4 75.2,11.7 76.6,12.1C77.9,12.5 79.3,12.9 80.5,13.6C81.8,14.3 83.0,15.1 83.9,16.1C84.9,17.0 85.7,18.2 86.4,19.5C87.1,20.7 87.5,22.1 87.9,23.4C88.3,24.8 88.6,26.2 88.9,27.6C89.2,28.9 89.5,30.2 89.9,31.4C90.3,32.6 90.8,33.8 91.3,35.0C91.9,36.1 92.7,37.2 93.4,38.4C94.1,39.5 94.9,40.7 95.6,42.0C96.2,43.2 96.9,44.5 97.3,45.9C97.7,47.2 98.0,48.6 98.0,50.0C98.0,51.4 97.7,52.8 97.3,54.1C96.9,55.5 96.2,56.8 95.6,58.0C94.9,59.3 94.1,60.5 93.4,61.6C92.7,62.8 91.9,63.9 91.3,65.0C90.8,66.2 90.3,67.4 89.9,68.6C89.5,69.8 89.2,71.1 88.9,72.4C88.6,73.8 88.3,75.2 87.9,76.6C87.5,77.9 87.1,79.3 86.4,80.5C85.7,81.8 84.9,83.0 83.9,83.9C83.0,84.9 81.8,85.7 80.5,86.4C79.3,87.1 77.9,87.5 76.6,87.9C75.2,88.3 73.8,88.6 72.4,88.9C71.1,89.2 69.8,89.5 68.6,89.9C67.4,90.3 66.2,90.8 65.0,91.3C63.9,91.9 62.8,92.7 61.6,93.4C60.5,94.1 59.3,94.9 58.0,95.6C56.8,96.2 55.5,96.9 54.1,97.3C52.8,97.7 51.4,98.0 50.0,98.0C48.6,98.0 47.2,97.7 45.9,97.3C44.5,96.9 43.2,96.2 42.0,95.6C40.7,94.9 39.5,94.1 38.4,93.4C37.2,92.7 36.1,91.9 35.0,91.3C33.8,90.8 32.6,90.3 31.4,89.9C30.2,89.5 28.9,89.2 27.6,88.9C26.2,88.6 24.8,88.3 23.4,87.9C22.1,87.5 20.7,87.1 19.5,86.4C18.2,85.7 17.0,84.9 16.1,83.9C15.1,83.0 14.3,81.8 13.6,80.5C12.9,79.3 12.5,77.9 12.1,76.6C11.7,75.2 11.4,73.8 11.1,72.4C10.8,71.1 10.5,69.8 10.1,68.6C9.7,67.4 9.2,66.2 8.7,65.0C8.1,63.9 7.3,62.8 6.6,61.6C5.9,60.5 5.1,59.3 4.4,58.0C3.8,56.8 3.1,55.5 2.7,54.1C2.3,52.8 2.0,51.4 2.0,50.0C2.0,48.6 2.3,47.2 2.7,45.9C3.1,44.5 3.8,43.2 4.4,42.0C5.1,40.7 5.9,39.5 6.6,38.4C7.3,37.2 8.1,36.1 8.7,35.0C9.2,33.8 9.7,32.6 10.1,31.4C10.5,30.2 10.8,28.9 11.1,27.6C11.4,26.2 11.7,24.8 12.1,23.4C12.5,22.1 12.9,20.7 13.6,19.5C14.3,18.2 15.1,17.0 16.1,16.1C17.0,15.1 18.2,14.3 19.5,13.6C20.7,12.9 22.1,12.5 23.4,12.1C24.8,11.7 26.2,11.4 27.6,11.1C28.9,10.8 30.2,10.5 31.4,10.1C32.6,9.7 33.8,9.2 35.0,8.7C36.1,8.1 37.2,7.3 38.4,6.6C39.5,5.9 40.7,5.1 42.0,4.4C43.2,3.8 44.5,3.1 45.9,2.7C47.2,2.3 48.6,2.0 50.0,2.0Z"/></symbol><symbol id="s-burst" viewBox="0 0 100 100"><path d="M50.0,2.0C51.3,2.0 52.8,2.9 54.0,3.9C55.3,4.8 56.4,6.6 57.5,7.7C58.6,8.7 59.5,9.8 60.7,10.1C61.9,10.4 63.2,10.0 64.7,9.6C66.2,9.3 68.0,8.2 69.6,8.0C71.1,7.8 72.8,7.8 74.0,8.4C75.2,9.1 76.0,10.6 76.6,12.1C77.2,13.5 77.2,15.6 77.6,17.1C78.1,18.5 78.3,19.9 79.2,20.8C80.1,21.7 81.5,21.9 82.9,22.4C84.4,22.8 86.5,22.8 87.9,23.4C89.4,24.0 90.9,24.8 91.6,26.0C92.2,27.2 92.2,28.9 92.0,30.4C91.8,32.0 90.7,33.8 90.4,35.3C90.0,36.8 89.6,38.1 89.9,39.3C90.2,40.5 91.3,41.4 92.3,42.5C93.4,43.6 95.2,44.7 96.1,46.0C97.1,47.2 98.0,48.7 98.0,50.0C98.0,51.3 97.1,52.8 96.1,54.0C95.2,55.3 93.4,56.4 92.3,57.5C91.3,58.6 90.2,59.5 89.9,60.7C89.6,61.9 90.0,63.2 90.4,64.7C90.7,66.2 91.8,68.0 92.0,69.6C92.2,71.1 92.2,72.8 91.6,74.0C90.9,75.2 89.4,76.0 87.9,76.6C86.5,77.2 84.4,77.2 82.9,77.6C81.5,78.1 80.1,78.3 79.2,79.2C78.3,80.1 78.1,81.5 77.6,82.9C77.2,84.4 77.2,86.5 76.6,87.9C76.0,89.4 75.2,90.9 74.0,91.6C72.8,92.2 71.1,92.2 69.6,92.0C68.0,91.8 66.2,90.7 64.7,90.4C63.2,90.0 61.9,89.6 60.7,89.9C59.5,90.2 58.6,91.3 57.5,92.3C56.4,93.4 55.3,95.2 54.0,96.1C52.8,97.1 51.3,98.0 50.0,98.0C48.7,98.0 47.2,97.1 46.0,96.1C44.7,95.2 43.6,93.4 42.5,92.3C41.4,91.3 40.5,90.2 39.3,89.9C38.1,89.6 36.8,90.0 35.3,90.4C33.8,90.7 32.0,91.8 30.4,92.0C28.9,92.2 27.2,92.2 26.0,91.6C24.8,90.9 24.0,89.4 23.4,87.9C22.8,86.5 22.8,84.4 22.4,82.9C21.9,81.5 21.7,80.1 20.8,79.2C19.9,78.3 18.5,78.1 17.1,77.6C15.6,77.2 13.5,77.2 12.1,76.6C10.6,76.0 9.1,75.2 8.4,74.0C7.8,72.8 7.8,71.1 8.0,69.6C8.2,68.0 9.3,66.2 9.6,64.7C10.0,63.2 10.4,61.9 10.1,60.7C9.8,59.5 8.7,58.6 7.7,57.5C6.6,56.4 4.8,55.3 3.9,54.0C2.9,52.8 2.0,51.3 2.0,50.0C2.0,48.7 2.9,47.2 3.9,46.0C4.8,44.7 6.6,43.6 7.7,42.5C8.7,41.4 9.8,40.5 10.1,39.3C10.4,38.1 10.0,36.8 9.6,35.3C9.3,33.8 8.2,32.0 8.0,30.4C7.8,28.9 7.8,27.2 8.4,26.0C9.1,24.8 10.6,24.0 12.1,23.4C13.5,22.8 15.6,22.8 17.1,22.4C18.5,21.9 19.9,21.7 20.8,20.8C21.7,19.9 21.9,18.5 22.4,17.1C22.8,15.6 22.8,13.5 23.4,12.1C24.0,10.6 24.8,9.1 26.0,8.4C27.2,7.8 28.9,7.8 30.4,8.0C32.0,8.2 33.8,9.3 35.3,9.6C36.8,10.0 38.1,10.4 39.3,10.1C40.5,9.8 41.4,8.7 42.5,7.7C43.6,6.6 44.7,4.8 46.0,3.9C47.2,2.9 48.7,2.0 50.0,2.0Z"/></symbol><symbol id="s-pentagon" viewBox="0 0 100 100"><path d="M50.0,2.0C51.3,2.0 52.7,3.4 54.0,4.1C55.3,4.8 56.5,5.5 57.7,6.1C58.9,6.8 60.1,7.4 61.2,8.1C62.4,8.7 63.5,9.4 64.5,10.0C65.6,10.7 66.7,11.3 67.7,12.0C68.8,12.7 69.8,13.3 70.8,14.0C71.8,14.7 72.8,15.4 73.7,16.1C74.7,16.8 75.7,17.5 76.7,18.2C77.6,19.0 78.6,19.7 79.5,20.5C80.5,21.2 81.4,22.0 82.4,22.8C83.3,23.6 84.3,24.5 85.2,25.3C86.2,26.2 87.2,27.1 88.1,28.0C89.1,28.9 90.1,29.8 91.2,30.8C92.2,31.8 93.6,32.7 94.3,33.9C95.0,35.0 95.2,36.5 95.2,37.9C95.2,39.3 94.7,40.8 94.4,42.2C94.2,43.5 93.9,44.9 93.6,46.2C93.4,47.5 93.1,48.8 92.8,50.0C92.6,51.2 92.3,52.5 92.0,53.7C91.7,54.9 91.4,56.1 91.0,57.2C90.7,58.4 90.4,59.6 90.0,60.7C89.7,61.9 89.3,63.0 88.9,64.2C88.5,65.3 88.1,66.4 87.7,67.6C87.3,68.7 86.9,69.9 86.4,71.0C85.9,72.2 85.5,73.3 85.0,74.5C84.5,75.6 83.9,76.8 83.4,78.0C82.8,79.2 82.3,80.4 81.7,81.7C81.1,82.9 80.6,84.3 79.8,85.6C79.1,86.8 78.4,88.3 77.3,89.0C76.1,89.6 74.3,89.4 72.9,89.6C71.4,89.8 70.1,90.0 68.7,90.1C67.4,90.3 66.1,90.5 64.8,90.6C63.5,90.7 62.2,90.8 61.0,90.9C59.7,91.0 58.5,91.1 57.3,91.2C56.0,91.3 54.8,91.3 53.6,91.3C52.4,91.4 51.2,91.4 50.0,91.4C48.8,91.4 47.6,91.4 46.4,91.3C45.2,91.3 44.0,91.3 42.7,91.2C41.5,91.1 40.3,91.0 39.0,90.9C37.8,90.8 36.5,90.7 35.2,90.6C33.9,90.5 32.6,90.3 31.3,90.1C29.9,90.0 28.6,89.8 27.1,89.6C25.7,89.4 23.9,89.6 22.7,89.0C21.6,88.3 20.9,86.8 20.2,85.6C19.4,84.3 18.9,82.9 18.3,81.7C17.7,80.4 17.2,79.2 16.6,78.0C16.1,76.8 15.5,75.6 15.0,74.5C14.5,73.3 14.1,72.2 13.6,71.0C13.1,69.9 12.7,68.7 12.3,67.6C11.9,66.4 11.5,65.3 11.1,64.2C10.7,63.0 10.3,61.9 10.0,60.7C9.6,59.6 9.3,58.4 9.0,57.2C8.6,56.1 8.3,54.9 8.0,53.7C7.7,52.5 7.4,51.2 7.2,50.0C6.9,48.8 6.6,47.5 6.4,46.2C6.1,44.9 5.8,43.5 5.6,42.2C5.3,40.8 4.8,39.3 4.8,37.9C4.8,36.5 5.0,35.0 5.7,33.9C6.4,32.7 7.8,31.8 8.8,30.8C9.9,29.8 10.9,28.9 11.9,28.0C12.8,27.1 13.8,26.2 14.8,25.3C15.7,24.5 16.7,23.6 17.6,22.8C18.6,22.0 19.5,21.2 20.5,20.5C21.4,19.7 22.4,19.0 23.3,18.2C24.3,17.5 25.3,16.8 26.3,16.1C27.2,15.4 28.2,14.7 29.2,14.0C30.2,13.3 31.2,12.7 32.3,12.0C33.3,11.3 34.4,10.7 35.5,10.0C36.5,9.4 37.6,8.7 38.8,8.1C39.9,7.4 41.1,6.8 42.3,6.1C43.5,5.5 44.7,4.8 46.0,4.1C47.3,3.4 48.7,2.0 50.0,2.0Z"/></symbol><symbol id="s-gem" viewBox="0 0 100 100"><path d="M50.0,2.0C51.3,2.0 52.7,3.2 54.0,3.8C55.3,4.4 56.6,5.0 57.8,5.6C59.1,6.2 60.2,6.8 61.4,7.4C62.6,8.0 63.7,8.5 64.9,9.1C66.0,9.7 67.1,10.3 68.2,10.9C69.3,11.5 70.4,12.1 71.5,12.8C72.6,13.4 73.6,14.0 74.7,14.7C75.8,15.3 76.9,16.0 78.0,16.7C79.0,17.4 80.1,18.1 81.2,18.8C82.3,19.5 83.4,20.3 84.5,21.0C85.6,21.8 86.8,22.6 88.0,23.4C89.1,24.3 90.9,24.8 91.6,26.0C92.2,27.2 91.9,29.0 92.0,30.4C92.1,31.8 92.2,33.2 92.3,34.6C92.5,35.9 92.5,37.3 92.6,38.6C92.7,39.9 92.8,41.2 92.8,42.4C92.9,43.7 92.9,45.0 92.9,46.2C93.0,47.5 93.0,48.7 93.0,50.0C93.0,51.3 93.0,52.5 92.9,53.8C92.9,55.0 92.9,56.3 92.8,57.6C92.8,58.8 92.7,60.1 92.6,61.4C92.5,62.7 92.5,64.1 92.3,65.4C92.2,66.8 92.1,68.2 92.0,69.6C91.9,71.0 92.2,72.8 91.6,74.0C90.9,75.2 89.1,75.7 88.0,76.6C86.8,77.4 85.6,78.2 84.5,79.0C83.4,79.7 82.3,80.5 81.2,81.2C80.1,81.9 79.0,82.6 78.0,83.3C76.9,84.0 75.8,84.7 74.7,85.3C73.6,86.0 72.6,86.6 71.5,87.2C70.4,87.9 69.3,88.5 68.2,89.1C67.1,89.7 66.0,90.3 64.9,90.9C63.7,91.5 62.6,92.0 61.4,92.6C60.2,93.2 59.1,93.8 57.8,94.4C56.6,95.0 55.3,95.6 54.0,96.2C52.7,96.8 51.3,98.0 50.0,98.0C48.7,98.0 47.3,96.8 46.0,96.2C44.7,95.6 43.4,95.0 42.2,94.4C40.9,93.8 39.8,93.2 38.6,92.6C37.4,92.0 36.3,91.5 35.1,90.9C34.0,90.3 32.9,89.7 31.8,89.1C30.7,88.5 29.6,87.9 28.5,87.2C27.4,86.6 26.4,86.0 25.3,85.3C24.2,84.7 23.1,84.0 22.0,83.3C21.0,82.6 19.9,81.9 18.8,81.2C17.7,80.5 16.6,79.7 15.5,79.0C14.4,78.2 13.2,77.4 12.0,76.6C10.9,75.7 9.1,75.2 8.4,74.0C7.8,72.8 8.1,71.0 8.0,69.6C7.9,68.2 7.8,66.8 7.7,65.4C7.5,64.1 7.5,62.7 7.4,61.4C7.3,60.1 7.2,58.8 7.2,57.6C7.1,56.3 7.1,55.0 7.1,53.8C7.0,52.5 7.0,51.3 7.0,50.0C7.0,48.7 7.0,47.5 7.1,46.2C7.1,45.0 7.1,43.7 7.2,42.4C7.2,41.2 7.3,39.9 7.4,38.6C7.5,37.3 7.5,35.9 7.7,34.6C7.8,33.2 7.9,31.8 8.0,30.4C8.1,29.0 7.8,27.2 8.4,26.0C9.1,24.8 10.9,24.3 12.0,23.4C13.2,22.6 14.4,21.8 15.5,21.0C16.6,20.3 17.7,19.5 18.8,18.8C19.9,18.1 21.0,17.4 22.0,16.7C23.1,16.0 24.2,15.3 25.3,14.7C26.4,14.0 27.4,13.4 28.5,12.8C29.6,12.1 30.7,11.5 31.8,10.9C32.9,10.3 34.0,9.7 35.1,9.1C36.3,8.5 37.4,8.0 38.6,7.4C39.8,6.8 40.9,6.2 42.2,5.6C43.4,5.0 44.7,4.4 46.0,3.8C47.3,3.2 48.7,2.0 50.0,2.0Z"/></symbol></defs></svg>
+
+<header class="wrap top">
+  <a class="brand" href="./"><img src="assets/icon-512.webp" width="36" height="36" alt="">FastMask</a>
+  <nav aria-label="Main">
+    <a href="#features">What it does</a>
+    <a href="#pro">Pro</a>
+    <a href="#privacy">Privacy</a>
+    <a class="keep" href="https://github.com/pawelorzech/FastMask">GitHub</a>
+  </nav>
+</header>
+
+<main id="main">
+  <div class="wrap hero">
+    <div>
+      <img class="icon" src="assets/icon-512.webp" width="96" height="96" alt="FastMask app icon: a cookie-shaped mask glyph in brown on cream">
+      <h1>FastMask</h1>
+      <p class="lead">Your Fastmail masked emails, one tap away.</p>
+      <p class="sub">A fast, private Android app. Give every site its own address, then switch it off the moment spam starts.</p>
+      <div class="cta">
+        <a href="https://play.google.com/store/apps/details?id=com.fastmask"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="646" height="250" alt="Get it on Google Play"></a>
+        <a class="apk" href="https://github.com/pawelorzech/FastMask/releases/latest">Download APK from GitHub</a>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="big"><svg viewBox="0 0 100 100" aria-hidden="true"><path id="morph" fill="currentColor" d="M50.0,2.0C51.4,2.0 52.8,2.4 54.1,2.8C55.4,3.3 56.7,4.2 57.9,5.0C59.2,5.7 60.3,6.7 61.4,7.4C62.6,8.1 63.7,8.8 64.9,9.2C66.1,9.6 67.3,9.8 68.6,10.0C70.0,10.2 71.4,10.2 72.9,10.4C74.3,10.6 75.8,10.8 77.1,11.2C78.5,11.7 79.8,12.3 80.9,13.2C81.9,14.1 82.8,15.3 83.5,16.5C84.2,17.8 84.6,19.3 85.0,20.6C85.5,22.0 85.7,23.4 86.1,24.7C86.6,26.0 87.0,27.2 87.6,28.3C88.3,29.4 89.1,30.4 90.0,31.4C90.9,32.4 92.0,33.3 93.0,34.4C93.9,35.4 95.0,36.5 95.7,37.7C96.4,39.0 97.0,40.3 97.3,41.7C97.5,43.0 97.4,44.5 97.2,45.9C96.9,47.3 96.3,48.7 95.7,50.0C95.2,51.3 94.4,52.6 93.9,53.8C93.4,55.1 93.0,56.3 92.8,57.5C92.5,58.8 92.6,60.1 92.6,61.4C92.6,62.8 92.9,64.2 93.0,65.6C93.0,67.1 93.1,68.6 92.9,70.0C92.7,71.4 92.3,72.8 91.6,74.0C90.9,75.2 89.9,76.3 88.8,77.1C87.7,78.0 86.3,78.7 85.0,79.4C83.8,80.1 82.4,80.5 81.2,81.2C80.0,81.8 78.9,82.4 77.9,83.3C76.9,84.1 76.1,85.1 75.3,86.1C74.5,87.2 73.7,88.5 72.9,89.6C72.0,90.7 71.1,92.0 70.0,92.9C68.9,93.8 67.7,94.6 66.4,95.1C65.1,95.6 63.7,95.7 62.3,95.7C60.8,95.7 59.3,95.3 57.9,95.0C56.5,94.7 55.2,94.2 53.8,93.9C52.5,93.7 51.3,93.4 50.0,93.4C48.7,93.4 47.5,93.7 46.2,93.9C44.8,94.2 43.5,94.7 42.1,95.0C40.7,95.3 39.2,95.7 37.7,95.7C36.3,95.7 34.9,95.6 33.6,95.1C32.3,94.6 31.1,93.8 30.0,92.9C28.9,92.0 28.0,90.7 27.1,89.6C26.3,88.5 25.5,87.2 24.7,86.1C23.9,85.1 23.1,84.1 22.1,83.3C21.1,82.4 20.0,81.8 18.8,81.2C17.6,80.5 16.2,80.1 15.0,79.4C13.7,78.7 12.3,78.0 11.2,77.1C10.1,76.3 9.1,75.2 8.4,74.0C7.7,72.8 7.3,71.4 7.1,70.0C6.9,68.6 7.0,67.1 7.0,65.6C7.1,64.2 7.4,62.8 7.4,61.4C7.4,60.1 7.5,58.8 7.2,57.5C7.0,56.3 6.6,55.1 6.1,53.8C5.6,52.6 4.8,51.3 4.3,50.0C3.7,48.7 3.1,47.3 2.8,45.9C2.6,44.5 2.5,43.0 2.7,41.7C3.0,40.3 3.6,39.0 4.3,37.7C5.0,36.5 6.1,35.4 7.0,34.4C8.0,33.3 9.1,32.4 10.0,31.4C10.9,30.4 11.7,29.4 12.4,28.3C13.0,27.2 13.4,26.0 13.9,24.7C14.3,23.4 14.5,22.0 15.0,20.6C15.4,19.3 15.8,17.8 16.5,16.5C17.2,15.3 18.1,14.1 19.1,13.2C20.2,12.3 21.5,11.7 22.9,11.2C24.2,10.8 25.7,10.6 27.1,10.4C28.6,10.2 30.0,10.2 31.4,10.0C32.7,9.8 33.9,9.6 35.1,9.2C36.3,8.8 37.4,8.1 38.6,7.4C39.7,6.7 40.8,5.7 42.1,5.0C43.3,4.2 44.6,3.3 45.9,2.8C47.2,2.4 48.6,2.0 50.0,2.0Z"/></svg></div>
+      <svg class="shape a" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-clover"/></svg>
+      <svg class="shape b" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-sunny"/></svg>
+      <div class="phone"><img src="assets/app-01.webp" width="540" height="1212" alt="FastMask list of masked emails grouped by date, with search and Active, Off and Archived filters"></div>
+    </div>
+  </div>
+
+  <section class="band" aria-labelledby="h-shots">
+    <div class="wrap">
+      <h2 id="h-shots" class="sr">The app</h2>
+      <div class="shots" role="region" aria-label="App screenshots" tabindex="0">
+        <figure class="shot"><img src="assets/app-02.webp" width="540" height="1212" alt="A mask's detail screen with a big Copy email address button and an Active and Off switch" loading="lazy"><figcaption>Copy, switch on or off, edit</figcaption></figure>
+        <figure class="shot"><img src="assets/app-03.webp" width="540" height="1212" alt="New mask form with a live preview of the address, and prefix, domain, note and URL fields" loading="lazy"><figcaption>Create a mask with a live preview</figcaption></figure>
+        <figure class="shot"><img src="assets/app-04.webp" width="540" height="1212" alt="The list with the add button open, showing Random mask and New mask" loading="lazy"><figcaption>Or tap Random mask for a fresh address</figcaption></figure>
+        <figure class="shot"><img src="assets/app-05.webp" width="540" height="1212" alt="Settings with color themes, language, app lock and crash report switch" loading="lazy"><figcaption>Colors, language, app lock</figcaption></figure>
+        <figure class="shot"><img src="assets/app-06.webp" width="540" height="1212" alt="The mask list in the dark theme" loading="lazy"><figcaption>Light and dark</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" aria-labelledby="h-feat">
+    <div class="wrap split">
+      <div>
+        <h2 id="h-feat">Get in, copy an address, get back to what you were doing.</h2>
+        <p class="kicker">Masked emails are forwarding addresses that keep your real inbox private. See who leaked or sold one, and turn it off. Your real email stays yours.</p>
+      </div>
+      <div>
+        <ul class="feat">
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie9"/></svg><div><strong>Every mask at a glance</strong><span>Grouped by when you made it, with search and Active, Off and Archived filters.</span></div></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-clover"/></svg><div><strong>One-tap copy</strong><span>Copy an address straight from the list.</span></div></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-sunny"/></svg><div><strong>Create in seconds</strong><span>Pick a prefix, domain, note and link, or tap Random mask.</span></div></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-burst"/></svg><div><strong>Switch off, archive, undo</strong><span>Turn masks on or off, archive them, and undo an archive. Edit the note, domain and link any time.</span></div></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-flower"/></svg><div><strong>Create from anywhere</strong><span>Use the Quick Settings tile, the app shortcut, or share a link to FastMask.</span></div></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie6"/></svg><div><strong>Try it first</strong><span>Demo mode shows everything, no account needed.</span></div></li>
+        </ul>
+        <div class="note"><p><strong>To start,</strong> create an API token in Fastmail under Settings, Privacy &amp; Security, Integrations, with the Masked Email scope. Paste it into FastMask once and you're in. You need a paid Fastmail plan and Android 8.0 or newer.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-design">
+    <div class="wrap split flip">
+      <div>
+        <h2 id="h-design">Shapes that morph as things change.</h2>
+        <p class="kicker">FastMask is built on Material 3 Expressive: springy motion, big clear type and shapes with character. Pick a shape and watch it move.</p>
+        <ul class="points" style="margin-top:28px">
+          <li><strong>Your wallpaper's colors</strong><span>On Android 12 and newer, the app takes its palette from your wallpaper.</span></li>
+          <li><strong>Google Sans Flex, light and dark</strong><span>Both themes, plus a themed app icon.</span></li>
+          <li><strong>Readable by everyone</strong><span>Works at large font sizes, with screen reader support throughout. Available in 20 languages.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="morpher"><svg viewBox="0 0 100 100" aria-hidden="true"><path id="morph2" fill="currentColor" d="M50.0,2.0C51.4,2.0 52.8,2.4 54.1,2.8C55.4,3.3 56.7,4.2 57.9,5.0C59.2,5.7 60.3,6.7 61.4,7.4C62.6,8.1 63.7,8.8 64.9,9.2C66.1,9.6 67.3,9.8 68.6,10.0C70.0,10.2 71.4,10.2 72.9,10.4C74.3,10.6 75.8,10.8 77.1,11.2C78.5,11.7 79.8,12.3 80.9,13.2C81.9,14.1 82.8,15.3 83.5,16.5C84.2,17.8 84.6,19.3 85.0,20.6C85.5,22.0 85.7,23.4 86.1,24.7C86.6,26.0 87.0,27.2 87.6,28.3C88.3,29.4 89.1,30.4 90.0,31.4C90.9,32.4 92.0,33.3 93.0,34.4C93.9,35.4 95.0,36.5 95.7,37.7C96.4,39.0 97.0,40.3 97.3,41.7C97.5,43.0 97.4,44.5 97.2,45.9C96.9,47.3 96.3,48.7 95.7,50.0C95.2,51.3 94.4,52.6 93.9,53.8C93.4,55.1 93.0,56.3 92.8,57.5C92.5,58.8 92.6,60.1 92.6,61.4C92.6,62.8 92.9,64.2 93.0,65.6C93.0,67.1 93.1,68.6 92.9,70.0C92.7,71.4 92.3,72.8 91.6,74.0C90.9,75.2 89.9,76.3 88.8,77.1C87.7,78.0 86.3,78.7 85.0,79.4C83.8,80.1 82.4,80.5 81.2,81.2C80.0,81.8 78.9,82.4 77.9,83.3C76.9,84.1 76.1,85.1 75.3,86.1C74.5,87.2 73.7,88.5 72.9,89.6C72.0,90.7 71.1,92.0 70.0,92.9C68.9,93.8 67.7,94.6 66.4,95.1C65.1,95.6 63.7,95.7 62.3,95.7C60.8,95.7 59.3,95.3 57.9,95.0C56.5,94.7 55.2,94.2 53.8,93.9C52.5,93.7 51.3,93.4 50.0,93.4C48.7,93.4 47.5,93.7 46.2,93.9C44.8,94.2 43.5,94.7 42.1,95.0C40.7,95.3 39.2,95.7 37.7,95.7C36.3,95.7 34.9,95.6 33.6,95.1C32.3,94.6 31.1,93.8 30.0,92.9C28.9,92.0 28.0,90.7 27.1,89.6C26.3,88.5 25.5,87.2 24.7,86.1C23.9,85.1 23.1,84.1 22.1,83.3C21.1,82.4 20.0,81.8 18.8,81.2C17.6,80.5 16.2,80.1 15.0,79.4C13.7,78.7 12.3,78.0 11.2,77.1C10.1,76.3 9.1,75.2 8.4,74.0C7.7,72.8 7.3,71.4 7.1,70.0C6.9,68.6 7.0,67.1 7.0,65.6C7.1,64.2 7.4,62.8 7.4,61.4C7.4,60.1 7.5,58.8 7.2,57.5C7.0,56.3 6.6,55.1 6.1,53.8C5.6,52.6 4.8,51.3 4.3,50.0C3.7,48.7 3.1,47.3 2.8,45.9C2.6,44.5 2.5,43.0 2.7,41.7C3.0,40.3 3.6,39.0 4.3,37.7C5.0,36.5 6.1,35.4 7.0,34.4C8.0,33.3 9.1,32.4 10.0,31.4C10.9,30.4 11.7,29.4 12.4,28.3C13.0,27.2 13.4,26.0 13.9,24.7C14.3,23.4 14.5,22.0 15.0,20.6C15.4,19.3 15.8,17.8 16.5,16.5C17.2,15.3 18.1,14.1 19.1,13.2C20.2,12.3 21.5,11.7 22.9,11.2C24.2,10.8 25.7,10.6 27.1,10.4C28.6,10.2 30.0,10.2 31.4,10.0C32.7,9.8 33.9,9.6 35.1,9.2C36.3,8.8 37.4,8.1 38.6,7.4C39.7,6.7 40.8,5.7 42.1,5.0C43.3,4.2 44.6,3.3 45.9,2.8C47.2,2.4 48.6,2.0 50.0,2.0Z"/></svg><div class="mid"><img src="assets/icon-512.webp" width="512" height="512" alt="" loading="lazy"></div></div>
+        <ul class="chips" aria-label="Shape">
+          <li><button class="chip" type="button" data-shape="cookie9" aria-pressed="true">Cookie</button></li>
+          <li><button class="chip" type="button" data-shape="clover" aria-pressed="false">Clover</button></li>
+          <li><button class="chip" type="button" data-shape="sunny" aria-pressed="false">Sunny</button></li>
+          <li><button class="chip" type="button" data-shape="burst" aria-pressed="false">Burst</button></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="pro" aria-labelledby="h-pro">
+    <div class="wrap pro">
+      <div>
+        <h2 id="h-pro">FastMask Pro</h2>
+        <p class="kicker">One purchase, no subscription. Pro supports an independent, open-source app.</p>
+        <ul class="plain">
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie4"/></svg><span><strong>Five color themes</strong> besides your wallpaper colors.</span></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie4"/></svg><span><strong>App lock</strong> with your fingerprint, face or screen lock.</span></li>
+          <li><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie4"/></svg><span><strong>CSV export</strong> of all your masks.</span></li>
+        </ul>
+      </div>
+      <div class="demo" id="demo">
+        <div class="mask">
+          <div class="av"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie9"/></svg><b aria-hidden="true">A</b></div>
+          <div><div class="addr">quiet.harbor942@fastmask.com</div><div class="meta">Amazon, amazon.com</div></div>
+        </div>
+        <span class="pill">Copy email address</span>
+        <div>
+          <p class="meta" style="margin:0 0 10px;color:var(--ink-soft)" id="sw-label">Try a theme</p>
+          <ul class="swatches" aria-labelledby="sw-label">
+            <li><button class="sw" type="button" style="--c:#B05F00" data-a="#B05F00" data-s="#FFD9A8" data-i="#ffffff" aria-pressed="true" aria-label="Amber"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-cookie9"/></svg></button></li>
+            <li><button class="sw" type="button" style="--c:#6B6A3A" data-a="#6B6A3A" data-s="#E3E2B0" data-i="#ffffff" aria-pressed="false" aria-label="Olive"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-clover"/></svg></button></li>
+            <li><button class="sw" type="button" style="--c:#2F7D3C" data-a="#2F7D3C" data-s="#BFEAC3" data-i="#ffffff" aria-pressed="false" aria-label="Green"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-sunny"/></svg></button></li>
+            <li><button class="sw" type="button" style="--c:#A33C86" data-a="#A33C86" data-s="#F7CDE9" data-i="#ffffff" aria-pressed="false" aria-label="Plum"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-burst"/></svg></button></li>
+            <li><button class="sw" type="button" style="--c:#2D5FB4" data-a="#2D5FB4" data-s="#C9DAFF" data-i="#ffffff" aria-pressed="false" aria-label="Blue"><svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><use href="#s-flower"/></svg></button></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="privacy" aria-labelledby="h-priv">
+    <div class="wrap">
+      <h2 id="h-priv">Built so there is little to protect, then protected anyway.</h2>
+      <ul class="priv">
+        <li><strong>No ads, no analytics, no account of ours</strong><span>FastMask talks directly to Fastmail over HTTPS, with no servers in between.</span></li>
+        <li><strong>Your token stays on your phone</strong><span>Your Fastmail API token is encrypted on your device. Screenshots and screen recording of the app are blocked.</span></li>
+        <li><strong>Crash reports are optional</strong><span>Firebase Crashlytics helps fix bugs. Reports never include your masks, email or token, and you can turn them off in Settings.</span></li>
+        <li><strong>Check it yourself</strong><span>The code is open source under the MIT License.</span></li>
+      </ul>
+      <p style="margin-top:24px"><a href="privacy.html">Read the full privacy policy</a></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-oss">
+    <div class="wrap">
+      <h2 id="h-oss">Open source, MIT licensed.</h2>
+      <p class="kicker">Read the code, file an issue, or send a pull request.</p>
+      <div class="oss">
+        <a class="btn" href="https://github.com/pawelorzech/FastMask">FastMask on GitHub</a>
+        <a class="btn alt" href="https://github.com/pawelorzech/FastMask/issues">Report an issue</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="https://github.com/pawelorzech/FastMask">GitHub</a><span>Contact: pawel@orzech.me</span></nav>
+    <p>FastMask is an unofficial, independent client. It is not affiliated with or endorsed by Fastmail Pty Ltd. "Fastmail" is a trademark of Fastmail Pty Ltd, used only to describe the service this app works with.</p>
+    <p>Google Play and the Google Play logo are trademarks of Google LLC.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var R = {"cookie9":[1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861,1,0.9861,0.9524,0.9187,0.9048,0.9187,0.9524,0.9861],"clover":[1,0.9899,0.961,0.9167,0.8623,0.8044,0.75,0.7057,0.6767,0.6667,0.6767,0.7057,0.75,0.8044,0.8623,0.9167,0.961,0.9899,1,0.9899,0.961,0.9167,0.8623,0.8044,0.75,0.7057,0.6767,0.6667,0.6767,0.7057,0.75,0.8044,0.8623,0.9167,0.961,0.9899,1,0.9899,0.961,0.9167,0.8623,0.8044,0.75,0.7057,0.6767,0.6667,0.6767,0.7057,0.75,0.8044,0.8623,0.9167,0.961,0.9899,1,0.9899,0.961,0.9167,0.8623,0.8044,0.75,0.7057,0.6767,0.6667,0.6767,0.7057,0.75,0.8044,0.8623,0.9167,0.961,0.9899],"sunny":[1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899,1,0.9899,0.9644,0.9354,0.9165,0.9165,0.9354,0.9644,0.9899],"burst":[1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651,1,0.9651,0.8953,0.8605,0.8953,0.9651]}, N = 72;
+  function d(r) {
+    var p = [], i, a, v;
+    for (i = 0; i < N; i++) { a = i / N * 6.283185307 - 1.570796327; v = 48 * r[i]; p.push([50 + v * Math.cos(a), 50 + v * Math.sin(a)]); }
+    var s = "M" + p[0][0].toFixed(1) + "," + p[0][1].toFixed(1), q0, q1, q2, q3;
+    for (i = 0; i < N; i++) {
+      q0 = p[(i + N - 1) % N]; q1 = p[i]; q2 = p[(i + 1) % N]; q3 = p[(i + 2) % N];
+      s += "C" + (q1[0] + (q2[0] - q0[0]) / 6).toFixed(1) + "," + (q1[1] + (q2[1] - q0[1]) / 6).toFixed(1) + " " + (q2[0] - (q3[0] - q1[0]) / 6).toFixed(1) + "," + (q2[1] - (q3[1] - q1[1]) / 6).toFixed(1) + " " + q2[0].toFixed(1) + "," + q2[1].toFixed(1);
+    }
+    return s + "Z";
+  }
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function morph(el, from, to, ms) {
+    if (el._raf) cancelAnimationFrame(el._raf);
+    if (reduce) { el.setAttribute("d", d(R[to])); el._cur = to; return; }
+    var t0 = performance.now(), A = R[from], B = R[to];
+    el._cur = to;
+    (function f(t) {
+      var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3), o = [], i;
+      e += Math.sin(k * Math.PI) * 0.06 * (1 - k);
+      for (i = 0; i < N; i++) o.push(A[i] + (B[i] - A[i]) * e);
+      el.setAttribute("d", d(o));
+      if (k < 1) el._raf = requestAnimationFrame(f); else el.setAttribute("d", d(B));
+    })(t0);
+  }
+  var hero = document.getElementById("morph"); hero._cur = "cookie9";
+  if (!reduce) {
+    var seq = ["clover", "sunny", "burst", "cookie9"], n = 0;
+    (function next() { if (n >= seq.length) return; var from = hero._cur; morph(hero, from, seq[n++], 700); setTimeout(next, 750); })();
+    document.getElementById("stage").addEventListener("click", function () { morph(hero, hero._cur, hero._cur === "cookie9" ? "clover" : "cookie9", 600); });
+  }
+  var m2 = document.getElementById("morph2"); m2._cur = "cookie9";
+  var chips = document.querySelectorAll(".chip");
+  chips.forEach(function (c) {
+    c.addEventListener("click", function () {
+      chips.forEach(function (o) { o.setAttribute("aria-pressed", o === c ? "true" : "false"); });
+      morph(m2, m2._cur, c.getAttribute("data-shape"), 650);
+    });
+  });
+  var demo = document.getElementById("demo"), sws = document.querySelectorAll(".sw");
+  sws.forEach(function (b) {
+    b.addEventListener("click", function () {
+      sws.forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      demo.style.setProperty("--accent", b.dataset.a); demo.style.setProperty("--accent-soft", b.dataset.s); demo.style.setProperty("--accent-ink", b.dataset.i);
+    });
+  });
+})();
+</script>
+</body>
+</html>
