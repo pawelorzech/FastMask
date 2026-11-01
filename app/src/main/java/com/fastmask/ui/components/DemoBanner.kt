@@ -1,11 +1,16 @@
 package com.fastmask.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -78,14 +83,45 @@ fun DemoBannerContent(
     onSignInClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // At large font scales the side-by-side layout leaves the text a sliver of
+    // width (icon + button take ~40%), so it wraps to four lines and the banner eats
+    // a third of the list. Stack it instead: text on the full width, the action as
+    // an icon-plus-label button underneath. Nothing is truncated.
+    val stacked = LocalDensity.current.fontScale >= STACKED_FONT_SCALE
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = if (stacked) 4.dp else 8.dp),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     ) {
+        if (stacked) {
+            Column(
+                modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.demo_banner_text),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                TextButton(
+                    onClick = onSignInClick,
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.Login,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.demo_banner_signin),
+                        style = MaterialTheme.typography.labelLargeEmphasized,
+                    )
+                }
+            }
+            return@Surface
+        }
         Row(
             modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -110,6 +146,9 @@ fun DemoBannerContent(
         }
     }
 }
+
+/** From this font scale up the banner stacks its text above the action. */
+private const val STACKED_FONT_SCALE = 1.5f
 
 @HiltViewModel
 class DemoBannerViewModel @Inject constructor(
