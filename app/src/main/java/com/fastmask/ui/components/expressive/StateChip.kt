@@ -19,18 +19,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
-import com.fastmask.ui.theme.FastMaskStatusColors
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.StatusColorPair
 
 /** Container/content pair for [state], derived from the active color scheme. */
 @Composable
-internal fun statusPairFor(state: EmailState): StatusColorPair = with(FastMaskStatusColors.current) {
+internal fun statusPairFor(state: EmailState): StatusColorPair = with(MaterialTheme.colorScheme) {
     when (state) {
-        EmailState.ENABLED -> enabled
-        EmailState.PENDING -> pending
-        EmailState.DISABLED -> disabled
-        EmailState.DELETED -> deleted
+        EmailState.ENABLED -> StatusColorPair(primaryContainer, onPrimaryContainer)
+        EmailState.PENDING -> StatusColorPair(tertiaryContainer, onTertiaryContainer)
+        EmailState.DISABLED -> StatusColorPair(surfaceContainerHighest, onSurfaceVariant)
+        EmailState.DELETED -> StatusColorPair(errorContainer, onErrorContainer)
     }
 }
 

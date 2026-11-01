@@ -25,9 +25,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.graphics.shapes.Morph
+import com.fastmask.ui.components.expressive.delayInfinite
 import androidx.graphics.shapes.RoundedPolygon
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** True when the user has turned system animations off (animator duration scale 0). */
@@ -120,10 +120,10 @@ internal fun MorphingShape(
             if (progress.value != 1f) progress.animateTo(1f, spec.value)
             if (holder.to !in polygons) morphTo(polygons.first())
             if (polygons.size > 1) {
-                if (firstRun) delay(startDelayMillis)
+                if (firstRun) delayInfinite(startDelayMillis)
                 firstRun = false
                 while (true) {
-                    delay(hold.value)
+                    delayInfinite(hold.value)
                     val next = (polygons.indexOf(holder.to) + 1) % polygons.size
                     morphTo(polygons[next])
                 }

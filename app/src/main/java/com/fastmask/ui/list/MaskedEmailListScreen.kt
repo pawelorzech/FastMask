@@ -143,6 +143,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.R
+import com.fastmask.ui.components.expressive.ConnectedGap
+import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -492,6 +494,7 @@ internal fun MaskedEmailListContent(
                 title = {
                     Text(
                         text = stringResource(R.string.email_list_title),
+                        style = MaterialTheme.typography.displaySmallEmphasized,
                         modifier = Modifier.semantics { heading() },
                     )
                 },
@@ -608,7 +611,9 @@ internal fun MaskedEmailListContent(
                         },
                     )
 
-                    if (uiState.emails.isNotEmpty()) {
+                    // Live region for TalkBack: announces the hit count while searching. Without a
+                    // query the filter buttons already carry the counts, so it stays out of the way.
+                    if (uiState.emails.isNotEmpty() && uiState.searchQuery.isNotBlank()) {
                         Text(
                             text = stringResource(
                                 R.string.email_list_result_count,
@@ -684,17 +689,13 @@ internal fun MaskedEmailListContent(
                 }
             }
 
-            // Scrim behind the open FAB menu; tapping it closes the menu.
+            // Tap-outside target behind the open FAB menu. M3 FAB menus draw no scrim, so it is
+            // invisible; it only closes the menu.
             val closeMenuLabel = stringResource(R.string.list_fab_close_menu)
-            AnimatedVisibility(
-                visible = menuExpanded,
-                enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()),
-                exit = fadeOut(MaterialTheme.motionScheme.defaultEffectsSpec()),
-            ) {
+            if (menuExpanded) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f))
                         .clickable(
                             interactionSource = null,
                             indication = null,
@@ -947,7 +948,7 @@ private fun FilterGroup(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
     ) {
         filters.forEachIndexed { index, filter ->
             val label = stringResource(
@@ -958,11 +959,7 @@ private fun FilterGroup(
                     EmailFilter.DELETED -> R.string.filter_deleted
                 },
             )
-            val shapes = when (index) {
-                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                filters.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-            }
+            val shapes = connectedToggleShapes(index = index, count = filters.size)
             ToggleButton(
                 checked = selected == filter,
                 onCheckedChange = { checked -> if (checked) onSelect(filter) },

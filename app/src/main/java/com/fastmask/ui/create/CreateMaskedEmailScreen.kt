@@ -89,6 +89,14 @@ import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
+import com.fastmask.ui.components.expressive.ConnectedGap
+import com.fastmask.ui.components.expressive.delayInfinite
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.fastmask.ui.welcome.rememberMotionReduced
+import com.fastmask.ui.components.expressive.ExpressiveTextField
+import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -183,8 +191,6 @@ internal fun CreateMaskedEmailContent(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Column {
-                // Demo mode banner (auto-hides in REAL mode).
-                banner()
                 TopAppBar(
                     title = {
                         Text(
@@ -199,6 +205,9 @@ internal fun CreateMaskedEmailContent(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
                 )
+                // Demo mode banner (auto-hides in REAL mode). Below the app bar, which already
+                // consumed the status-bar inset, so there is no gap above the back arrow.
+                banner()
             }
         },
     ) { paddingValues ->
@@ -381,12 +390,20 @@ private fun PreviewCard(prefix: String) {
     val progress = remember { Animatable(1f) }
     var index by remember { mutableStateOf(0) }
     val spatial = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(2600)
-            index = (index + 1) % blobShapes.size
-            progress.snapTo(0f)
-            progress.animateTo(1f, spatial)
+    val reduced = rememberMotionReduced()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(reduced) {
+        if (reduced) return@LaunchedEffect
+        // Paused while the screen is not RESUMED; the hold goes through the
+        // InfiniteAnimationPolicy so tests and idle detection can stop the loop.
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            if (progress.value != 1f) progress.animateTo(1f, spatial)
+            while (true) {
+                delayInfinite(2600)
+                index = (index + 1) % blobShapes.size
+                progress.snapTo(0f)
+                progress.animateTo(1f, spatial)
+            }
         }
     }
     val morph = remember(index) {
@@ -429,16 +446,19 @@ private fun PreviewCard(prefix: String) {
             .clip(RoundedCornerShape(28.dp))
             .background(MaterialTheme.colorScheme.primaryContainer),
     ) {
-        // Decorative: no semantics.
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 34.dp, y = (-38).dp)
-                .size(120.dp)
-                .clip(blobShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
-                .clearAndSetSemantics { },
-        )
+        // Decorative: no semantics. matchParentSize keeps the blob from stretching the card:
+        // the card is exactly as tall as the label and address.
+        Box(modifier = Modifier.matchParentSize().clearAndSetSemantics { }) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 40.dp, y = (-44).dp)
+                    .size(112.dp)
+                    .clip(blobShape)
+                    // Low emphasis: it sits behind the address and must never fight it.
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+            )
+        }
         Column(
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -450,8 +470,11 @@ private fun PreviewCard(prefix: String) {
             )
             Text(
                 text = address,
-                style = MaterialTheme.typography.headlineSmallEmphasized,
-                modifier = Modifier.graphicsLayer {
+                style = MaterialTheme.typography.headlineSmallEmphasized.copy(
+                    // An address has no spaces: let it break anywhere inside the padding.
+                    lineBreak = androidx.compose.ui.text.style.LineBreak.Simple,
+                ),
+                modifier = Modifier.fillMaxWidth().graphicsLayer {
                     scaleX = pop.value
                     scaleY = pop.value
                     transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0.5f)
@@ -476,14 +499,13 @@ private fun FormField(
     supporting: String? = null,
     isError: Boolean = false,
 ) {
-    TextField(
+    ExpressiveTextField(
         value = value,
         onValueChange = onValueChange,
         enabled = enabled,
-        singleLine = true,
         isError = isError,
-        label = { Text(label) },
-        placeholder = { Text(placeholder) },
+        label = label,
+        placeholder = placeholder,
         supportingText = supporting?.let { text -> { Text(text) } },
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
@@ -510,13 +532,13 @@ private fun StateSegmented(
         modifier = Modifier
             .fillMaxWidth()
             .radioButtonGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
     ) {
         StateOption(
             label = stringResource(R.string.state_enabled),
             checked = selected == EmailState.ENABLED,
             enabled = enabled,
-            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+            shapes = connectedToggleShapes(index = 0, count = 2),
             modifier = Modifier.weight(1f),
             onSelect = {
                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -527,7 +549,7 @@ private fun StateSegmented(
             label = stringResource(R.string.state_disabled),
             checked = selected == EmailState.DISABLED,
             enabled = enabled,
-            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+            shapes = connectedToggleShapes(index = 1, count = 2),
             modifier = Modifier.weight(1f),
             onSelect = {
                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)

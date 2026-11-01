@@ -4,36 +4,44 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontVariation
+import com.fastmask.R
 import androidx.compose.ui.unit.sp
 
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = com.fastmask.R.array.com_google_android_gms_fonts_certs,
-)
-
-private val GoogleSansFlexGF = GoogleFont("Google Sans Flex")
-
 /**
- * The single app typeface, fetched through the downloadable-fonts provider.
- * If GMS lacks the family the platform falls back to the default sans automatically.
+ * Google Sans Flex, bundled (SIL OFL 1.1, see licenses/GoogleSansFlex-OFL.txt).
+ *
+ * It is NOT in the Google Play services downloadable-fonts catalog, so the
+ * provider silently fell back to Roboto. One variable file serves every weight;
+ * [GoogleSansFlexRounded] turns the ROND axis up for the emphasized styles —
+ * the soft, rounded headline voice of Material 3 Expressive.
  */
-val GoogleSansFlex = FontFamily(
-    Font(googleFont = GoogleSansFlexGF, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = GoogleSansFlexGF, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = GoogleSansFlexGF, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = GoogleSansFlexGF, fontProvider = provider, weight = FontWeight.Bold),
+@OptIn(ExperimentalTextApi::class)
+private fun gsf(weight: FontWeight, round: Float) = Font(
+    resId = R.font.google_sans_flex,
+    weight = weight,
+    variationSettings = FontVariation.Settings(
+        FontVariation.weight(weight.weight),
+        FontVariation.Setting("ROND", round),
+    ),
 )
+
+private val Weights = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold)
+
+val GoogleSansFlex = FontFamily(Weights.map { gsf(it, 0f) })
+
+val GoogleSansFlexRounded = FontFamily(Weights.map { gsf(it, 100f) })
 
 private fun style(
     size: Int,
     line: Int,
     weight: FontWeight,
     tracking: Float = 0f,
+    family: FontFamily = GoogleSansFlex,
 ) = TextStyle(
-    fontFamily = GoogleSansFlex,
+    fontFamily = family,
     fontWeight = weight,
     fontSize = size.sp,
     lineHeight = line.sp,
@@ -65,13 +73,13 @@ val Typography = Typography(
     labelLarge = style(14, 20, W500, 0.1f),
     labelMedium = style(12, 16, W500, 0.5f),
     labelSmall = style(11, 16, W500, 0.5f),
-    displayLargeEmphasized = style(57, 64, W600, -0.25f),
-    displayMediumEmphasized = style(45, 52, W600),
-    displaySmallEmphasized = style(36, 44, W600),
-    headlineLargeEmphasized = style(32, 40, W600),
-    headlineMediumEmphasized = style(28, 36, W600),
-    headlineSmallEmphasized = style(24, 32, W600),
-    titleLargeEmphasized = style(22, 28, W500),
+    displayLargeEmphasized = style(57, 64, W600, -0.25f, family = GoogleSansFlexRounded),
+    displayMediumEmphasized = style(45, 52, W600, family = GoogleSansFlexRounded),
+    displaySmallEmphasized = style(36, 44, W600, family = GoogleSansFlexRounded),
+    headlineLargeEmphasized = style(32, 40, W600, family = GoogleSansFlexRounded),
+    headlineMediumEmphasized = style(28, 36, W600, family = GoogleSansFlexRounded),
+    headlineSmallEmphasized = style(24, 32, W600, family = GoogleSansFlexRounded),
+    titleLargeEmphasized = style(22, 28, W500, family = GoogleSansFlexRounded),
     titleMediumEmphasized = style(16, 24, W600, 0.15f),
     titleSmallEmphasized = style(14, 20, W600, 0.1f),
     bodyLargeEmphasized = style(16, 24, W500, 0.5f),
@@ -80,50 +88,4 @@ val Typography = Typography(
     labelLargeEmphasized = style(14, 20, W600, 0.1f),
     labelMediumEmphasized = style(12, 16, W600, 0.5f),
     labelSmallEmphasized = style(11, 16, W600, 0.5f),
-)
-
-// ---------------------------------------------------------------------------
-// Migration shims — screens still reference these; remove once they are migrated.
-// ---------------------------------------------------------------------------
-
-@Deprecated("migration shim: use MaterialTheme.typography / GoogleSansFlex")
-val InstrumentSerif: FontFamily = GoogleSansFlex
-
-@Deprecated("migration shim: use MaterialTheme.typography / GoogleSansFlex")
-val InterTight: FontFamily = GoogleSansFlex
-
-@Deprecated("migration shim: use MaterialTheme.typography / GoogleSansFlex")
-val JetBrainsMono: FontFamily = GoogleSansFlex
-
-@Deprecated("migration shim: use MaterialTheme.typography.labelMedium")
-val MonoLabelStyle = TextStyle(
-    fontFamily = GoogleSansFlex,
-    fontWeight = W500,
-    fontSize = 12.sp,
-    letterSpacing = 0.5.sp,
-)
-
-@Deprecated("migration shim: use MaterialTheme.typography.labelSmall")
-val MonoSmallStyle = TextStyle(
-    fontFamily = GoogleSansFlex,
-    fontWeight = W500,
-    fontSize = 11.sp,
-    letterSpacing = 0.5.sp,
-)
-
-@Deprecated("migration shim: use MaterialTheme.typography.bodyMedium")
-val MonoBodyStyle = TextStyle(
-    fontFamily = GoogleSansFlex,
-    fontWeight = W400,
-    fontSize = 14.sp,
-    letterSpacing = 0.25.sp,
-)
-
-@Deprecated("migration shim: use MaterialTheme.typography.labelSmall with tnum")
-val MonoTimestampStyle = TextStyle(
-    fontFamily = GoogleSansFlex,
-    fontWeight = W400,
-    fontSize = 11.sp,
-    letterSpacing = 0.4.sp,
-    fontFeatureSettings = "tnum",
 )

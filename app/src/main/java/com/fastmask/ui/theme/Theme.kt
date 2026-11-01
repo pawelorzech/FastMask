@@ -47,18 +47,11 @@ fun FastMaskTheme(
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             else -> if (darkTheme) AmberDark else AmberLight
         }
-    val status = remember(colorScheme) { colorScheme.toStatusColors() }
-    val extras = remember(colorScheme, status) { colorScheme.toExtras(status) }
 
-    CompositionLocalProvider(
-        LocalStatusColors provides status,
-        LocalFastMaskExtras provides extras,
-    ) {
-        MaterialExpressiveTheme(
-            colorScheme = colorScheme,
-            motionScheme = MotionScheme.expressive(),
-            typography = Typography,
-            content = content,
-        )
-    }
+    MaterialExpressiveTheme(
+        colorScheme = colorScheme,
+        motionScheme = MotionScheme.expressive(),
+        typography = Typography,
+        content = content,
+    )
 }

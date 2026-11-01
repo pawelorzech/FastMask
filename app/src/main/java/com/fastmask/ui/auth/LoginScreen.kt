@@ -85,6 +85,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.fastmask.R
+import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.FastmailLinks
@@ -229,13 +230,13 @@ internal fun LoginContent(
             // Token input. Paste and show/hide both live in the field's trailing
             // slot rather than beside the field, so nothing jumps down at exactly
             // the moment the user reaches for Paste to correct the token.
-            TextField(
+            ExpressiveTextField(
                 value = uiState.token,
                 onValueChange = onTokenChange,
                 modifier = Modifier.fillMaxWidth().padding(top = 28.dp),
                 enabled = !uiState.isLoading,
-                label ={ Text(stringResource(R.string.login_api_token_label)) },
-                placeholder = { Text(stringResource(R.string.login_api_token_placeholder)) },
+                label = stringResource(R.string.login_api_token_label),
+                placeholder = stringResource(R.string.login_api_token_placeholder),
                 trailingIcon = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(
@@ -271,8 +272,6 @@ internal fun LoginContent(
                 visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { onLogin() }),
-                singleLine = true,
-                shape = MaterialTheme.shapes.large,
             )
 
             // Action shortcut when the missing Masked Email scope error is displayed.

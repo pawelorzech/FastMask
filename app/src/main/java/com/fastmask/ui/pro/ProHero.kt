@@ -31,7 +31,10 @@ import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.ui.settings.drawMorph
 import com.fastmask.ui.theme.FastMaskTheme
-import kotlinx.coroutines.delay
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.fastmask.ui.components.expressive.delayInfinite
 import kotlinx.coroutines.launch
 
 /**
@@ -134,6 +137,7 @@ private fun MorphingBlob(
 ) {
     val motion = MaterialTheme.motionScheme
     val animationsEnabled = rememberAnimationsEnabled()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
     var morph by remember { mutableStateOf(Morph(sequence.first(), sequence.first())) }
     var progress by remember { mutableFloatStateOf(1f) }
     var rotation by remember { mutableFloatStateOf(0f) }
@@ -159,12 +163,18 @@ private fun MorphingBlob(
             return@LaunchedEffect
         }
         if (!animationsEnabled) return@LaunchedEffect
-        delay(startDelayMs)
-        var i = sequence.indexOf(current).coerceAtLeast(0)
-        while (true) {
-            delay(CYCLE_INTERVAL_MS)
-            i = (i + 1) % sequence.size
-            moveTo(sequence[i])
+        var firstRun = true
+        // Nothing animates while the host is not RESUMED, and the hold phases go
+        // through the InfiniteAnimationPolicy so tests can stop the loop.
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            if (firstRun) delayInfinite(startDelayMs)
+            firstRun = false
+            var i = sequence.indexOf(current).coerceAtLeast(0)
+            while (true) {
+                delayInfinite(CYCLE_INTERVAL_MS)
+                i = (i + 1) % sequence.size
+                moveTo(sequence[i])
+            }
         }
     }
 

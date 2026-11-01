@@ -1,5 +1,6 @@
 package com.fastmask
 
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasContentDescription
@@ -314,7 +315,8 @@ class MainFlowsTest {
             string(R.string.email_list_clear_search),
         )
         val minimumTouchPx = 48f * context.resources.displayMetrics.density
-        assertTrue(clearSearch.fetchSemanticsNode().boundsInRoot.width >= minimumTouchPx - 1f)
+        // The 48dp guarantee is the touch target (M3 IconButton draws a 40dp container inside it).
+        assertTrue(clearSearch.fetchSemanticsNode().touchBoundsInRoot.width >= minimumTouchPx - 1f)
         clearSearch.performClick()
         composeRule.waitForIdle()
 
@@ -387,11 +389,16 @@ class MainFlowsTest {
 
         composeRule.onAllNodesWithText("@", substring = true).onFirst().assertIsDisplayed()
 
-        // The seed list contains active masks, so at least one row must carry
-        // the state as a content description rather than only as a colour.
+        // The seed list contains active masks, so at least one row must carry the state
+        // as a state description (the M3E rows expose it as `stateDescription` on the
+        // row, next to the StateChip text) rather than only as a colour.
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodes(hasContentDescription(string(R.string.state_enabled)))
-                .fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodes(
+                SemanticsMatcher.expectValue(
+                    SemanticsProperties.StateDescription,
+                    string(R.string.state_enabled),
+                ),
+            ).fetchSemanticsNodes().isNotEmpty()
         }
     }
 }

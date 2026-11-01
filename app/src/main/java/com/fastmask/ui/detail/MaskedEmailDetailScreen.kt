@@ -114,6 +114,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
 import com.fastmask.R
+import com.fastmask.ui.components.expressive.ConnectedGap
+import com.fastmask.ui.components.expressive.ExpressiveTextField
+import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -293,8 +296,6 @@ internal fun MaskedEmailDetailContent(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             Column {
-                // Demo mode banner (auto-hides in REAL mode).
-                banner()
                 TopAppBar(
                     title = {
                         Text(
@@ -318,6 +319,9 @@ internal fun MaskedEmailDetailContent(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
                 )
+                // Demo mode banner (auto-hides in REAL mode). Below the app bar, which already
+                // consumed the status-bar inset, so there is no gap above the back arrow.
+                banner()
             }
         },
     ) { paddingValues ->
@@ -733,13 +737,13 @@ private fun StatusControl(
                     .fillMaxWidth()
                     .selectableGroup()
                     .semantics { contentDescription = statusDesc },
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
             ) {
                 StatusToggle(
                     label = stringResource(R.string.state_enabled),
                     checked = activeSelected,
                     loading = toggling && activeSelected,
-                    shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                    shapes = connectedToggleShapes(index = 0, count = 2),
                     modifier = Modifier.weight(1f),
                     onCheckedChange = { checked ->
                         if (checked && !busy) {
@@ -752,7 +756,7 @@ private fun StatusControl(
                     label = stringResource(R.string.state_disabled),
                     checked = !activeSelected,
                     loading = toggling && !activeSelected,
-                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                    shapes = connectedToggleShapes(index = 1, count = 2),
                     modifier = Modifier.weight(1f),
                     onCheckedChange = { checked ->
                         if (checked && !busy) {
@@ -978,9 +982,8 @@ private fun EditFields(
     val domainFocus = remember { FocusRequester() }
     val urlFocus = remember { FocusRequester() }
     val enabled = !uiState.isUpdating
-    Column(verticalArrangement = Arrangement.spacedBy(SegmentedGap)) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         EditFieldRow(
-            index = 0,
             value = uiState.editedDescription,
             onValueChange = onDescriptionChange,
             label = stringResource(R.string.email_detail_description_label),
@@ -990,7 +993,6 @@ private fun EditFields(
             keyboardActions = KeyboardActions(onNext = { domainFocus.requestFocus() }),
         )
         EditFieldRow(
-            index = 1,
             value = uiState.editedForDomain,
             onValueChange = onForDomainChange,
             label = stringResource(R.string.email_detail_domain_label),
@@ -1001,7 +1003,6 @@ private fun EditFields(
             modifier = Modifier.focusRequester(domainFocus),
         )
         EditFieldRow(
-            index = 2,
             value = uiState.editedUrl,
             onValueChange = onUrlChange,
             label = stringResource(R.string.email_detail_url_label),
@@ -1015,7 +1016,6 @@ private fun EditFields(
 
 @Composable
 private fun EditFieldRow(
-    index: Int,
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -1025,29 +1025,17 @@ private fun EditFieldRow(
     modifier: Modifier = Modifier,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
-    val container = MaterialTheme.colorScheme.surfaceContainer
-    TextField(
+    ExpressiveTextField(
         value = value,
         onValueChange = onValueChange,
         enabled = enabled,
-        singleLine = true,
-        label = { Text(label) },
-        placeholder = { Text(placeholder) },
+        label = label,
+        placeholder = placeholder,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        shape = segmentedShape(index = index, count = 3),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = container,
-            unfocusedContainerColor = container,
-            disabledContainerColor = container,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-        ),
         // The visible label is part of the field; naming the node explicitly
         // keeps it addressable by label (TalkBack, instrumented tests).
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
+        modifier = modifier.semantics { contentDescription = label },
     )
 }
 
