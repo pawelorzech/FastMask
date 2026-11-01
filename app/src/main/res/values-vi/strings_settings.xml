@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">Quyền riêng tư</string>
     <string name="settings_data_section">Dữ liệu</string>
     <string name="settings_about_section">Giới thiệu</string>
+    <string name="settings_licenses_title">Giấy phép mã nguồn mở</string>
+    <string name="settings_licenses_description">Phông chữ và biểu tượng dùng trong FastMask</string>
 </resources>

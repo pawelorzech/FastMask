@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
@@ -71,6 +72,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -248,6 +250,7 @@ internal fun SettingsContent(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLockUnavailableDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
 
     val colorsLockedMessage = stringResource(R.string.settings_accent_locked)
     val unlockLabel = stringResource(R.string.settings_colors_unlock)
@@ -265,6 +268,10 @@ internal fun SettingsContent(
             },
             onDismiss = { showLanguageDialog = false },
         )
+    }
+
+    if (showLicensesDialog) {
+        LicensesDialog(onDismiss = { showLicensesDialog = false })
     }
 
     if (showLogoutDialog) {
@@ -549,6 +556,17 @@ internal fun SettingsContent(
 
             // --- About ---
             SettingsSection(title = stringResource(R.string.settings_about_section)) {
+                add { index, count ->
+                    SettingsRow(
+                        index = index,
+                        count = count,
+                        label = stringResource(R.string.settings_licenses_title),
+                        supporting = stringResource(R.string.settings_licenses_description),
+                        leading = { Icon(Icons.Filled.Description, contentDescription = null) },
+                        trailing = { ChevronIcon() },
+                        onClick = { showLicensesDialog = true },
+                    )
+                }
                 add { index, count ->
                     SettingsRow(
                         index = index,

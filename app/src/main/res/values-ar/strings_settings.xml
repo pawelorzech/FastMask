@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">الخصوصية</string>
     <string name="settings_data_section">البيانات</string>
     <string name="settings_about_section">حول</string>
+    <string name="settings_licenses_title">تراخيص المصدر المفتوح</string>
+    <string name="settings_licenses_description">الخطوط والأيقونات المستخدمة في FastMask</string>
 </resources>

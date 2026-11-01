@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">Gizlilik</string>
     <string name="settings_data_section">Veri</string>
     <string name="settings_about_section">Hakkında</string>
+    <string name="settings_licenses_title">Açık kaynak lisansları</string>
+    <string name="settings_licenses_description">FastMask\'te kullanılan yazı tipleri ve simgeler</string>
 </resources>

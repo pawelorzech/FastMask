@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">プライバシー</string>
     <string name="settings_data_section">データ</string>
     <string name="settings_about_section">このアプリについて</string>
+    <string name="settings_licenses_title">オープンソースライセンス</string>
+    <string name="settings_licenses_description">FastMaskで使用しているフォントとアイコン</string>
 </resources>

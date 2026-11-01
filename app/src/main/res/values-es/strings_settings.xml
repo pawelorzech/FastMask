@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">Privacidad</string>
     <string name="settings_data_section">Datos</string>
     <string name="settings_about_section">Acerca de</string>
+    <string name="settings_licenses_title">Licencias de código abierto</string>
+    <string name="settings_licenses_description">Fuentes e iconos usados en FastMask</string>
 </resources>

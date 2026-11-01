@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">ความเป็นส่วนตัว</string>
     <string name="settings_data_section">ข้อมูล</string>
     <string name="settings_about_section">เกี่ยวกับ</string>
+    <string name="settings_licenses_title">สัญญาอนุญาตโอเพนซอร์ส</string>
+    <string name="settings_licenses_description">ฟอนต์และไอคอนที่ใช้ใน FastMask</string>
 </resources>

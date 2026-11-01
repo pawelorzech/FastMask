@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">गोपनीयता</string>
     <string name="settings_data_section">डेटा</string>
     <string name="settings_about_section">जानकारी</string>
+    <string name="settings_licenses_title">ओपन-सोर्स लाइसेंस</string>
+    <string name="settings_licenses_description">FastMask में उपयोग किए गए फ़ॉन्ट और आइकन</string>
 </resources>

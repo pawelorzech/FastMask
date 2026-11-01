@@ -7,4 +7,6 @@
     <string name="settings_privacy_section">Конфіденційність</string>
     <string name="settings_data_section">Дані</string>
     <string name="settings_about_section">Про застосунок</string>
+    <string name="settings_licenses_title">Ліцензії відкритого коду</string>
+    <string name="settings_licenses_description">Шрифти та значки, що використовуються у FastMask</string>
 </resources>
