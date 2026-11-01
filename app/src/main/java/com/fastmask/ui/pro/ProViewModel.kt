@@ -50,7 +50,14 @@ class ProViewModel @Inject constructor(
         }
         viewModelScope.launch {
             proRepository.events.collect { event ->
-                _uiState.update { it.copy(purchaseInFlight = false) }
+                // Only a purchase that completes while this screen is open is a
+                // celebration; an owner whose entitlement merely loads is not.
+                _uiState.update {
+                    it.copy(
+                        purchaseInFlight = false,
+                        celebrate = it.celebrate || event is ProPurchaseEvent.Completed,
+                    )
+                }
                 _events.send(
                     when (event) {
                         is ProPurchaseEvent.Completed -> ProUiEvent.PurchaseCompleted
@@ -135,6 +142,8 @@ data class ProUiState(
     val productState: ProductState = ProductState.LOADING,
     val purchaseInFlight: Boolean = false,
     val restoreInFlight: Boolean = false,
+    /** True only for a purchase completed while this screen was open. */
+    val celebrate: Boolean = false,
 )
 
 enum class ProductState { LOADING, READY, UNAVAILABLE }

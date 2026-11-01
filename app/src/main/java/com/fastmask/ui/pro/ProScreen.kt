@@ -100,14 +100,6 @@ fun ProScreen(
     val haptic = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // The hero bursts only for a purchase that happens while this screen is
-    // open, not when an owner simply opens it.
-    val alreadyPro = remember { uiState.status == ProStatus.PRO }
-    var celebrate by remember { mutableStateOf(false) }
-    LaunchedEffect(uiState.status) {
-        if (uiState.status == ProStatus.PRO && !alreadyPro) celebrate = true
-    }
-
     val messages = ProMessages(
         purchaseCompleted = stringResource(R.string.pro_purchase_success),
         purchasePending = stringResource(R.string.pro_purchase_pending),
@@ -158,7 +150,7 @@ fun ProScreen(
     ProContent(
         state = uiState,
         snackbarHostState = snackbarHostState,
-        celebrate = celebrate,
+        celebrate = uiState.celebrate,
         // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
         // gesture/system back counts too, not just this button.
         onClose = onNavigateBack,
