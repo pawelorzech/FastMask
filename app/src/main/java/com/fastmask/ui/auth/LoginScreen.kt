@@ -50,7 +50,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -81,9 +80,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.fastmask.R
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -116,19 +112,6 @@ fun LoginScreen(
         }
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.onCheckClipboardForToken(clipboardManager.getText()?.text?.toString().orEmpty())
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     LoginContent(
         uiState = uiState,
         showToken = showToken,
@@ -143,8 +126,6 @@ fun LoginScreen(
         // dropped here, so the tap always produces a visible answer.
         onPaste = { viewModel.onTokenPasted(clipboardManager.getText()?.text.orEmpty()) },
         onLogin = { viewModel.login() },
-        onUseDetectedToken = viewModel::onUseDetectedClipboardToken,
-        onDismissDetectedToken = viewModel::onDismissDetectedClipboardToken,
         onOpenTokenSettings = {
             settingsOpenFailed = !openExternalIntent(
                 context,
@@ -172,8 +153,6 @@ internal fun LoginContent(
     onToggleShowToken: () -> Unit,
     onPaste: () -> Unit,
     onLogin: () -> Unit,
-    onUseDetectedToken: () -> Unit,
-    onDismissDetectedToken: () -> Unit,
     onOpenTokenSettings: () -> Unit,
     onEnterDemo: () -> Unit,
     onBack: () -> Unit,
@@ -282,44 +261,6 @@ internal fun LoginContent(
                     modifier = Modifier.padding(top = 12.dp),
                 ) {
                     Text(stringResource(R.string.login_error_missing_scope_action))
-                }
-            }
-
-            // Explicit confirmation when a token shape is found on the clipboard.
-            SpringVisibility(visible = uiState.detectedClipboardToken != null) {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.login_clipboard_token_detected),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.politeLiveRegion(),
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilledTonalButton(
-                                onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                    onUseDetectedToken()
-                                },
-                                shapes = ButtonDefaults.shapes(),
-                            ) {
-                                Text(stringResource(R.string.login_clipboard_token_use))
-                            }
-                            TextButton(
-                                onClick = onDismissDetectedToken,
-                                shapes = ButtonDefaults.shapes(),
-                            ) {
-                                Text(stringResource(R.string.login_clipboard_token_dismiss))
-                            }
-                        }
-                    }
                 }
             }
 
@@ -590,8 +531,6 @@ private fun LoginPreviewHost(
             onToggleShowToken = {},
             onPaste = {},
             onLogin = {},
-            onUseDetectedToken = {},
-            onDismissDetectedToken = {},
             onOpenTokenSettings = {},
             onEnterDemo = {},
             onBack = {},
@@ -620,13 +559,6 @@ private fun LoginWarningPreview() = LoginPreviewHost(
 @Composable
 private fun LoginScopeErrorPreview() = LoginPreviewHost(
     LoginUiState(token = "fmu1-0000", errorRes = R.string.login_error_missing_masked_email_scope),
-)
-
-@Preview(name = "Login clipboard prompt dark", showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-private fun LoginClipboardPreview() = LoginPreviewHost(
-    LoginUiState(detectedClipboardToken = "fmu1-0000"),
-    dark = true,
 )
 
 @Preview(name = "Login loading", showBackground = true, widthDp = 360, heightDp = 800)
