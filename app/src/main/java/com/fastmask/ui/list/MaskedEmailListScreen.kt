@@ -1,5 +1,14 @@
 package com.fastmask.ui.list
 
+import androidx.compose.ui.draw.drawBehind
+
+import androidx.compose.ui.graphics.lerp
+
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.semantics.getTextLayoutResult
+import androidx.compose.ui.text.TextLayoutResult
+
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -13,7 +22,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -32,8 +40,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,7 +81,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
@@ -144,8 +149,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.R
-import com.fastmask.ui.components.expressive.ConnectedGap
-import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
@@ -596,17 +599,28 @@ internal fun MaskedEmailListContent(
 
                 // Search + filters stay pinned under the (collapsing) app bar
                 // while the list scrolls beneath them.
+                // No horizontal padding on the Column itself: the filter row owns
+                // its 16dp gutters so it can scroll edge to edge.
+                // Once the app bar collapses, this block takes the bar's scrolled
+                // colour and real breathing room, so bar + search + filters read as
+                // one header instead of a search pill glued under a grey strip.
+                val headerColor = lerp(
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.surfaceContainer,
+                    scrollBehavior.state.collapsedFraction,
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 4.dp, bottom = 4.dp),
+                        .drawBehind { drawRect(headerColor) }
+                        .padding(top = 12.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    val gutterPx = with(LocalDensity.current) { FilterGutter.toPx() }
                     SearchField(
                         query = uiState.searchQuery,
                         onQueryChange = onSearchQueryChange,
-                        modifier = Modifier.onGloballyPositioned { coords ->
+                        modifier = Modifier.padding(horizontal = FilterGutter).onGloballyPositioned { coords ->
                             onTutorialBounds(1, coords.boundsInRoot())
                         },
                     )
@@ -616,7 +630,10 @@ internal fun MaskedEmailListContent(
                         counts = filterCounts,
                         onSelect = onFilterSelect,
                         modifier = Modifier.onGloballyPositioned { coords ->
-                            onTutorialBounds(2, coords.boundsInRoot())
+                            // The row is full-bleed; the tutorial spotlight keeps the
+                            // gutter-inset bounds the other steps use.
+                            val full = coords.boundsInRoot()
+                            onTutorialBounds(2, full.copy(left = full.left + gutterPx, right = full.right - gutterPx))
                         },
                     )
 
@@ -629,7 +646,7 @@ internal fun MaskedEmailListContent(
                                 uiState.filteredEmails.size,
                                 uiState.emails.size,
                             ),
-                            modifier = Modifier.fillMaxWidth().politeLiveRegion(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = FilterGutter).politeLiveRegion(),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.End,
@@ -938,55 +955,6 @@ private fun SearchField(
     }
 }
 
-/**
- * Single-select filter: a connected group of toggle buttons. The selected one is
- * filled and fully rounded (stock `ToggleButton` shape morph); the rest keep the
- * flat inner corners of a connected group.
- */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun FilterGroup(
-    selected: EmailFilter,
-    counts: Map<EmailFilter, Int>,
-    onSelect: (EmailFilter) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val filters = EmailFilter.entries
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ConnectedGap),
-    ) {
-        filters.forEachIndexed { index, filter ->
-            val label = stringResource(
-                when (filter) {
-                    EmailFilter.ALL -> R.string.filter_all
-                    EmailFilter.ENABLED -> R.string.filter_enabled
-                    EmailFilter.DISABLED -> R.string.filter_disabled
-                    EmailFilter.DELETED -> R.string.filter_deleted
-                },
-            )
-            val shapes = connectedToggleShapes(index = index, count = filters.size)
-            ToggleButton(
-                checked = selected == filter,
-                onCheckedChange = { checked -> if (checked) onSelect(filter) },
-                shapes = shapes,
-                // Single-select: announce as a radio, not a checkbox.
-                modifier = Modifier.semantics { role = Role.RadioButton },
-            ) {
-                Text(text = label, style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = (counts[filter] ?: 0).toString(),
-                    style = MaterialTheme.typography.labelMedium,
-                )
-            }
-        }
-    }
-}
-
 /** How long a "just created" highlight waits for its row before giving up. */
 private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
 
@@ -1024,14 +992,16 @@ internal fun MaskRow(
         RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec)
     }
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.
     val headline = remember(email.email, mutedColor) {
-        val at = email.email.indexOf('@')
+        val display = addressWrapText(email.email)
+        val at = addressWrapDomainStart(display)
         buildAnnotatedString {
             if (at < 0) {
-                append(email.email)
+                append(display)
             } else {
-                append(email.email.substring(0, at))
-                withStyle(SpanStyle(color = mutedColor)) { append(email.email.substring(at)) }
+                append(display.substring(0, at))
+                withStyle(SpanStyle(color = mutedColor)) { append(display.substring(at)) }
             }
         }
     }
@@ -1121,10 +1091,20 @@ internal fun MaskRow(
         },
         headline = {
             // The address is the row's identity: wrap it rather than cut off the domain.
+            // Semantics carry the plain address (the display text has invisible wrap hints)
+            // and still expose the real layout, so accessibility and tests see what is drawn.
+            var addressLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
             Text(
                 text = headline,
                 maxLines = if (compact) 4 else 2,
                 overflow = TextOverflow.Ellipsis,
+                onTextLayout = { addressLayout = it },
+                modifier = Modifier.clearAndSetSemantics {
+                    text = AnnotatedString(email.email)
+                    getTextLayoutResult { results ->
+                        addressLayout?.let { results.add(it); true } ?: false
+                    }
+                },
             )
         },
     )

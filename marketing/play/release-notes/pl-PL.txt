@@ -1,7 +1,5 @@
-Nowości w 1.13.0
+Nowości w 1.13.1
 
-• Pełny redesign w Material 3 Expressive: każdy ekran od nowa, sprężysta animacja i kształty, które płynnie się zmieniają
-• FastMask bierze kolory z Twojej tapety, a Pro dodaje pięć motywów kolorystycznych
-• Nowa „Losowa maska” w menu +: świeży adres jednym dotknięciem
-• Maski pogrupowane według daty utworzenia, szybsze wyszukiwanie i filtry
-• Krój Google Sans Flex i nowa ikona, gotowa na ikony motywowe
+• FastMask nie zagląda już do schowka po otwarciu ekranu logowania; czyta go tylko po dotknięciu Wklej
+• Filtry zawsze mieszczą się na ekranie, a nagłówek wygląda dobrze przy przewijaniu
+• Adresy na liście nie łamią się już w połowie nazwy

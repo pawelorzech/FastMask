@@ -45,53 +45,8 @@ class LoginViewModel @Inject constructor(
                 token = boundedToken,
                 errorRes = null,
                 warningRes = null,
-                detectedClipboardToken = if (
-                    boundedToken.isNotBlank() && boundedToken == it.detectedClipboardToken
-                ) null else it.detectedClipboardToken,
             )
         }
-    }
-
-    /**
-     * Called when the screen checks the clipboard for a token (e.g. on resume).
-     *
-     * If [raw] has the shape of a Fastmail API token (`fmu1-...`), it is placed
-     * into [LoginUiState.detectedClipboardToken] so the screen can ask the
-     * user with an explicit confirmation banner ("Token found on clipboard — use it?").
-     *
-     * Never fills [LoginUiState.token] directly — a silent read/fill would fail
-     * privacy expectations and trigger Android 12+ clipboard toasts without
-     * clear context.
-     */
-    fun onCheckClipboardForToken(raw: String) {
-        val sanitized = TokenFormat.sanitizePasted(raw)
-        if (TokenFormat.looksLikeToken(sanitized) && sanitized != _uiState.value.token) {
-            _uiState.update { it.copy(detectedClipboardToken = sanitized) }
-        } else {
-            _uiState.update { it.copy(detectedClipboardToken = null) }
-        }
-    }
-
-    /**
-     * User explicitly confirmed the "Use token" action on the clipboard prompt.
-     */
-    fun onUseDetectedClipboardToken() {
-        val tokenToUse = _uiState.value.detectedClipboardToken ?: return
-        _uiState.update {
-            it.copy(
-                token = tokenToUse,
-                detectedClipboardToken = null,
-                errorRes = null,
-                warningRes = if (TokenFormat.shouldWarn(tokenToUse)) R.string.login_token_warning_shape else null,
-            )
-        }
-    }
-
-    /**
-     * User dismissed the clipboard token prompt.
-     */
-    fun onDismissDetectedClipboardToken() {
-        _uiState.update { it.copy(detectedClipboardToken = null) }
     }
 
     /**
@@ -111,7 +66,7 @@ class LoginViewModel @Inject constructor(
         if (pasted.isEmpty()) {
             // Deliberately leaves `token` alone: a whitespace-only clip must
             // not wipe a token the user typed by hand.
-            _uiState.update { it.copy(errorRes = null, warningRes = R.string.login_paste_empty, detectedClipboardToken = null) }
+            _uiState.update { it.copy(errorRes = null, warningRes = R.string.login_paste_empty) }
             return
         }
         _uiState.update {
@@ -119,7 +74,6 @@ class LoginViewModel @Inject constructor(
                 token = pasted,
                 errorRes = null,
                 warningRes = if (TokenFormat.shouldWarn(pasted)) R.string.login_token_warning_shape else null,
-                detectedClipboardToken = null,
             )
         }
     }
@@ -238,12 +192,6 @@ data class LoginUiState(
      * login attempt, because the token format is Fastmail's to change.
      */
     val warningRes: Int? = null,
-    /**
-     * Set when a Fastmail API token shape (fmu1-...) is detected on clipboard
-     * when entering/resuming the screen. Never used to fill the token field
-     * automatically without explicit user confirmation.
-     */
-    val detectedClipboardToken: String? = null,
 ) {
     val isLoading: Boolean get() = operation != null
 }
