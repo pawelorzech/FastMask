@@ -11,7 +11,7 @@ class AccessibilitySemanticsWiringTest {
         val titleAnchors = mapOf(
             "auth/LoginScreen.kt" to "text = annotated",
             "welcome/WelcomeScreen.kt" to "text = stringResource(R.string.app_name)",
-            "detail/MaskedEmailDetailScreen.kt" to "text = email.displayName",
+            "detail/MaskedEmailDetailScreen.kt" to "text = address",
             "lock/LockScreen.kt" to "text = stringResource(R.string.app_name)",
         )
 
@@ -49,7 +49,7 @@ class AccessibilitySemanticsWiringTest {
         )
         assertNear(
             "create/CreateMaskedEmailScreen.kt",
-            "text = stringResource(uiState.errorRes!!)",
+            "text = stringResource(messageRes)",
             ".politeLiveRegion()",
         )
         assertNear(

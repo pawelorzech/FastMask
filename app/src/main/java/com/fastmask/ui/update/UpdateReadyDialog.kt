@@ -26,6 +26,6 @@ fun UpdateReadyDialog(
         dismissText = stringResource(R.string.update_ready_later),
         onConfirm = onInstall,
         onDismiss = onDismiss,
-        confirmVariant = PillButtonVariant.Primary,
+        destructive = false,
     )
 }

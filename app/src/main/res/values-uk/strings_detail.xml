@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">Редагувати відомості</string>
+    <string name="email_detail_edit_stop">Завершити редагування</string>
+    <string name="email_detail_no_domain">Немає домену</string>
+    <string name="create_email_close">Закрити</string>
+</resources>

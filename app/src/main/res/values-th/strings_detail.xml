@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">แก้ไขรายละเอียด</string>
+    <string name="email_detail_edit_stop">หยุดแก้ไข</string>
+    <string name="email_detail_no_domain">ไม่มีโดเมน</string>
+    <string name="create_email_close">ปิด</string>
+</resources>

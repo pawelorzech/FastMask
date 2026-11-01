@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="email_detail_edit_action">বিবরণ সম্পাদনা করুন</string>
+    <string name="email_detail_edit_stop">সম্পাদনা বন্ধ করুন</string>
+    <string name="email_detail_no_domain">কোনো ডোমেইন নেই</string>
+    <string name="create_email_close">বন্ধ করুন</string>
+</resources>

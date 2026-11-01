@@ -438,7 +438,7 @@ internal fun ExportConfirmationDialog(
         dismissText = stringResource(R.string.email_detail_delete_cancel),
         onConfirm = onConfirm,
         onDismiss = onDismiss,
-        confirmVariant = PillButtonVariant.Primary,
+        destructive = false,
     )
 }
 

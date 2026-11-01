@@ -209,7 +209,7 @@ class MainFlowsTest {
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
 
-        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performClick()
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performScrollTo().performClick()
         composeRule.onNodeWithText(string(R.string.email_detail_delete_confirm)).performClick()
 
         // Back on the list. The default "All" filter still shows archived
@@ -251,7 +251,7 @@ class MainFlowsTest {
 
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
-        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performClick()
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_delete)).performScrollTo().performClick()
         composeRule.onNodeWithText(string(R.string.email_detail_delete_confirm)).performClick()
         awaitText(string(R.string.list_archived_snackbar))
 
@@ -319,6 +319,12 @@ class MainFlowsTest {
         enterDemoAndDismissTutorial()
         composeRule.onAllNodesWithText("@", substring = true).onFirst().performClick()
         awaitContentDescription(string(R.string.email_detail_delete))
+
+        // The fields live behind the Details edit toggle on the expressive screen.
+        composeRule.onNodeWithContentDescription(string(R.string.email_detail_edit_action))
+            .performScrollTo()
+            .performClick()
+        awaitContentDescription(string(R.string.email_detail_description_label))
 
         val description = composeRule.onNodeWithContentDescription(
             string(R.string.email_detail_description_label),
