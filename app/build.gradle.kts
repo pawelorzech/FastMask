@@ -163,6 +163,11 @@ gradle.taskGraph.whenReady {
     }
 }
 
+// FontSubsetTest reads the bundled font by path; declare it so Gradle reruns the test when it changes.
+tasks.withType<Test>().configureEach {
+    inputs.file("src/main/res/font/google_sans_flex.ttf")
+}
+
 dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")
