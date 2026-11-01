@@ -28,6 +28,11 @@ class TranslationCompletenessTest {
         stringRegex.findAll(file.readText())
             .associate { it.groupValues[1] to it.groupValues[2].trim() }
 
+    /** Every `strings*.xml` in a values folder, so per-feature string files are held to the same promise. */
+    private fun stringsIn(dir: File): Map<String, String> =
+        dir.listFiles { f -> f.name.startsWith("strings") && f.name.endsWith(".xml") }
+            .orEmpty().sortedBy { it.name }.fold(emptyMap()) { acc, f -> acc + strings(f) }
+
     private fun localeDirs(): List<File> =
         resDir.listFiles()
             ?.filter { it.isDirectory && it.name.startsWith("values-") }
@@ -53,12 +58,12 @@ class TranslationCompletenessTest {
 
     @Test
     fun `no locale is missing a string`() {
-        val base = strings(File(resDir, "values/strings.xml"))
+        val base = stringsIn(File(resDir, "values"))
         val locales = localeDirs()
         assertTrue("no locale resource directories found", locales.isNotEmpty())
 
         val missing = locales.flatMap { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             base.keys.filterNot { it in translated }.map { "${dir.name}: $it" }
         }
 
@@ -81,11 +86,11 @@ class TranslationCompletenessTest {
      */
     @Test
     fun `translations take the same format arguments as the default`() {
-        val base = strings(File(resDir, "values/strings.xml"))
+        val base = stringsIn(File(resDir, "values"))
         val formatArg = Regex("""%(\d+\$)?[sdf]""")
 
         val mismatched = localeDirs().flatMap { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             base.mapNotNull { (key, english) ->
                 val value = translated[key] ?: return@mapNotNull null
                 val expected = formatArg.findAll(english).count()
@@ -104,10 +109,10 @@ class TranslationCompletenessTest {
 
     @Test
     fun `no sentence is left in English`() {
-        val base = strings(File(resDir, "values/strings.xml"))
+        val base = stringsIn(File(resDir, "values"))
 
         val untranslated = localeDirs().flatMap { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             base.filter { (key, english) -> isProse(key, english) && translated[key] == english }
                 .map { (key, english) -> "${dir.name}: $key = \"$english\"" }
         }
@@ -148,7 +153,7 @@ class TranslationCompletenessTest {
     @Test
     fun `gh-29 hero and footer resources exist in the default locale and every translated locale`() {
         val newKeys = setOf("login_hero", "settings_footer")
-        val base = strings(File(resDir, "values/strings.xml"))
+        val base = stringsIn(File(resDir, "values"))
         val locales = localeDirs()
         assertTrue("no locale resource directories found", locales.isNotEmpty())
 
@@ -161,7 +166,7 @@ class TranslationCompletenessTest {
         )
 
         val missingFromLocales = locales.flatMap { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             newKeys.filterNot { it in translated }.map { "${dir.name}: $it" }
         }
         assertTrue(
@@ -186,7 +191,7 @@ class TranslationCompletenessTest {
         val allDirs = listOf(File(resDir, "values")) + localeDirs()
 
         val problems = allDirs.mapNotNull { dir ->
-            val value = strings(File(dir, "strings.xml"))["settings_footer"] ?: return@mapNotNull null
+            val value = stringsIn(dir)["settings_footer"] ?: return@mapNotNull null
             val count = formatArg.findAll(value).count()
             if (count == 1) null else "${dir.name}: settings_footer takes $count argument(s) — \"$value\""
         }
@@ -219,7 +224,7 @@ class TranslationCompletenessTest {
         assertTrue("no locale resource directories found", allDirs.size > 1)
 
         val missingKeys = allDirs.flatMap { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             keys.filterNot { it in translated }.map { "${dir.name}: missing $it" }
         }
         assertTrue(
@@ -229,7 +234,7 @@ class TranslationCompletenessTest {
         )
 
         val notContained = allDirs.mapNotNull { dir ->
-            val translated = strings(File(dir, "strings.xml"))
+            val translated = stringsIn(dir)
             val hero = translated.getValue("login_hero")
             val accent = translated.getValue("login_hero_accent")
             if (hero.contains(accent)) null
