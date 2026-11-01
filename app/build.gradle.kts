@@ -172,15 +172,17 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
 
     // Compose
-    // 2026.06 is the current production-safe Compose BOM for this API 36 /
-    // AGP 8.10 toolchain. Material3 1.4.0 is the latest stable release; the
-    // newer Expressive APIs remain alpha and are deliberately not shipped.
-    implementation(platform("androidx.compose:compose-bom:2026.06.00"))
+    // BOM 2026.09.00 = Compose 1.12.1 stable. Material3 is pinned above the BOM
+    // (which still maps to 1.4.0) because the Expressive components the UI is
+    // built on (ButtonGroup, LoadingIndicator, MaterialShapes, FAB menu) are only
+    // public from 1.5.0. Beta = API-frozen; move to 1.5.0 stable when it lands.
+    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-text-google-fonts")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.5.0-beta02")
+    implementation("androidx.graphics:graphics-shapes:1.0.1")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.animation:animation")
 
@@ -255,7 +257,7 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test:core-ktx:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2026.06.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     // Instrumented tests exercise the real Hilt graph, so they need the test
     // Application and the generated test components.
@@ -269,5 +271,9 @@ kotlin {
     jvmToolchain(17)
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        optIn.addAll(
+            "androidx.compose.material3.ExperimentalMaterial3Api",
+            "androidx.compose.material3.ExperimentalMaterial3ExpressiveApi",
+        )
     }
 }

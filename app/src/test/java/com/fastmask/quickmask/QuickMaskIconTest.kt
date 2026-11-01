@@ -167,25 +167,19 @@ class QuickMaskIconTest {
     }
 
     @Test
-    fun `every adaptive density has matching color and monochrome layers`() {
-        val expectedSizes = mapOf(
-            "mdpi" to 108,
-            "hdpi" to 162,
-            "xhdpi" to 216,
-            "xxhdpi" to 324,
-            "xxxhdpi" to 432,
-        )
-
-        expectedSizes.forEach { (density, size) ->
-            val color = pngInfo(res("drawable-$density/ic_launcher_foreground.png"))
-            val mono = pngInfo(res("drawable-$density/ic_launcher_monochrome.png"))
-            assertEquals("wrong $density foreground width", size, color.width)
-            assertEquals("wrong $density foreground height", size, color.height)
-            assertEquals("wrong $density monochrome width", size, mono.width)
-            assertEquals("wrong $density monochrome height", size, mono.height)
-            assertTrue("$density foreground lost transparency", color.hasAlpha)
-            assertTrue("$density monochrome lost transparency", mono.hasAlpha)
+    fun `the launcher icon is a vector adaptive icon with a themed monochrome layer`() {
+        val adaptive = res("mipmap-anydpi-v26/ic_launcher.xml").readText()
+        assertTrue(adaptive.contains("@drawable/ic_launcher_foreground"))
+        assertTrue(adaptive.contains("@drawable/ic_launcher_monochrome"))
+        listOf("ic_launcher_foreground", "ic_launcher_monochrome", "ic_launcher_background").forEach { name ->
+            val xml = res("drawable/$name.xml").readText()
+            assertTrue("$name must use the 108dp adaptive canvas", xml.contains("android:viewportWidth=\"108\""))
         }
+        // The themed icon is one evenOdd path so the @ is cut out of the cookie, not painted on it:
+        // launchers tint the monochrome layer by alpha only.
+        val mono = res("drawable/ic_launcher_monochrome.xml").readText()
+        assertEquals(1, Regex("<path").findAll(mono).count())
+        assertTrue(mono.contains("android:fillType=\"evenOdd\""))
     }
 
     /** Reads only PNG signature + IHDR, keeping this JVM test independent of java.desktop. */
