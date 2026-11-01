@@ -89,43 +89,6 @@ class TokenFormatTest {
         assertEquals("", TokenFormat.sanitizePasted(""))
     }
 
-    // --- recognizing the token shape ---------------------------------------
-
-    @Test
-    fun `a value carrying the fastmail prefix is recognized`() {
-        assertTrue(TokenFormat.looksLikeToken("fmu1-8f2c1d9e4a"))
-    }
-
-    @Test
-    fun `a token wrapped in whitespace is recognized after cleaning`() {
-        assertTrue(TokenFormat.looksLikeToken("\n  fmu1-8f2c1d9e4a  \n"))
-    }
-
-    /**
-     * Lenient on case: the warning is advisory, so a false alarm costs more
-     * than a missed one.
-     */
-    @Test
-    fun `the prefix is matched case insensitively`() {
-        assertTrue(TokenFormat.looksLikeToken("FMU1-8F2C1D9E4A"))
-    }
-
-    /** It is a *prefix*, not a substring — "contains" would match noise. */
-    @Test
-    fun `the prefix must start the value`() {
-        assertFalse(TokenFormat.looksLikeToken("token=fmu1-8f2c1d9e4a"))
-    }
-
-    @Test
-    fun `arbitrary text is not a token`() {
-        assertFalse(TokenFormat.looksLikeToken("correct horse battery staple"))
-    }
-
-    @Test
-    fun `empty input is not a token`() {
-        assertFalse(TokenFormat.looksLikeToken(""))
-    }
-
     // --- the soft warning --------------------------------------------------
 
     /** The case worth catching: a password pasted into the token field. */
@@ -147,6 +110,18 @@ class TokenFormatTest {
     @Test
     fun `a token wrapped in whitespace does not warn`() {
         assertFalse(TokenFormat.shouldWarn("  fmu1-8f2c1d9e4a\n"))
+    }
+
+    /** Lenient on case: the warning is advisory, so a false alarm costs more than a missed one. */
+    @Test
+    fun `the prefix is matched case insensitively`() {
+        assertFalse(TokenFormat.shouldWarn("FMU1-8F2C1D9E4A"))
+    }
+
+    /** It is a *prefix*, not a substring — "contains" would match noise. */
+    @Test
+    fun `the prefix must start the value`() {
+        assertTrue(TokenFormat.shouldWarn("token=fmu1-8f2c1d9e4a"))
     }
 
     /** Empty input has its own dedicated error; warning twice is noise. */
