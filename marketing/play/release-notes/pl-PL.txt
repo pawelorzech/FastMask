@@ -2,3 +2,4 @@ Nowości w 1.13.1
 
 • FastMask nie zagląda już do schowka po otwarciu ekranu logowania; czyta go tylko po dotknięciu Wklej
 • Filtry nie wyglądają już na ucięte w dłuższych językach
+• Adresy na liście nie łamią się już w połowie nazwy

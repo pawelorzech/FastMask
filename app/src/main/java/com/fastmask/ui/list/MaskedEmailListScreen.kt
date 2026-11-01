@@ -1,5 +1,10 @@
 package com.fastmask.ui.list
 
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.semantics.getTextLayoutResult
+import androidx.compose.ui.text.TextLayoutResult
+
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -974,14 +979,16 @@ internal fun MaskRow(
         RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec)
     }
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.
     val headline = remember(email.email, mutedColor) {
-        val at = email.email.indexOf('@')
+        val display = addressWrapText(email.email)
+        val at = addressWrapDomainStart(display)
         buildAnnotatedString {
             if (at < 0) {
-                append(email.email)
+                append(display)
             } else {
-                append(email.email.substring(0, at))
-                withStyle(SpanStyle(color = mutedColor)) { append(email.email.substring(at)) }
+                append(display.substring(0, at))
+                withStyle(SpanStyle(color = mutedColor)) { append(display.substring(at)) }
             }
         }
     }
@@ -1071,10 +1078,20 @@ internal fun MaskRow(
         },
         headline = {
             // The address is the row's identity: wrap it rather than cut off the domain.
+            // Semantics carry the plain address (the display text has invisible wrap hints)
+            // and still expose the real layout, so accessibility and tests see what is drawn.
+            var addressLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
             Text(
                 text = headline,
                 maxLines = if (compact) 4 else 2,
                 overflow = TextOverflow.Ellipsis,
+                onTextLayout = { addressLayout = it },
+                modifier = Modifier.clearAndSetSemantics {
+                    text = AnnotatedString(email.email)
+                    getTextLayoutResult { results ->
+                        addressLayout?.let { results.add(it); true } ?: false
+                    }
+                },
             )
         },
     )

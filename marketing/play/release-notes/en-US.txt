@@ -2,3 +2,4 @@ What's new in 1.13.1
 
 • FastMask no longer peeks at your clipboard when you open the sign-in screen; it reads it only when you tap Paste
 • Filters no longer look cut off in longer languages
+• Addresses in the list no longer break in the middle of the name
