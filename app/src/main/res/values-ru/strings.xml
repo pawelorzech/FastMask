@@ -255,6 +255,7 @@
     <string name="accent_sage">Мудрец</string>
     <string name="accent_plum">Слива</string>
     <string name="accent_cobalt">Кобальт</string>
+    <string name="accent_dynamic">Обои</string>
     <string name="settings_app_lock">Блокировка приложения</string>
     <string name="settings_app_lock_description">Требовать разблокировку при открытии приложения</string>
     <string name="settings_app_lock_unavailable">Сначала установите блокировку экрана или отпечаток пальца в настройках системы.</string>

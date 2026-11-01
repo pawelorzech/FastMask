@@ -237,6 +237,7 @@
     <string name="accent_sage">Bijak</string>
     <string name="accent_plum">Plum</string>
     <string name="accent_cobalt">Kobalt</string>
+    <string name="accent_dynamic">Wallpaper</string>
     <string name="settings_app_lock">Kunci aplikasi</string>
     <string name="settings_app_lock_description">Perlu dibuka saat membuka aplikasi</string>
     <string name="settings_app_lock_unavailable">Atur kunci layar atau sidik jari di pengaturan sistem terlebih dahulu.</string>

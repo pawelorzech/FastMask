@@ -237,6 +237,7 @@
     <string name="accent_sage">Xanh lá cây</string>
     <string name="accent_plum">Tím</string>
     <string name="accent_cobalt">Xanh coban</string>
+    <string name="accent_dynamic">Hình nền</string>
     <string name="settings_app_lock">Khóa ứng dụng</string>
     <string name="settings_app_lock_description">Yêu cầu mở khóa khi mở ứng dụng</string>
     <string name="settings_app_lock_unavailable">Trước tiên, hãy thiết lập khóa màn hình hoặc vân tay trong cài đặt hệ thống.</string>

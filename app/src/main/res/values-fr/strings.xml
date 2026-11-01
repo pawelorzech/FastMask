@@ -249,6 +249,7 @@
     <string name="accent_sage">Sauge</string>
     <string name="accent_plum">Prune</string>
     <string name="accent_cobalt">Cobalt</string>
+    <string name="accent_dynamic">Fond d’écran</string>
     <string name="settings_app_lock">Verrouillage de l\'app</string>
     <string name="settings_app_lock_description">Exiger un déverrouillage à l\'ouverture de l\'app</string>
     <string name="settings_app_lock_unavailable">Configurez d\'abord un verrouillage d\'écran ou une empreinte dans les paramètres système.</string>

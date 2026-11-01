@@ -249,6 +249,7 @@
     <string name="accent_sage">Salvia</string>
     <string name="accent_plum">Prugna</string>
     <string name="accent_cobalt">Cobalto</string>
+    <string name="accent_dynamic">Sfondo</string>
     <string name="settings_app_lock">Blocco app</string>
     <string name="settings_app_lock_description">Richiedi sblocco all\'apertura dell\'app</string>
     <string name="settings_app_lock_unavailable">Configura prima un blocco dello schermo o un\'impronta digitale nelle impostazioni di sistema.</string>

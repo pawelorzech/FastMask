@@ -245,10 +245,10 @@ class MainActivity : AppCompatActivity() {
                 val proStatus by proRepository.proStatus.collectAsState()
                 val accentPref by settingsDataStore.accent.collectAsState(initial = cachedAccent)
                 // Accents are a Pro feature — losing Pro gracefully falls back
-                // to the classic amber without touching the stored preference.
+                // to wallpaper colors (Accent.DEFAULT) without touching the stored preference.
                 // The cache snapshot from the IO read above covers the first
                 // frames before the repository's async seed lands, so a Pro
-                // user's accent doesn't flash amber on every cold start. (If
+                // user's accent doesn't flash the default on every cold start. (If
                 // Play revokes Pro mid-session the accent lingers until the
                 // next launch — cosmetic, self-correcting.)
                 val accent = if (proStatus.isPro || (proStatus == ProStatus.FREE && cachedPro)) {

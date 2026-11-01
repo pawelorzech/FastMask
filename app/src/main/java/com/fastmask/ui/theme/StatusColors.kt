@@ -1,8 +1,9 @@
 package com.fastmask.ui.theme
 
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 @Immutable
@@ -11,6 +12,11 @@ data class StatusColorPair(
     val content: Color,
 )
 
+/**
+ * Per-state container/content pairs, derived from the active color scheme.
+ *
+ * Migration shim: remove once screens read MaterialTheme roles directly.
+ */
 @Immutable
 data class StatusColors(
     val enabled: StatusColorPair,
@@ -19,6 +25,11 @@ data class StatusColors(
     val pending: StatusColorPair,
 )
 
+/**
+ * Legacy extra colors, all derived from the active color scheme.
+ *
+ * Migration shim: remove once screens read MaterialTheme roles directly.
+ */
 @Immutable
 data class FastMaskExtraColors(
     val inkMuted: Color,
@@ -26,7 +37,6 @@ data class FastMaskExtraColors(
     val lineStrong: Color,
     val chip: Color,
     val inputBg: Color,
-    /** Border of a text field — held to 3:1; see [LightInputLine]. */
     val inputLine: Color,
     val surfaceAlt: Color,
     val accent: Color,
@@ -34,48 +44,28 @@ data class FastMaskExtraColors(
     val status: StatusColors,
 )
 
-val LightStatusColors = StatusColors(
-    enabled = StatusColorPair(LightActiveBg, LightActiveInk),
-    disabled = StatusColorPair(LightOffBg, LightOffInk),
-    deleted = StatusColorPair(LightArchivedBg, LightArchivedInk),
-    pending = StatusColorPair(LightPendingBg, LightPendingInk),
+internal fun ColorScheme.toStatusColors() = StatusColors(
+    enabled = StatusColorPair(primaryContainer, onPrimaryContainer),
+    pending = StatusColorPair(tertiaryContainer, onTertiaryContainer),
+    disabled = StatusColorPair(surfaceContainerHighest, onSurfaceVariant),
+    deleted = StatusColorPair(errorContainer, onErrorContainer),
 )
 
-val DarkStatusColors = StatusColors(
-    enabled = StatusColorPair(DarkActiveBg, DarkActiveInk),
-    disabled = StatusColorPair(DarkOffBg, DarkOffInk),
-    deleted = StatusColorPair(DarkArchivedBg, DarkArchivedInk),
-    pending = StatusColorPair(DarkPendingBg, DarkPendingInk),
+internal fun ColorScheme.toExtras(status: StatusColors = toStatusColors()) = FastMaskExtraColors(
+    inkMuted = onSurfaceVariant,
+    inkSoft = onSurfaceVariant,
+    lineStrong = outline,
+    chip = surfaceContainerHighest,
+    inputBg = surfaceContainerHigh,
+    inputLine = outline,
+    surfaceAlt = surfaceContainer,
+    accent = primary,
+    onAccent = onPrimary,
+    status = status,
 )
 
-val LightExtras = FastMaskExtraColors(
-    inkMuted = LightInkMuted,
-    inkSoft = LightInkSoft,
-    lineStrong = LightLineStrong,
-    chip = LightChip,
-    inputBg = LightInputBg,
-    inputLine = LightInputLine,
-    surfaceAlt = LightSurfaceAlt,
-    accent = AccentAmber,
-    onAccent = OnAccent,
-    status = LightStatusColors,
-)
-
-val DarkExtras = FastMaskExtraColors(
-    inkMuted = DarkInkMuted,
-    inkSoft = DarkInkSoft,
-    lineStrong = DarkLineStrong,
-    chip = DarkChip,
-    inputBg = DarkInputBg,
-    inputLine = DarkInputLine,
-    surfaceAlt = DarkSurfaceAlt,
-    accent = DarkAccentAmber,
-    onAccent = LightInk,
-    status = DarkStatusColors,
-)
-
-val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
-val LocalFastMaskExtras = staticCompositionLocalOf { LightExtras }
+val LocalStatusColors = staticCompositionLocalOf { AmberLight.toStatusColors() }
+val LocalFastMaskExtras = staticCompositionLocalOf { AmberLight.toExtras() }
 
 object FastMaskStatusColors {
     val current: StatusColors

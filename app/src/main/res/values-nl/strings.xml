@@ -243,6 +243,7 @@
     <string name="accent_sage">Salie</string>
     <string name="accent_plum">Pruim</string>
     <string name="accent_cobalt">Kobalt</string>
+    <string name="accent_dynamic">Achtergrond</string>
     <string name="settings_app_lock">App-vergrendeling</string>
     <string name="settings_app_lock_description">Vereist ontgrendeling bij openen van de app</string>
     <string name="settings_app_lock_unavailable">Stel eerst een schermvergrendeling of vingerafdruk in via systeeminstellingen.</string>

@@ -238,6 +238,7 @@
     <string name="accent_sage">Sage</string>
     <string name="accent_plum">Plum</string>
     <string name="accent_cobalt">Cobalt</string>
+    <string name="accent_dynamic">Wallpaper</string>
     <string name="settings_app_lock">App lock</string>
     <string name="settings_app_lock_description">Require unlock when opening the app</string>
     <string name="settings_app_lock_unavailable">Set up a screen lock or fingerprint in system settings first.</string>

@@ -249,6 +249,7 @@
     <string name="accent_sage">Salvia</string>
     <string name="accent_plum">Ciruela</string>
     <string name="accent_cobalt">Cobalto</string>
+    <string name="accent_dynamic">Fondo de pantalla</string>
     <string name="settings_app_lock">Bloqueo de aplicación</string>
     <string name="settings_app_lock_description">Requerir desbloqueo al abrir la app</string>
     <string name="settings_app_lock_unavailable">Primero configura un bloqueo de pantalla o huella dactilar en los ajustes del sistema.</string>

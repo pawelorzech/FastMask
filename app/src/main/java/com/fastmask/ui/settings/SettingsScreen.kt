@@ -90,7 +90,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.fastmask.ui.theme.FastMaskExtras
 import com.fastmask.ui.theme.MonoSmallStyle
-import com.fastmask.ui.theme.color
+import com.fastmask.ui.theme.swatchColor
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.stateDescription
@@ -588,6 +588,7 @@ private fun SettingsToggleRow(
 
 internal val Accent.displayNameRes: Int
     get() = when (this) {
+        Accent.DYNAMIC -> R.string.accent_dynamic
         Accent.AMBER -> R.string.accent_amber
         Accent.INK -> R.string.accent_ink
         Accent.SAGE -> R.string.accent_sage
@@ -637,7 +638,7 @@ private fun AccentPickerDialog(
                             modifier = Modifier
                                 .size(20.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(accent.color(isSystemInDarkTheme())),
+                                .background(accent.swatchColor(isSystemInDarkTheme())),
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(

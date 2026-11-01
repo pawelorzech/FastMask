@@ -243,6 +243,7 @@
     <string name="accent_sage">ऋषि</string>
     <string name="accent_plum">बेर</string>
     <string name="accent_cobalt">कोबाल्ट</string>
+    <string name="accent_dynamic">वॉलपेपर</string>
     <string name="settings_app_lock">ऐप लॉक</string>
     <string name="settings_app_lock_description">ऐप खोलते समय अनलॉक की आवश्यकता है</string>
     <string name="settings_app_lock_unavailable">पहले सिस्टम सेटिंग्स में स्क्रीन लॉक या फिंगरप्रिंट सेट करें।</string>

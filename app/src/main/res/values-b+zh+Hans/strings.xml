@@ -237,6 +237,7 @@
     <string name="accent_sage">鼠尾草色</string>
     <string name="accent_plum">李子色</string>
     <string name="accent_cobalt">钴蓝色</string>
+    <string name="accent_dynamic">壁纸</string>
     <string name="settings_app_lock">应用锁</string>
     <string name="settings_app_lock_description">打开应用时需要解锁</string>
     <string name="settings_app_lock_unavailable">先在系统设置中设置屏幕锁定或指纹。</string>

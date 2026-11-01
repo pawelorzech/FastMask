@@ -249,6 +249,7 @@
     <string name="accent_sage">Sálvia</string>
     <string name="accent_plum">Ameixa</string>
     <string name="accent_cobalt">Cobalto</string>
+    <string name="accent_dynamic">Papel de parede</string>
     <string name="settings_app_lock">Bloqueio do app</string>
     <string name="settings_app_lock_description">Exigir desbloqueio ao abrir o app</string>
     <string name="settings_app_lock_unavailable">Configure um bloqueio de tela ou impressão digital nas configurações do sistema primeiro.</string>

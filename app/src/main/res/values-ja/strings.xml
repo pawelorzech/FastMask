@@ -237,6 +237,7 @@
     <string name="accent_sage">セージ</string>
     <string name="accent_plum">プラム</string>
     <string name="accent_cobalt">コバルト</string>
+    <string name="accent_dynamic">壁紙</string>
     <string name="settings_app_lock">アプリロック</string>
     <string name="settings_app_lock_description">アプリを開く際にアンロックが必要</string>
     <string name="settings_app_lock_unavailable">システム設定でスクリーンロックまたは指紋認証をまず設定してください。</string>

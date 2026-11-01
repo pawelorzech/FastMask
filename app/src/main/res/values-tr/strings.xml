@@ -243,6 +243,7 @@
     <string name="accent_sage">Adaçayı</string>
     <string name="accent_plum">Mavi</string>
     <string name="accent_cobalt">Kobalt</string>
+    <string name="accent_dynamic">Duvar kâğıdı</string>
     <string name="settings_app_lock">Uygulama kilidi</string>
     <string name="settings_app_lock_description">Uygulamayı açarken kilit açma gerektir</string>
     <string name="settings_app_lock_unavailable">Önce sistem ayarlarında bir ekran kilidi veya parmak izi ayarlayın.</string>

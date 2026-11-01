@@ -243,6 +243,7 @@
     <string name="accent_sage">Salbei</string>
     <string name="accent_plum">Pflaume</string>
     <string name="accent_cobalt">Kobalt</string>
+    <string name="accent_dynamic">Hintergrundbild</string>
     <string name="settings_app_lock">App-Sperre</string>
     <string name="settings_app_lock_description">Entsperrung erforderlich, wenn die App geöffnet wird</string>
     <string name="settings_app_lock_unavailable">Richte zuerst eine Bildschirmsperre oder einen Fingerabdruck in den Systemeinstellungen ein.</string>

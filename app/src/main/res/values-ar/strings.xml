@@ -267,6 +267,7 @@
     <string name="accent_sage">حكيم</string>
     <string name="accent_plum">بنفسجي</string>
     <string name="accent_cobalt">كوبالت</string>
+    <string name="accent_dynamic">خلفية الشاشة</string>
     <string name="settings_app_lock">قفل التطبيق</string>
     <string name="settings_app_lock_description">أطلب فتح عند فتح التطبيق</string>
     <string name="settings_app_lock_unavailable">جهز قفل شاشة أو بصمة في إعدادات النظام أولاً.</string>

@@ -237,6 +237,7 @@
     <string name="accent_sage">세이지</string>
     <string name="accent_plum">플럼</string>
     <string name="accent_cobalt">코발트</string>
+    <string name="accent_dynamic">배경화면</string>
     <string name="settings_app_lock">앱 잠금</string>
     <string name="settings_app_lock_description">앱을 열 때 잠금 해제 필요</string>
     <string name="settings_app_lock_unavailable">먼저 시스템 설정에서 화면 잠금 또는 지문을 설정하세요.</string>

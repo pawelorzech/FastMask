@@ -237,6 +237,7 @@
     <string name="accent_sage">สีเขียว</string>
     <string name="accent_plum">สีม่วง</string>
     <string name="accent_cobalt">สีน้ำเงิน</string>
+    <string name="accent_dynamic">วอลเปเปอร์</string>
     <string name="settings_app_lock">ล็อกแอป</string>
     <string name="settings_app_lock_description">ต้องปลดล็อกเมื่อเปิดแอป</string>
     <string name="settings_app_lock_unavailable">ตั้งค่าการล็อกหน้าจอหรือลายนิ้วมือในการตั้งค่าระบบก่อน</string>
