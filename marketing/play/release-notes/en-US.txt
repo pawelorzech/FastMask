@@ -1,7 +1,4 @@
-What's new in 1.13.0
+What's new in 1.13.1
 
-• A full Material 3 Expressive redesign: every screen rebuilt, with springy motion and shapes that morph as you go
-• FastMask now takes its colors from your wallpaper; Pro adds five color themes
-• New "Random mask" in the + menu: a fresh address in one tap
-• Masks grouped by when you made them, with a faster search and filters
-• Google Sans Flex type and a new app icon, ready for themed icons
+• FastMask no longer peeks at your clipboard when you open the sign-in screen; it reads it only when you tap Paste
+• Filters no longer look cut off in longer languages
