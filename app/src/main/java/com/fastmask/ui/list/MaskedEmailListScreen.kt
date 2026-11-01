@@ -1,5 +1,9 @@
 package com.fastmask.ui.list
 
+import androidx.compose.ui.draw.drawBehind
+
+import androidx.compose.ui.graphics.lerp
+
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.semantics.getTextLayoutResult
@@ -597,10 +601,19 @@ internal fun MaskedEmailListContent(
                 // while the list scrolls beneath them.
                 // No horizontal padding on the Column itself: the filter row owns
                 // its 16dp gutters so it can scroll edge to edge.
+                // Once the app bar collapses, this block takes the bar's scrolled
+                // colour and real breathing room, so bar + search + filters read as
+                // one header instead of a search pill glued under a grey strip.
+                val headerColor = lerp(
+                    MaterialTheme.colorScheme.background,
+                    MaterialTheme.colorScheme.surfaceContainer,
+                    scrollBehavior.state.collapsedFraction,
+                )
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 4.dp),
+                        .drawBehind { drawRect(headerColor) }
+                        .padding(top = 12.dp, bottom = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     val gutterPx = with(LocalDensity.current) { FilterGutter.toPx() }

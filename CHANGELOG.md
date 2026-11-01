@@ -9,7 +9,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ### Fixed
 - Mask addresses in the list wrap only before the "@" (1.13.0 could split them inside the name, e.g. "sharp" / ".flame138@…").
 - The sign-in screen no longer reads the clipboard on its own. Android 12+ showed "FastMask pasted from your clipboard" every time the screen resumed; the clipboard is now read only when you tap Paste.
-- The mask filters no longer look cut off in longer languages: the row scrolls edge to edge, the last filter peeks out from the screen edge, and the selected filter scrolls into view.
+- The mask filters always fit on a phone: when the counts do not fit (e.g. Polish), they are dropped instead of cutting off the last filter; only at very large font sizes does the row scroll.
+- While scrolling the list, the search and filters sit in one header with the app bar instead of being glued under it.
 
 ### Build
 - `versionCode` 26 → 27, `versionName` "1.13.0" → "1.13.1".

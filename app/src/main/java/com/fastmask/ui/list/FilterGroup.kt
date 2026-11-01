@@ -11,12 +11,17 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -40,8 +45,8 @@ internal val FilterGutter = 16.dp
  *
  * The row is meant to be placed full-bleed (no parent horizontal padding) and
  * supplies the [FilterGutter] itself as content padding:
- *  - if the natural button widths fit between the gutters they share the leftover
- *    width equally, no scrolling;
+ *  - counts are shown when the row fits with them and dropped otherwise (see
+ *    [FilterRowLayout]); the variant that fits shares the leftover width, no scrolling;
  *  - otherwise the row scrolls edge to edge, so an overflowing button slides out
  *    under the screen edge (the standard chip-row peek) rather than being clipped
  *    at the gutter;
@@ -84,7 +89,7 @@ internal fun FilterGroup(
             gutterPx = gutterPx,
             gapPx = gapPx,
             modifier = Modifier.horizontalScroll(scroll),
-        ) {
+        ) { showCounts ->
             filters.forEachIndexed { index, filter ->
                 val label = stringResource(
                     when (filter) {
@@ -98,6 +103,11 @@ internal fun FilterGroup(
                     checked = selected == filter,
                     onCheckedChange = { checked -> if (checked) onSelect(filter) },
                     shapes = connectedToggleShapes(index = index, count = filters.size),
+                    // Unchecked buttons sit on the header, which turns surfaceContainer once
+                    // the app bar collapses; the highest container tone keeps them visible on both.
+                    colors = ToggleButtonDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    ),
                     // Single-select: announce as a radio, not a checkbox.
                     modifier = Modifier
                         .semantics { role = Role.RadioButton }
@@ -107,11 +117,13 @@ internal fun FilterGroup(
                         },
                 ) {
                     Text(text = label, style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = (counts[filter] ?: 0).toString(),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
+                    if (showCounts) {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = (counts[filter] ?: 0).toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 }
             }
         }
@@ -120,10 +132,13 @@ internal fun FilterGroup(
 
 /**
  * Lays the buttons out in one row with [gutterPx] of padding at both ends.
- * Buttons are first sized at their natural (intrinsic) width. If that total fits the
- * viewport minus the gutters, the leftover is shared equally and the content is
- * exactly viewport wide (nothing to scroll). If not, buttons keep their natural
- * widths and the content grows past the viewport so the parent scroll takes over.
+ *
+ * Tries the labels with their counts first. If that row is wider than the viewport
+ * minus the gutters, the counts are dropped (the app bar subtitle already states
+ * them); in Polish that alone makes the four buttons fit a phone. The variant that
+ * fits shares the leftover width equally and nothing scrolls. Only when even the
+ * plain labels are too wide (very large font) do the buttons keep their natural
+ * widths and the content grow past the viewport, so the parent scroll takes over.
  */
 @Composable
 private fun FilterRowLayout(
@@ -131,24 +146,36 @@ private fun FilterRowLayout(
     gutterPx: Int,
     gapPx: Int,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable (showCounts: Boolean) -> Unit,
 ) {
-    Layout(content = content, modifier = modifier) { measurables, _ ->
-        val count = measurables.size
-        val naturalWidths = measurables.map { it.maxIntrinsicWidth(Constraints.Infinity) }
-        val gaps = gapPx * (count - 1)
+    SubcomposeLayout(modifier = modifier) { _ ->
         val available = viewportPx - 2 * gutterPx
-        val total = naturalWidths.sum() + gaps
-        val fits = total <= available
-        val extra = if (fits) available - total else 0
+        fun natural(ms: List<Measurable>) = ms.map { it.maxIntrinsicWidth(Constraints.Infinity) }
+        fun total(ws: List<Int>) = ws.sum() + gapPx * (ws.size - 1)
+
+        // Probe: the with-counts row, measured for its width only. Its semantics are
+        // cleared, so neither TalkBack nor tests ever see a second set of buttons
+        // (it is never placed, so its onPlaced callbacks never fire either).
+        val probe = subcompose("probe") {
+            Row(
+                modifier = Modifier.clearAndSetSemantics { },
+                horizontalArrangement = Arrangement.spacedBy(gapPx.toDp()),
+            ) { content(true) }
+        }.first()
+        val showCounts = probe.maxIntrinsicWidth(Constraints.Infinity) <= available
+        val measurables = subcompose(showCounts) { content(showCounts) }
+        val naturalWidths = natural(measurables)
+        val count = measurables.size
+        val sum = total(naturalWidths)
+        val fits = sum <= available
+        val extra = if (fits) available - sum else 0
         val height = measurables.indices.maxOf { measurables[it].maxIntrinsicHeight(naturalWidths[it]) }
 
         val placeables = measurables.mapIndexed { i, measurable ->
             val share = extra / count + if (i == count - 1) extra % count else 0
-            val width = naturalWidths[i] + share
-            measurable.measure(Constraints.fixed(width, height))
+            measurable.measure(Constraints.fixed(naturalWidths[i] + share, height))
         }
-        val width = if (fits) viewportPx else total + 2 * gutterPx
+        val width = if (fits) viewportPx else sum + 2 * gutterPx
         layout(width, height) {
             var x = gutterPx
             placeables.forEach {
