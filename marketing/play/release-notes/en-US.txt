@@ -1,7 +1,7 @@
-What's new in 1.12.0
+What's new in 1.13.0
 
-• A completely new icon and refreshed Material 3 styling
-• Better Masked Email API compatibility for domains, descriptions and clearing links
-• More reliable Pro purchases with clear Google Play error handling
-• Interrupted urgent updates now resume correctly
-• A clearer, retryable message when the mask-creation limit is reached
+• A full Material 3 Expressive redesign: every screen rebuilt, with springy motion and shapes that morph as you go
+• FastMask now takes its colors from your wallpaper; Pro adds five color themes
+• New "Random mask" in the + menu: a fresh address in one tap
+• Masks grouped by when you made them, with a faster search and filters
+• Google Sans Flex type and a new app icon, ready for themed icons
