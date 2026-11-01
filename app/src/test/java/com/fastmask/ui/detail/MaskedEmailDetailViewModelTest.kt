@@ -278,6 +278,35 @@ class MaskedEmailDetailViewModelTest {
         }
     }
 
+    // A save that lands while the first network load is still parked used to skip
+    // its post-save reload (loadInFlight), so nothing refreshed after the write and
+    // the screen kept whatever the earlier, older fetch returned. The reload is
+    // now queued behind the in-flight one.
+    @Test
+    fun `a save during an in-flight load still reloads afterwards`() = runTest {
+        val release = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", description = "cached copy")),
+            cached = CachedMasks(masks = listOf(mask("m1", description = "cached copy")), cachedAt = Instant.now()),
+        ).apply { beforeGetSingle = { if (getSingleCalls == 1) release.await() } }
+        val viewModel = vm(repo)
+        runCurrent() // cache seed rendered; first network load parked
+
+        viewModel.onDescriptionChange("edited")
+        viewModel.saveChanges()
+        runCurrent()
+        assertEquals(1, repo.updateCalls)
+        assertEquals(1, repo.getSingleCalls)
+
+        repo.emails = listOf(mask("m1", description = "edited"))
+        release.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals("the post-save reload must still run", 2, repo.getSingleCalls)
+        assertNull(viewModel.uiState.value.updateOperation)
+        assertEquals("edited", viewModel.uiState.value.email?.description)
+    }
+
     @Test
     fun `network failure keeps cached content and degrades to inline error`() = runTest {
         val repo = FakeMaskedEmailRepository(
