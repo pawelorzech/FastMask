@@ -1,5 +1,6 @@
-Nowości w 1.13.1
+Nowości w 1.13.2
 
-• FastMask nie zagląda już do schowka po otwarciu ekranu logowania; czyta go tylko po dotknięciu Wklej
-• Filtry zawsze mieszczą się na ekranie, a nagłówek wygląda dobrze przy przewijaniu
-• Adresy na liście nie łamią się już w połowie nazwy
+• Archiwizacja wszędzie nazywa się archiwizacją, a czas jest podawany naturalnie w każdym języku
+• Lepszy układ w poziomie i na tabletach
+• Dużo mniejszy plik do pobrania
+• Drobne poprawki dla dużej czcionki i ekranu Pro

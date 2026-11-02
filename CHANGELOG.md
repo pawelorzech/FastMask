@@ -4,6 +4,21 @@ All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
 
+## [1.13.2] — 2026-11-02
+
+### Fixed
+- Archiving says "archive" in every language. Eighteen translations called it "delete" and warned the action could not be undone; archived masks can always be restored.
+- Relative times ("5 months ago") read naturally in every language instead of English abbreviations like "vor 5mo"; they now come from the system's localized formatter.
+- Landscape gives the list most of the screen; on tablets and other wide windows, lists and forms keep a readable width.
+- The demo banner stays compact at large font sizes.
+- The Pro screen celebrates only a purchase made on it, not an existing Pro owner opening it.
+
+### Changed
+- The bundled Google Sans Flex font is subset to the axes and scripts the app uses (3.9 MB → 253 KB), shrinking the download.
+
+### Build
+- `versionCode` 27 → 28, `versionName` "1.13.1" → "1.13.2".
+
 ## [1.13.1] — 2026-11-01
 
 ### Fixed
