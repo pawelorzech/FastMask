@@ -1,0 +1,68 @@
+<!-- Play feature graphic source (1024x500). Edit here, then render from the repo root:
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars --force-device-scale-factor=1 \
+    --allow-file-access-from-files --window-size=1024,500 --virtual-time-budget=4000 --screenshot=/tmp/fg.png "file://$PWD/marketing/play/feature-graphic.html"
+  magick /tmp/fg.png -crop 1024x500+0+0 +repage -alpha off -depth 8 PNG24:<output.png>
+  Keep logo, name and tagline inside x 96-928: the developer-page card crops ~68 px per side (16:9 cover). Open with #guides to see the zones. -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:"Google Sans Flex";src:url(../../tools/brand/fonts/GoogleSansFlex-full.ttf);font-weight:1 1000}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1024px;height:500px;overflow:hidden;background:#888}
+.c{position:relative;width:1024px;height:500px;overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.c>svg.art{position:absolute;inset:0}
+.copy{position:absolute;left:100px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
+
+/* debug guides: open with #guides */
+.guide{display:none;position:absolute;inset:0;pointer-events:none;z-index:99}
+.guides .guide{display:block}
+.guide .cut{position:absolute;top:0;bottom:0;width:68px;background:rgba(255,0,0,.35)}
+.guide .safe{position:absolute;left:96px;top:48px;right:96px;bottom:48px;outline:2px dashed rgba(255,0,0,.8)}
+</style><style>
+.c{background:linear-gradient(125deg,#E7811A 0%,#D06A06 50%,#B95600 100%)}
+.wm{font:780 102px/0.95 "Google Sans Flex";letter-spacing:-3px;color:#FFF3E3;font-variation-settings:"ROND" 100}
+.tag{margin-top:26px;font:560 46px/1.1 "Google Sans Flex";letter-spacing:-.6px;color:#FFE1BE;font-variation-settings:"ROND" 60}
+.row{position:absolute;width:316px;height:94px;border-radius:30px;background:#FFF4E6;display:flex;align-items:center;padding:0 18px;gap:16px;box-shadow:0 18px 40px rgba(90,35,0,.28)}
+.row svg{flex:none}
+.d{font:720 25px/1.15 "Google Sans Flex";color:#5A2600}
+.a{font:500 19px/1.2 "Google Sans Flex";color:#8A5A36}
+.pill{margin-left:auto;font:700 16px/1 "Google Sans Flex";border-radius:99px;padding:9px 13px}
+</style></head><body><div class="c">
+<svg class="art" width="1024" height="500"><path data-cookie="770,250,290,9,0.06,0" fill="#FFE6C9" opacity=".14"/></svg>
+<div class="copy"><div class="wm">FastMask</div><div class="tag">A fresh address<br>for every site.</div></div>
+<div class="row" style="left:568px;top:76px;transform:rotate(-3deg)">
+ <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#7A3300"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#FFE6C9">S</text></svg>
+ <div><div class="d">shop.example</div><div class="a">maple.otter81@…</div></div><span class="pill" style="background:#FFD9A8;color:#6A2E00">Active</span></div>
+<div class="row" style="left:590px;top:200px;transform:rotate(1.5deg)">
+ <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#4E6B3A"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#E8F2DC">N</text></svg>
+ <div><div class="d">news.example</div><div class="a">quiet.heron07@…</div></div><span class="pill" style="background:#FFD9A8;color:#6A2E00">Active</span></div>
+<div class="row" style="left:572px;top:324px;transform:rotate(-2deg)">
+ <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#6B3A64"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#F6E3F1">T</text></svg>
+ <div><div class="d">trial.example</div><div class="a">rusty.lynx33@…</div></div><span class="pill" style="background:#EADFD5;color:#6E5442">Off</span></div>
+</div><script>
+// Cookie / scallop shapes (MaterialShapes-like) drawn as polar curves: data-cookie="cx,cy,R,lobes,amp,rot"
+function cookie(cx, cy, R, n, amp, rot = 0) {
+  let d = ""
+  const N = 480
+  for (let i = 0; i <= N; i++) {
+    const t = (i / N) * 2 * Math.PI
+    const r = R * (1 + amp * Math.cos(n * (t + rot)))
+    d += (i ? "L" : "M") + (cx + r * Math.cos(t)).toFixed(2) + " " + (cy + r * Math.sin(t)).toFixed(2)
+  }
+  return d + "Z"
+}
+document.querySelectorAll("[data-cookie]").forEach((p) => {
+  const [cx, cy, R, n, amp, rot] = p.dataset.cookie.split(",").map(Number)
+  p.setAttribute("d", cookie(cx, cy, R, n, amp, rot || 0))
+})
+// locale swap: ?lang=pl replaces [data-pl] innerHTML
+const lang = new URLSearchParams(location.search).get("lang")
+if (lang) document.querySelectorAll(`[data-${lang}]`).forEach((el) => (el.innerHTML = el.dataset[lang]))
+// guides
+if (location.hash === "#guides") document.body.classList.add("guides")
+document.querySelectorAll(".c").forEach((c) => {
+  const g = document.createElement("div")
+  g.className = "guide"
+  g.innerHTML = '<div class="cut" style="left:0"></div><div class="cut" style="right:0"></div><div class="safe"></div>'
+  c.appendChild(g)
+})
+</script></body></html>
