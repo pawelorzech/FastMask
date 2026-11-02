@@ -114,6 +114,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavBackStackEntry
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.connectedToggleShapes
@@ -410,6 +412,7 @@ private fun DetailBody(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
+            .readableWidth(ContentWidth.Form)
             .padding(bottom = 32.dp),
     ) {
         Hero(email = email)

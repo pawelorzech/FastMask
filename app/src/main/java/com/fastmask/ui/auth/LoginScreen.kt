@@ -81,6 +81,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
@@ -192,6 +194,7 @@ internal fun LoginContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .readableWidth(ContentWidth.Form)
                 .padding(horizontal = 24.dp)
                 .padding(top = 4.dp, bottom = 32.dp),
         ) {

@@ -1,5 +1,6 @@
-What's new in 1.13.1
+What's new in 1.13.2
 
-• FastMask no longer peeks at your clipboard when you open the sign-in screen; it reads it only when you tap Paste
-• Filters always fit on screen, and the header looks right while scrolling
-• Addresses in the list no longer break in the middle of the name
+• Archiving is called archiving in every language, and relative times read naturally
+• Better layouts in landscape and on tablets
+• A much smaller download
+• Small fixes for large font sizes and the Pro screen

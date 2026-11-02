@@ -39,7 +39,7 @@
     <string name="filter_all">Tất cả</string>
     <string name="filter_enabled">Đang hoạt động</string>
     <string name="filter_disabled">Đã tắt</string>
-    <string name="filter_deleted">Đã xóa</string>
+    <string name="filter_deleted">Đã lưu trữ</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Tạo email ẩn danh</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Chi tiết email</string>
     <string name="email_detail_copy_email">Sao chép địa chỉ email</string>
-    <string name="email_detail_delete">Xóa email</string>
+    <string name="email_detail_delete">Lưu trữ mặt nạ</string>
     <string name="email_detail_status">Trạng thái:</string>
     <string name="email_detail_created_by">Tạo bởi</string>
     <string name="email_detail_created">Ngày tạo</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Lưu thay đổi</string>
     <string name="email_detail_updated">Cập nhật thành công</string>
-    <string name="email_detail_deleted">Xóa thành công</string>
+    <string name="email_detail_deleted">Đã lưu trữ</string>
     <string name="email_detail_copied">Đã sao chép vào clipboard</string>
-    <string name="email_detail_delete_dialog_title">Xóa email ẩn danh</string>
-    <string name="email_detail_delete_dialog_message">Bạn có chắc muốn xóa email ẩn danh này? Hành động này không thể hoàn tác.</string>
-    <string name="email_detail_delete_confirm">Xóa</string>
+    <string name="email_detail_delete_dialog_title">Lưu trữ mặt nạ này?</string>
+    <string name="email_detail_delete_dialog_message">Thư gửi tới địa chỉ này sẽ bị trả lại. Bạn có thể khôi phục mặt nạ sau.</string>
+    <string name="email_detail_delete_confirm">Lưu trữ</string>
     <string name="email_detail_delete_cancel">Hủy</string>
 
     <!-- Email States -->
     <string name="state_enabled">Đang hoạt động</string>
     <string name="state_disabled">Đã tắt</string>
-    <string name="state_deleted">Đã xóa</string>
+    <string name="state_deleted">Đã lưu trữ</string>
     <string name="state_pending">Đang chờ</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">Không thể lưu trữ</string>
     <string name="time_never">không bao giờ</string>
     <string name="time_just_now">vừa mới</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%dp trước</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%dg trước</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%dn trước</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%dtu trước</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%dth trước</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%dna trước</item>
-    </plurals>
     <string name="welcome_signin_cta">Đăng nhập bằng Fastmail</string>
     <string name="welcome_demo_cta">Thử phiên bản demo</string>
     <string name="welcome_tagline">Một nơi yên tĩnh cho các địa chỉ email ẩn danh của bạn.</string>

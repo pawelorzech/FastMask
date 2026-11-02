@@ -39,7 +39,7 @@
     <string name="filter_all">Tutte</string>
     <string name="filter_enabled">Attive</string>
     <string name="filter_disabled">Disattivate</string>
-    <string name="filter_deleted">Eliminate</string>
+    <string name="filter_deleted">Archiviate</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Crea email mascherata</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Dettagli email</string>
     <string name="email_detail_copy_email">Copia indirizzo email</string>
-    <string name="email_detail_delete">Elimina email</string>
+    <string name="email_detail_delete">Archivia maschera</string>
     <string name="email_detail_status">Stato:</string>
     <string name="email_detail_created_by">Creata da</string>
     <string name="email_detail_created">Creata</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Salva modifiche</string>
     <string name="email_detail_updated">Aggiornato con successo</string>
-    <string name="email_detail_deleted">Eliminato con successo</string>
+    <string name="email_detail_deleted">Archiviata</string>
     <string name="email_detail_copied">Copiato negli appunti</string>
-    <string name="email_detail_delete_dialog_title">Elimina email mascherata</string>
-    <string name="email_detail_delete_dialog_message">Sei sicuro di voler eliminare questa email mascherata? Questa azione non può essere annullata.</string>
-    <string name="email_detail_delete_confirm">Elimina</string>
+    <string name="email_detail_delete_dialog_title">Archiviare questa maschera?</string>
+    <string name="email_detail_delete_dialog_message">La posta inviata a questo indirizzo verrà respinta. Potrai ripristinarla in seguito.</string>
+    <string name="email_detail_delete_confirm">Archivia</string>
     <string name="email_detail_delete_cancel">Annulla</string>
 
     <!-- Email States -->
     <string name="state_enabled">Attiva</string>
     <string name="state_disabled">Disattivata</string>
-    <string name="state_deleted">Eliminata</string>
+    <string name="state_deleted">Archiviata</string>
     <string name="state_pending">In attesa</string>
 
     <!-- Error Messages -->
@@ -149,36 +149,6 @@
     <string name="email_detail_error_delete">Impossibile archiviare</string>
     <string name="time_never">mai</string>
     <string name="time_just_now">proprio ora</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dmin fa</item>
-        <item quantity="many">%dmin fa</item>
-        <item quantity="other">%dmin fa</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%dh fa</item>
-        <item quantity="many">%dh fa</item>
-        <item quantity="other">%dh fa</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dg fa</item>
-        <item quantity="many">%dg fa</item>
-        <item quantity="other">%dg fa</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%ds fa</item>
-        <item quantity="many">%ds fa</item>
-        <item quantity="other">%ds fa</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dm fa</item>
-        <item quantity="many">%dm fa</item>
-        <item quantity="other">%dm fa</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%da fa</item>
-        <item quantity="many">%da fa</item>
-        <item quantity="other">%da fa</item>
-    </plurals>
     <string name="welcome_signin_cta">Accedi con Fastmail</string>
     <string name="welcome_demo_cta">Prova la demo</string>
     <string name="welcome_tagline">Un posto tranquillo per i tuoi indirizzi mascherati.</string>

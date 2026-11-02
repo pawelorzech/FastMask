@@ -39,7 +39,7 @@
     <string name="filter_all">Все</string>
     <string name="filter_enabled">Активные</string>
     <string name="filter_disabled">Отключённые</string>
-    <string name="filter_deleted">Удалённые</string>
+    <string name="filter_deleted">Архивные</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Создать маску email</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Детали email</string>
     <string name="email_detail_copy_email">Копировать адрес email</string>
-    <string name="email_detail_delete">Удалить email</string>
+    <string name="email_detail_delete">Архивировать маску</string>
     <string name="email_detail_status">Статус:</string>
     <string name="email_detail_created_by">Создано</string>
     <string name="email_detail_created">Создано</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Сохранить изменения</string>
     <string name="email_detail_updated">Успешно обновлено</string>
-    <string name="email_detail_deleted">Успешно удалено</string>
+    <string name="email_detail_deleted">Архивировано</string>
     <string name="email_detail_copied">Скопировано в буфер обмена</string>
-    <string name="email_detail_delete_dialog_title">Удалить маску email</string>
-    <string name="email_detail_delete_dialog_message">Вы уверены, что хотите удалить эту маску email? Это действие нельзя отменить.</string>
-    <string name="email_detail_delete_confirm">Удалить</string>
+    <string name="email_detail_delete_dialog_title">Архивировать эту маску?</string>
+    <string name="email_detail_delete_dialog_message">Письма на этот адрес будут отклоняться. Маску можно восстановить позже.</string>
+    <string name="email_detail_delete_confirm">Архивировать</string>
     <string name="email_detail_delete_cancel">Отмена</string>
 
     <!-- Email States -->
     <string name="state_enabled">Активна</string>
     <string name="state_disabled">Отключена</string>
-    <string name="state_deleted">Удалена</string>
+    <string name="state_deleted">Архивирована</string>
     <string name="state_pending">Ожидание</string>
 
     <!-- Error Messages -->
@@ -149,42 +149,6 @@
     <string name="email_detail_error_delete">Не удалось архивировать</string>
     <string name="time_never">никогда</string>
     <string name="time_just_now">только что</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dм назад</item>
-        <item quantity="few">%dм назад</item>
-        <item quantity="many">%dм назад</item>
-        <item quantity="other">%dм назад</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%dч назад</item>
-        <item quantity="few">%dч назад</item>
-        <item quantity="many">%dч назад</item>
-        <item quantity="other">%dч назад</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dд назад</item>
-        <item quantity="few">%dд назад</item>
-        <item quantity="many">%dд назад</item>
-        <item quantity="other">%dд назад</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%dн назад</item>
-        <item quantity="few">%dн назад</item>
-        <item quantity="many">%dн назад</item>
-        <item quantity="other">%dн назад</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dмес назад</item>
-        <item quantity="few">%dмес назад</item>
-        <item quantity="many">%dмес назад</item>
-        <item quantity="other">%dмес назад</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%dг назад</item>
-        <item quantity="few">%dг назад</item>
-        <item quantity="many">%dг назад</item>
-        <item quantity="other">%dг назад</item>
-    </plurals>
     <string name="welcome_signin_cta">Войти с помощью Fastmail</string>
     <string name="welcome_demo_cta">Попробовать демо</string>
     <string name="welcome_tagline">Тихое место для ваших защищённых адресов.</string>

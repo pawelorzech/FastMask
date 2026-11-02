@@ -39,7 +39,7 @@
     <string name="filter_all">전체</string>
     <string name="filter_enabled">활성화됨</string>
     <string name="filter_disabled">비활성화됨</string>
-    <string name="filter_deleted">삭제됨</string>
+    <string name="filter_deleted">보관됨</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">마스크 이메일 생성</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">이메일 상세</string>
     <string name="email_detail_copy_email">이메일 주소 복사</string>
-    <string name="email_detail_delete">이메일 삭제</string>
+    <string name="email_detail_delete">마스크 보관</string>
     <string name="email_detail_status">상태:</string>
     <string name="email_detail_created_by">생성자</string>
     <string name="email_detail_created">생성일</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">변경 사항 저장</string>
     <string name="email_detail_updated">업데이트 완료</string>
-    <string name="email_detail_deleted">삭제 완료</string>
+    <string name="email_detail_deleted">보관됨</string>
     <string name="email_detail_copied">클립보드에 복사됨</string>
-    <string name="email_detail_delete_dialog_title">마스크 이메일 삭제</string>
-    <string name="email_detail_delete_dialog_message">이 마스크 이메일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</string>
-    <string name="email_detail_delete_confirm">삭제</string>
+    <string name="email_detail_delete_dialog_title">이 마스크를 보관할까요?</string>
+    <string name="email_detail_delete_dialog_message">이 주소로 보낸 메일은 반송됩니다. 마스크는 나중에 복원할 수 있습니다.</string>
+    <string name="email_detail_delete_confirm">보관</string>
     <string name="email_detail_delete_cancel">취소</string>
 
     <!-- Email States -->
     <string name="state_enabled">활성화됨</string>
     <string name="state_disabled">비활성화됨</string>
-    <string name="state_deleted">삭제됨</string>
+    <string name="state_deleted">보관됨</string>
     <string name="state_pending">대기 중</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">보관할 수 없음</string>
     <string name="time_never">없음</string>
     <string name="time_just_now">방금</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%d분 전</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%d시간 전</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%d일 전</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%d주 전</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%d개월 전</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%d년 전</item>
-    </plurals>
     <string name="welcome_signin_cta">Fastmail로 로그인</string>
     <string name="welcome_demo_cta">데모 시도</string>
     <string name="welcome_tagline">마스크 주소를 위한 조용한 장소입니다.</string>

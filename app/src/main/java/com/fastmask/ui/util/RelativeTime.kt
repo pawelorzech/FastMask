@@ -1,7 +1,11 @@
 package com.fastmask.ui.util
 
+import android.icu.text.DisplayContext
+import android.icu.text.RelativeDateTimeFormatter
+import android.icu.text.RelativeDateTimeFormatter.RelativeUnit
+import android.icu.util.ULocale
+
 import android.content.Context
-import androidx.annotation.PluralsRes
 import com.fastmask.R
 import java.time.Instant
 import java.time.ZoneId
@@ -12,22 +16,15 @@ import java.util.Locale
 object RelativeTime {
 
     /**
-     * The six "N units ago" labels are `<plurals>`, not `<string>`, and are read
-     * with [android.content.res.Resources.getQuantityString].
+     * "N units ago" comes from the platform's ICU [RelativeDateTimeFormatter] (short
+     * style) in the app's current locale, not from string resources.
      *
-     * `getString(id, count)` substitutes a number into one fixed sentence. That
-     * is only safe when the unit noun does not change shape with the count —
-     * true for the English abbreviations the resources were written as ("%dm
-     * ago"), false the moment a translator spells the noun out. Polish did, and
-     * shipped `%d lat temu`: the genitive plural, right for 5 and above, wrong
-     * for the 1 to 4 a mask card shows most of the time ("3 lat temu").
-     *
-     * Most locales here still read as one invariant abbreviation, so their
-     * plural items are identical by design — the categories exist so a
-     * translator has a slot to differ in, not because every language does.
-     * The resource type has to be the same in all twenty locales anyway: a
-     * `<string>` left behind would resolve against the default language, and an
-     * Arabic user would get English.
+     * Hand-written abbreviations did not survive translation: most locales shipped
+     * English unit letters ("vor 5mo", "hace 5mo", "il y a 5mo", Turkish "5y önce"),
+     * and Italian/Portuguese used "m" for both minutes and months. ICU carries CLDR's
+     * reviewed short forms and plural rules for every locale the app supports
+     * ("vor 5 Mon.", "il y a 5 mois", "5 мес. назад", "5 か月前"). Only "never" and
+     * "just now" stay as resources.
      */
     fun format(context: Context, instant: Instant?, nowSec: Long = Instant.now().epochSecond): String {
         val bucket = RelativeTimeBuckets.of(
@@ -42,18 +39,22 @@ object RelativeTime {
         return when (bucket.unit) {
             RelativeTimeUnit.NEVER -> context.getString(R.string.time_never)
             RelativeTimeUnit.JUST_NOW -> context.getString(R.string.time_just_now)
-            RelativeTimeUnit.MINUTES -> context.quantity(R.plurals.time_min_ago, count)
-            RelativeTimeUnit.HOURS -> context.quantity(R.plurals.time_hour_ago, count)
-            RelativeTimeUnit.DAYS -> context.quantity(R.plurals.time_day_ago, count)
-            RelativeTimeUnit.WEEKS -> context.quantity(R.plurals.time_week_ago, count)
-            RelativeTimeUnit.MONTHS -> context.quantity(R.plurals.time_month_ago, count)
-            RelativeTimeUnit.YEARS -> context.quantity(R.plurals.time_year_ago, count)
+            RelativeTimeUnit.MINUTES -> context.ago(count, RelativeUnit.MINUTES)
+            RelativeTimeUnit.HOURS -> context.ago(count, RelativeUnit.HOURS)
+            RelativeTimeUnit.DAYS -> context.ago(count, RelativeUnit.DAYS)
+            RelativeTimeUnit.WEEKS -> context.ago(count, RelativeUnit.WEEKS)
+            RelativeTimeUnit.MONTHS -> context.ago(count, RelativeUnit.MONTHS)
+            RelativeTimeUnit.YEARS -> context.ago(count, RelativeUnit.YEARS)
         }
     }
 
-    /** [count] is both the category selector and the number the label prints. */
-    private fun Context.quantity(@PluralsRes id: Int, count: Int): String =
-        resources.getQuantityString(id, count, count)
+    /** Short "N [unit] ago" in the locale the app is currently displayed in. */
+    private fun Context.ago(count: Int, unit: RelativeUnit): String {
+        val locale = resources.configuration.locales[0]
+        return RelativeDateTimeFormatter
+            .getInstance(ULocale.forLocale(locale), null, RelativeDateTimeFormatter.Style.SHORT, DisplayContext.CAPITALIZATION_NONE)
+            .format(count.toDouble(), RelativeDateTimeFormatter.Direction.LAST, unit)
+    }
 
     private val fullFormatter = DateTimeFormatter
         .ofLocalizedDateTime(FormatStyle.MEDIUM)

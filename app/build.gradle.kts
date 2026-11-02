@@ -41,8 +41,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 36
-        versionCode = 27
-        versionName = "1.13.1"
+        versionCode = 28
+        versionName = "1.13.2"
 
         // Hilt needs its own Application in instrumented tests; HiltTestRunner
         // swaps FastMaskApplication for HiltTestApplication.
@@ -161,6 +161,11 @@ gradle.taskGraph.whenReady {
                 "property (Play Console → Monetization setup → Licensing)."
         )
     }
+}
+
+// FontSubsetTest reads the bundled font by path; declare it so Gradle reruns the test when it changes.
+tasks.withType<Test>().configureEach {
+    inputs.file("src/main/res/font/google_sans_flex.ttf")
 }
 
 dependencies {

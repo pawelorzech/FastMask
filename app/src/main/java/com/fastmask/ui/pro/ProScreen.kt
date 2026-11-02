@@ -77,6 +77,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProProduct
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -99,14 +101,6 @@ fun ProScreen(
     val activity = context as? Activity
     val haptic = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
-
-    // The hero bursts only for a purchase that happens while this screen is
-    // open, not when an owner simply opens it.
-    val alreadyPro = remember { uiState.status == ProStatus.PRO }
-    var celebrate by remember { mutableStateOf(false) }
-    LaunchedEffect(uiState.status) {
-        if (uiState.status == ProStatus.PRO && !alreadyPro) celebrate = true
-    }
 
     val messages = ProMessages(
         purchaseCompleted = stringResource(R.string.pro_purchase_success),
@@ -158,7 +152,7 @@ fun ProScreen(
     ProContent(
         state = uiState,
         snackbarHostState = snackbarHostState,
-        celebrate = celebrate,
+        celebrate = uiState.celebrate,
         // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
         // gesture/system back counts too, not just this button.
         onClose = onNavigateBack,
@@ -234,6 +228,7 @@ internal fun ProContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(scroll)
+                .readableWidth(ContentWidth.Form)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -39,7 +39,7 @@
     <string name="filter_all">Усі</string>
     <string name="filter_enabled">Активні</string>
     <string name="filter_disabled">Вимкнені</string>
-    <string name="filter_deleted">Видалені</string>
+    <string name="filter_deleted">Архівні</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Створити маску email</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Деталі email</string>
     <string name="email_detail_copy_email">Копіювати адресу email</string>
-    <string name="email_detail_delete">Видалити email</string>
+    <string name="email_detail_delete">Архівувати маску</string>
     <string name="email_detail_status">Статус:</string>
     <string name="email_detail_created_by">Створено</string>
     <string name="email_detail_created">Створено</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Зберегти зміни</string>
     <string name="email_detail_updated">Успішно оновлено</string>
-    <string name="email_detail_deleted">Успішно видалено</string>
+    <string name="email_detail_deleted">Архівовано</string>
     <string name="email_detail_copied">Скопійовано до буфера обміну</string>
-    <string name="email_detail_delete_dialog_title">Видалити маску email</string>
-    <string name="email_detail_delete_dialog_message">Ви впевнені, що хочете видалити цю маску email? Цю дію не можна скасувати.</string>
-    <string name="email_detail_delete_confirm">Видалити</string>
+    <string name="email_detail_delete_dialog_title">Архівувати цю маску?</string>
+    <string name="email_detail_delete_dialog_message">Листи на цю адресу відхилятимуться. Маску можна відновити пізніше.</string>
+    <string name="email_detail_delete_confirm">Архівувати</string>
     <string name="email_detail_delete_cancel">Скасувати</string>
 
     <!-- Email States -->
     <string name="state_enabled">Активна</string>
     <string name="state_disabled">Вимкнена</string>
-    <string name="state_deleted">Видалена</string>
+    <string name="state_deleted">Архівована</string>
     <string name="state_pending">Очікування</string>
 
     <!-- Error Messages -->
@@ -149,42 +149,6 @@
     <string name="email_detail_error_delete">Не вдалося архівувати</string>
     <string name="time_never">ніколи</string>
     <string name="time_just_now">щойно</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dх тому</item>
-        <item quantity="few">%dх тому</item>
-        <item quantity="many">%dх тому</item>
-        <item quantity="other">%dх тому</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%dг тому</item>
-        <item quantity="few">%dг тому</item>
-        <item quantity="many">%dг тому</item>
-        <item quantity="other">%dг тому</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dд тому</item>
-        <item quantity="few">%dд тому</item>
-        <item quantity="many">%dд тому</item>
-        <item quantity="other">%dд тому</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%dт тому</item>
-        <item quantity="few">%dт тому</item>
-        <item quantity="many">%dт тому</item>
-        <item quantity="other">%dт тому</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dм тому</item>
-        <item quantity="few">%dм тому</item>
-        <item quantity="many">%dм тому</item>
-        <item quantity="other">%dм тому</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%dр тому</item>
-        <item quantity="few">%dр тому</item>
-        <item quantity="many">%dр тому</item>
-        <item quantity="other">%dр тому</item>
-    </plurals>
     <string name="welcome_signin_cta">Увійти з Fastmail</string>
     <string name="welcome_demo_cta">Спробувати демо</string>
     <string name="welcome_tagline">Тихе місце для ваших замаскованих адрес.</string>

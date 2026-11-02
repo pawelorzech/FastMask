@@ -39,7 +39,7 @@
     <string name="filter_all">सभी</string>
     <string name="filter_enabled">सक्षम</string>
     <string name="filter_disabled">अक्षम</string>
-    <string name="filter_deleted">हटाए गए</string>
+    <string name="filter_deleted">संग्रहीत</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">मास्क्ड ईमेल बनाएं</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">ईमेल विवरण</string>
     <string name="email_detail_copy_email">ईमेल पता कॉपी करें</string>
-    <string name="email_detail_delete">ईमेल हटाएं</string>
+    <string name="email_detail_delete">मास्क संग्रहीत करें</string>
     <string name="email_detail_status">स्थिति:</string>
     <string name="email_detail_created_by">बनाने वाला</string>
     <string name="email_detail_created">बनाया गया</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">परिवर्तन सहेजें</string>
     <string name="email_detail_updated">सफलतापूर्वक अपडेट किया गया</string>
-    <string name="email_detail_deleted">सफलतापूर्वक हटाया गया</string>
+    <string name="email_detail_deleted">संग्रहीत किया गया</string>
     <string name="email_detail_copied">क्लिपबोर्ड पर कॉपी किया गया</string>
-    <string name="email_detail_delete_dialog_title">मास्क्ड ईमेल हटाएं</string>
-    <string name="email_detail_delete_dialog_message">क्या आप वाकई इस मास्क्ड ईमेल को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।</string>
-    <string name="email_detail_delete_confirm">हटाएं</string>
+    <string name="email_detail_delete_dialog_title">इस मास्क को संग्रहीत करें?</string>
+    <string name="email_detail_delete_dialog_message">इस पते पर भेजे गए ईमेल वापस लौट जाएंगे। आप मास्क को बाद में पुनर्स्थापित कर सकते हैं।</string>
+    <string name="email_detail_delete_confirm">संग्रहीत करें</string>
     <string name="email_detail_delete_cancel">रद्द करें</string>
 
     <!-- Email States -->
     <string name="state_enabled">सक्षम</string>
     <string name="state_disabled">अक्षम</string>
-    <string name="state_deleted">हटाया गया</string>
+    <string name="state_deleted">संग्रहीत</string>
     <string name="state_pending">लंबित</string>
 
     <!-- Error Messages -->
@@ -149,30 +149,6 @@
     <string name="email_detail_error_delete">आर्काइव नहीं किया जा सका</string>
     <string name="time_never">कभी नहीं</string>
     <string name="time_just_now">अभी</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dm पहले</item>
-        <item quantity="other">%dm पहले</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%dh पहले</item>
-        <item quantity="other">%dh पहले</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dd पहले</item>
-        <item quantity="other">%dd पहले</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%dw पहले</item>
-        <item quantity="other">%dw पहले</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dmo पहले</item>
-        <item quantity="other">%dmo पहले</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%dy पहले</item>
-        <item quantity="other">%dy पहले</item>
-    </plurals>
     <string name="welcome_signin_cta">Fastmail के साथ साइन इन करें</string>
     <string name="welcome_demo_cta">डेमो आजमाएं</string>
     <string name="welcome_tagline">आपके मास्क्ड पतों के लिए एक शांत जगह।</string>

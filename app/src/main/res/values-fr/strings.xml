@@ -39,7 +39,7 @@
     <string name="filter_all">Tous</string>
     <string name="filter_enabled">Activés</string>
     <string name="filter_disabled">Désactivés</string>
-    <string name="filter_deleted">Supprimés</string>
+    <string name="filter_deleted">Archivés</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Créer un email masqué</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Détails de l\'email</string>
     <string name="email_detail_copy_email">Copier l\'adresse email</string>
-    <string name="email_detail_delete">Supprimer l\'email</string>
+    <string name="email_detail_delete">Archiver le masque</string>
     <string name="email_detail_status">Statut :</string>
     <string name="email_detail_created_by">Créé par</string>
     <string name="email_detail_created">Créé</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Enregistrer les modifications</string>
     <string name="email_detail_updated">Mis à jour avec succès</string>
-    <string name="email_detail_deleted">Supprimé avec succès</string>
+    <string name="email_detail_deleted">Archivé</string>
     <string name="email_detail_copied">Copié dans le presse-papiers</string>
-    <string name="email_detail_delete_dialog_title">Supprimer l\'email masqué</string>
-    <string name="email_detail_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cet email masqué ? Cette action est irréversible.</string>
-    <string name="email_detail_delete_confirm">Supprimer</string>
+    <string name="email_detail_delete_dialog_title">Archiver ce masque ?</string>
+    <string name="email_detail_delete_dialog_message">Les e-mails envoyés à cette adresse seront rejetés. Vous pourrez le restaurer plus tard.</string>
+    <string name="email_detail_delete_confirm">Archiver</string>
     <string name="email_detail_delete_cancel">Annuler</string>
 
     <!-- Email States -->
     <string name="state_enabled">Activé</string>
     <string name="state_disabled">Désactivé</string>
-    <string name="state_deleted">Supprimé</string>
+    <string name="state_deleted">Archivé</string>
     <string name="state_pending">En attente</string>
 
     <!-- Error Messages -->
@@ -149,36 +149,6 @@
     <string name="email_detail_error_delete">Impossible d\'archiver</string>
     <string name="time_never">jamais</string>
     <string name="time_just_now">à l\'instant</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">il y a %dm</item>
-        <item quantity="many">il y a %dm</item>
-        <item quantity="other">il y a %dm</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">il y a %dh</item>
-        <item quantity="many">il y a %dh</item>
-        <item quantity="other">il y a %dh</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">il y a %dd</item>
-        <item quantity="many">il y a %dd</item>
-        <item quantity="other">il y a %dd</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">il y a %dw</item>
-        <item quantity="many">il y a %dw</item>
-        <item quantity="other">il y a %dw</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">il y a %dmo</item>
-        <item quantity="many">il y a %dmo</item>
-        <item quantity="other">il y a %dmo</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">il y a %dy</item>
-        <item quantity="many">il y a %dy</item>
-        <item quantity="other">il y a %dy</item>
-    </plurals>
     <string name="welcome_signin_cta">Se connecter avec Fastmail</string>
     <string name="welcome_demo_cta">Essayez la démo</string>
     <string name="welcome_tagline">Un endroit tranquille pour vos adresses masquées.</string>

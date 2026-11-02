@@ -42,10 +42,6 @@ object TokenFormat {
      */
     fun sanitizePasted(raw: String): String = sanitize(raw).take(MAX_PASTED_CHARS)
 
-    /** True when the sanitized [raw] has the recognizable Fastmail token shape. */
-    fun looksLikeToken(raw: String): Boolean =
-        sanitize(raw).startsWith(FASTMAIL_TOKEN_PREFIX, ignoreCase = true)
-
     /**
      * True when [raw] carries content that does not look like a token — the
      * trigger for a soft, non-blocking warning. Blank input is *not* warned
@@ -53,6 +49,7 @@ object TokenFormat {
      */
     fun shouldWarn(raw: String): Boolean {
         val sanitized = sanitize(raw)
-        return sanitized.isNotEmpty() && !looksLikeToken(raw)
+        return sanitized.isNotEmpty() &&
+            !sanitized.startsWith(FASTMAIL_TOKEN_PREFIX, ignoreCase = true)
     }
 }

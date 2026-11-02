@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -133,7 +134,49 @@ class ProViewModelTest {
         assertEquals(ProStatus.PRO, vm.uiState.value.status)
     }
 
+    // --- the "you are Pro" celebration ---------------------------------------
+
     @Test
+    fun `an owner whose entitlement loads after the screen opened does not celebrate`() = runTest {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        // The cached entitlement is seeded asynchronously: FREE first, then PRO.
+        repository.statusFlow.value = ProStatus.PRO
+        advanceUntilIdle()
+
+        assertEquals(ProStatus.PRO, vm.uiState.value.status)
+        assertFalse(vm.uiState.value.celebrate)
+    }
+
+    @Test
+    fun `a purchase completed during this screen session celebrates`() = runTest {
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.buy(activity)
+        advanceUntilIdle()
+        repository.statusFlow.value = ProStatus.PRO
+        repository.eventsChannel.send(ProPurchaseEvent.Completed)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.celebrate)
+    }
+
+    @Test
+    fun `restoring an existing purchase does not celebrate`() = runTest {
+        repository.restoreResult = RestoreResult.RESTORED
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.restore()
+        repository.statusFlow.value = ProStatus.PRO
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.celebrate)
+    }
+
+        @Test
     fun `restore outcomes map to ui events`() = runTest {
         repository.restoreResult = RestoreResult.NOTHING_TO_RESTORE
         val vm = viewModel()
