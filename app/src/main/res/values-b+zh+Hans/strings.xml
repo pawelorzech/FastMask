@@ -39,7 +39,7 @@
     <string name="filter_all">全部</string>
     <string name="filter_enabled">已启用</string>
     <string name="filter_disabled">已禁用</string>
-    <string name="filter_deleted">已删除</string>
+    <string name="filter_deleted">已存档</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">创建隐藏邮箱</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">邮箱详情</string>
     <string name="email_detail_copy_email">复制邮箱地址</string>
-    <string name="email_detail_delete">删除邮箱</string>
+    <string name="email_detail_delete">存档面具</string>
     <string name="email_detail_status">状态：</string>
     <string name="email_detail_created_by">创建者</string>
     <string name="email_detail_created">创建时间</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">网址</string>
     <string name="email_detail_save">保存更改</string>
     <string name="email_detail_updated">更新成功</string>
-    <string name="email_detail_deleted">删除成功</string>
+    <string name="email_detail_deleted">已存档</string>
     <string name="email_detail_copied">已复制到剪贴板</string>
-    <string name="email_detail_delete_dialog_title">删除隐藏邮箱</string>
-    <string name="email_detail_delete_dialog_message">您确定要删除此隐藏邮箱吗？此操作无法撤销。</string>
-    <string name="email_detail_delete_confirm">删除</string>
+    <string name="email_detail_delete_dialog_title">存档这个面具？</string>
+    <string name="email_detail_delete_dialog_message">发往此地址的邮件将被退回。您可以稍后恢复此面具。</string>
+    <string name="email_detail_delete_confirm">存档</string>
     <string name="email_detail_delete_cancel">取消</string>
 
     <!-- Email States -->
     <string name="state_enabled">已启用</string>
     <string name="state_disabled">已禁用</string>
-    <string name="state_deleted">已删除</string>
+    <string name="state_deleted">已存档</string>
     <string name="state_pending">待处理</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">无法归档</string>
     <string name="time_never">从不</string>
     <string name="time_just_now">刚刚</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%d分钟前</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%d小时前</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%d天前</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%d周前</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%d月前</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%d年前</item>
-    </plurals>
     <string name="welcome_signin_cta">使用 Fastmail 登录</string>
     <string name="welcome_demo_cta">尝试演示</string>
     <string name="welcome_tagline">为您的隐藏邮箱提供静谧之地。</string>

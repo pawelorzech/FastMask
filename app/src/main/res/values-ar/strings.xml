@@ -39,7 +39,7 @@
     <string name="filter_all">الكل</string>
     <string name="filter_enabled">مُفعّل</string>
     <string name="filter_disabled">معطّل</string>
-    <string name="filter_deleted">محذوف</string>
+    <string name="filter_deleted">مؤرشف</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">إنشاء بريد مقنّع</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">تفاصيل البريد</string>
     <string name="email_detail_copy_email">نسخ عنوان البريد</string>
-    <string name="email_detail_delete">حذف البريد</string>
+    <string name="email_detail_delete">أرشفة القناع</string>
     <string name="email_detail_status">الحالة:</string>
     <string name="email_detail_created_by">أنشأه</string>
     <string name="email_detail_created">تاريخ الإنشاء</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">الرابط</string>
     <string name="email_detail_save">حفظ التغييرات</string>
     <string name="email_detail_updated">تم التحديث بنجاح</string>
-    <string name="email_detail_deleted">تم الحذف بنجاح</string>
+    <string name="email_detail_deleted">تمت الأرشفة</string>
     <string name="email_detail_copied">تم النسخ إلى الحافظة</string>
-    <string name="email_detail_delete_dialog_title">حذف البريد المقنّع</string>
-    <string name="email_detail_delete_dialog_message">هل أنت متأكد أنك تريد حذف هذا البريد المقنّع؟ لا يمكن التراجع عن هذا الإجراء.</string>
-    <string name="email_detail_delete_confirm">حذف</string>
+    <string name="email_detail_delete_dialog_title">أرشفة هذا القناع؟</string>
+    <string name="email_detail_delete_dialog_message">سيتم رفض الرسائل المرسلة إلى هذا العنوان. يمكنك استعادة القناع لاحقًا.</string>
+    <string name="email_detail_delete_confirm">أرشفة</string>
     <string name="email_detail_delete_cancel">إلغاء</string>
 
     <!-- Email States -->
     <string name="state_enabled">مُفعّل</string>
     <string name="state_disabled">معطّل</string>
-    <string name="state_deleted">محذوف</string>
+    <string name="state_deleted">مؤرشف</string>
     <string name="state_pending">قيد الانتظار</string>
 
     <!-- Error Messages -->
@@ -149,54 +149,6 @@
     <string name="email_detail_error_delete">لم يتم الأرشفة</string>
     <string name="time_never">أبداً</string>
     <string name="time_just_now">الآن للتو</string>
-    <plurals name="time_min_ago">
-        <item quantity="zero">منذ %d دقيقة</item>
-        <item quantity="one">منذ %d دقيقة</item>
-        <item quantity="two">منذ %d دقيقتين</item>
-        <item quantity="few">منذ %d دقائق</item>
-        <item quantity="many">منذ %d دقيقة</item>
-        <item quantity="other">منذ %d دقيقة</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="zero">منذ %d ساعة</item>
-        <item quantity="one">منذ %d ساعة</item>
-        <item quantity="two">منذ %d ساعتين</item>
-        <item quantity="few">منذ %d ساعات</item>
-        <item quantity="many">منذ %d ساعة</item>
-        <item quantity="other">منذ %d ساعة</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="zero">منذ %d يوم</item>
-        <item quantity="one">منذ %d يوم</item>
-        <item quantity="two">منذ %d يومين</item>
-        <item quantity="few">منذ %d أيام</item>
-        <item quantity="many">منذ %d يومًا</item>
-        <item quantity="other">منذ %d يوم</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="zero">منذ %d أسبوع</item>
-        <item quantity="one">منذ %d أسبوع</item>
-        <item quantity="two">منذ %d أسبوعين</item>
-        <item quantity="few">منذ %d أسابيع</item>
-        <item quantity="many">منذ %d أسبوعًا</item>
-        <item quantity="other">منذ %d أسبوع</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="zero">منذ %d شهر</item>
-        <item quantity="one">منذ %d شهر</item>
-        <item quantity="two">منذ %d شهرين</item>
-        <item quantity="few">منذ %d أشهر</item>
-        <item quantity="many">منذ %d شهرًا</item>
-        <item quantity="other">منذ %d شهر</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="zero">منذ %d سنة</item>
-        <item quantity="one">منذ %d سنة</item>
-        <item quantity="two">منذ %d سنتين</item>
-        <item quantity="few">منذ %d سنوات</item>
-        <item quantity="many">منذ %d سنة</item>
-        <item quantity="other">منذ %d سنة</item>
-    </plurals>
     <string name="welcome_signin_cta">تسجيل الدخول عبر Fastmail</string>
     <string name="welcome_demo_cta">جرّب النسخة التجريبية</string>
     <string name="welcome_tagline">مكان هادئ لعناوينك المقنّعة.</string>

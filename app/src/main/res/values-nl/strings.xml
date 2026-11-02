@@ -39,7 +39,7 @@
     <string name="filter_all">Alle</string>
     <string name="filter_enabled">Ingeschakeld</string>
     <string name="filter_disabled">Uitgeschakeld</string>
-    <string name="filter_deleted">Verwijderd</string>
+    <string name="filter_deleted">Gearchiveerd</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Gemaskeerde e-mail aanmaken</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">E-maildetails</string>
     <string name="email_detail_copy_email">E-mailadres kopiëren</string>
-    <string name="email_detail_delete">E-mail verwijderen</string>
+    <string name="email_detail_delete">Masker archiveren</string>
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Aangemaakt door</string>
     <string name="email_detail_created">Aangemaakt</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Wijzigingen opslaan</string>
     <string name="email_detail_updated">Succesvol bijgewerkt</string>
-    <string name="email_detail_deleted">Succesvol verwijderd</string>
+    <string name="email_detail_deleted">Gearchiveerd</string>
     <string name="email_detail_copied">Gekopieerd naar klembord</string>
-    <string name="email_detail_delete_dialog_title">Gemaskeerde e-mail verwijderen</string>
-    <string name="email_detail_delete_dialog_message">Weet u zeker dat u deze gemaskeerde e-mail wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</string>
-    <string name="email_detail_delete_confirm">Verwijderen</string>
+    <string name="email_detail_delete_dialog_title">Dit masker archiveren?</string>
+    <string name="email_detail_delete_dialog_message">E-mail naar dit adres wordt geweigerd. U kunt het masker later herstellen.</string>
+    <string name="email_detail_delete_confirm">Archiveren</string>
     <string name="email_detail_delete_cancel">Annuleren</string>
 
     <!-- Email States -->
     <string name="state_enabled">Ingeschakeld</string>
     <string name="state_disabled">Uitgeschakeld</string>
-    <string name="state_deleted">Verwijderd</string>
+    <string name="state_deleted">Gearchiveerd</string>
     <string name="state_pending">In afwachting</string>
 
     <!-- Error Messages -->
@@ -149,30 +149,6 @@
     <string name="email_detail_error_delete">Kan niet archiveren</string>
     <string name="time_never">nooit</string>
     <string name="time_just_now">zojuist</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dm geleden</item>
-        <item quantity="other">%dm geleden</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%du geleden</item>
-        <item quantity="other">%du geleden</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dd geleden</item>
-        <item quantity="other">%dd geleden</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%dw geleden</item>
-        <item quantity="other">%dw geleden</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dma geleden</item>
-        <item quantity="other">%dma geleden</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%dj geleden</item>
-        <item quantity="other">%dj geleden</item>
-    </plurals>
     <string name="welcome_signin_cta">Aanmelden met Fastmail</string>
     <string name="welcome_demo_cta">Demo proberen</string>
     <string name="welcome_tagline">Een rustige plek voor uw gemaskeerde adressen.</string>

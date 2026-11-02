@@ -39,7 +39,7 @@
     <string name="filter_all">Alle</string>
     <string name="filter_enabled">Aktiviert</string>
     <string name="filter_disabled">Deaktiviert</string>
-    <string name="filter_deleted">Gelöscht</string>
+    <string name="filter_deleted">Archiviert</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Maskierte E-Mail erstellen</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">E-Mail-Details</string>
     <string name="email_detail_copy_email">E-Mail-Adresse kopieren</string>
-    <string name="email_detail_delete">E-Mail löschen</string>
+    <string name="email_detail_delete">Maske archivieren</string>
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Erstellt von</string>
     <string name="email_detail_created">Erstellt</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Änderungen speichern</string>
     <string name="email_detail_updated">Erfolgreich aktualisiert</string>
-    <string name="email_detail_deleted">Erfolgreich gelöscht</string>
+    <string name="email_detail_deleted">Archiviert</string>
     <string name="email_detail_copied">In Zwischenablage kopiert</string>
-    <string name="email_detail_delete_dialog_title">Maskierte E-Mail löschen</string>
-    <string name="email_detail_delete_dialog_message">Sind Sie sicher, dass Sie diese maskierte E-Mail löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.</string>
-    <string name="email_detail_delete_confirm">Löschen</string>
+    <string name="email_detail_delete_dialog_title">Diese Maske archivieren?</string>
+    <string name="email_detail_delete_dialog_message">E-Mails an diese Adresse werden zurückgewiesen. Sie können die Maske später wiederherstellen.</string>
+    <string name="email_detail_delete_confirm">Archivieren</string>
     <string name="email_detail_delete_cancel">Abbrechen</string>
 
     <!-- Email States -->
     <string name="state_enabled">Aktiviert</string>
     <string name="state_disabled">Deaktiviert</string>
-    <string name="state_deleted">Gelöscht</string>
+    <string name="state_deleted">Archiviert</string>
     <string name="state_pending">Ausstehend</string>
 
     <!-- Error Messages -->
@@ -149,30 +149,6 @@
     <string name="email_detail_error_delete">Konnte nicht archivieren</string>
     <string name="time_never">nie</string>
     <string name="time_just_now">gerade eben</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">vor %dm</item>
-        <item quantity="other">vor %dm</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">vor %dh</item>
-        <item quantity="other">vor %dh</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">vor %dd</item>
-        <item quantity="other">vor %dd</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">vor %dw</item>
-        <item quantity="other">vor %dw</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">vor %dmo</item>
-        <item quantity="other">vor %dmo</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">vor %dy</item>
-        <item quantity="other">vor %dy</item>
-    </plurals>
     <string name="welcome_signin_cta">Mit Fastmail anmelden</string>
     <string name="welcome_demo_cta">Demo versuchen</string>
     <string name="welcome_tagline">Ein ruhiger Ort für Ihre maskierten Adressen.</string>

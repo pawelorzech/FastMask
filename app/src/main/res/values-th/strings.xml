@@ -39,7 +39,7 @@
     <string name="filter_all">ทั้งหมด</string>
     <string name="filter_enabled">เปิดใช้งาน</string>
     <string name="filter_disabled">ปิดใช้งาน</string>
-    <string name="filter_deleted">ลบแล้ว</string>
+    <string name="filter_deleted">เก็บถาวรแล้ว</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">สร้างอีเมลซ่อน</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">รายละเอียดอีเมล</string>
     <string name="email_detail_copy_email">คัดลอกที่อยู่อีเมล</string>
-    <string name="email_detail_delete">ลบอีเมล</string>
+    <string name="email_detail_delete">เก็บถาวรหน้ากาก</string>
     <string name="email_detail_status">สถานะ:</string>
     <string name="email_detail_created_by">สร้างโดย</string>
     <string name="email_detail_created">สร้างเมื่อ</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">บันทึกการเปลี่ยนแปลง</string>
     <string name="email_detail_updated">อัปเดตสำเร็จ</string>
-    <string name="email_detail_deleted">ลบสำเร็จ</string>
+    <string name="email_detail_deleted">เก็บถาวรแล้ว</string>
     <string name="email_detail_copied">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
-    <string name="email_detail_delete_dialog_title">ลบอีเมลซ่อน</string>
-    <string name="email_detail_delete_dialog_message">คุณแน่ใจหรือไม่ว่าต้องการลบอีเมลซ่อนนี้? การกระทำนี้ไม่สามารถย้อนกลับได้</string>
-    <string name="email_detail_delete_confirm">ลบ</string>
+    <string name="email_detail_delete_dialog_title">เก็บถาวรหน้ากากนี้หรือไม่</string>
+    <string name="email_detail_delete_dialog_message">อีเมลที่ส่งมายังที่อยู่นี้จะถูกตีกลับ คุณสามารถกู้คืนหน้ากากได้ในภายหลัง</string>
+    <string name="email_detail_delete_confirm">เก็บถาวร</string>
     <string name="email_detail_delete_cancel">ยกเลิก</string>
 
     <!-- Email States -->
     <string name="state_enabled">เปิดใช้งาน</string>
     <string name="state_disabled">ปิดใช้งาน</string>
-    <string name="state_deleted">ลบแล้ว</string>
+    <string name="state_deleted">เก็บถาวรแล้ว</string>
     <string name="state_pending">รอดำเนินการ</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">ไม่สามารถเก็บถาวร</string>
     <string name="time_never">ไม่เคย</string>
     <string name="time_just_now">เมื่อสักครู่</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%d นาที ที่แล้ว</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%d ชั่วโมง ที่แล้ว</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%d วัน ที่แล้ว</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%d สัปดาห์ ที่แล้ว</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%d เดือน ที่แล้ว</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%d ปี ที่แล้ว</item>
-    </plurals>
     <string name="welcome_signin_cta">เข้าสู่ระบบด้วย Fastmail</string>
     <string name="welcome_demo_cta">ลองเวอร์ชั่นทดลอง</string>
     <string name="welcome_tagline">สถานที่เงียบสำหรับที่อยู่อีเมลซ่อนของคุณ</string>

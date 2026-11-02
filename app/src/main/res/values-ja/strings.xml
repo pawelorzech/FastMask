@@ -39,7 +39,7 @@
     <string name="filter_all">すべて</string>
     <string name="filter_enabled">有効</string>
     <string name="filter_disabled">無効</string>
-    <string name="filter_deleted">削除済み</string>
+    <string name="filter_deleted">アーカイブ済み</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">マスクメールを作成</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">メール詳細</string>
     <string name="email_detail_copy_email">メールアドレスをコピー</string>
-    <string name="email_detail_delete">メールを削除</string>
+    <string name="email_detail_delete">マスクをアーカイブ</string>
     <string name="email_detail_status">状態：</string>
     <string name="email_detail_created_by">作成者</string>
     <string name="email_detail_created">作成日</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">変更を保存</string>
     <string name="email_detail_updated">更新しました</string>
-    <string name="email_detail_deleted">削除しました</string>
+    <string name="email_detail_deleted">アーカイブしました</string>
     <string name="email_detail_copied">クリップボードにコピーしました</string>
-    <string name="email_detail_delete_dialog_title">マスクメールを削除</string>
-    <string name="email_detail_delete_dialog_message">このマスクメールを削除してもよろしいですか？この操作は元に戻せません。</string>
-    <string name="email_detail_delete_confirm">削除</string>
+    <string name="email_detail_delete_dialog_title">このマスクをアーカイブしますか？</string>
+    <string name="email_detail_delete_dialog_message">このアドレス宛てのメールは返送されます。マスクは後で復元できます。</string>
+    <string name="email_detail_delete_confirm">アーカイブ</string>
     <string name="email_detail_delete_cancel">キャンセル</string>
 
     <!-- Email States -->
     <string name="state_enabled">有効</string>
     <string name="state_disabled">無効</string>
-    <string name="state_deleted">削除済み</string>
+    <string name="state_deleted">アーカイブ済み</string>
     <string name="state_pending">保留中</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">アーカイブできません</string>
     <string name="time_never">なし</string>
     <string name="time_just_now">たった今</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%d分前</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%d時間前</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%d日前</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%d週前</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%dヶ月前</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%d年前</item>
-    </plurals>
     <string name="welcome_signin_cta">Fastmailでサインイン</string>
     <string name="welcome_demo_cta">デモを試す</string>
     <string name="welcome_tagline">マスクアドレスのための静かな場所。</string>

@@ -39,7 +39,7 @@
     <string name="filter_all">Semua</string>
     <string name="filter_enabled">Aktif</string>
     <string name="filter_disabled">Nonaktif</string>
-    <string name="filter_deleted">Dihapus</string>
+    <string name="filter_deleted">Diarsipkan</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">Buat Email Tersamar</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">Detail Email</string>
     <string name="email_detail_copy_email">Salin alamat email</string>
-    <string name="email_detail_delete">Hapus email</string>
+    <string name="email_detail_delete">Arsipkan topeng</string>
     <string name="email_detail_status">Status:</string>
     <string name="email_detail_created_by">Dibuat oleh</string>
     <string name="email_detail_created">Dibuat</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Simpan Perubahan</string>
     <string name="email_detail_updated">Berhasil diperbarui</string>
-    <string name="email_detail_deleted">Berhasil dihapus</string>
+    <string name="email_detail_deleted">Diarsipkan</string>
     <string name="email_detail_copied">Disalin ke papan klip</string>
-    <string name="email_detail_delete_dialog_title">Hapus Email Tersamar</string>
-    <string name="email_detail_delete_dialog_message">Apakah Anda yakin ingin menghapus email tersamar ini? Tindakan ini tidak dapat dibatalkan.</string>
-    <string name="email_detail_delete_confirm">Hapus</string>
+    <string name="email_detail_delete_dialog_title">Arsipkan topeng ini?</string>
+    <string name="email_detail_delete_dialog_message">Email yang dikirim ke alamat ini akan ditolak. Anda dapat memulihkan topeng ini nanti.</string>
+    <string name="email_detail_delete_confirm">Arsipkan</string>
     <string name="email_detail_delete_cancel">Batal</string>
 
     <!-- Email States -->
     <string name="state_enabled">Aktif</string>
     <string name="state_disabled">Nonaktif</string>
-    <string name="state_deleted">Dihapus</string>
+    <string name="state_deleted">Diarsipkan</string>
     <string name="state_pending">Tertunda</string>
 
     <!-- Error Messages -->
@@ -149,24 +149,6 @@
     <string name="email_detail_error_delete">Gagal mengarsipkan</string>
     <string name="time_never">tidak pernah</string>
     <string name="time_just_now">baru saja</string>
-    <plurals name="time_min_ago">
-        <item quantity="other">%dm lalu</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="other">%dj lalu</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="other">%dh lalu</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="other">%dmg lalu</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="other">%db lalu</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="other">%dt lalu</item>
-    </plurals>
     <string name="welcome_signin_cta">Masuk dengan Fastmail</string>
     <string name="welcome_demo_cta">Coba demo</string>
     <string name="welcome_tagline">Tempat tenang untuk alamat tersamar Anda.</string>

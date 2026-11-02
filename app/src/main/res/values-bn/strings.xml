@@ -39,7 +39,7 @@
     <string name="filter_all">সব</string>
     <string name="filter_enabled">সক্রিয়</string>
     <string name="filter_disabled">নিষ্ক্রিয়</string>
-    <string name="filter_deleted">মুছে ফেলা</string>
+    <string name="filter_deleted">আর্কাইভ করা</string>
 
     <!-- Create Email Screen -->
     <string name="create_email_title">মাস্কড ইমেইল তৈরি করুন</string>
@@ -61,7 +61,7 @@
     <!-- Email Detail Screen -->
     <string name="email_detail_title">ইমেইল বিবরণ</string>
     <string name="email_detail_copy_email">ইমেইল ঠিকানা কপি করুন</string>
-    <string name="email_detail_delete">ইমেইল মুছুন</string>
+    <string name="email_detail_delete">মাস্ক আর্কাইভ করুন</string>
     <string name="email_detail_status">অবস্থা:</string>
     <string name="email_detail_created_by">তৈরি করেছেন</string>
     <string name="email_detail_created">তৈরি</string>
@@ -74,17 +74,17 @@
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">পরিবর্তন সংরক্ষণ করুন</string>
     <string name="email_detail_updated">সফলভাবে আপডেট হয়েছে</string>
-    <string name="email_detail_deleted">সফলভাবে মুছে ফেলা হয়েছে</string>
+    <string name="email_detail_deleted">আর্কাইভ করা হয়েছে</string>
     <string name="email_detail_copied">ক্লিপবোর্ডে কপি হয়েছে</string>
-    <string name="email_detail_delete_dialog_title">মাস্কড ইমেইল মুছুন</string>
-    <string name="email_detail_delete_dialog_message">আপনি কি নিশ্চিত যে এই মাস্কড ইমেইলটি মুছতে চান? এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।</string>
-    <string name="email_detail_delete_confirm">মুছুন</string>
+    <string name="email_detail_delete_dialog_title">এই মাস্কটি আর্কাইভ করবেন?</string>
+    <string name="email_detail_delete_dialog_message">এই ঠিকানায় পাঠানো মেইল ফেরত যাবে। আপনি পরে মাস্কটি পুনরুদ্ধার করতে পারবেন।</string>
+    <string name="email_detail_delete_confirm">আর্কাইভ করুন</string>
     <string name="email_detail_delete_cancel">বাতিল</string>
 
     <!-- Email States -->
     <string name="state_enabled">সক্রিয়</string>
     <string name="state_disabled">নিষ্ক্রিয়</string>
-    <string name="state_deleted">মুছে ফেলা</string>
+    <string name="state_deleted">আর্কাইভ করা</string>
     <string name="state_pending">অপেক্ষমাণ</string>
 
     <!-- Error Messages -->
@@ -149,30 +149,6 @@
     <string name="email_detail_error_delete">আর্কাইভ করা যায়নি</string>
     <string name="time_never">কখনও না</string>
     <string name="time_just_now">এখনই</string>
-    <plurals name="time_min_ago">
-        <item quantity="one">%dm আগে</item>
-        <item quantity="other">%dm আগে</item>
-    </plurals>
-    <plurals name="time_hour_ago">
-        <item quantity="one">%dh আগে</item>
-        <item quantity="other">%dh আগে</item>
-    </plurals>
-    <plurals name="time_day_ago">
-        <item quantity="one">%dd আগে</item>
-        <item quantity="other">%dd আগে</item>
-    </plurals>
-    <plurals name="time_week_ago">
-        <item quantity="one">%dw আগে</item>
-        <item quantity="other">%dw আগে</item>
-    </plurals>
-    <plurals name="time_month_ago">
-        <item quantity="one">%dmo আগে</item>
-        <item quantity="other">%dmo আগে</item>
-    </plurals>
-    <plurals name="time_year_ago">
-        <item quantity="one">%dy আগে</item>
-        <item quantity="other">%dy আগে</item>
-    </plurals>
     <string name="welcome_signin_cta">Fastmail দিয়ে সাইন ইন করুন</string>
     <string name="welcome_demo_cta">ডেমো চেষ্টা করুন</string>
     <string name="welcome_tagline">আপনার মাস্কড ঠিকানাগুলির জন্য একটি শান্ত জায়গা।</string>
