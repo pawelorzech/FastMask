@@ -21,23 +21,26 @@ html,body{width:1024px;height:500px;overflow:hidden;background:#888}
 .c{background:linear-gradient(125deg,#E7811A 0%,#D06A06 50%,#B95600 100%)}
 .wm{font:780 102px/0.95 "Google Sans Flex";letter-spacing:-3px;color:#FFF3E3;font-variation-settings:"ROND" 100}
 .tag{margin-top:26px;font:560 46px/1.1 "Google Sans Flex";letter-spacing:-.6px;color:#FFE1BE;font-variation-settings:"ROND" 60}
-.row{position:absolute;width:316px;height:94px;border-radius:30px;background:#FFF4E6;display:flex;align-items:center;padding:0 18px;gap:16px;box-shadow:0 18px 40px rgba(90,35,0,.28)}
+.row{position:absolute;width:326px;height:94px;border-radius:30px;background:#FFF4E6;display:flex;align-items:center;padding:0 18px 0 16px;gap:14px;box-shadow:0 18px 40px rgba(90,35,0,.28)}
 .row svg{flex:none}
-.d{font:720 25px/1.15 "Google Sans Flex";color:#5A2600}
+.d{font:720 24px/1.15 "Google Sans Flex";color:#5A2600}
 .a{font:500 19px/1.2 "Google Sans Flex";color:#8A5A36}
-.pill{margin-left:auto;font:700 16px/1 "Google Sans Flex";border-radius:99px;padding:9px 13px}
+.sw{margin-left:auto;flex:none;width:52px;height:32px;border-radius:16px;position:relative;background:#7A3300}
+.sw i{position:absolute;top:4px;left:24px;width:24px;height:24px;border-radius:50%;background:#FFE6C9}
+.sw.off{background:#EADFD5;box-shadow:inset 0 0 0 2px #B8A089}
+.sw.off i{left:8px;top:8px;width:16px;height:16px;background:#8A6E58}
 </style></head><body><div class="c">
 <svg class="art" width="1024" height="500"><path data-cookie="770,250,290,9,0.06,0" fill="#FFE6C9" opacity=".14"/></svg>
-<div class="copy"><div class="wm">FastMask</div><div class="tag">A fresh address<br>for every site.</div></div>
-<div class="row" style="left:568px;top:76px;transform:rotate(-3deg)">
- <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#7A3300"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#FFE6C9">S</text></svg>
- <div><div class="d">shop.example</div><div class="a">maple.otter81@…</div></div><span class="pill" style="background:#FFD9A8;color:#6A2E00">Active</span></div>
-<div class="row" style="left:590px;top:200px;transform:rotate(1.5deg)">
- <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#4E6B3A"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#E8F2DC">N</text></svg>
- <div><div class="d">news.example</div><div class="a">quiet.heron07@…</div></div><span class="pill" style="background:#FFD9A8;color:#6A2E00">Active</span></div>
-<div class="row" style="left:572px;top:324px;transform:rotate(-2deg)">
- <svg width="56" height="56"><path data-cookie="28,28,24,9,0.07,0" fill="#6B3A64"/><text x="28" y="36" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#F6E3F1">T</text></svg>
- <div><div class="d">trial.example</div><div class="a">rusty.lynx33@…</div></div><span class="pill" style="background:#EADFD5;color:#6E5442">Off</span></div>
+<div class="copy"><div class="wm">FastMask</div><div class="tag" data-pl="Nowy adres<br>dla każdej strony.">A fresh address<br>for every site.</div></div>
+<div class="row" style="left:562px;top:76px;transform:rotate(-3deg)">
+ <svg width="52" height="52"><path data-cookie="26,26,22,9,0.07,0" fill="#7A3300"/><text x="26" y="34" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#FFE6C9">S</text></svg>
+ <div><div class="d">shop.example</div><div class="a">maple.otter81@…</div></div><span class="sw"><i></i></span></div>
+<div class="row" style="left:584px;top:200px;transform:rotate(1.5deg)">
+ <svg width="52" height="52"><path data-cookie="26,26,22,9,0.07,0" fill="#4E6B3A"/><text x="26" y="34" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#E8F2DC">N</text></svg>
+ <div><div class="d">news.example</div><div class="a">quiet.heron07@…</div></div><span class="sw"><i></i></span></div>
+<div class="row" style="left:566px;top:324px;transform:rotate(-2deg)">
+ <svg width="52" height="52"><path data-cookie="26,26,22,9,0.07,0" fill="#6B3A64"/><text x="26" y="34" text-anchor="middle" font-family="Google Sans Flex" font-weight="700" font-size="22" fill="#F6E3F1">T</text></svg>
+ <div><div class="d">trial.example</div><div class="a">rusty.lynx33@…</div></div><span class="sw off"><i></i></span></div>
 </div><script>
 // Cookie / scallop shapes (MaterialShapes-like) drawn as polar curves: data-cookie="cx,cy,R,lobes,amp,rot"
 function cookie(cx, cy, R, n, amp, rot = 0) {
