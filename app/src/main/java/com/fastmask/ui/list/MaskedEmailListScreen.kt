@@ -176,6 +176,7 @@ import com.fastmask.ui.components.expressive.segmentedShape
 import com.fastmask.ui.navigation.maskContainer
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.util.RelativeTime
+import com.fastmask.ui.util.RelativeTimeBuckets
 import java.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -488,21 +489,31 @@ internal fun MaskedEmailListContent(
     }
     val headerState = remember { CollapsingHeaderState() }
 
-    val activeCount = uiState.emails.count { it.state == EmailState.ENABLED || it.state == EmailState.PENDING }
     val totalCount = uiState.emails.size
 
-    // Per-filter counts only change with the data. Computing them in plain
-    // composition meant four passes over the whole list on EVERY recomposition
-    // of this screen — including every search keystroke — for numbers that
-    // almost never move.
+    // Per-filter counts only change with the data. Computing them in a single
+    // remembered pass avoids iterating the whole list on every recomposition
+    // of this screen (including every search keystroke) for numbers that
+    // only move when `uiState.emails` changes.
     val filterCounts = remember(uiState.emails) {
+        var enabled = 0
+        var disabled = 0
+        var deleted = 0
+        for (email in uiState.emails) {
+            when (email.state) {
+                EmailState.ENABLED, EmailState.PENDING -> enabled++
+                EmailState.DISABLED -> disabled++
+                EmailState.DELETED -> deleted++
+            }
+        }
         mapOf(
             EmailFilter.ALL to uiState.emails.size,
-            EmailFilter.ENABLED to activeCount,
-            EmailFilter.DISABLED to uiState.emails.count { it.state == EmailState.DISABLED },
-            EmailFilter.DELETED to uiState.emails.count { it.state == EmailState.DELETED },
+            EmailFilter.ENABLED to enabled,
+            EmailFilter.DISABLED to disabled,
+            EmailFilter.DELETED to deleted,
         )
     }
+    val activeCount = filterCounts[EmailFilter.ENABLED] ?: 0
 
     var menuExpanded by rememberSaveable { mutableStateOf(initialMenuExpanded) }
     BackHandler(enabled = menuExpanded) { menuExpanded = false }
@@ -1039,12 +1050,14 @@ internal fun MaskRow(
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
     val stateLabel = stringResource(stateContentDescription(email.state))
-    // The label depends only on the timestamps and the "now" anchor — not on
-    // anything else happening in this screen. Without remember, every row ran
-    // a resources lookup + plural resolution on each recomposition (e.g. while
-    // the user types in search).
-    val timeLabel = remember(email.lastMessageAt, email.createdAt, nowSec) {
-        RelativeTime.format(context, email.lastMessageAt ?: email.createdAt, nowSec)
+    // Key the formatted string on the coarse relative bucket rather than raw
+    // `nowSec` so a refresh that advances `nowSec` by a few seconds does not
+    // re-run ICU formatting for every row whose bucket ("3d ago") did not change.
+    val timeBucket = remember(email.lastMessageAt, email.createdAt, nowSec) {
+        RelativeTimeBuckets.of((email.lastMessageAt ?: email.createdAt)?.epochSecond, nowSec)
+    }
+    val timeLabel = remember(timeBucket, context) {
+        RelativeTime.format(context, timeBucket)
     }
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
     // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.

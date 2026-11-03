@@ -19,8 +19,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 @Singleton
 class QuickMaskRunner @Inject constructor(
@@ -136,7 +138,15 @@ class QuickMaskRunner @Inject constructor(
 
                 when (result) {
                     is QuickMaskResult.Created -> {
-                        copyToClipboard(context, result.email)
+                        // Run clipboard access on Main and guard it: some OEM
+                        // ClipboardManager implementations construct a Handler on
+                        // the calling thread's Looper, and a clipboard failure
+                        // after the mask is already live on Fastmail must never
+                        // suppress showCreated() (with its Undo button) or report
+                        // a false creation error.
+                        withContext(Dispatchers.Main) {
+                            copyToClipboard(context, result.email)
+                        }
                         notifier.showCreated(id = result.id)
                     }
                     // Nothing was created on any of these. Signing in, leaving
@@ -178,7 +188,14 @@ class QuickMaskRunner @Inject constructor(
                 // The "mask created" slot is the only one carrying an Undo.
                 notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
                 val success = try {
-                    quickMaskCreator.undo(id)
+                    // Bound the network call below the 10-second BroadcastReceiver
+                    // goAsync() ANR ceiling so PendingResult.finish() always runs
+                    // in time even when the connection hangs vs. OkHttp's 30s timeout.
+                    withTimeout(UNDO_TIMEOUT_MS) {
+                        quickMaskCreator.undo(id)
+                    }
+                } catch (_: TimeoutCancellationException) {
+                    false
                 } catch (cancellation: CancellationException) {
                     // A cancelled attempt did not settle the mask's state. Let a
                     // later notification action retry it.
@@ -239,5 +256,12 @@ class QuickMaskRunner @Inject constructor(
          * an evicted id.
          */
         const val UNDONE_LATCH_LIMIT = 256
+
+        /**
+         * Keeps [launchUndo] inside the 10-second `BroadcastReceiver.goAsync()`
+         * execution window so [QuickMaskUndoReceiver] cannot trigger a system ANR
+         * when OkHttp's 30-second socket timeouts are hit on a dead network.
+         */
+        const val UNDO_TIMEOUT_MS = 8_000L
     }
 }

@@ -503,6 +503,30 @@ class JmapApiTest {
         assertEquals(JmapService.FASTMAIL_API_URL, api.getApiUrl())
     }
 
+    @Test
+    fun `ensureSession re-fetches session when token changes without clearSession`() = runTest {
+        val service = FakeJmapService(
+            session = session(
+                apiUrl = "https://api.fastmail.com/jmap/api/",
+                primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-first"),
+            ),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
+        )
+        val api = JmapApi(service, json)
+        api.getMaskedEmails("token-1").getOrThrow()
+        assertEquals("acc-first", api.getAccountId())
+
+        service.session = session(
+            apiUrl = "https://api.fastmail.com/jmap/api/",
+            primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-second"),
+        )
+        api.getMaskedEmails("token-2").getOrThrow()
+
+        assertEquals("acc-second", api.getAccountId())
+        val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
+        assertEquals(JsonPrimitive("acc-second"), arguments["accountId"])
+    }
+
     // --- masked email scope diagnosis (regression: silent account fallback) --
 
     /**

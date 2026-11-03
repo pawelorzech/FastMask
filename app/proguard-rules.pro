@@ -25,9 +25,6 @@
 
 # Serializer/companion of every class annotated as @Serializable, anywhere
 -keep,includedescriptorclasses class **$$serializer { *; }
--keepclassmembers class ** {
-    *** Companion;
-}
 -if @kotlinx.serialization.Serializable class **
 -keepclassmembers class <1> {
     static <1>$Companion Companion;
@@ -86,11 +83,7 @@
 -keepclasseswithmembers class * { @javax.inject.Inject <init>(...); }
 
 # ----- Jetpack Compose -----
-# Compose Compiler emituje classy/metody które reflection-based tooling
-# (preview/inspector, Lifecycle integration) musi widzieć.
--keep class androidx.compose.runtime.** { *; }
--keep class androidx.compose.ui.platform.** { *; }
--keepclassmembers class * { @androidx.compose.runtime.Composable *; }
+# Compose AARs ship their own consumer ProGuard rules; only suppress benign warnings.
 -dontwarn androidx.compose.**
 
 # ----- Firebase Crashlytics -----

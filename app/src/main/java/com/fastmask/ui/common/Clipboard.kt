@@ -17,12 +17,14 @@ import com.fastmask.R
  * system clipboard-preview overlay or be treated casually by clipboard history.
  */
 fun copyToClipboard(context: Context, value: String) {
-    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText(context.getString(R.string.app_name), value)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        clip.description.extras = PersistableBundle().apply {
-            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+    runCatching {
+        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+        val clip = ClipData.newPlainText(context.getString(R.string.app_name), value)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            clip.description.extras = PersistableBundle().apply {
+                putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+            }
         }
+        cm.setPrimaryClip(clip)
     }
-    cm.setPrimaryClip(clip)
 }

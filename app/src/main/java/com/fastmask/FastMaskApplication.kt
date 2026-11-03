@@ -12,7 +12,9 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -38,6 +40,9 @@ class FastMaskApplication : Application() {
 
     @Inject
     lateinit var exportCache: ExportCache
+
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
 
     override fun onCreate() {
         super.onCreate()
@@ -79,10 +84,14 @@ class FastMaskApplication : Application() {
     private fun restoreSavedLanguage() {
         startupScope.launch {
             try {
-                val savedLanguageCode = SettingsDataStore.getLanguageBlocking(this@FastMaskApplication)
+                val savedLanguageCode = settingsDataStore.languageFlow.first()
                 if (savedLanguageCode != null) {
                     val localeList = LocaleListCompat.forLanguageTags(savedLanguageCode)
-                    AppCompatDelegate.setApplicationLocales(localeList)
+                    withContext(Dispatchers.Main.immediate) {
+                        if (AppCompatDelegate.getApplicationLocales() != localeList) {
+                            AppCompatDelegate.setApplicationLocales(localeList)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 if (BuildConfig.DEBUG) {

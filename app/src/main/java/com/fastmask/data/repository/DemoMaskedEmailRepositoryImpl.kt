@@ -66,6 +66,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> {
         var found = false
         state.update { current ->
+            found = false
             current.map { mask ->
                 if (mask.id == id) {
                     found = true
@@ -90,6 +91,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     override suspend fun archiveMaskedEmail(id: String): Result<Unit> {
         var found = false
         state.update { current ->
+            found = false
             current.map { mask ->
                 if (mask.id == id) {
                     found = true
@@ -107,8 +109,15 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     }
 
     override suspend fun destroyMaskedEmail(id: String): Result<Unit> {
-        val found = state.value.any { it.id == id }
-        state.update { current -> current.filterNot { it.id == id } }
+        var found = false
+        state.update { current ->
+            found = false
+            current.filterNot { mask ->
+                val matches = mask.id == id
+                if (matches) found = true
+                matches
+            }
+        }
         return if (found) {
             Result.success(Unit)
         } else {

@@ -22,6 +22,9 @@ object PurchaseSecurity {
     private const val KEY_FACTORY_ALGORITHM = "RSA"
     private const val SIGNATURE_ALGORITHM = "SHA1withRSA"
 
+    @Volatile
+    private var cachedPublicKey: Pair<String, PublicKey>? = null
+
     /**
      * @return true iff [signature] is a valid Play signature of [signedData]
      *   under [base64PublicKey]. Any malformed input or crypto error returns
@@ -43,8 +46,13 @@ object PurchaseSecurity {
     }
 
     private fun generatePublicKey(base64PublicKey: String): PublicKey {
+        cachedPublicKey?.let { (cachedRaw, key) ->
+            if (cachedRaw == base64PublicKey) return key
+        }
         val decoded = Base64.getDecoder().decode(base64PublicKey)
-        return KeyFactory.getInstance(KEY_FACTORY_ALGORITHM)
+        val key = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM)
             .generatePublic(X509EncodedKeySpec(decoded))
+        cachedPublicKey = base64PublicKey to key
+        return key
     }
 }

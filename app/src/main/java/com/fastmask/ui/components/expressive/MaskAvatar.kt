@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,8 +22,7 @@ import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskTheme
 
-/** The shapes [MaskAvatar] picks from, in a fixed order so the pick is stable across releases. */
-internal fun maskAvatarPolygons(): List<RoundedPolygon> = listOf(
+private val MaskAvatarPolygons: List<RoundedPolygon> = listOf(
     MaterialShapes.Cookie4Sided,
     MaterialShapes.Clover4Leaf,
     MaterialShapes.Cookie9Sided,
@@ -34,6 +32,9 @@ internal fun maskAvatarPolygons(): List<RoundedPolygon> = listOf(
     MaterialShapes.Cookie6Sided,
     MaterialShapes.Triangle,
 )
+
+/** The shapes [MaskAvatar] picks from, in a fixed order so the pick is stable across releases. */
+internal fun maskAvatarPolygons(): List<RoundedPolygon> = MaskAvatarPolygons
 
 /** Deterministic index into [maskAvatarPolygons] for [seedText]. */
 internal fun maskAvatarShapeIndex(seedText: String, shapeCount: Int): Int =
@@ -57,7 +58,7 @@ fun MaskAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
 ) {
-    val polygons = remember { maskAvatarPolygons() }
+    val polygons = MaskAvatarPolygons
     val polygon = polygons[maskAvatarShapeIndex(seedText, polygons.size)]
     val shape = polygon.toShape()
     val pair = statusPairFor(state)

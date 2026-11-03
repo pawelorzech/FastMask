@@ -64,38 +64,48 @@ class SettingsDataStore @Inject constructor(
 
     // --- App mode (REAL vs DEMO) ---
 
+    /**
+     * Last definite [AppMode] observed from DataStore or written through
+     * [setAppMode], mirroring [CrashReportingSettings.lastKnown] so
+     * [appModeBlocking] does not park the main thread on `runBlocking` during
+     * ViewModel construction after startup has already read the preference.
+     */
+    @Volatile
+    private var lastKnownAppMode: AppMode? = null
+
     val appMode: Flow<AppMode> = context.settingsDataStore.data.map { preferences ->
-        preferences[appModeKey]?.let { value ->
+        val resolved = preferences[appModeKey]?.let { value ->
             runCatching { AppMode.valueOf(value) }.getOrDefault(AppMode.REAL)
         } ?: AppMode.REAL
+        lastKnownAppMode = resolved
+        resolved
     }
 
     suspend fun setAppMode(mode: AppMode) {
         context.settingsDataStore.edit { preferences ->
             preferences[appModeKey] = mode.name
         }
+        lastKnownAppMode = mode
     }
 
     /**
-     * Synchronous getter used by [com.fastmask.MainActivity] when computing the start
-     * destination and by [com.fastmask.data.repository.MaskedEmailRepositoryDispatcher] when
-     * routing each call. Uses [runBlocking] on the DataStore data flow which resolves
-     * quickly (in-memory cache after first read).
+     * Synchronous seed for ViewModel state flows and [com.fastmask.data.repository.AuthRepositoryImpl.isLoggedIn].
+     *
+     * Returns [lastKnownAppMode] immediately once startup (or any prior collection)
+     * has resolved the preference off the main thread, falling back to a guarded
+     * [runBlocking] read only if called before that first emission lands.
      */
     fun appModeBlocking(): AppMode {
+        lastKnownAppMode?.let { return it }
         // runCatching wraps the READ, not just the enum parse. A corrupt
         // preferences file throws CorruptionException on every read, for good,
-        // and this is called from three ViewModel constructors and from every
-        // repository call — so an unguarded throw here is a permanent crash
-        // loop on the mask list, recoverable only by clearing app data.
-        // crashReportingEnabledBlocking() below already guarded its own read;
-        // this one was simply missed. REAL is the safe default: it routes to
+        // and this is called from three ViewModel constructors — so an unguarded
+        // throw here is a permanent crash loop on the mask list, recoverable
+        // only by clearing app data. REAL is the safe default: it routes to
         // the real account, never silently into demo.
         return runCatching {
             runBlocking {
-                val raw = context.settingsDataStore.data.first()[appModeKey]
-                raw?.let { runCatching { AppMode.valueOf(it) }.getOrDefault(AppMode.REAL) }
-                    ?: AppMode.REAL
+                appMode.first()
             }
         }.getOrDefault(AppMode.REAL)
     }

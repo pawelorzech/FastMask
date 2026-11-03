@@ -7,6 +7,8 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.repository.AuthRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,8 +21,8 @@ class AuthRepositoryImpl @Inject constructor(
     private val maskCache: MaskedEmailCache,
 ) : AuthRepository {
 
-    override suspend fun login(token: String): Result<Unit> {
-        return jmapApi.getSession(token).map {
+    override suspend fun login(token: String): Result<Unit> = withContext(Dispatchers.IO) {
+        jmapApi.getSession(token).map {
             // Sign-in is the second place the device changes hands between
             // accounts, and until now only sign-out cleaned up. A sign-out
             // whose clear() silently failed, or a session that ended without
@@ -35,7 +37,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun logout() {
+    override suspend fun logout() = withContext(Dispatchers.IO) {
         tokenStorage.clearToken()
         jmapApi.clearSession()
         // A CSV export holds every mask in plaintext in the cache directory.

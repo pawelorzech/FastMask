@@ -32,6 +32,8 @@ class JmapApi @Inject constructor(
     private var cachedSession: JmapSession? = null
     @Volatile
     private var cachedAccountId: String? = null
+    @Volatile
+    private var cachedToken: String? = null
     private val sessionMutex = Mutex()
 
     suspend fun getSession(token: String): Result<JmapSession> = runSuspendCatching {
@@ -44,6 +46,7 @@ class JmapApi @Inject constructor(
             ?: throw MaskedEmailScopeMissingException() // Mail-only tokens used to borrow another account id and fail much later with an opaque masked-email error.
         cachedSession = session
         cachedAccountId = accountId
+        cachedToken = token
         session
     }
 
@@ -59,10 +62,12 @@ class JmapApi @Inject constructor(
     }
 
     private suspend fun ensureSession(token: String): String {
-        cachedAccountId?.let { return it }
+        val accountId = cachedAccountId
+        if (accountId != null && cachedToken == token) return accountId
         // Mutex so concurrent first calls fetch the session once instead of racing.
         sessionMutex.withLock {
-            cachedAccountId?.let { return it }
+            val lockedAccountId = cachedAccountId
+            if (lockedAccountId != null && cachedToken == token) return lockedAccountId
             getSession(token).getOrThrow()
             return cachedAccountId
                 ?: throw IllegalStateException("Failed to get account ID from session")
@@ -344,6 +349,7 @@ class JmapApi @Inject constructor(
     fun clearSession() {
         cachedSession = null
         cachedAccountId = null
+        cachedToken = null
     }
 
     private fun jmapSetException(operation: String, error: JmapSetError): JmapException {

@@ -4,6 +4,25 @@ All notable changes to FastMask are documented here.
 Versions follow [Semantic Versioning](https://semver.org/).
 
 
+## [Unreleased]
+
+### Fixed
+- Signing in and signing out now clear the encrypted mask cache, exported CSVs, and stored token on `Dispatchers.IO` instead of the UI thread after the session request returns.
+- Quick Mask *Undo* bounds its network call below the 10-second `BroadcastReceiver.goAsync()` window so a hung connection cannot trigger a system ANR, and releases the undo latch on timeout so the action can be retried.
+- ViewModel initialization reads the cached `AppMode` in memory once startup has resolved it, avoiding main-thread `runBlocking` calls on DataStore.
+- Restoring the saved app language on cold start suspends on `Dispatchers.IO` and applies `AppCompatDelegate.setApplicationLocales` on the main thread only when the locale actually differs.
+- The open-source licenses dialog loads and reflows bundled license texts on `Dispatchers.IO` with pre-compiled regular expressions instead of blocking the first frame of composition.
+- Clipboard writes in Quick Mask run on the main thread and are guarded against OEM/background clipboard exceptions so a clipboard error after a mask is created can never suppress the confirmation notification or its *Undo* action.
+- `JmapApi` ties its cached session and `accountId` to the token that fetched them so a token change re-fetches the session even without an explicit `clearSession()`.
+- `DemoMaskedEmailRepositoryImpl` resets its match flag on each `MutableStateFlow.update` CAS retry and performs `destroyMaskedEmail` atomically.
+- Launching the system share chooser for a CSV export is guarded inside `runCatching`.
+
+### Changed
+- `MaskedEmailCache` lazily reuses its Android Keystore `MasterKey` and keeps an in-memory mirror validated against the cache file's owner, size, and modification time, avoiding full file decryption and JSON parsing every time the detail screen opens.
+- The mask list computes per-filter counts in a single remembered pass, filters masks in one pass without intermediate list allocations, caches the ICU `RelativeDateTimeFormatter` per locale, and keys row timestamps on their coarse relative-time bucket so refreshes do not reformat unchanged rows.
+- `ProViewModel` fetches product details and refreshes purchase state concurrently; `PurchaseSecurity` caches the decoded RSA `PublicKey`; `MaskAvatar` reuses a static polygon list; `CreateMaskedEmailViewModel` validates ASCII prefixes without recompiling a `Regex` on every keystroke.
+- Removed overly broad R8 `-keep` rules for `Companion` objects and `@Composable` functions in `proguard-rules.pro` so release builds can shrink and inline unused code.
+
 ## [1.13.2] — 2026-11-02
 
 ### Fixed

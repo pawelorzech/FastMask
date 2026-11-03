@@ -9,9 +9,12 @@ import io.mockk.mockk
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import io.mockk.verify
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -144,6 +147,29 @@ class QuickMaskUndoIdempotenceTest {
         advanceUntilIdle()
 
         verify(exactly = 0) { notifier.showUndoResult(success = false) }
+        coEvery { creator.undo("m1") } returns true
+        runner.launchUndo("m1")
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { creator.undo("m1") }
+        verify(exactly = 1) { notifier.showUndoResult(success = true) }
+    }
+
+    @Test
+    fun `a hanging undo times out before BroadcastReceiver ANR deadline and releases latch`() = runTest {
+        coEvery { creator.undo("m1") } coAnswers {
+            delay(30_000L)
+            true
+        }
+        val runner = runner()
+        var finished = false
+
+        runner.launchUndo("m1") { finished = true }
+        advanceTimeBy(9_000L)
+
+        assertTrue("onFinished must run before the 10s BroadcastReceiver ANR ceiling", finished)
+        verify(exactly = 1) { notifier.showUndoResult(success = false) }
+
         coEvery { creator.undo("m1") } returns true
         runner.launchUndo("m1")
         advanceUntilIdle()

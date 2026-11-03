@@ -13,7 +13,9 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.PurchaseLaunch
 import com.fastmask.domain.repository.RestoreResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,8 +76,11 @@ class ProViewModel @Inject constructor(
     fun loadProduct() {
         _uiState.update { it.copy(productState = ProductState.LOADING) }
         viewModelScope.launch {
-            proRepository.refresh()
-            val product = proRepository.getProduct()
+            val product = coroutineScope {
+                val productDeferred = async { proRepository.getProduct() }
+                proRepository.refresh()
+                productDeferred.await()
+            }
             _uiState.update {
                 it.copy(
                     product = product,

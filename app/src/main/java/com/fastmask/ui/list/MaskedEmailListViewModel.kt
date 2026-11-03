@@ -297,26 +297,23 @@ class MaskedEmailListViewModel @Inject constructor(
         query: String,
         filter: EmailFilter
     ): List<MaskedEmail> {
-        return emails
-            .filter { email ->
-                when (filter) {
-                    EmailFilter.ALL -> true
-                    // "Active" must match the chip count, which includes PENDING
-                    // (a freshly created mask is pending until its first message).
-                    EmailFilter.ENABLED -> email.isActive
-                    EmailFilter.DISABLED -> email.state == EmailState.DISABLED
-                    EmailFilter.DELETED -> email.state == EmailState.DELETED
-                }
+        val hasQuery = query.isNotBlank()
+        if (filter == EmailFilter.ALL && !hasQuery) return emails
+        return emails.filter { email ->
+            val matchesFilter = when (filter) {
+                EmailFilter.ALL -> true
+                // "Active" must match the chip count, which includes PENDING
+                // (a freshly created mask is pending until its first message).
+                EmailFilter.ENABLED -> email.isActive
+                EmailFilter.DISABLED -> email.state == EmailState.DISABLED
+                EmailFilter.DELETED -> email.state == EmailState.DELETED
             }
-            .filter { email ->
-                if (query.isBlank()) true
-                else {
-                    email.email.contains(query, ignoreCase = true) ||
-                            email.description?.contains(query, ignoreCase = true) == true ||
-                            email.forDomain?.contains(query, ignoreCase = true) == true ||
-                            email.url?.contains(query, ignoreCase = true) == true
-                }
-            }
+            matchesFilter && (!hasQuery ||
+                email.email.contains(query, ignoreCase = true) ||
+                email.description?.contains(query, ignoreCase = true) == true ||
+                email.forDomain?.contains(query, ignoreCase = true) == true ||
+                email.url?.contains(query, ignoreCase = true) == true)
+        }
     }
 
     companion object {

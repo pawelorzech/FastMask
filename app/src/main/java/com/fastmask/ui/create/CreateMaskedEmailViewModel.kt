@@ -65,11 +65,11 @@ class CreateMaskedEmailViewModel @Inject constructor(
         val sanitized = prefix.lowercase().filter { it.isLetterOrDigit() || it == '_' }
         // Localizable string-res ids, not raw literals: these are shown to the
         // user under a fully-translated form (isLetterOrDigit() lets through
-        // Unicode letters/digits the ASCII regex then rejects, so both branches
-        // are reachable).
+        // Unicode letters/digits the ASCII check below then rejects, so both
+        // branches are reachable).
         val errorRes = when {
             sanitized.length > 64 -> R.string.create_email_error_prefix_length
-            sanitized.isNotEmpty() && !sanitized.matches(Regex("^[a-z0-9_]*$")) ->
+            sanitized.isNotEmpty() && !sanitized.all { it in 'a'..'z' || it in '0'..'9' || it == '_' } ->
                 R.string.create_email_error_prefix_chars
             else -> null
         }

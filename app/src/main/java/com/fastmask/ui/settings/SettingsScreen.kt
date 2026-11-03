@@ -176,12 +176,11 @@ fun SettingsScreen(
                     // abandon an export whose fetch outlived the session. All
                     // that is left here is turning it into a share intent.
                     runCatching {
-                        FileProvider.getUriForFile(
+                        val uri = FileProvider.getUriForFile(
                             context,
                             "${BuildConfig.APPLICATION_ID}.fileprovider",
                             event.file,
                         )
-                    }.onSuccess { uri ->
                         val send = Intent(Intent.ACTION_SEND).apply {
                             type = "text/csv"
                             putExtra(Intent.EXTRA_STREAM, uri)
@@ -190,10 +189,7 @@ fun SettingsScreen(
                         context.startActivity(Intent.createChooser(send, exportChooserTitle))
                     }.onFailure {
                         // The file exists but no shareable URI could be built
-                        // for it — it was evicted from the cache directory
-                        // between the write and this line, or the provider
-                        // rejected the path. Same advice as a failed write:
-                        // this is not a "try again in a moment" situation.
+                        // for it — or the system chooser could not be launched.
                         snackbarHostState.showSnackbar(exportWriteFailedMessage)
                     }
                 }

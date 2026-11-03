@@ -83,10 +83,28 @@ class MaskedEmailCache @Inject constructor(
     /** Snapshot of the current generation, for a caller about to fetch. */
     fun currentGeneration(): Long = generation.get()
 
-    private fun encryptedFile(target: File): EncryptedFile {
-        val masterKey = MasterKey.Builder(context)
+    /**
+     * In-memory mirror of the last written/read snapshot, keyed by owner and
+     * the on-disk file's size + mtime. Avoids re-decrypting and re-parsing the
+     * full JSON list on every detail screen open (`seedFromCache`) while still
+     * invalidating if the underlying file is replaced or corrupted on disk.
+     */
+    private data class MemoryEntry(
+        val owner: String,
+        val fileLength: Long,
+        val lastModified: Long,
+        val masks: CachedMasks,
+    )
+
+    private var memoryCache: MemoryEntry? = null
+
+    private val masterKey: MasterKey by lazy {
+        MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
+    }
+
+    private fun encryptedFile(target: File): EncryptedFile {
         return EncryptedFile.Builder(
             context,
             target,
@@ -137,6 +155,20 @@ class MaskedEmailCache @Inject constructor(
                 file.delete()
                 if (!staging.renameTo(file)) {
                     staging.delete()
+                    memoryCache = null
+                } else if (owner != null) {
+                    val target = file
+                    memoryCache = MemoryEntry(
+                        owner = owner,
+                        fileLength = target.length(),
+                        lastModified = target.lastModified(),
+                        masks = CachedMasks(
+                            masks = payload.masks.map { it.toDomain() },
+                            cachedAt = Instant.ofEpochMilli(payload.cachedAtEpochMs),
+                        ),
+                    )
+                } else {
+                    memoryCache = null
                 }
             }
         }
@@ -159,18 +191,43 @@ class MaskedEmailCache @Inject constructor(
      * @return the snapshot, or null when there is none, it belongs to someone
      *   else, or it cannot be read.
      */
-    fun read(owner: String?): CachedMasks? = runCatching {
-        if (!file.exists()) return null
-        val bytes = encryptedFile(file).openFileInput().use { it.readBytes() }
-        val snapshot = json.decodeFromString(CachedSnapshot.serializer(), String(bytes))
-        if (snapshot.owner == null || snapshot.owner != owner) {
-            return null
-        }
-        CachedMasks(
-            masks = snapshot.masks.map { it.toDomain() },
-            cachedAt = Instant.ofEpochMilli(snapshot.cachedAtEpochMs),
-        )
-    }.getOrNull()
+    fun read(owner: String?): CachedMasks? = synchronized(lock) {
+        runCatching {
+            val target = file
+            if (!target.exists()) {
+                memoryCache = null
+                return@synchronized null
+            }
+            if (owner == null) return@synchronized null
+            val currentLength = target.length()
+            val currentModified = target.lastModified()
+            val cached = memoryCache
+            if (
+                cached != null &&
+                cached.owner == owner &&
+                cached.fileLength == currentLength &&
+                cached.lastModified == currentModified
+            ) {
+                return@synchronized cached.masks
+            }
+            val bytes = encryptedFile(target).openFileInput().use { it.readBytes() }
+            val snapshot = json.decodeFromString(CachedSnapshot.serializer(), String(bytes))
+            if (snapshot.owner == null || snapshot.owner != owner) {
+                return@synchronized null
+            }
+            val result = CachedMasks(
+                masks = snapshot.masks.map { it.toDomain() },
+                cachedAt = Instant.ofEpochMilli(snapshot.cachedAtEpochMs),
+            )
+            memoryCache = MemoryEntry(
+                owner = owner,
+                fileLength = currentLength,
+                lastModified = currentModified,
+                masks = result,
+            )
+            result
+        }.getOrNull()
+    }
 
     /** Drops the snapshot. Called on sign-out and before a new sign-in. */
     fun clear() {
@@ -178,6 +235,7 @@ class MaskedEmailCache @Inject constructor(
             // Before the deletes, and inside the lock: any write already
             // waiting on the lock is invalidated by the time it gets in.
             generation.incrementAndGet()
+            memoryCache = null
             runCatching {
                 file.delete()
                 stagingFile.delete()

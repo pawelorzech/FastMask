@@ -12,12 +12,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** One bundled third-party asset: its name, how it is licensed, and where the text lives. */
 private class BundledLicense(
@@ -32,14 +35,17 @@ private val bundledLicenses = listOf(
     BundledLicense("Material Symbols \"alternate_email\" (launcher icon)", "Apache License 2.0", R.raw.apache_2_0),
 )
 
+private val PARAGRAPH_JOIN_REGEX = Regex("(?<=\\S)[ \\t]*\\r?\\n[ \\t]*(?=\\S)")
+private val HORIZONTAL_RULE_REGEX = Regex("-{5,}")
+
 /**
  * The license files are hard-wrapped at about 80 columns, which leaves ragged
  * half-lines in a narrower dialog. Joins lines inside a paragraph (blank lines stay)
  * and shortens the rule lines; the wording is untouched.
  */
 private fun reflow(text: String): String =
-    text.replace(Regex("(?<=\\S)[ \\t]*\\r?\\n[ \\t]*(?=\\S)"), " ")
-        .replace(Regex("-{5,}"), "———")
+    text.replace(PARAGRAPH_JOIN_REGEX, " ")
+        .replace(HORIZONTAL_RULE_REGEX, "———")
 
 /**
  * Attribution for what FastMask bundles: the font (SIL OFL 1.1) and the icon glyph
@@ -49,9 +55,11 @@ private fun reflow(text: String): String =
 @Composable
 internal fun LicensesDialog(onDismiss: () -> Unit) {
     val resources = LocalContext.current.resources
-    val texts = remember {
-        bundledLicenses.map { license ->
-            reflow(resources.openRawResource(license.rawRes).bufferedReader().use { it.readText() })
+    val texts by produceState<List<String>?>(initialValue = null, resources) {
+        value = withContext(Dispatchers.IO) {
+            bundledLicenses.map { license ->
+                reflow(resources.openRawResource(license.rawRes).bufferedReader().use { it.readText() })
+            }
         }
     }
     AlertDialog(
@@ -70,12 +78,15 @@ internal fun LicensesDialog(onDismiss: () -> Unit) {
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                         )
-                        Text(
-                            texts[index],
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp),
-                        )
+                        val body = texts?.getOrNull(index)
+                        if (body != null) {
+                            Text(
+                                body,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp),
+                            )
+                        }
                     }
                 }
             }

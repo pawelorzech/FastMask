@@ -31,7 +31,10 @@ object RelativeTime {
             epochSecond = instant?.epochSecond,
             nowSec = nowSec,
         )
+        return format(context, bucket)
+    }
 
+    fun format(context: Context, bucket: RelativeTimeBucket): String {
         // Buckets cap well inside Int range (minutes < 60, hours < 24, ...);
         // only YEARS is open-ended, and it counts whole years since 1970.
         val count = bucket.count.toInt()
@@ -48,12 +51,20 @@ object RelativeTime {
         }
     }
 
+    @Volatile
+    private var cachedFormatter: Pair<Locale, RelativeDateTimeFormatter>? = null
+
     /** Short "N [unit] ago" in the locale the app is currently displayed in. */
     private fun Context.ago(count: Int, unit: RelativeUnit): String {
         val locale = resources.configuration.locales[0]
-        return RelativeDateTimeFormatter
-            .getInstance(ULocale.forLocale(locale), null, RelativeDateTimeFormatter.Style.SHORT, DisplayContext.CAPITALIZATION_NONE)
-            .format(count.toDouble(), RelativeDateTimeFormatter.Direction.LAST, unit)
+        val formatter = cachedFormatter?.takeIf { it.first == locale }?.second
+            ?: RelativeDateTimeFormatter.getInstance(
+                ULocale.forLocale(locale),
+                null,
+                RelativeDateTimeFormatter.Style.SHORT,
+                DisplayContext.CAPITALIZATION_NONE,
+            ).also { cachedFormatter = locale to it }
+        return formatter.format(count.toDouble(), RelativeDateTimeFormatter.Direction.LAST, unit)
     }
 
     private val fullFormatter = DateTimeFormatter
