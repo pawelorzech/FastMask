@@ -1,0 +1,18 @@
+<journey name="Demo: create a mask">
+  <description>
+    In the demo list, the New mask form accepts a prefix, updates the preview and creates a mask locally. Nothing is sent to Fastmail.
+  </description>
+  <actions>
+    <action>Verify that the heading "Masked", the "Demo mode" banner and a "New mask" button are visible</action>
+    <action>Tap the "New mask" button</action>
+    <action>Verify that a menu with "Random mask" and "New mask" entries is visible</action>
+    <action>Tap the "New mask" entry in the menu</action>
+    <action>Verify that the screen titled "New mask" shows a "Preview" of "random.xyzw@fastmail.com" and fields "Prefix", "Domain", "Note" and "URL"</action>
+    <action>Tap the "Prefix" field</action>
+    <action>Type "journey_test" into the "Prefix" field</action>
+    <action>Verify that the "Preview" now starts with "journey_test"</action>
+    <action>Press the system Back key to close the on-screen keyboard</action>
+    <action>Tap the "Create mask" button</action>
+    <action>Verify that a confirmation mentioning "journey_test" is shown or the list shows an address starting with "journey_test"</action>
+  </actions>
+</journey>

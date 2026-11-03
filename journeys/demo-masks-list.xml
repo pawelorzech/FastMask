@@ -1,0 +1,19 @@
+<journey name="Demo shows a sample list of masked emails">
+  <description>
+    From the welcome screen, Try demo opens a local sample list. Nothing is sent to Fastmail.
+  </description>
+  <actions>
+    <action>Verify that the welcome screen with a "Try demo" button is shown</action>
+    <action>Tap the "Try demo" button</action>
+    <action>Verify that a tutorial card titled "Your masked emails" with "Skip" and "Next" is visible</action>
+    <action>Tap "Skip"</action>
+    <action>Verify that the heading "Masked" and the summary "8 active · 10 total" are visible</action>
+    <action>Verify that the banner "Demo mode — changes won't be saved" is visible</action>
+    <action>Verify that filter chips "All", "Active", "Off" and "Archived" are visible</action>
+    <action>Verify that the address "sharp.flame138@fastmask.com" is visible in the list</action>
+    <action>Tap the "Archived" filter chip</action>
+    <action>Verify that the list now shows exactly one mask and the "Archived" chip is selected</action>
+    <action>Tap the "All" filter chip</action>
+    <action>Verify that "sharp.flame138@fastmask.com" is visible again</action>
+  </actions>
+</journey>

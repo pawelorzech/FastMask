@@ -1,0 +1,12 @@
+<journey name="First run shows the welcome screen">
+  <description>
+    On a fresh install FastMask opens on the welcome screen with the two entry points: sign in and demo.
+  </description>
+  <actions>
+    <action>Verify that the app name "FastMask" is visible</action>
+    <action>Verify that the tagline "A quiet place for your masked addresses." is visible</action>
+    <action>Verify that a button labelled "Sign in with Fastmail" is visible</action>
+    <action>Verify that a button labelled "Try demo" is visible</action>
+    <action>Verify that the text "Privacy-first · open source" is visible</action>
+  </actions>
+</journey>

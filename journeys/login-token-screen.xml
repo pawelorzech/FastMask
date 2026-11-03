@@ -1,0 +1,22 @@
+<journey name="Sign in opens the API token screen">
+  <description>
+    Sign in with Fastmail leads to the API token screen. The token field hides its value by default and can reveal it, the instructions expand, and Back returns to the welcome screen. No token is submitted and nothing is sent to Fastmail.
+  </description>
+  <actions>
+    <action>Verify that the welcome screen with a "Sign in with Fastmail" button is shown</action>
+    <action>Tap the "Sign in with Fastmail" button</action>
+    <action>Verify that the heading "A quiet place for masked mail." is visible</action>
+    <action>Verify that a field labelled "API Token", a "Paste" action and a button labelled "Unlock" are visible</action>
+    <action>Verify that the "Unlock" button looks disabled (greyed out) because the token field is empty</action>
+    <action>Tap the "API Token" field</action>
+    <action>Type "abcd-not-a-token" into the "API Token" field</action>
+    <action>Verify that the typed value is shown as dots, not as readable text, and that the "Unlock" button looks enabled</action>
+    <action>Tap the eye icon labelled "Show token"</action>
+    <action>Verify that the value "abcd-not-a-token" is now readable and the icon is labelled "Hide token"</action>
+    <action>Press the system Back key to close the on-screen keyboard</action>
+    <action>Tap "How to get your API token"</action>
+    <action>Verify that numbered instructions mentioning Fastmail settings and the "Masked Email" scope are visible</action>
+    <action>Tap the back arrow at the top left</action>
+    <action>Verify that the welcome screen with the "Sign in with Fastmail" button is shown</action>
+  </actions>
+</journey>

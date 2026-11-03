@@ -75,3 +75,6 @@ keystore.properties
 
 # bun installs under tools/*
 tools/*/node_modules/
+
+# Journey run results (screenshots + markdown)
+journeys/results/
