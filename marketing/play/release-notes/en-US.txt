@@ -1,6 +1,6 @@
-What's new in 1.13.2
+What's new in 1.13.3
 
-• Archiving is called archiving in every language, and relative times read naturally
-• Better layouts in landscape and on tablets
-• A much smaller download
-• Small fixes for large font sizes and the Pro screen
+• Faster start and a smoother list, with less work on the main thread
+• Quick Mask Undo can no longer freeze on a slow connection
+• Opening a mask's details is quicker
+• Stability fixes for sign-in, sign-out, clipboard and CSV export

@@ -6,6 +6,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.13.3] — 2026-11-03
+
 ### Fixed
 - Signing in and signing out now clear the encrypted mask cache, exported CSVs, and stored token on `Dispatchers.IO` instead of the UI thread after the session request returns.
 - Quick Mask *Undo* bounds its network call below the 10-second `BroadcastReceiver.goAsync()` window so a hung connection cannot trigger a system ANR, and releases the undo latch on timeout so the action can be retried.
@@ -22,6 +24,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - The mask list computes per-filter counts in a single remembered pass, filters masks in one pass without intermediate list allocations, caches the ICU `RelativeDateTimeFormatter` per locale, and keys row timestamps on their coarse relative-time bucket so refreshes do not reformat unchanged rows.
 - `ProViewModel` fetches product details and refreshes purchase state concurrently; `PurchaseSecurity` caches the decoded RSA `PublicKey`; `MaskAvatar` reuses a static polygon list; `CreateMaskedEmailViewModel` validates ASCII prefixes without recompiling a `Regex` on every keystroke.
 - Removed overly broad R8 `-keep` rules for `Companion` objects and `@Composable` functions in `proguard-rules.pro` so release builds can shrink and inline unused code.
+
+### Build
+- `versionCode` 28 → 29, `versionName` "1.13.2" → "1.13.3".
 
 ## [1.13.2] — 2026-11-02
 

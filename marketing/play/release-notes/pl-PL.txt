@@ -1,6 +1,6 @@
-Nowości w 1.13.2
+Nowości w 1.13.3
 
-• Archiwizacja wszędzie nazywa się archiwizacją, a czas jest podawany naturalnie w każdym języku
-• Lepszy układ w poziomie i na tabletach
-• Dużo mniejszy plik do pobrania
-• Drobne poprawki dla dużej czcionki i ekranu Pro
+• Szybszy start i płynniejsza lista
+• Cofnięcie w Szybkiej masce nie zawiesza się przy wolnym połączeniu
+• Szczegóły maski otwierają się szybciej
+• Poprawki stabilności logowania, wylogowania, schowka i eksportu CSV
