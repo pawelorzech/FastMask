@@ -24,4 +24,12 @@ class AccentTest {
             assertEquals(it, Accent.fromName(it).name)
         }
     }
+
+    @Test
+    fun `without Pro a stored seed is painted as the wallpaper colours`() {
+        assertSame(Accent.DYNAMIC, Accent.PLUM.shownFor(ProStatus.FREE))
+        assertSame(Accent.DYNAMIC, Accent.PLUM.shownFor(ProStatus.PENDING))
+        assertSame(Accent.PLUM, Accent.PLUM.shownFor(ProStatus.PRO))
+        assertSame(Accent.DYNAMIC, Accent.DYNAMIC.shownFor(ProStatus.FREE))
+    }
 }

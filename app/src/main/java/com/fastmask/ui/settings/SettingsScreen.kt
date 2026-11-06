@@ -101,7 +101,6 @@ import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
-import com.fastmask.domain.model.ProStatus
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.common.openExternalIntent
@@ -111,6 +110,7 @@ import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.segmentedShape
 import com.fastmask.ui.lock.canUseAppLock
 import com.fastmask.ui.theme.FastMaskTheme
+import com.fastmask.ui.theme.style
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -203,14 +203,11 @@ fun SettingsScreen(
         )
     }
 
-    val isPro = proStatus == ProStatus.PRO
     SettingsContent(
         state = SettingsViewState(
             isDemo = session.isDemo,
-            isPro = isPro,
-            // Without Pro the theme ignores a stored seed (MainActivity), so
-            // the picker shows what is actually painted.
-            accent = if (isPro) selectedAccent else Accent.DYNAMIC,
+            isPro = proStatus.isPro,
+            accent = selectedAccent.shownFor(proStatus),
             appLockEnabled = appLockEnabled,
             crashReportingEnabled = crashReportingEnabled,
             selectedLanguage = uiState.selectedLanguage,
@@ -429,7 +426,7 @@ internal fun SettingsContent(
                                 // What is painted right now: the wallpaper, or the
                                 // seed's name.
                                 Text(
-                                    text = stringResource(state.accent.displayNameRes),
+                                    text = stringResource(state.accent.style.nameRes),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -836,16 +833,6 @@ private fun ChevronIcon() {
         contentDescription = null,
     )
 }
-
-internal val Accent.displayNameRes: Int
-    get() = when (this) {
-        Accent.DYNAMIC -> R.string.accent_dynamic
-        Accent.AMBER -> R.string.accent_amber
-        Accent.INK -> R.string.accent_ink
-        Accent.SAGE -> R.string.accent_sage
-        Accent.PLUM -> R.string.accent_plum
-        Accent.COBALT -> R.string.accent_cobalt
-    }
 
 private const val CLOSE_AFTER_SELECT_MS = 220L
 

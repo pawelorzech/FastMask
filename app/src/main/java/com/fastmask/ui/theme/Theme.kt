@@ -15,16 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.fastmask.domain.model.Accent
 
-/** Fixed seed scheme for [accent], or null for [Accent.DYNAMIC]. */
-internal fun Accent.seedScheme(dark: Boolean): ColorScheme? = when (this) {
-    Accent.DYNAMIC -> null
-    Accent.AMBER -> if (dark) AmberDark else AmberLight
-    Accent.INK -> if (dark) InkDark else InkLight
-    Accent.SAGE -> if (dark) SageDark else SageLight
-    Accent.PLUM -> if (dark) PlumDark else PlumLight
-    Accent.COBALT -> if (dark) CobaltDark else CobaltLight
-}
-
 /**
  * Swatch color for the accent picker: the seed scheme's `primary`. For
  * [Accent.DYNAMIC] it is the *current* `MaterialTheme.colorScheme.primary`

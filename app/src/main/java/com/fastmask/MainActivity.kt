@@ -31,10 +31,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.core.runSuspendCatching
-import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.share.ShareInbox
 import com.fastmask.domain.share.ShareIntentPolicy
 import com.fastmask.domain.share.ShareRequest
@@ -72,9 +70,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var proRepository: ProRepository
-
-    @Inject
-    lateinit var proEntitlementStore: ProEntitlementStore
 
     private var isReady = false
 
@@ -178,7 +173,6 @@ class MainActivity : AppCompatActivity() {
         // so a signed-in user never sees Welcome flash by.
         lifecycleScope.launch {
             var lockAtLaunch = false
-            var cachedPro = false
             var cachedAccent = Accent.DEFAULT
             val startDestination = runSuspendCatching {
                 val signedIn = withContext(Dispatchers.IO) {
@@ -188,23 +182,16 @@ class MainActivity : AppCompatActivity() {
                         // FIRST so its initialization overlaps the DataStore reads
                         // below instead of queuing behind them on the splash clock.
                         val session = async { sessionRepository.current() }
-                        // Read for the ACCENT fallback below, not for the lock.
-                        cachedPro = proEntitlementStore.read() == ProStatus.PRO
-                        // The lock engages from the preference ALONE, deliberately
-                        // not `&& cachedPro`. It used to carry the entitlement, and
-                        // that made the gate disagree with itself: the ON_STOP
-                        // observer below re-locks on the raw flag, so a user whose
-                        // Pro lapsed (refund, Play account switch) got the worst of
-                        // both — no lock on a cold start, where the mask list sits
-                        // exposed, but a biometric prompt on every return from the
-                        // background, while Settings showed the toggle as OFF.
-                        // A privacy control the user switched on must not switch
-                        // itself off when a purchase lapses; Pro gates ENABLING it
-                        // (SettingsViewModel.onAppLockToggled), and turning it off
-                        // is always allowed, so this cannot lock anyone out.
+                        // For the accent: a Pro user's first frame is themed from the cache.
+                        val proCached = async { proRepository.awaitCached() }
+                        // The lock engages from the preference alone, never the
+                        // entitlement: Pro gates turning it on, so a lapsed purchase
+                        // cannot disarm a lock the user chose, and turning it off is
+                        // always allowed.
                         lockAtLaunch = settingsDataStore.appLockEnabled.first()
                         cachedAccent = settingsDataStore.accent.first()
                         notificationPromptShown = settingsDataStore.notificationPromptShown()
+                        proCached.await()
                         session.await().isSignedIn
                     }
                 }
@@ -233,18 +220,7 @@ class MainActivity : AppCompatActivity() {
             setContent {
                 val proStatus by proRepository.proStatus.collectAsState()
                 val accentPref by settingsDataStore.accent.collectAsState(initial = cachedAccent)
-                // Accents are a Pro feature — losing Pro gracefully falls back
-                // to wallpaper colors (Accent.DEFAULT) without touching the stored preference.
-                // The cache snapshot from the IO read above covers the first
-                // frames before the repository's async seed lands, so a Pro
-                // user's accent doesn't flash the default on every cold start. (If
-                // Play revokes Pro mid-session the accent lingers until the
-                // next launch — cosmetic, self-correcting.)
-                val accent = if (proStatus.isPro || (proStatus == ProStatus.FREE && cachedPro)) {
-                    accentPref
-                } else {
-                    Accent.DEFAULT
-                }
+                val accent = accentPref.shownFor(proStatus)
 
                 val appLockEnabled by settingsDataStore.appLockEnabled
                     .collectAsState(initial = lockAtLaunch)

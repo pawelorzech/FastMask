@@ -29,6 +29,12 @@ interface ProRepository {
      */
     fun drainPendingEvents()
 
+    /**
+     * Returns once [proStatus] holds at least the locally cached entitlement, so
+     * the first frame can be themed for a Pro user before Play has answered.
+     */
+    suspend fun awaitCached()
+
     /** Re-query Play for purchases and reconcile the entitlement. */
     suspend fun refresh(): RefreshResult
 

@@ -13,6 +13,7 @@ import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.MaskCsv
+import com.fastmask.domain.model.ProFeature
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
@@ -162,15 +163,21 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "settings")) }
     }
 
+    /** True with Pro; otherwise records the tap on [feature] and opens the paywall. */
+    private fun hasPro(feature: ProFeature): Boolean {
+        if (proStatus.value.isPro) return true
+        analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = feature.source)
+        viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = feature.source)) }
+        return false
+    }
+
     fun onAccentClick() {
-        if (proStatus.value.isPro) return
-        analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "accent")
-        viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "accent")) }
+        hasPro(ProFeature.ACCENT)
     }
 
     fun onAccentSelected(accent: Accent) {
-        // Wallpaper colors are free; only the five seeds are Pro (the picker locks them).
-        if (accent != Accent.DYNAMIC && !proStatus.value.isPro) return
+        // The picker locks Pro seeds, so a tap on one never reaches here without Pro.
+        if (accent.shownFor(proStatus.value) != accent) return
         viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
     }
 
@@ -180,20 +187,12 @@ class SettingsViewModel @Inject constructor(
      * Pro is never locked out.
      */
     fun onAppLockToggled(enabled: Boolean) {
-        if (enabled && !proStatus.value.isPro) {
-            analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "app_lock")
-            viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "app_lock")) }
-            return
-        }
+        if (enabled && !hasPro(ProFeature.APP_LOCK)) return
         viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAppLockEnabled(enabled) }
     }
 
     fun onExportClick() {
-        if (!proStatus.value.isPro) {
-            analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "export")
-            viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "export")) }
-            return
-        }
+        if (!hasPro(ProFeature.EXPORT)) return
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(showExportConfirmation = true) }
     }
@@ -208,11 +207,7 @@ class SettingsViewModel @Inject constructor(
 
         // Entitlement can change while the confirmation dialog is open. Do not
         // let a stale Pro snapshot bypass the same gate as the original tap.
-        if (!proStatus.value.isPro) {
-            analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "export")
-            viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "export")) }
-            return
-        }
+        if (!hasPro(ProFeature.EXPORT)) return
 
         // In UI state, not a private var: the export does a network fetch of
         // every mask, and the row must show progress instead of looking dead.

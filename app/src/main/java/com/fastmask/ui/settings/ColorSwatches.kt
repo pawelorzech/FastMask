@@ -47,17 +47,8 @@ import com.fastmask.R
 import com.fastmask.domain.model.Accent
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.theme.FastMaskTheme
+import com.fastmask.ui.theme.style
 import com.fastmask.ui.theme.swatchColor
-
-/** Resting shape per swatch; the selected one morphs to [MaterialShapes.Sunny]. */
-private fun Accent.restingShape(): RoundedPolygon = when (this) {
-    Accent.DYNAMIC -> MaterialShapes.Circle
-    Accent.AMBER -> MaterialShapes.Cookie4Sided
-    Accent.INK -> MaterialShapes.Cookie9Sided
-    Accent.SAGE -> MaterialShapes.Clover4Leaf
-    Accent.PLUM -> MaterialShapes.Flower
-    Accent.COBALT -> MaterialShapes.Pentagon
-}
 
 /**
  * Row of round color swatches: Wallpaper first (a four-quadrant mini of the
@@ -81,7 +72,7 @@ internal fun ColorSwatchRow(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Accent.entries.forEach { accent ->
-            val locked = accent != Accent.DYNAMIC && !isPro
+            val locked = accent.isPro && !isPro
             ColorSwatch(
                 accent = accent,
                 selected = accent == selected,
@@ -134,9 +125,9 @@ private fun ColorSwatch(
         label = "swatchCheckAlpha",
     )
 
-    val morph = remember(accent) { Morph(accent.restingShape(), MaterialShapes.Sunny) }
+    val morph = remember(accent) { Morph(accent.style.shape, MaterialShapes.Sunny) }
 
-    val name = stringResource(accent.displayNameRes)
+    val name = stringResource(accent.style.nameRes)
     val lockedText = stringResource(R.string.settings_accent_locked)
     val scheme = MaterialTheme.colorScheme
     val dark = isSystemInDarkTheme()

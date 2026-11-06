@@ -82,6 +82,8 @@ class ProRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun awaitCached() = seedJob.join()
+
     init {
         scope.launch {
             seedJob.join()

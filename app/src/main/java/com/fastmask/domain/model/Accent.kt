@@ -15,6 +15,12 @@ enum class Accent {
     PLUM,
     COBALT;
 
+    /** Every accent but the wallpaper colours is part of Pro. */
+    val isPro: Boolean get() = this != DYNAMIC
+
+    /** What is actually painted: without Pro a stored seed falls back to the wallpaper, and the stored choice is kept. */
+    fun shownFor(status: ProStatus): Accent = if (!isPro || status.isPro) this else DEFAULT
+
     companion object {
         val DEFAULT = DYNAMIC
 

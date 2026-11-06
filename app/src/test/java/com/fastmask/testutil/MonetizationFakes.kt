@@ -83,6 +83,8 @@ class FakeProRepository(
     val statusFlow = MutableStateFlow(initialStatus)
     override val proStatus: StateFlow<ProStatus> = statusFlow.asStateFlow()
 
+    override suspend fun awaitCached() = Unit
+
     val eventsChannel = Channel<ProPurchaseEvent>(Channel.BUFFERED)
     override val events: Flow<ProPurchaseEvent> = eventsChannel.receiveAsFlow()
 
