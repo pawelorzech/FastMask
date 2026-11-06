@@ -23,6 +23,7 @@ import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
+import com.fastmask.ui.components.expressive.LocalSharedTransitionScope
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
