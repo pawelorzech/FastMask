@@ -13,7 +13,7 @@
     debug build has no applicationIdSuffix, so it shares the package, and those
     preferences, with a release build installed before it. Replacing a release
     install that had collection on therefore starts with `true` despite this
-    flag. CrashReportingPolicy.shouldCollect() is what actually guarantees a
+    flag. CrashReporting (data/crash) is what actually guarantees a
     debug build never reports; it forces `false` on the first startup pass and
     Crashlytics persists that. This flag covers the moments before that pass.
 

@@ -573,9 +573,9 @@ class CrashReportingPrivacyTest {
         )
 
         assertTrue(
-            "the startup path must delegate to CrashReportingStartup, which is the " +
+            "the startup path must delegate to CrashReporting.applyAtStartup, which is the " +
                 "collaborator unit tests actually cover",
-            Regex("""\bcrashReportingStartup\s*\.\s*apply\s*\(""").containsMatchIn(source),
+            Regex("""\bcrashReporting\s*\.\s*applyAtStartup\s*\(""").containsMatchIn(source),
         )
 
         // onCreate is where it has to happen; a call left in a private method
