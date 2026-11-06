@@ -292,22 +292,12 @@ internal fun CreateMaskedEmailContent(
                 ButtonLoadingLabel(
                     loading = uiState.isLoading,
                     loadingDescription = stringResource(R.string.state_working),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                        )
-                        Text(
-                            text = stringResource(R.string.create_email_button),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
+                    label = stringResource(R.string.create_email_button),
+                    icon = Icons.Filled.Add,
+                    iconSize = ButtonDefaults.iconSizeFor(height),
+                    iconSpacing = ButtonDefaults.iconSpacingFor(height),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                )
             }
         }
     }

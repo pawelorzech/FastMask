@@ -45,7 +45,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
-import com.fastmask.ui.components.LoadingButtonContent
+import com.fastmask.ui.components.ButtonLoadingLabel
+import com.fastmask.ui.components.ButtonLoadingStyle
 import com.fastmask.ui.theme.FastMaskTheme
 import kotlinx.coroutines.delay
 
@@ -120,13 +121,14 @@ internal fun WelcomeContent(
                     contentPadding = ButtonDefaults.contentPaddingFor(height),
                     modifier = Modifier.fillMaxWidth().heightIn(min = height),
                 ) {
-                    LoadingButtonContent(
+                    ButtonLoadingLabel(
                         loading = false,
                         loadingDescription = working,
                         label = stringResource(R.string.welcome_signin_cta),
                         icon = Icons.AutoMirrored.Filled.Login,
                         iconSize = ButtonDefaults.iconSizeFor(height),
                         iconSpacing = ButtonDefaults.iconSpacingFor(height),
+                        style = ButtonLoadingStyle.Crossfade,
                     )
                 }
 
@@ -136,13 +138,14 @@ internal fun WelcomeContent(
                     contentPadding = ButtonDefaults.contentPaddingFor(height),
                     modifier = Modifier.fillMaxWidth().heightIn(min = height),
                 ) {
-                    LoadingButtonContent(
+                    ButtonLoadingLabel(
                         loading = isLoading,
                         loadingDescription = working,
                         label = stringResource(R.string.welcome_demo_cta),
                         icon = Icons.Filled.PlayArrow,
                         iconSize = ButtonDefaults.iconSizeFor(height),
                         iconSpacing = ButtonDefaults.iconSpacingFor(height),
+                        style = ButtonLoadingStyle.Crossfade,
                     )
                 }
 

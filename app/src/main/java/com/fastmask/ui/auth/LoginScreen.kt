@@ -88,7 +88,8 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.FastmailLinks
 import com.fastmask.ui.common.openExternalIntent
-import com.fastmask.ui.components.LoadingButtonContent
+import com.fastmask.ui.components.ButtonLoadingLabel
+import com.fastmask.ui.components.ButtonLoadingStyle
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
@@ -308,13 +309,14 @@ internal fun LoginContent(
                 contentPadding = ButtonDefaults.contentPaddingFor(buttonHeight),
                 modifier = Modifier.fillMaxWidth().padding(top = 20.dp).heightIn(min = buttonHeight),
             ) {
-                LoadingButtonContent(
+                ButtonLoadingLabel(
                     loading = loginBusy,
                     loadingDescription = working,
                     label = stringResource(R.string.login_button),
                     icon = Icons.Filled.Key,
                     iconSize = ButtonDefaults.iconSizeFor(buttonHeight),
                     iconSpacing = ButtonDefaults.iconSpacingFor(buttonHeight),
+                    style = ButtonLoadingStyle.Crossfade,
                 )
             }
 
@@ -331,10 +333,11 @@ internal fun LoginContent(
                 shapes = ButtonDefaults.shapes(),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             ) {
-                LoadingButtonContent(
+                ButtonLoadingLabel(
                     loading = demoBusy,
                     loadingDescription = working,
                     label = stringResource(R.string.login_try_demo),
+                    style = ButtonLoadingStyle.Crossfade,
                 )
             }
         }

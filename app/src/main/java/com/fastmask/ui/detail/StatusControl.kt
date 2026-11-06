@@ -80,22 +80,12 @@ internal fun StatusControl(
                 ButtonLoadingLabel(
                     loading = toggling,
                     loadingDescription = stringResource(R.string.state_working),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Unarchive,
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                        )
-                        Text(
-                            text = stringResource(R.string.email_detail_enable),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
+                    label = stringResource(R.string.email_detail_enable),
+                    icon = Icons.Filled.Unarchive,
+                    iconSize = ButtonDefaults.iconSizeFor(height),
+                    iconSpacing = ButtonDefaults.iconSpacingFor(height),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                )
             }
         } else {
             val activeSelected = shown == EmailState.ENABLED || shown == EmailState.PENDING
