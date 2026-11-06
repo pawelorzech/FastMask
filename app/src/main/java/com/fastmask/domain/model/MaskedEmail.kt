@@ -1,6 +1,8 @@
 package com.fastmask.domain.model
 
 import java.time.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 data class MaskedEmail(
     val id: String,
@@ -23,11 +25,25 @@ data class MaskedEmail(
         get() = state == EmailState.ENABLED || state == EmailState.PENDING
 }
 
+/**
+ * A mask's lifecycle state. The `@SerialName`s are Fastmail's JMAP wire
+ * values and the single source of truth for them: [wire] reads them back, so
+ * no call site derives a wire name by hand.
+ */
+@Serializable
 enum class EmailState {
+    @SerialName("pending")
     PENDING,
+    @SerialName("enabled")
     ENABLED,
+    @SerialName("disabled")
     DISABLED,
-    DELETED
+    @SerialName("deleted")
+    DELETED;
+
+    /** The JMAP value for this state, e.g. `"enabled"`. */
+    val wire: String
+        get() = EmailState.serializer().descriptor.getElementName(ordinal)
 }
 
 data class CreateMaskedEmailParams(

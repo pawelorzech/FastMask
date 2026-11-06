@@ -1,6 +1,6 @@
 package com.fastmask.data.api
 
-import kotlinx.serialization.SerialName
+import com.fastmask.domain.model.EmailState
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -66,7 +66,7 @@ data class MaskedEmailSetResponse(
 data class MaskedEmailCreated(
     val id: String,
     val email: String,
-    val state: MaskedEmailState? = null,
+    val state: EmailState? = null,
     val forDomain: String? = null,
     val description: String? = null,
     val createdBy: String? = null,
@@ -87,7 +87,7 @@ data class MaskedEmailDto(
     val email: String,
     // Fastmail's documented default is pending. A response should normally
     // include the property, but a defensive default must preserve API semantics.
-    val state: MaskedEmailState = MaskedEmailState.PENDING,
+    val state: EmailState = EmailState.PENDING,
     val forDomain: String? = null,
     val description: String? = null,
     val createdBy: String? = null,
@@ -97,30 +97,8 @@ data class MaskedEmailDto(
     val lastMessageAt: String? = null
 )
 
-@Serializable
-enum class MaskedEmailState {
-    @SerialName("pending")
-    PENDING,
-    @SerialName("enabled")
-    ENABLED,
-    @SerialName("disabled")
-    DISABLED,
-    @SerialName("deleted")
-    DELETED
-}
-
-@Serializable
-data class MaskedEmailCreate(
-    val state: MaskedEmailState = MaskedEmailState.ENABLED,
-    val forDomain: String? = null,
-    val description: String? = null,
-    val emailPrefix: String? = null,
-    val url: String? = null
-)
-
-@Serializable
 data class MaskedEmailUpdate(
-    val state: MaskedEmailState? = null,
+    val state: EmailState? = null,
     val forDomain: String? = null,
     val description: String? = null,
     val url: String? = null,

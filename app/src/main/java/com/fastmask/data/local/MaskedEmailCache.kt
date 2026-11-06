@@ -32,8 +32,6 @@ class MaskedEmailCache @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
 
-    private val json = Json { ignoreUnknownKeys = true }
-
     private val file: File get() = File(context.filesDir, FILE_NAME)
 
     /**
@@ -136,11 +134,7 @@ class MaskedEmailCache @Inject constructor(
             // the rename.
             if (generation != this.generation.get()) return
             runCatching {
-                val payload = CachedSnapshot(
-                    cachedAtEpochMs = now.toEpochMilli(),
-                    owner = owner,
-                    masks = masks.map { it.toCached() },
-                )
+                val payload = MaskedEmailSnapshotCodec.payload(masks, owner, now)
                 // Write to a temporary file and rename, so an interrupted write
                 // (process death, full disk) leaves the previous good snapshot
                 // in place. The old code deleted the target FIRST — because
@@ -150,7 +144,7 @@ class MaskedEmailCache @Inject constructor(
                 val staging = stagingFile
                 staging.delete()
                 encryptedFile(staging).openFileOutput().use { out ->
-                    out.write(json.encodeToString(CachedSnapshot.serializer(), payload).toByteArray())
+                    out.write(MaskedEmailSnapshotCodec.encode(payload).toByteArray())
                 }
                 file.delete()
                 if (!staging.renameTo(file)) {
@@ -162,10 +156,7 @@ class MaskedEmailCache @Inject constructor(
                         owner = owner,
                         fileLength = target.length(),
                         lastModified = target.lastModified(),
-                        masks = CachedMasks(
-                            masks = payload.masks.map { it.toDomain() },
-                            cachedAt = Instant.ofEpochMilli(payload.cachedAtEpochMs),
-                        ),
+                        masks = MaskedEmailSnapshotCodec.decoded(payload).masks,
                     )
                 } else {
                     memoryCache = null
@@ -211,14 +202,11 @@ class MaskedEmailCache @Inject constructor(
                 return@synchronized cached.masks
             }
             val bytes = encryptedFile(target).openFileInput().use { it.readBytes() }
-            val snapshot = json.decodeFromString(CachedSnapshot.serializer(), String(bytes))
+            val snapshot = MaskedEmailSnapshotCodec.decode(String(bytes))
             if (snapshot.owner == null || snapshot.owner != owner) {
                 return@synchronized null
             }
-            val result = CachedMasks(
-                masks = snapshot.masks.map { it.toDomain() },
-                cachedAt = Instant.ofEpochMilli(snapshot.cachedAtEpochMs),
-            )
+            val result = snapshot.masks
             memoryCache = MemoryEntry(
                 owner = owner,
                 fileLength = currentLength,
@@ -249,11 +237,49 @@ class MaskedEmailCache @Inject constructor(
     }
 }
 
+/** A snapshot as read back from disk: who it belongs to plus the masks. */
+internal class DecodedSnapshot(val owner: String?, val masks: CachedMasks)
+
 /**
- * On-disk shape, deliberately separate from the domain model: instants become
- * epoch millis and the state becomes a plain name, so a future change to
- * [MaskedEmail] cannot silently break an existing cache file.
+ * The encrypted file's plaintext format, and the only place that knows it.
+ *
+ * The on-disk shape is deliberately separate from the domain model and from
+ * the wire DTO: instants become epoch millis and the state becomes its
+ * [EmailState.name], so a change to [MaskedEmail] cannot silently break a
+ * cache file an existing install already has. That layout is frozen: files
+ * written by earlier builds must read back unchanged, so a field is only ever
+ * added as optional and never renamed (a unit test feeds a literal old file
+ * through [decode]).
+ *
+ * Kept free of Android and Keystore so it is unit-testable on the JVM.
  */
+internal object MaskedEmailSnapshotCodec {
+
+    private val json = Json { ignoreUnknownKeys = true }
+
+    fun payload(masks: List<MaskedEmail>, owner: String?, now: Instant): CachedSnapshot =
+        CachedSnapshot(
+            cachedAtEpochMs = now.toEpochMilli(),
+            owner = owner,
+            masks = masks.map { it.toCached() },
+        )
+
+    fun encode(payload: CachedSnapshot): String =
+        json.encodeToString(CachedSnapshot.serializer(), payload)
+
+    fun decode(text: String): DecodedSnapshot =
+        decoded(json.decodeFromString(CachedSnapshot.serializer(), text))
+
+    /** The snapshot as [decode] would return it, without the text round trip. */
+    fun decoded(payload: CachedSnapshot): DecodedSnapshot = DecodedSnapshot(
+        owner = payload.owner,
+        masks = CachedMasks(
+            masks = payload.masks.map { it.toDomain() },
+            cachedAt = Instant.ofEpochMilli(payload.cachedAtEpochMs),
+        ),
+    )
+}
+
 /**
  * @param owner opaque per-account marker. Optional so a snapshot written by an
  *   older build still deserializes; [MaskedEmailCache.read] then treats the
@@ -261,14 +287,14 @@ class MaskedEmailCache @Inject constructor(
  *   next successful fetch — the behaviour from before the cache existed.
  */
 @Serializable
-private data class CachedSnapshot(
+internal data class CachedSnapshot(
     val cachedAtEpochMs: Long,
     val owner: String? = null,
     val masks: List<CachedMask>,
 )
 
 @Serializable
-private data class CachedMask(
+internal data class CachedMask(
     val id: String,
     val email: String,
     val state: String,
@@ -299,8 +325,9 @@ private fun CachedMask.toDomain() = MaskedEmail(
     email = email,
     // An unknown state name (older or newer app version) degrades to DISABLED
     // rather than throwing: showing a mask as off is safe, losing the whole
-    // cache because of one row is not.
-    state = runCatching { EmailState.valueOf(state) }.getOrDefault(EmailState.DISABLED),
+    // cache because of one row is not. (The wire DTO differs on purpose: an
+    // absent state there is PENDING, Fastmail's documented default.)
+    state = EmailState.entries.firstOrNull { it.name == state } ?: EmailState.DISABLED,
     forDomain = forDomain,
     description = description,
     createdBy = createdBy,

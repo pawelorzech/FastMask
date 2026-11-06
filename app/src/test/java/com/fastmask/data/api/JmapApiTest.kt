@@ -1,6 +1,8 @@
 package com.fastmask.data.api
 
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import com.fastmask.domain.model.CreateMaskedEmailParams
+import com.fastmask.domain.model.EmailState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -189,7 +191,7 @@ class JmapApiTest {
         val list = result.getOrThrow()
         assertEquals(1, list.size)
         assertEquals("m1", list[0].id)
-        assertEquals(MaskedEmailState.ENABLED, list[0].state)
+        assertEquals(EmailState.ENABLED, list[0].state)
     }
 
     @Test
@@ -212,7 +214,7 @@ class JmapApiTest {
             json,
         )
 
-        assertEquals(MaskedEmailState.PENDING, api.getMaskedEmails("tok").getOrThrow().single().state)
+        assertEquals(EmailState.PENDING, api.getMaskedEmails("tok").getOrThrow().single().state)
     }
 
     @Test
@@ -301,12 +303,12 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        val result = api.createMaskedEmail("tok", MaskedEmailCreate())
+        val result = api.createMaskedEmail("tok", CreateMaskedEmailParams())
 
         assertEquals("m9", result.getOrThrow().id)
         assertEquals(
             "a partial SetResponse must retain the state sent in the request",
-            MaskedEmailState.ENABLED,
+            EmailState.ENABLED,
             result.getOrThrow().state,
         )
     }
@@ -328,7 +330,7 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        api.createMaskedEmail("tok", MaskedEmailCreate()).getOrThrow()
+        api.createMaskedEmail("tok", CreateMaskedEmailParams()).getOrThrow()
 
         val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
         val create = arguments["create"] as JsonObject
@@ -355,7 +357,7 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        val result = api.createMaskedEmail("tok", MaskedEmailCreate())
+        val result = api.createMaskedEmail("tok", CreateMaskedEmailParams())
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull()!!.message!!.contains("invalidProperties"))
@@ -377,7 +379,7 @@ class JmapApiTest {
             json,
         )
 
-        val result = api.createMaskedEmail("tok", MaskedEmailCreate())
+        val result = api.createMaskedEmail("tok", CreateMaskedEmailParams())
 
         assertTrue(result.exceptionOrNull() is JmapRateLimitException)
     }

@@ -2,7 +2,6 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.api.MaskedEmailDto
-import com.fastmask.data.api.MaskedEmailState
 import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
@@ -34,7 +33,7 @@ class MaskedEmailRepositoryImplTest {
     private fun dto(
         createdAt: String? = null,
         lastMessageAt: String? = null,
-        state: MaskedEmailState = MaskedEmailState.ENABLED,
+        state: EmailState = EmailState.ENABLED,
     ) = MaskedEmailDto(
         id = "m1",
         email = "a@fastmail.com",
@@ -74,10 +73,10 @@ class MaskedEmailRepositoryImplTest {
         every { tokenStorage.getToken() } returns "tok"
         coEvery { jmapApi.getMaskedEmails("tok") } returns Result.success(
             listOf(
-                dto(state = MaskedEmailState.PENDING),
-                dto(state = MaskedEmailState.ENABLED),
-                dto(state = MaskedEmailState.DISABLED),
-                dto(state = MaskedEmailState.DELETED),
+                dto(state = EmailState.PENDING),
+                dto(state = EmailState.ENABLED),
+                dto(state = EmailState.DISABLED),
+                dto(state = EmailState.DELETED),
             )
         )
 
@@ -102,7 +101,7 @@ class MaskedEmailRepositoryImplTest {
     @Test
     fun `create normalizes website input to Fastmail forDomain origin`() = runTest {
         every { tokenStorage.getToken() } returns "tok"
-        val create = slot<com.fastmask.data.api.MaskedEmailCreate>()
+        val create = slot<CreateMaskedEmailParams>()
         coEvery { jmapApi.createMaskedEmail("tok", capture(create)) } returns Result.success(dto())
 
         val result = repo.createMaskedEmail(
@@ -230,7 +229,7 @@ class MaskedEmailRepositoryImplTest {
 
         assertTrue(repo.archiveMaskedEmail("m1").isSuccess)
 
-        assertEquals(MaskedEmailState.DELETED, update.captured.state)
+        assertEquals(EmailState.DELETED, update.captured.state)
         coVerify(exactly = 0) { jmapApi.deleteMaskedEmail(any(), any()) }
     }
 

@@ -1,6 +1,7 @@
 package com.fastmask.data.api
 
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import com.fastmask.domain.model.CreateMaskedEmailParams
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -125,13 +126,13 @@ class JmapApi @Inject constructor(
 
     suspend fun createMaskedEmail(
         token: String,
-        create: MaskedEmailCreate
+        create: CreateMaskedEmailParams
     ): Result<MaskedEmailDto> = runSuspendCatching {
         val accountId = ensureSession(token)
         val authHeader = "Bearer $token"
 
         val createObject = buildJsonObject {
-            put("state", JsonPrimitive(create.state.name.lowercase()))
+            put("state", JsonPrimitive(create.state.wire))
             create.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
             // Fastmail requires an empty string when the user supplied no
             // description; omitting it leaves interoperability to server defaults.
@@ -174,7 +175,7 @@ class JmapApi @Inject constructor(
         val authHeader = "Bearer $token"
 
         val updateObject = buildJsonObject {
-            update.state?.let { put("state", JsonPrimitive(it.name.lowercase())) }
+            update.state?.let { put("state", JsonPrimitive(it.wire)) }
             update.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
             update.description?.let { put("description", JsonPrimitive(it)) }
             when {
@@ -256,7 +257,7 @@ class JmapApi @Inject constructor(
     private fun parseSetResponseCreated(
         response: JmapResponse,
         createId: String,
-        request: MaskedEmailCreate,
+        request: CreateMaskedEmailParams,
     ): MaskedEmailDto {
         val methodResponse = response.methodResponses.firstOrNull()
             ?: throw IllegalStateException("Empty response")
