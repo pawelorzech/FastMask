@@ -22,7 +22,6 @@ import com.fastmask.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** One bundled third-party asset: its name, how it is licensed, and where the text lives. */
 private class BundledLicense(
     val component: String,
     val license: String,

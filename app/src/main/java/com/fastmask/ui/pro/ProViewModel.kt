@@ -94,9 +94,6 @@ class ProViewModel @Inject constructor(
     }
 
     fun buy(activity: Activity) {
-        // Guard set synchronously BEFORE launching the coroutine — a deferred
-        // flag lets a rapid double-tap start two billing flows (see the
-        // double-tap C/R/L in the 1.6.0 audit).
         if (_uiState.value.purchaseInFlight) return
         _uiState.update { it.copy(purchaseInFlight = true) }
         viewModelScope.launch {
@@ -135,9 +132,7 @@ class ProViewModel @Inject constructor(
         }
     }
 
-    // onCleared, not the back button's onClick: most paywall dismissals are
-    // gesture/system back, which never touches the button — tracking there
-    // undercounted nearly all closes.
+    // onCleared, not the back button: gesture/system back never touches it.
     override fun onCleared() {
         analytics.track(MonetizationEvent.PAYWALL_CLOSED, source = source)
         super.onCleared()
@@ -156,7 +151,6 @@ data class ProUiState(
 
 enum class ProductState { LOADING, READY, UNAVAILABLE }
 
-/** Haptic that accompanies a paywall snackbar. */
 enum class ProHaptic { NONE, CONFIRM, REJECT }
 
 /** One-shot paywall outcome: the snackbar [message] and the [haptic] that goes with it. */

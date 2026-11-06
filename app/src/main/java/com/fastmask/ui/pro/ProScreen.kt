@@ -115,9 +115,8 @@ fun ProScreen(
         }
     }
 
-    // Play requires these legal links to work. If no browser can take the
-    // intent the user must be told — the previous resolveActivity() guard let
-    // the tap fail in complete silence.
+    // Play requires these legal links to work; tell the user when no
+    // browser can take the intent.
     val noAppMessage = stringResource(R.string.error_no_app_for_link)
     val scope = rememberCoroutineScope()
     val openLink: (String) -> Unit = { url ->
@@ -141,7 +140,6 @@ fun ProScreen(
     )
 }
 
-/** What the purchase area below the features shows. */
 private enum class PurchaseArea { OWNED, PENDING, LOADING, UNAVAILABLE, READY }
 
 @Composable
@@ -167,7 +165,6 @@ internal fun ProContent(
         else -> PurchaseArea.READY
     }
 
-    // The bar title fades in once the hero has scrolled away.
     val showBarTitle = scroll.value > 220
     val barTitleAlpha by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (showBarTitle) 1f else 0f,
@@ -394,7 +391,6 @@ private class ProFeature(
     val body: String,
 )
 
-/** A feature's glyph on its own [MaterialShapes] shape. */
 @Composable
 private fun ShapeIcon(shape: RoundedPolygon, icon: ImageVector) {
     Box(
@@ -413,10 +409,6 @@ private fun ShapeIcon(shape: RoundedPolygon, icon: ImageVector) {
     }
 }
 
-/**
- * The main call to action. While billing runs the label gives way to a
- * [LoadingIndicator]; the button keeps its size, so nothing jumps.
- */
 @Composable
 private fun BuyButton(price: String, inFlight: Boolean, onClick: () -> Unit) {
     val working = stringResource(R.string.state_working)

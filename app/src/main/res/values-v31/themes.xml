@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Only the splash is overridden here. Theme.FastMask no longer needs an
-      API-31 variant: the window attributes that used to be duplicated in both
-      files (statusBarColor, navigationBarColor, windowLightStatusBar) are gone,
-      so the base definition applies on every API level.
+      Only the splash is overridden on API 31+ (animation duration).
     -->
     <style name="Theme.FastMask.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>

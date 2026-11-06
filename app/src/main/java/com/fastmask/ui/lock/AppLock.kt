@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentActivity
 
 private const val ALLOWED_AUTHENTICATORS = BIOMETRIC_WEAK or DEVICE_CREDENTIAL
 
-/** Whether the device can protect the app (biometrics or screen lock set up). */
 fun canUseAppLock(context: Context): Boolean =
     BiometricManager.from(context)
         .canAuthenticate(ALLOWED_AUTHENTICATORS) == BiometricManager.BIOMETRIC_SUCCESS
@@ -22,10 +21,9 @@ fun canUseAppLock(context: Context): Boolean =
  *   (e.g. screen lock removed) — callers unlock rather than brick the app,
  *   matching the security level of a device without any lock.
  * @param onFinished fired exactly once per call, as soon as no prompt is on
- *   screen any more — on success, on any error, and on the not-securable
- *   early return. Lets a caller keep a "prompt is up" flag without the flag
- *   ever getting stuck: a cancelled prompt releases it just like a successful
- *   one, so the retry button on [com.fastmask.ui.lock.LockScreen] keeps working.
+ *   screen (success, any error, or the not-securable early return). A cancelled
+ *   prompt releases a caller's "prompt is up" flag just like a successful one,
+ *   so the retry button on [com.fastmask.ui.lock.LockScreen] keeps working.
  */
 fun showUnlockPrompt(
     activity: FragmentActivity,

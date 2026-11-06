@@ -4,13 +4,8 @@
       No statusBarColor / navigationBarColor / windowLightStatusBar here.
 
       Window.setStatusBarColor and setNavigationBarColor are deprecated in
-      Android 15 and ignored from API 35 — Play names both on this app's
-      release. enableEdgeToEdge() in MainActivity configures the bars at
-      runtime on every supported API level, so these attributes were redundant
-      rather than broken: the runtime call already overrode them, including
-      windowLightStatusBar, which was hardcoded true and would otherwise have
-      put dark icons on a dark background. Verified on API 36 in both themes —
-      dark icons on light, light icons on dark.
+      Android 15 and ignored from API 35. enableEdgeToEdge() in MainActivity
+      configures the bars at runtime on every supported API level.
     -->
     <style name="Theme.FastMask" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
@@ -18,8 +13,7 @@
       The splash icon is the VECTOR copy of the launcher mark, not
       drawable-*/ic_launcher_foreground.png. That PNG only exists in
       density-qualified folders, and Play splits an AAB by density, so a device
-      without its density split has the R id but nothing behind it — the same
-      missing 0x7f080077 that crashed the welcome screen in 1.10.1. A vector
+      without its density split has the R id but nothing behind it. A vector
       carries no density qualifier and ships in the base split, so the very
       first frame of the app cannot depend on split delivery.
     -->

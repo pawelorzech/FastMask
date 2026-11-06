@@ -107,7 +107,6 @@ internal fun LockContent(
         animationSpec = motion.defaultEffectsSpec(),
         label = "lockContent",
     )
-    // A small swell while the system prompt is up, relaxing when it goes away.
     val swell by animateFloatAsState(
         targetValue = if (promptActive && !unlocked) 1.06f else 1f,
         animationSpec = motion.slowSpatialSpec(),
@@ -118,9 +117,7 @@ internal fun LockContent(
         modifier = Modifier
             .fillMaxSize()
             // The only screen without a Scaffold, so nothing else applies the
-            // system-bar insets for it. With edge-to-edge enforced from API 35
-            // the unlock button could otherwise sit under the navigation bar on
-            // a short screen or at a large font scale.
+            // system-bar insets (edge-to-edge is enforced from API 35).
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

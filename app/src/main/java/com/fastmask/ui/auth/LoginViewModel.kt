@@ -33,10 +33,8 @@ class LoginViewModel @Inject constructor(
     val events: Flow<LoginEvent> = _events.receiveAsFlow()
 
     fun onTokenChange(token: String) {
-        // This path also receives the platform/keyboard paste action, not only
-        // individual keystrokes. The custom Paste button was capped, but a
-        // long-press paste could still put hundreds of thousands of masked
-        // glyphs into a single-line field and stall layout on the main thread.
+        // Also receives platform/keyboard paste, not only keystrokes: bound it
+        // so a huge paste cannot stall layout on the main thread.
         val boundedToken = TokenFormat.sanitizePasted(token)
         _uiState.update {
             it.copy(
@@ -49,16 +47,11 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
-     * Explicit "Paste" action. Never called automatically — reading the
-     * clipboard is a privacy signal (Android 12+ surfaces a system toast), so
-     * it happens only when the user asks for it.
+     * Explicit "Paste" action, never automatic: reading the clipboard is a
+     * privacy signal (Android 12+ surfaces a system toast).
      *
-     * [raw] is whatever the clipboard held, and it may hold nothing usable:
-     * it is empty when the clipboard is empty or carries an image, and it is
-     * whitespace-only when a stray newline was copied off the Fastmail page.
-     * Both cases answer with a hint rather than a silent no-op — on the one
-     * screen where the user is already stuck getting a token, a button that
-     * visibly does nothing reads as a broken app.
+     * [raw] may be empty (empty clipboard, or an image) or whitespace-only;
+     * both answer with a hint rather than a silent no-op.
      */
     fun onTokenPasted(raw: String) {
         val pasted = TokenFormat.sanitizePasted(raw)
@@ -78,13 +71,11 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    /** Escape hatch for a user stuck on getting a token. */
     fun enterDemoMode() {
         if (_uiState.value.isLoading) return
-        // Set synchronously, like login() does, so the two paths are mutually
-        // exclusive: both buttons are disabled while isLoading, which stops a
-        // same-frame Unlock tap from persisting a real token into what is
-        // about to become a demo session.
+        // Set synchronously, like login(): both buttons are disabled while
+        // isLoading, so a same-frame Unlock tap cannot persist a real token
+        // into a demo session.
         _uiState.update {
             it.copy(operation = LoginOperation.ENTER_DEMO, errorRes = null, missingScope = false)
         }
@@ -102,15 +93,12 @@ class LoginViewModel @Inject constructor(
                 }
                 _events.send(LoginEvent.EnterDemo)
             } else {
-                // Preserve the token so the user can still retry signing in;
-                // only the failed demo action is reset.
                 _uiState.update { it.copy(operation = null, errorRes = errorRes, missingScope = false) }
             }
         }
     }
 
     fun login() {
-        // Guard against rapid double-tap firing two login requests.
         if (_uiState.value.isLoading) return
         val token = TokenFormat.sanitize(_uiState.value.token)
         if (token.isBlank()) {
@@ -124,8 +112,6 @@ class LoginViewModel @Inject constructor(
             return
         }
 
-        // Set synchronously (before the coroutine is dispatched) so the
-        // double-tap guard above cannot race the launch.
         _uiState.update {
             it.copy(
                 operation = LoginOperation.LOGIN,
@@ -138,10 +124,7 @@ class LoginViewModel @Inject constructor(
             sessionRepository.signIn(token).fold(
                 onSuccess = {
                     // Drop the secret from UI state only once it is safely in
-                    // encrypted storage. The shape hint is deliberately left
-                    // standing: it describes what the user submitted, and the
-                    // screen navigates away on success anyway — clearing it
-                    // here would only matter if the login somehow stayed put.
+                    // encrypted storage.
                     _uiState.update { it.copy(token = "", operation = null) }
                     _events.send(LoginEvent.LoginSuccess)
                 },
@@ -153,21 +136,14 @@ class LoginViewModel @Inject constructor(
                                 operation = null,
                                 errorRes = R.string.login_error_missing_masked_email_scope,
                                 missingScope = true,
-                                // The shape hint describes the field's content;
-                                // once that content is gone it describes
-                                // nothing, and would sit under an empty field
-                                // contradicting the error above it.
+                                // The shape hint describes content that is now gone.
                                 warningRes = null,
                             )
                         }
                     } else {
-                        // Token hygiene is kept where it has value — after the
-                        // token has been accepted, or definitively rejected — but
-                        // NOT on a retryable failure. UiErrors maps no-network /
-                        // 429 / 5xx to messages that literally tell the user to
-                        // try again; wiping a masked ~40-character token at the
-                        // same moment contradicts that instruction and forces a
-                        // full re-paste to press the button a second time.
+                        // Keep the token on a retryable failure (no-network / 429 /
+                        // 5xx): the message tells the user to try again, so wiping
+                        // it would force a full re-paste.
                         val retryable = UiErrors.isRetryable(error)
                         _uiState.update {
                             it.copy(
@@ -175,9 +151,8 @@ class LoginViewModel @Inject constructor(
                                 operation = null,
                                 errorRes = UiErrors.messageRes(error, R.string.login_error_failed),
                                 missingScope = false,
-                                // Tied to the token: the hint stays while the
-                                // content it describes is still in the field,
-                                // and goes when the field is emptied.
+                                // Tied to the token: stays while the content it describes
+                                // is still in the field.
                                 warningRes = if (retryable) it.warningRes else null,
                             )
                         }

@@ -160,9 +160,6 @@ private fun ColorSwatch(
                 .size(40.dp)
                 .drawMorph(morph = { morph }, progress = { morphProgress }) { path ->
                     if (accent == Accent.DYNAMIC) {
-                        // Mini of the current scheme: primary / tertiary /
-                        // primary container / secondary container, one
-                        // quadrant each, clipped to the swatch shape.
                         clipPath(path) {
                             val half = Size(size.width / 2f, size.height / 2f)
                             drawRect(scheme.primary, Offset.Zero, half)

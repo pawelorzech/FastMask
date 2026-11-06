@@ -29,13 +29,10 @@ class WelcomeViewModel @Inject constructor(
     val events: Flow<WelcomeEvent> = _events.receiveAsFlow()
 
     fun enterDemoMode() {
-        // Synchronous guard: two taps in one frame must not run two DataStore
-        // writes and enqueue two navigation events.
         if (_uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
             val errorRes = sessionRepository.enterDemoOrErrorRes()
-            // On failure the user stays on Welcome with both CTAs released.
             _uiState.update { it.copy(isLoading = false, errorRes = errorRes) }
             if (errorRes == null) _events.send(WelcomeEvent.EnterDemo)
         }

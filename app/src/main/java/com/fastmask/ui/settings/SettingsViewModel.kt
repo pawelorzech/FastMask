@@ -45,10 +45,8 @@ class SettingsViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
     private val maskedEmailRepository: MaskedEmailRepository,
-    // The injected singleton, deliberately: the screen used to construct its own
-    // `ExportCache(context)`, which was harmless while the class was a stateless
-    // wrapper over cacheDir/exports but is not any more — the sign-out guard is
-    // per-instance state, and a second instance would never see the clear.
+    // Must be the injected singleton: the sign-out guard is per-instance state,
+    // so a second instance would never see the clear.
     private val exportCache: ExportCache,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val analytics: MonetizationAnalytics,
@@ -90,12 +88,9 @@ class SettingsViewModel @Inject constructor(
     // --- Crash reporting (opt-out) ---
 
     /**
-     * Seeded from storage, not from the opt-out default.
-     * This ViewModel is scoped to the Settings back-stack entry, so a plain
-     * default meant the switch painted ON for the first frames of *every* entry
-     * into Settings — showing a user who had opted out the opposite of their
-     * own choice. A read failure still falls back to the default, because "on"
-     * is the honest thing to show when the stored value is unknown.
+     * Seeded from storage, not from the opt-out default, so a user who opted
+     * out never sees the switch ON for the first frames. A read failure falls
+     * back to the default.
      */
     val crashReportingEnabled: StateFlow<Boolean> =
         crashReporting.enabled.stateIn(
@@ -141,7 +136,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /** Ends the demo and sends the user to sign in with a real account. */
     fun exitDemoMode() {
         viewModelScope.launch(writeErrorHandler) {
             sessionRepository.signOut()
@@ -201,23 +195,15 @@ class SettingsViewModel @Inject constructor(
         // let a stale Pro snapshot bypass the same gate as the original tap.
         if (!hasPro(ProFeature.EXPORT)) return
 
-        // In UI state, not a private var: the export does a network fetch of
-        // every mask, and the row must show progress instead of looking dead.
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
-            // Captured before the fetch. The CSV holds every mask in plaintext —
-            // the one copy of the account's data on the device that is not
-            // Keystore-encrypted — so an export whose fetch outlived a sign-out
-            // must not reach the disk at all. Ageing it out an hour later is the
-            // wrong remedy for a file that should never have been written.
+            // Captured before the fetch. The CSV holds every mask in plaintext, so
+            // an export whose fetch outlived a sign-out must not reach the disk.
             val generation = exportCache.currentGeneration()
             maskedEmailRepository.getMaskedEmails()
                 .map { masks -> MaskCsv.build(masks) }
                 .onSuccess { csv ->
-                    // Writing moved off the composable and onto the injected
-                    // singleton, so the guard and the sign-out cleanup act on
-                    // the same object.
                     withContext(ioDispatcher) {
                         runCatching { exportCache.write(csv, generation = generation) }
                     }
@@ -229,11 +215,6 @@ class SettingsViewModel @Inject constructor(
                         }
                 }
                 .onFailure { error ->
-                    // The export first fetches every mask over the network, so
-                    // most failures here are the same ones the rest of the app
-                    // already names precisely. A single "Export failed" left
-                    // the user unable to tell "retry in a moment" from
-                    // "you are offline".
                     _events.send(
                         SettingsEvent.ExportFailed(
                             UiErrors.messageRes(error, R.string.settings_export_failed)
@@ -255,7 +236,6 @@ sealed class SettingsEvent {
     data object LoggedOut : SettingsEvent()
     data object GoToSignIn : SettingsEvent()
     data class OpenPro(val source: String) : SettingsEvent()
-    /** The written export file; the screen only turns it into a share intent. */
     data class ShareCsv(val file: File) : SettingsEvent()
 
     /** @param messageRes the localized reason, already resolved by [UiErrors]. */

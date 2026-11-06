@@ -170,10 +170,6 @@ fun SettingsScreen(
                 is SettingsEvent.ExportFailed ->
                     snackbarHostState.showSnackbar(resources.getString(event.messageRes))
                 is SettingsEvent.ShareCsv -> {
-                    // The file is already written: producing it belongs to the
-                    // ViewModel, which holds the injected ExportCache and so can
-                    // abandon an export whose fetch outlived the session. All
-                    // that is left here is turning it into a share intent.
                     runCatching {
                         val uri = FileProvider.getUriForFile(
                             context,
@@ -187,8 +183,6 @@ fun SettingsScreen(
                         }
                         context.startActivity(Intent.createChooser(send, exportChooserTitle))
                     }.onFailure {
-                        // The file exists but no shareable URI could be built
-                        // for it — or the system chooser could not be launched.
                         snackbarHostState.showSnackbar(exportWriteFailedMessage)
                     }
                 }
@@ -222,7 +216,6 @@ fun SettingsScreen(
             onSignOut = viewModel::logout,
             onProRowClick = viewModel::onProRowClick,
             onAccentSelected = viewModel::onAccentSelected,
-            // Same analytics + paywall route the old locked accent row took.
             onUnlockColors = viewModel::onAccentClick,
             onAppLockToggled = viewModel::onAppLockToggled,
             onCrashReportingToggled = viewModel::onCrashReportingToggled,
@@ -270,8 +263,6 @@ internal fun SettingsContent(
     }
 
     if (showLogoutDialog) {
-        // Confirm before dropping the token — a mistap otherwise forces a full
-        // re-login.
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
@@ -424,8 +415,6 @@ internal fun SettingsContent(
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
-                                // What is painted right now: the wallpaper, or the
-                                // seed's name.
                                 Text(
                                     text = stringResource(state.accent.style.nameRes),
                                     style = MaterialTheme.typography.bodyMedium,
@@ -471,11 +460,9 @@ internal fun SettingsContent(
             SettingsSection(title = stringResource(R.string.settings_privacy_section)) {
                 if (state.monetizationEnabled) {
                     add { index, count ->
-                        // An armed lock describes itself even without Pro, and
-                        // keeps its switch so it can always be turned off. The
-                        // "Pro" placeholder is an invitation to buy, and showing
-                        // it over a lock that IS armed told the user the opposite
-                        // of what the app does on the next resume.
+                        // An armed lock keeps its switch even without Pro so it can
+                        // always be turned off; the "Pro" placeholder is only for an
+                        // unarmed lock.
                         if (isPro || state.appLockEnabled) {
                             SettingsToggleRow(
                                 index = index,
@@ -503,16 +490,13 @@ internal fun SettingsContent(
                                 supporting = stringResource(R.string.settings_accent_locked),
                                 leading = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
                                 trailing = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                                // Not armed and not Pro: the ViewModel routes
-                                // this to the paywall.
                                 onClick = { callbacks.onAppLockToggled(true) },
                             )
                         }
                     }
                 }
                 add { index, count ->
-                    // Not gated on Pro: a privacy control every user must be
-                    // able to reach, unlike the paid personalization above.
+                    // Not gated on Pro: a privacy control every user must reach.
                     SettingsToggleRow(
                         index = index,
                         count = count,
@@ -577,9 +561,8 @@ internal fun SettingsContent(
                                 putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
                             }
                             // No resolveActivity() pre-check: on Android 11+ it is
-                            // package-visibility filtered and used to report "no
-                            // handler" for mailto: even with a mail app installed,
-                            // silently killing the app's only support channel.
+                            // package-visibility filtered and can report no handler for
+                            // mailto: even with a mail app installed.
                             if (!openExternalIntent(context, emailIntent)) {
                                 scope.launch { snackbarHostState.showSnackbar(noMailAppMessage) }
                             }
@@ -682,8 +665,6 @@ private fun SettingsRow(
     supporting: String? = null,
     trailing: (@Composable () -> Unit)? = null,
     labelColor: Color = Color.Unspecified,
-    // Replaces the trailing content with a loading indicator (e.g. CSV export
-    // doing its network fetch) so a slow action doesn't look like a dead tap.
     showProgress: Boolean = false,
     progressDescription: String? = null,
 ) {
@@ -759,7 +740,6 @@ private fun SettingsToggleRow(
     )
 }
 
-/** Sunny badge with the premium glyph, the Pro row's leading element. */
 @Composable
 private fun ProBadge() {
     Box(

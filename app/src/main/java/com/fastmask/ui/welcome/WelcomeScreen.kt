@@ -87,8 +87,6 @@ internal fun WelcomeContent(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // The hero takes whatever height the copy leaves over, so a tall
-            // phone gets a big composition and a short window just a small one.
             WelcomeHero(modifier = Modifier.weight(1f).fillMaxWidth())
 
             Column(

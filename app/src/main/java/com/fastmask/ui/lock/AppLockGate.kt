@@ -63,8 +63,6 @@ class AppLockGate {
             // The device can no longer authenticate at all (screen lock
             // removed): open rather than brick, as on a device without a lock.
             onUnavailable = { locked = false },
-            // Released on every outcome, cancel and lockout included, so the
-            // retry button can never be left dead.
             onFinished = { promptShowing = false },
         )
     }

@@ -56,7 +56,6 @@ internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center,
         ) {
             MorphingShape(
-                // Celebrating stops the cycle and morphs to a burst.
                 polygons = if (celebrate) CelebrationShapes else MainShapes,
                 color = scheme.primary,
                 holdMillis = CYCLE_INTERVAL_MS,

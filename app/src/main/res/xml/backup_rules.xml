@@ -4,8 +4,6 @@
   safety net for the day someone flips that flag back — which is exactly why the
   net has to cover everything, not just the token.
 
-  Until audit 2026-07-27 it excluded the encrypted prefs alone, so the offline
-  mask snapshot — the account's full mask list — would have gone to cloud backup.
   The CSV export needs no rule: it lives in cacheDir, which Android never backs
   up. Its protection is ExportCache's retention, not this file.
 -->

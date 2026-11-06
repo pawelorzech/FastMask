@@ -120,12 +120,9 @@ fun LoginScreen(
         settingsOpenFailed = settingsOpenFailed,
         onTokenChange = viewModel::onTokenChange,
         onToggleShowToken = { showToken = !showToken },
-        // Reads the clipboard ONLY from this tap. Never on screen entry or
-        // resume — Android 12+ shows a system toast for every clipboard read,
-        // and a privacy-first app must not trigger one the user did not ask for.
-        // getText() is null for an empty clipboard and for a non-text clip
-        // (an image, a URI). Both go to the ViewModel as "" rather than being
-        // dropped here, so the tap always produces a visible answer.
+        // Reads the clipboard ONLY from this tap: Android 12+ shows a system
+        // toast for every read. An empty or non-text clip (getText() is null)
+        // goes to the ViewModel as "" so the tap always gets an answer.
         onPaste = { viewModel.onTokenPasted(clipboardManager.getText()?.text.orEmpty()) },
         onLogin = { viewModel.login() },
         onOpenTokenSettings = {
@@ -256,7 +253,6 @@ internal fun LoginContent(
                 keyboardActions = KeyboardActions(onDone = { onLogin() }),
             )
 
-            // Action shortcut when the missing Masked Email scope error is displayed.
             SpringVisibility(visible = uiState.missingScope) {
                 FilledTonalButton(
                     onClick = onOpenTokenSettings,
@@ -267,7 +263,6 @@ internal fun LoginContent(
                 }
             }
 
-            // Soft, non-blocking shape hint (never prevents a login attempt).
             val liveWarning = uiState.warningRes
             SpringVisibility(visible = liveWarning != null) {
                 // Keeps the last text on screen while the card collapses.
@@ -298,8 +293,6 @@ internal fun LoginContent(
                 }
             }
 
-            // Primary action. The label swaps for a loading indicator while the
-            // token is validated; the button keeps its size.
             Button(
                 onClick = {
                     if (!loginBusy) onLogin()
@@ -345,13 +338,9 @@ internal fun LoginContent(
 }
 
 /**
- * "A quiet place for masked mail." login_hero pre-joins the prefix and accent
- * fragments per locale, replacing a hardcoded single-space join that rendered
- * with no inter-word space in ja/zh and split Arabic's proclitic from the word
- * it must stay attached to. login_hero_accent still carries just the
- * "masked mail" fragment (verbatim, as it appears inside login_hero for that
- * locale) purely so it can be located here and coloured — the join itself never
- * happens in Kotlin.
+ * login_hero pre-joins the prefix and accent per locale (a Kotlin join breaks
+ * ja/zh spacing and Arabic proclitics). login_hero_accent carries the
+ * "masked mail" fragment verbatim, only so it can be located here and coloured.
  */
 @Composable
 private fun LoginHero() {
@@ -384,11 +373,7 @@ private fun LoginHero() {
     )
 }
 
-/**
- * The "How to get your API token" card. Its corners tighten while the header is
- * pressed, the chevron turns over and the five steps open with the theme's
- * springs.
- */
+/** The "How to get your API token" card. */
 @Composable
 private fun HowToCard(
     onOpenTokenSettings: () -> Unit,
