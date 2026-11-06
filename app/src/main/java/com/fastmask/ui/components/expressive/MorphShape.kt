@@ -1,6 +1,5 @@
 package com.fastmask.ui.components.expressive
 
-import androidx.compose.material3.toPath
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
@@ -19,12 +18,7 @@ internal class MorphShape(
     private val matrix = Matrix()
 
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        path.rewind()
-        morph.toPath(progress = progress(), path = path)
-        // MaterialShapes polygons are normalized to a 1x1 box.
-        matrix.reset()
-        matrix.scale(size.width, size.height)
-        path.transform(matrix)
+        morph.toScaledPath(progress(), size, path, matrix)
         return Outline.Generic(path)
     }
 }

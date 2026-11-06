@@ -2,21 +2,55 @@ package com.fastmask.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LoadingIndicatorDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+/**
+ * How [ButtonLoadingLabel] looks while it swaps the label for the indicator.
+ * The two looks predate the merge of two components, and screens keep the one
+ * they always had.
+ */
+enum class ButtonLoadingStyle {
+    /**
+     * Fast springs, the label vanishes at once and stays announced to screen
+     * readers, a 28 dp indicator in the theme's indicator color. Create and Detail.
+     */
+    Steady,
+
+    /**
+     * Default springs, the label fades and shrinks away and leaves the
+     * accessibility tree while loading, the indicator takes the content color of
+     * the button (and, from the icon + label overload, `iconSize + 8.dp`).
+     * Login and Welcome.
+     */
+    Crossfade,
+}
 
 /**
  * Button content that swaps its label for a small [LoadingIndicator] while
@@ -28,12 +62,33 @@ fun ButtonLoadingLabel(
     loading: Boolean,
     loadingDescription: String,
     modifier: Modifier = Modifier,
+    style: ButtonLoadingStyle = ButtonLoadingStyle.Steady,
+    indicatorSize: Dp = 28.dp,
     label: @Composable () -> Unit,
 ) {
-    val spatial: FiniteAnimationSpec<Float> = MaterialTheme.motionScheme.fastSpatialSpec()
-    val effects: FiniteAnimationSpec<Float> = MaterialTheme.motionScheme.fastEffectsSpec()
+    val crossfade = style == ButtonLoadingStyle.Crossfade
+    val motion = MaterialTheme.motionScheme
+    val spatial: FiniteAnimationSpec<Float> =
+        if (crossfade) motion.defaultSpatialSpec() else motion.fastSpatialSpec()
+    val effects: FiniteAnimationSpec<Float> =
+        if (crossfade) motion.defaultEffectsSpec() else motion.fastEffectsSpec()
+
+    val labelModifier = if (crossfade) {
+        val labelAlpha by animateFloatAsState(if (loading) 0f else 1f, effects, label = "labelAlpha")
+        val labelScale by animateFloatAsState(if (loading) 0.6f else 1f, spatial, label = "labelScale")
+        Modifier
+            .graphicsLayer {
+                alpha = labelAlpha
+                scaleX = labelScale
+                scaleY = labelScale
+            }
+            .then(if (loading) Modifier.clearAndSetSemantics { } else Modifier)
+    } else {
+        Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
+    }
+
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Box(modifier = Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }) { label() }
+        Box(modifier = labelModifier) { label() }
         AnimatedVisibility(
             visible = loading,
             enter = fadeIn(effects) + scaleIn(spatial, initialScale = 0.6f),
@@ -41,9 +96,50 @@ fun ButtonLoadingLabel(
         ) {
             LoadingIndicator(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(indicatorSize)
                     .semantics { contentDescription = loadingDescription },
+                color = if (crossfade) LocalContentColor.current else LoadingIndicatorDefaults.indicatorColor,
             )
+        }
+    }
+}
+
+/**
+ * [ButtonLoadingLabel] for the usual button content: an optional leading
+ * [icon] and a text [label]. Screens that size their icon from the button
+ * height pass [iconSize] / [iconSpacing] from `ButtonDefaults`.
+ */
+@Composable
+fun ButtonLoadingLabel(
+    loading: Boolean,
+    loadingDescription: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    iconSize: Dp = 24.dp,
+    iconSpacing: Dp = 8.dp,
+    textStyle: TextStyle = LocalTextStyle.current,
+    style: ButtonLoadingStyle = ButtonLoadingStyle.Steady,
+) {
+    ButtonLoadingLabel(
+        loading = loading,
+        loadingDescription = loadingDescription,
+        modifier = modifier,
+        style = style,
+        indicatorSize = if (style == ButtonLoadingStyle.Crossfade) iconSize + 8.dp else 28.dp,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(iconSpacing),
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                )
+            }
+            Text(text = label, style = textStyle)
         }
     }
 }

@@ -9,6 +9,7 @@ import com.fastmask.domain.model.MaskPrefix
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
+import com.fastmask.ui.common.trimToNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -98,9 +99,8 @@ class CreateMaskedEmailViewModel @Inject constructor(
         // double-tap guard above cannot race the launch.
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
-            // Same text policy as the detail editor, which trims what it sends:
-            // the stray space an IME autocomplete leaves must not reach the
-            // account. Unlike there, an empty field means "not set", not "clear".
+            // Trimmed like the detail editor (see TextPolicy). Unlike there, an
+            // empty field means "not set", not "clear".
             val params = CreateMaskedEmailParams(
                 state = state.initialState,
                 forDomain = state.forDomain.trimToNull(),
@@ -127,8 +127,6 @@ class CreateMaskedEmailViewModel @Inject constructor(
     }
 }
 
-private fun String.trimToNull(): String? = trim().takeIf { it.isNotEmpty() }
-
 data class CreateMaskedEmailUiState(
     val emailPrefix: String = "",
     val forDomain: String = "",
@@ -140,7 +138,12 @@ data class CreateMaskedEmailUiState(
     val prefixErrorRes: Int? = null,
     /** True once a share prefill has been consumed; blocks a second apply. */
     val prefilled: Boolean = false
-)
+) {
+    /** Typed-but-uncreated input; guards back / swipe with the discard dialog. */
+    val isDirty: Boolean
+        get() = emailPrefix.isNotEmpty() || forDomain.isNotEmpty() ||
+            description.isNotEmpty() || url.isNotEmpty()
+}
 
 sealed class CreateMaskedEmailEvent {
     data class Created(val email: String) : CreateMaskedEmailEvent()

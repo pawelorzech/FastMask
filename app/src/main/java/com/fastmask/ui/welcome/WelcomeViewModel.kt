@@ -2,9 +2,8 @@ package com.fastmask.ui.welcome
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fastmask.R
-import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.ui.common.enterDemoOrErrorRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -35,25 +34,10 @@ class WelcomeViewModel @Inject constructor(
         if (_uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
-            runSuspendCatching {
-                sessionRepository.enterDemo()
-                _uiState.update { it.copy(isLoading = false) }
-                _events.send(WelcomeEvent.EnterDemo)
-            }.onFailure {
-                // A dead button is indistinguishable from a broken app. Keep
-                // the user on Welcome, release both CTAs and explain how to
-                // recover from the likely local-storage failure.
-                _uiState.update {
-                    it.copy(isLoading = false, errorRes = R.string.demo_error_start)
-                }
-            }
-        }
-    }
-
-    fun goToSignIn() {
-        if (_uiState.value.isLoading) return
-        viewModelScope.launch {
-            _events.send(WelcomeEvent.GoToSignIn)
+            val errorRes = sessionRepository.enterDemoOrErrorRes()
+            // On failure the user stays on Welcome with both CTAs released.
+            _uiState.update { it.copy(isLoading = false, errorRes = errorRes) }
+            if (errorRes == null) _events.send(WelcomeEvent.EnterDemo)
         }
     }
 }
@@ -65,5 +49,4 @@ data class WelcomeUiState(
 
 sealed class WelcomeEvent {
     data object EnterDemo : WelcomeEvent()
-    data object GoToSignIn : WelcomeEvent()
 }

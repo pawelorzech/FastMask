@@ -46,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -146,6 +145,8 @@ fun MaskedEmailDetailScreen(
         onEnable = viewModel::enable,
         onDisable = viewModel::disable,
         onSaveChanges = viewModel::saveChanges,
+        onStartEditing = viewModel::startEditing,
+        onDiscardEdits = viewModel::discardEdits,
         onCopyEmail = { addr -> copyToClipboard(context, addr) },
         onArchiveClick = { showArchiveDialog = true },
     )
@@ -165,9 +166,10 @@ internal fun MaskedEmailDetailContent(
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onSaveChanges: () -> Unit,
+    onStartEditing: () -> Unit,
+    onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
     onArchiveClick: () -> Unit,
-    startEditing: Boolean = false,
 ) {
     val scrollState = rememberScrollState()
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
@@ -250,9 +252,10 @@ internal fun MaskedEmailDetailContent(
                     onEnable = onEnable,
                     onDisable = onDisable,
                     onSaveChanges = onSaveChanges,
+                    onStartEditing = onStartEditing,
+                    onDiscardEdits = onDiscardEdits,
                     onCopyEmail = onCopyEmail,
                     onArchiveClick = onArchiveClick,
-                    startEditing = startEditing,
                 )
             }
         }
@@ -270,23 +273,15 @@ private fun DetailBody(
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onSaveChanges: () -> Unit,
+    onStartEditing: () -> Unit,
+    onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
     onArchiveClick: () -> Unit,
-    startEditing: Boolean,
 ) {
     val haptic = LocalHapticFeedback.current
     val motion = rememberMotion()
-    var editing by rememberSaveable { mutableStateOf(startEditing) }
-
-    // Leave edit mode once a save lands: the in-flight flag drops and the draft
-    // matches the server again. A failed save keeps the draft (hasChanges) and
-    // therefore stays in edit mode with the inline error.
+    val editing = uiState.isEditing
     val saving = uiState.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES
-    var wasSaving by remember { mutableStateOf(false) }
-    LaunchedEffect(saving) {
-        if (wasSaving && !saving && !uiState.hasChanges) editing = false
-        wasSaving = saving
-    }
 
     // Copy confirmation: icon + label flip to check / "Copied" and back.
     var copyNonce by remember { mutableIntStateOf(0) }
@@ -297,12 +292,6 @@ private fun DetailBody(
             delay(COPIED_FEEDBACK_MS)
             copied = false
         }
-    }
-
-    val revertDraft = {
-        onDescriptionChange(email.description.orEmpty())
-        onForDomainChange(email.forDomain.orEmpty())
-        onUrlChange(email.url.orEmpty())
     }
 
     Column(
@@ -333,14 +322,8 @@ private fun DetailBody(
                 state = email.state,
                 toggling = uiState.updateOperation == MaskedEmailDetailUpdate.TOGGLE_STATE,
                 busy = uiState.isUpdating || uiState.isDeleting,
-                onEnable = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    onEnable()
-                },
-                onDisable = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    onDisable()
-                },
+                onEnable = onEnable,
+                onDisable = onDisable,
             )
         }
 
@@ -358,8 +341,7 @@ private fun DetailBody(
             IconButton(
                 onClick = {
                     // Closing the editor discards the draft, like Cancel.
-                    if (editing) revertDraft()
-                    editing = !editing
+                    if (editing) onDiscardEdits() else onStartEditing()
                 },
                 enabled = !uiState.isUpdating,
                 shapes = IconButtonDefaults.shapes(),
@@ -430,10 +412,7 @@ private fun DetailBody(
                 saving = saving,
                 busy = uiState.isUpdating,
                 canSave = uiState.hasChanges,
-                onCancel = {
-                    revertDraft()
-                    editing = false
-                },
+                onCancel = onDiscardEdits,
                 onSave = onSaveChanges,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp),
             )

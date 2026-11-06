@@ -64,17 +64,4 @@ class WelcomeViewModelTest {
         assertEquals(1, demo.enterDemoCalls)
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
-
-    @Test
-    fun `sign in emits the navigation event`() = runTest {
-        val viewModel = WelcomeViewModel(FakeSessionRepository())
-
-        viewModel.goToSignIn()
-        var received: WelcomeEvent? = null
-        val job = launch { received = viewModel.events.first() }
-        advanceUntilIdle()
-        job.cancel()
-
-        assertEquals(WelcomeEvent.GoToSignIn, received)
-    }
 }

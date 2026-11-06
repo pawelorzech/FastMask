@@ -29,6 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -38,7 +40,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.fastmask.R
+import com.fastmask.ui.accessibility.radioButtonGroup
+import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.ExpressiveTextField
+import com.fastmask.ui.components.expressive.connectedToggleShapes
 
 /*
  * The pieces the create form and the detail editor share. Labels stay
@@ -193,6 +198,66 @@ fun MaskStateToggle(
         }
         Text(text = label, style = MaterialTheme.typography.titleMedium)
     }
+}
+
+/**
+ * The Enabled / Disabled choice shared by the create form and the detail
+ * screen: two connected [MaskStateToggle]s that read as one radio group, with
+ * the toggle haptic on a selection.
+ *
+ * @param activeSelected true when "Enabled" is the chosen option (see
+ *   `EmailState.isActive`); "Disabled" is chosen otherwise.
+ * @param enabled false dims and disables both options (create form while saving).
+ * @param busy true ignores taps (no callback, no haptic) without dimming, for a
+ *   change already in flight (detail screen).
+ * @param loading shows the spinner on whichever option is chosen.
+ */
+@Composable
+fun EnabledDisabledToggle(
+    activeSelected: Boolean,
+    onEnable: () -> Unit,
+    onDisable: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    busy: Boolean = false,
+    loading: Boolean = false,
+) {
+    val haptic = LocalHapticFeedback.current
+    AdaptiveToggleGroup(
+        modifier = modifier.radioButtonGroup(),
+        first = { toggleModifier, stacked ->
+            MaskStateToggle(
+                label = stringResource(R.string.state_enabled),
+                checked = activeSelected,
+                loading = loading && activeSelected,
+                enabled = enabled,
+                shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
+                modifier = toggleModifier,
+                onSelect = {
+                    if (!busy) {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                        onEnable()
+                    }
+                },
+            )
+        },
+        second = { toggleModifier, stacked ->
+            MaskStateToggle(
+                label = stringResource(R.string.state_disabled),
+                checked = !activeSelected,
+                loading = loading && !activeSelected,
+                enabled = enabled,
+                shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
+                modifier = toggleModifier,
+                onSelect = {
+                    if (!busy) {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                        onDisable()
+                    }
+                },
+            )
+        },
+    )
 }
 
 /**

@@ -108,22 +108,12 @@ internal fun ArchiveButton(
         ButtonLoadingLabel(
             loading = deleting,
             loadingDescription = stringResource(R.string.state_working),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Archive,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                )
-                Text(
-                    text = stringResource(R.string.email_detail_delete),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-        }
+            label = stringResource(R.string.email_detail_delete),
+            icon = Icons.Filled.Archive,
+            iconSize = ButtonDefaults.iconSizeFor(height),
+            iconSpacing = ButtonDefaults.iconSpacingFor(height),
+            textStyle = MaterialTheme.typography.titleMedium,
+        )
     }
 }
 

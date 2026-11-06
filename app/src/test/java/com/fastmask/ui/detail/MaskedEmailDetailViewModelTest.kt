@@ -324,4 +324,68 @@ class MaskedEmailDetailViewModelTest {
         assertNull(viewModel.uiState.value.email)
         assertEquals(R.string.email_detail_error_load, viewModel.uiState.value.errorRes)
     }
+
+    // --- edit mode is owned by the ViewModel -------------------------------
+
+    @Test
+    fun `discarding edits restores the server values and leaves edit mode`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "note")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.startEditing()
+        viewModel.onDescriptionChange("typed")
+        assertEquals(true, viewModel.uiState.value.isEditing)
+
+        viewModel.discardEdits()
+
+        assertEquals(false, viewModel.uiState.value.isEditing)
+        assertEquals("note", viewModel.uiState.value.editedDescription)
+        assertEquals(false, viewModel.uiState.value.hasChanges)
+    }
+
+    @Test
+    fun `edit mode is restored from the saved state`() = runTest {
+        val handle = SavedStateHandle(mapOf("emailId" to "m1"))
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val first = MaskedEmailDetailViewModel(handle, repo)
+        advanceUntilIdle()
+
+        first.startEditing()
+        val restored = MaskedEmailDetailViewModel(handle, repo)
+
+        assertEquals(true, restored.uiState.value.isEditing)
+    }
+
+    @Test
+    fun `a landed save leaves edit mode`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old")))
+        repo.beforeUpdate = { repo.emails = listOf(mask("m1", description = "new")) }
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.startEditing()
+        viewModel.onDescriptionChange("new")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isEditing)
+        assertEquals("new", viewModel.uiState.value.email?.description)
+    }
+
+    @Test
+    fun `a failed save keeps the draft in edit mode`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.startEditing()
+        viewModel.onDescriptionChange("new")
+        repo.failure = IOException("offline")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.value.isEditing)
+        assertEquals(true, viewModel.uiState.value.hasChanges)
+    }
 }

@@ -88,7 +88,8 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.FastmailLinks
 import com.fastmask.ui.common.openExternalIntent
-import com.fastmask.ui.components.LoadingButtonContent
+import com.fastmask.ui.components.ButtonLoadingLabel
+import com.fastmask.ui.components.ButtonLoadingStyle
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
@@ -256,7 +257,7 @@ internal fun LoginContent(
             )
 
             // Action shortcut when the missing Masked Email scope error is displayed.
-            SpringVisibility(visible = uiState.errorRes == R.string.login_error_missing_masked_email_scope) {
+            SpringVisibility(visible = uiState.missingScope) {
                 FilledTonalButton(
                     onClick = onOpenTokenSettings,
                     shapes = ButtonDefaults.shapes(),
@@ -308,13 +309,14 @@ internal fun LoginContent(
                 contentPadding = ButtonDefaults.contentPaddingFor(buttonHeight),
                 modifier = Modifier.fillMaxWidth().padding(top = 20.dp).heightIn(min = buttonHeight),
             ) {
-                LoadingButtonContent(
+                ButtonLoadingLabel(
                     loading = loginBusy,
                     loadingDescription = working,
                     label = stringResource(R.string.login_button),
                     icon = Icons.Filled.Key,
                     iconSize = ButtonDefaults.iconSizeFor(buttonHeight),
                     iconSpacing = ButtonDefaults.iconSpacingFor(buttonHeight),
+                    style = ButtonLoadingStyle.Crossfade,
                 )
             }
 
@@ -331,10 +333,11 @@ internal fun LoginContent(
                 shapes = ButtonDefaults.shapes(),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             ) {
-                LoadingButtonContent(
+                ButtonLoadingLabel(
                     loading = demoBusy,
                     loadingDescription = working,
                     label = stringResource(R.string.login_try_demo),
+                    style = ButtonLoadingStyle.Crossfade,
                 )
             }
         }
@@ -560,7 +563,11 @@ private fun LoginWarningPreview() = LoginPreviewHost(
 @Preview(name = "Login missing scope error", showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 private fun LoginScopeErrorPreview() = LoginPreviewHost(
-    LoginUiState(token = "fmu1-0000", errorRes = R.string.login_error_missing_masked_email_scope),
+    LoginUiState(
+        token = "fmu1-0000",
+        errorRes = R.string.login_error_missing_masked_email_scope,
+        missingScope = true,
+    ),
 )
 
 @Preview(name = "Login loading", showBackground = true, widthDp = 360, heightDp = 800)

@@ -53,8 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -68,32 +66,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.rememberDiscardChangesGuard
-import com.fastmask.ui.components.MaskStateToggle
 import com.fastmask.ui.components.MaskUrlField
 import com.fastmask.ui.components.MaskDescriptionField
 import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.MaskField
-import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
-import com.fastmask.ui.components.expressive.delayInfinite
-import com.fastmask.ui.components.expressive.MorphShape
-import com.fastmask.ui.components.expressive.rememberMotionReduced
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import com.fastmask.ui.components.expressive.connectedToggleShapes
+import com.fastmask.ui.components.expressive.MorphingShape
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.EnabledDisabledToggle
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
@@ -108,9 +97,7 @@ fun CreateMaskedEmailScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // Guard against losing typed-but-uncreated input on back / swipe.
-    val isDirty = uiState.emailPrefix.isNotEmpty() || uiState.forDomain.isNotEmpty() ||
-        uiState.description.isNotEmpty() || uiState.url.isNotEmpty()
-    val onClose = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
+    val onClose = rememberDiscardChangesGuard(uiState.isDirty, onLeave = onNavigateBack)
 
     LaunchedEffect(Unit) {
         viewModel.applyPrefill(prefill)
@@ -259,9 +246,10 @@ internal fun CreateMaskedEmailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
             )
-            StateSegmented(
-                selected = uiState.initialState,
-                onSelect = onStateChange,
+            EnabledDisabledToggle(
+                activeSelected = uiState.initialState.isActive,
+                onEnable = { onStateChange(EmailState.ENABLED) },
+                onDisable = { onStateChange(EmailState.DISABLED) },
                 enabled = !uiState.isLoading,
             )
 
@@ -298,22 +286,12 @@ internal fun CreateMaskedEmailContent(
                 ButtonLoadingLabel(
                     loading = uiState.isLoading,
                     loadingDescription = stringResource(R.string.state_working),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                        )
-                        Text(
-                            text = stringResource(R.string.create_email_button),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
+                    label = stringResource(R.string.create_email_button),
+                    icon = Icons.Filled.Add,
+                    iconSize = ButtonDefaults.iconSizeFor(height),
+                    iconSpacing = ButtonDefaults.iconSpacingFor(height),
+                    textStyle = MaterialTheme.typography.titleMedium,
+                )
             }
         }
     }
@@ -335,34 +313,6 @@ private fun PreviewCard(prefix: String) {
     val label = stringResource(R.string.create_email_preview_label)
     val randomText = stringResource(R.string.create_email_preview_random)
     val suffix = stringResource(R.string.create_email_preview_suffix)
-
-    // Slowly morphing decorative blob: hold a shape, then spring into the next.
-    val progress = remember { Animatable(1f) }
-    var index by remember { mutableStateOf(0) }
-    val spatial = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
-    val reduced = rememberMotionReduced()
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(reduced) {
-        if (reduced) return@LaunchedEffect
-        // Paused while the screen is not RESUMED; the hold goes through the
-        // InfiniteAnimationPolicy so tests and idle detection can stop the loop.
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            if (progress.value != 1f) progress.animateTo(1f, spatial)
-            while (true) {
-                delayInfinite(2600)
-                index = (index + 1) % blobShapes.size
-                progress.snapTo(0f)
-                progress.animateTo(1f, spatial)
-            }
-        }
-    }
-    val morph = remember(index) {
-        Morph(
-            blobShapes[(index + blobShapes.size - 1) % blobShapes.size],
-            blobShapes[index],
-        )
-    }
-    val blobShape = remember(morph) { MorphShape(morph) { progress.value } }
 
     // Subtle spring "pop" whenever the address changes.
     val pop = remember { Animatable(1f) }
@@ -399,14 +349,16 @@ private fun PreviewCard(prefix: String) {
         // Decorative: no semantics. matchParentSize keeps the blob from stretching the card:
         // the card is exactly as tall as the label and address.
         Box(modifier = Modifier.matchParentSize().clearAndSetSemantics { }) {
-            Box(
+            // Slowly morphing: holds a shape, then springs into the next. Low
+            // emphasis: it sits behind the address and must never fight it.
+            MorphingShape(
+                polygons = blobShapes,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                holdMillis = 2600L,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .offset(x = 40.dp, y = (-44).dp)
-                    .size(112.dp)
-                    .clip(blobShape)
-                    // Low emphasis: it sits behind the address and must never fight it.
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                    .size(112.dp),
             )
         }
         Column(
@@ -435,44 +387,6 @@ private fun PreviewCard(prefix: String) {
 }
 
 // --- form -------------------------------------------------------------------
-
-@Composable
-private fun StateSegmented(
-    selected: EmailState,
-    onSelect: (EmailState) -> Unit,
-    enabled: Boolean,
-) {
-    val haptic = LocalHapticFeedback.current
-    AdaptiveToggleGroup(
-        modifier = Modifier.radioButtonGroup(),
-        first = { toggleModifier, stacked ->
-            MaskStateToggle(
-                label = stringResource(R.string.state_enabled),
-                checked = selected == EmailState.ENABLED,
-                enabled = enabled,
-                shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
-                modifier = toggleModifier,
-                onSelect = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    onSelect(EmailState.ENABLED)
-                },
-            )
-        },
-        second = { toggleModifier, stacked ->
-            MaskStateToggle(
-                label = stringResource(R.string.state_disabled),
-                checked = selected == EmailState.DISABLED,
-                enabled = enabled,
-                shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
-                modifier = toggleModifier,
-                onSelect = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    onSelect(EmailState.DISABLED)
-                },
-            )
-        },
-    )
-}
 
 @Composable
 private fun CreateError(
