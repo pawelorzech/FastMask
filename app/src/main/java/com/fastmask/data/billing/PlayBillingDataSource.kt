@@ -87,31 +87,48 @@ class PlayBillingDataSource @Inject constructor(
             // Timeout guards against a wedged Play Store never delivering the
             // setup callback — without it the mutex would deadlock every
             // future billing call in the process.
-            withTimeoutOrNull(BILLING_CALL_TIMEOUT_MS) {
-                suspendCancellableCoroutine { continuation ->
-                    client.startConnection(object : BillingClientStateListener {
-                        override fun onBillingSetupFinished(billingResult: BillingResult) {
-                            if (continuation.isActive) {
-                                continuation.resume(
-                                    if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                                        BillingResponse.Ok(Unit)
-                                    } else {
-                                        BillingResponse.Error(billingResult.toErrorCode())
-                                    }
-                                )
-                            }
-                        }
+            billingCall<Unit>(BillingErrorCode.UNAVAILABLE) { respond ->
+                client.startConnection(object : BillingClientStateListener {
+                    override fun onBillingSetupFinished(billingResult: BillingResult) {
+                        respond(billingResult.toResponse { Unit })
+                    }
 
-                        override fun onBillingServiceDisconnected() {
-                            // enableAutoServiceReconnection() retries for later calls;
-                            // an in-flight startConnection failure surfaces via
-                            // onBillingSetupFinished, so nothing to do here.
-                        }
-                    })
-                }
-            } ?: BillingResponse.Error(BillingErrorCode.UNAVAILABLE)
+                    override fun onBillingServiceDisconnected() {
+                        // enableAutoServiceReconnection() retries for later calls;
+                        // an in-flight startConnection failure surfaces via
+                        // onBillingSetupFinished, so nothing to do here.
+                    }
+                })
+            }
         }
     }
+
+    /**
+     * The one callback-to-suspend bridge for every Play call: owns the timeout,
+     * the "already resumed or cancelled" guard and the fallback answer when Play
+     * never calls back. [register] starts the call and passes the answer to
+     * `respond`, which is safe to call late or twice.
+     *
+     * [timeoutFallback] is explicit because the callers differ on purpose:
+     * connecting reports UNAVAILABLE (Play is not there), the calls made over a
+     * connection report NETWORK.
+     */
+    private suspend fun <T> billingCall(
+        timeoutFallback: BillingErrorCode,
+        register: (respond: (BillingResponse<T>) -> Unit) -> Unit,
+    ): BillingResponse<T> = withTimeoutOrNull(BILLING_CALL_TIMEOUT_MS) {
+        suspendCancellableCoroutine<BillingResponse<T>> { continuation ->
+            register { response -> if (continuation.isActive) continuation.resume(response) }
+        }
+    } ?: BillingResponse.Error(timeoutFallback)
+
+    /** Play's result code as a response; [value] is only built for an OK result. */
+    private inline fun <T> BillingResult.toResponse(value: () -> T): BillingResponse<T> =
+        if (responseCode == BillingClient.BillingResponseCode.OK) {
+            BillingResponse.Ok(value())
+        } else {
+            BillingResponse.Error(toErrorCode())
+        }
 
     override suspend fun queryProduct(productId: String): BillingResponse<ProProduct?> =
         when (val response = queryFreshProductDetails(productId)) {
@@ -139,30 +156,27 @@ class PlayBillingDataSource @Inject constructor(
             )
             .build()
 
-        return withTimeoutOrNull(BILLING_CALL_TIMEOUT_MS) {
-            suspendCancellableCoroutine { continuation ->
+        return billingCall(BillingErrorCode.NETWORK) { respond ->
             client.queryProductDetailsAsync(params) { billingResult, result ->
-                if (!continuation.isActive) return@queryProductDetailsAsync
                 if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
-                    continuation.resume(BillingResponse.Error(billingResult.toErrorCode()))
+                    respond(BillingResponse.Error(billingResult.toErrorCode()))
                     return@queryProductDetailsAsync
                 }
                 val details = result.productDetailsList.firstOrNull { it.productId == productId }
-                if (details == null) {
-                    val unfetched = result.unfetchedProductList.firstOrNull { it.productId == productId }
-                    continuation.resume(
+                respond(
+                    if (details != null) {
+                        BillingResponse.Ok(details)
+                    } else {
+                        val unfetched = result.unfetchedProductList.firstOrNull { it.productId == productId }
                         if (unfetched == null) {
                             BillingResponse.Ok(null)
                         } else {
                             BillingResponse.Error(unfetched.statusCode.toBillingErrorCode())
                         }
-                    )
-                } else {
-                    continuation.resume(BillingResponse.Ok(details))
-                }
+                    }
+                )
             }
-            }
-        } ?: BillingResponse.Error(BillingErrorCode.NETWORK)
+        }
     }
 
     override suspend fun queryPurchases(): BillingResponse<List<BillingPurchase>> {
@@ -173,20 +187,11 @@ class PlayBillingDataSource @Inject constructor(
             .setProductType(BillingClient.ProductType.INAPP)
             .build()
 
-        return withTimeoutOrNull(BILLING_CALL_TIMEOUT_MS) {
-            suspendCancellableCoroutine { continuation ->
-                client.queryPurchasesAsync(params) { billingResult, purchases ->
-                    if (!continuation.isActive) return@queryPurchasesAsync
-                    continuation.resume(
-                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                            BillingResponse.Ok(purchases.map { it.toBillingPurchase() })
-                        } else {
-                            BillingResponse.Error(billingResult.toErrorCode())
-                        }
-                    )
-                }
+        return billingCall(BillingErrorCode.NETWORK) { respond ->
+            client.queryPurchasesAsync(params) { billingResult, purchases ->
+                respond(billingResult.toResponse { purchases.map { it.toBillingPurchase() } })
             }
-        } ?: BillingResponse.Error(BillingErrorCode.NETWORK)
+        }
     }
 
     override suspend fun acknowledge(purchaseToken: String): BillingResponse<Unit> {
@@ -197,20 +202,11 @@ class PlayBillingDataSource @Inject constructor(
             .setPurchaseToken(purchaseToken)
             .build()
 
-        return withTimeoutOrNull(BILLING_CALL_TIMEOUT_MS) {
-            suspendCancellableCoroutine { continuation ->
-                client.acknowledgePurchase(params) { billingResult ->
-                    if (!continuation.isActive) return@acknowledgePurchase
-                    continuation.resume(
-                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                            BillingResponse.Ok(Unit)
-                        } else {
-                            BillingResponse.Error(billingResult.toErrorCode())
-                        }
-                    )
-                }
+        return billingCall(BillingErrorCode.NETWORK) { respond ->
+            client.acknowledgePurchase(params) { billingResult ->
+                respond(billingResult.toResponse { Unit })
             }
-        } ?: BillingResponse.Error(BillingErrorCode.NETWORK)
+        }
     }
 
     override suspend fun launchBillingFlow(
