@@ -245,7 +245,7 @@ class ProRepositoryImpl @Inject constructor(
                 lastPersistedToken = token
             } catch (cancellation: CancellationException) {
                 // Belongs to the caller's coroutine — keep it propagating, as
-                // CrashReportingStartup does. runCatching would swallow it.
+                // CrashReporting.applyAtStartup does. runCatching would swallow it.
                 throw cancellation
             } catch (_: Throwable) {
                 // Retried on the next reconciliation; lastPersistedToken stays

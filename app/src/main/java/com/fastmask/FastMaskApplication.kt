@@ -4,9 +4,9 @@ import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.fastmask.data.crash.CrashReporting
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.domain.crash.CrashReportingStartup
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +36,7 @@ class FastMaskApplication : Application() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO + startupErrorHandler)
 
     @Inject
-    lateinit var crashReportingStartup: CrashReportingStartup
+    lateinit var crashReporting: CrashReporting
 
     @Inject
     lateinit var exportCache: ExportCache
@@ -71,13 +71,13 @@ class FastMaskApplication : Application() {
      * separately inside the controller.
      *
      * Everything that can fail — the DataStore read *and* the SDK call — lives
-     * inside [CrashReportingStartup], which is contractually non-throwing and
+     * inside [CrashReporting.applyAtStartup], which is contractually non-throwing and
      * unit-tested as such; the handler on [startupScope] is the second line of
      * defence.
      */
     private fun applyCrashReportingPreference() {
         startupScope.launch {
-            crashReportingStartup.apply()
+            crashReporting.applyAtStartup()
         }
     }
 

@@ -16,10 +16,10 @@ plugins {
 // (and every release) fully instrumented, while a contributor without the file
 // gets a working app with crash reporting inert. That degradation is safe by
 // construction, not by luck: `FirebaseCrashlyticsReporter` resolves the SDK
-// handle lazily per call, and `CrashReportingStartup` already catches the
+// handle lazily per call, and `CrashReporting.applyAtStartup` already catches the
 // `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when
 // no default `FirebaseApp` exists — the path OEM ROMs without content providers
-// already take. `SettingsViewModel.onCrashReportingToggled` wraps its call in
+// already take. `CrashReporting.setEnabled` wraps its call in
 // `runCatching` for the same reason.
 val hasFirebaseConfig = file("google-services.json").exists()
 if (hasFirebaseConfig) {
@@ -89,7 +89,7 @@ android {
             // Nothing to symbolicate without R8, and a debug build must not
             // reach Crashlytics' upload endpoint on every assemble. Runtime
             // collection is disabled separately and unconditionally by
-            // CrashReportingPolicy, whatever the user preference says.
+            // CrashReporting, whatever the user preference says.
             //
             // Guarded on the same flag as the plugin itself: `configure<T>` looks
             // the extension up by type and throws UnknownDomainObjectException

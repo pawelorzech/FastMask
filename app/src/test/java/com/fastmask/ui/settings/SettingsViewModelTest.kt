@@ -5,7 +5,7 @@ import com.fastmask.R
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
-import com.fastmask.domain.crash.CrashReportingController
+import com.fastmask.data.crash.CrashReporting
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.ProStatus
@@ -13,7 +13,10 @@ import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.preferencesOf
 import com.fastmask.testutil.FakeCrashReporter
+import com.fastmask.testutil.FakePreferencesDataStore
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.FakeMonetizationAnalytics
 import com.fastmask.testutil.FakeProRepository
@@ -25,7 +28,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -67,19 +69,18 @@ class SettingsViewModelTest {
         ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") })
     }
 
-    /** Stored crash-reporting preference; opt-out, so it starts on. */
-    private val storedCrashReporting = MutableStateFlow(true)
+    private val crashKey = booleanPreferencesKey("crash_reporting_enabled")
+
+    /** Backing store of the crash reporting preference; empty means opted in. */
+    private var crashStore = FakePreferencesDataStore()
 
     private val settingsDataStore = mockk<SettingsDataStore> {
         every { appMode } returns flowOf(AppMode.REAL)
         every { appModeBlocking() } returns AppMode.REAL
         every { accent } returns flowOf(Accent.AMBER)
         every { appLockEnabled } returns flowOf(false)
-        every { crashReportingEnabled } returns storedCrashReporting
-        every { crashReportingEnabledBlocking() } answers { storedCrashReporting.value }
         coJustRun { setAccent(any()) }
         coJustRun { setAppLockEnabled(any()) }
-        coJustRun { setCrashReportingEnabled(any()) }
     }
 
     private fun viewModel(): SettingsViewModel {
@@ -96,8 +97,9 @@ class SettingsViewModelTest {
             exportCache = exportCache,
             ioDispatcher = mainDispatcherRule.dispatcher,
             analytics = analytics,
-            crashReporting = CrashReportingController(
-                reporter = crashReporter,
+            crashReporting = CrashReporting(
+                dataStore = crashStore,
+                reporter = { crashReporter },
                 isDebugBuild = false,
             ),
         )
@@ -329,17 +331,19 @@ class SettingsViewModelTest {
     }
 
     // --- Crash reporting (opt-out) ---
+    // The preference / policy / ordering rules are covered in CrashReportingTest;
+    // these cover what the Settings screen adds on top.
 
     /**
      * The switch is rendered before the asynchronous flow has emitted, so its
      * initial value is seeded synchronously from storage — the same way
-     * `appMode` is. A plain `DEFAULT_ENABLED` seed painted the switch ON for
-     * the first frames of every entry into Settings, showing a user who had
-     * opted out the opposite of their own choice.
+     * `appMode` is. A plain default painted the switch ON for the first frames
+     * of every entry into Settings, showing a user who had opted out the
+     * opposite of their own choice.
      */
     @Test
     fun `the crash reporting switch shows a stored opt-out from the very first frame`() = runTest {
-        storedCrashReporting.value = false
+        crashStore = FakePreferencesDataStore(preferencesOf(crashKey to false))
 
         val vm = viewModel()
 
@@ -349,15 +353,8 @@ class SettingsViewModelTest {
         )
     }
 
-    /**
-     * The other direction, which the seed must not break: an install that never
-     * touched the switch is opted in, and showing "off" would claim nothing is
-     * collected when it is.
-     */
     @Test
     fun `the crash reporting switch reads as on for an untouched install`() = runTest {
-        storedCrashReporting.value = true
-
         val vm = viewModel()
 
         assertTrue(vm.crashReportingEnabled.value)
@@ -371,11 +368,11 @@ class SettingsViewModelTest {
 
         assertTrue("an untouched install is opted in", vm.crashReportingEnabled.value)
 
-        storedCrashReporting.value = false
+        crashStore.updateData { it.toMutablePreferences().apply { set(crashKey, false) } }
         advanceUntilIdle()
         assertFalse("an opt-out must show as off", vm.crashReportingEnabled.value)
 
-        storedCrashReporting.value = true
+        crashStore.updateData { it.toMutablePreferences().apply { set(crashKey, true) } }
         advanceUntilIdle()
         assertTrue("opting back in must show as on", vm.crashReportingEnabled.value)
 
@@ -383,13 +380,13 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `opting out persists the choice and stops collection immediately`() = runTest {
+    fun `opting out persists the choice and stops collection`() = runTest {
         val vm = viewModel()
 
         vm.onCrashReportingToggled(false)
         advanceUntilIdle()
 
-        coVerify { settingsDataStore.setCrashReportingEnabled(false) }
+        assertEquals(false, crashStore.snapshot()[crashKey])
         assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
     }
 
@@ -400,19 +397,14 @@ class SettingsViewModelTest {
         vm.onCrashReportingToggled(true)
         advanceUntilIdle()
 
-        coVerify { settingsDataStore.setCrashReportingEnabled(true) }
+        assertEquals(true, crashStore.snapshot()[crashKey])
         assertEquals(listOf("collection=true"), crashReporter.calls)
     }
 
-    /**
-     * A full disk must not turn an opt-out into a crash, and must not turn it
-     * into a no-op either: the user asked to stop being reported on, so
-     * collection stops for this session even though the choice did not survive.
-     */
+    /** A full disk must not turn an opt-out into a crash, nor into a no-op. */
     @Test
     fun `a failed write still stops collection and does not crash`() = runTest {
-        coEvery { settingsDataStore.setCrashReportingEnabled(any()) } throws
-            IOException("No space left on device")
+        crashStore.writeFailure = IOException("No space left on device")
         val vm = viewModel()
 
         vm.onCrashReportingToggled(false)
@@ -421,13 +413,7 @@ class SettingsViewModelTest {
         assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
     }
 
-    /**
-     * The SDK call happens on the main thread, straight off a tap, and it is
-     * where Firebase initialises itself — so on a device where the default
-     * `FirebaseApp` never came up it throws. Unwrapped, that took the Settings
-     * screen down. The choice must still be persisted, so the next launch
-     * re-applies it.
-     */
+    /** An SDK that cannot start must not take the Settings screen down. */
     @Test
     fun `an sdk that cannot start does not crash the settings screen`() = runTest {
         crashReporter.failure = IllegalStateException(
@@ -438,19 +424,7 @@ class SettingsViewModelTest {
         vm.onCrashReportingToggled(false)
         advanceUntilIdle()
 
-        coVerify { settingsDataStore.setCrashReportingEnabled(false) }
-    }
-
-    @Test
-    fun `toggling the same value twice keeps the stored state consistent`() = runTest {
-        val vm = viewModel()
-
-        vm.onCrashReportingToggled(false)
-        advanceUntilIdle()
-        vm.onCrashReportingToggled(false)
-        advanceUntilIdle()
-
-        coVerify(exactly = 2) { settingsDataStore.setCrashReportingEnabled(false) }
-        coVerify(exactly = 0) { settingsDataStore.setCrashReportingEnabled(true) }
+        assertEquals(false, crashStore.snapshot()[crashKey])
     }
 }
+

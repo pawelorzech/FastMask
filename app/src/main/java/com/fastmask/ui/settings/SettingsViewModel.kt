@@ -4,11 +4,11 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.data.crash.CrashReporting
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
-import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
@@ -52,7 +52,7 @@ class SettingsViewModel @Inject constructor(
     private val exportCache: ExportCache,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val analytics: MonetizationAnalytics,
-    private val crashReporting: CrashReportingController,
+    private val crashReporting: CrashReporting,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -103,28 +103,20 @@ class SettingsViewModel @Inject constructor(
      * is the honest thing to show when the stored value is unknown.
      */
     val crashReportingEnabled: StateFlow<Boolean> =
-        settingsDataStore.crashReportingEnabled.stateIn(
+        crashReporting.enabled.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = settingsDataStore.crashReportingEnabledBlocking(),
+            initialValue = crashReporting.enabledBlocking(),
         )
 
     /**
-     * Applies the choice before persisting it, deliberately. The reporter call
-     * is synchronous, so a write that fails (full disk) still leaves collection
-     * stopped for this session instead of turning the user's opt-out into a
-     * silent no-op; `writeErrorHandler` keeps that failure from crashing.
-     *
-     * The SDK call is wrapped too: it is the point where Firebase initialises
-     * itself, and it runs on the main thread straight off a tap, so an SDK that
-     * cannot start would otherwise take the Settings screen down with it. The
-     * preference is still written, so the choice survives and is re-applied on
-     * the next launch.
+     * [CrashReporting.setEnabled] applies the SDK before persisting (so a failed
+     * write still stops collection for this session) and survives an SDK that
+     * cannot start; `writeErrorHandler` keeps a failed write from crashing.
      */
     fun onCrashReportingToggled(enabled: Boolean) {
-        runCatching { crashReporting.apply(enabled) }
         viewModelScope.launch(writeErrorHandler) {
-            settingsDataStore.setCrashReportingEnabled(enabled)
+            crashReporting.setEnabled(enabled)
         }
     }
 
