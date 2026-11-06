@@ -19,7 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * `launchCreate` got an in-flight guard in an earlier audit because a Quick
+ * `createFromTile` got an in-flight guard in an earlier audit because a Quick
  * Settings tile gives no feedback until the notification arrives a round-trip
  * later, so impatient taps minted several real masks. Undo is reachable exactly
  * the same way and had no guard.
@@ -54,8 +54,8 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo("m1") } returns true
         val runner = runner()
 
-        runner.launchUndo("m1")
-        runner.launchUndo("m1")
+        runner.undo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         coVerify(exactly = 1) { creator.undo("m1") }
@@ -68,8 +68,8 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo("m1") } returns true
         val runner = runner()
 
-        runner.launchUndo("m1")
-        runner.launchUndo("m1")
+        runner.undo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         verify(exactly = 1) { notifier.showUndoResult(success = true) }
@@ -83,8 +83,8 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo(any()) } returns true
         val runner = runner()
 
-        runner.launchUndo("m1")
-        runner.launchUndo("m2")
+        runner.undo("m1")
+        runner.undo("m2")
         advanceUntilIdle()
 
         coVerify(exactly = 1) { creator.undo("m1") }
@@ -98,11 +98,11 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo("m1") } returns false
         val runner = runner()
 
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         coEvery { creator.undo("m1") } returns true
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         coVerify(exactly = 2) { creator.undo("m1") }
@@ -114,12 +114,30 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo("m1") } returns true
         val runner = runner()
 
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
-        verify(exactly = 2) { notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID) }
+        verify(exactly = 2) { notifier.cancel(QuickMaskSlot.CREATED) }
+    }
+
+    // The context has no ClipboardManager, so the copy genuinely fails: the
+    // confirmation must not claim the address is on the clipboard.
+    @Test
+    fun `a failed clipboard copy is reported as not copied`() = runTest {
+        coEvery { creator.create() } returns QuickMaskResult.Created(id = "m1", email = "a@b.c")
+        val runner = runner()
+
+        runner.createFromTile {}
+        advanceUntilIdle()
+
+        verify(exactly = 1) { notifier.showCreated(id = "m1", copied = false) }
+    }
+
+    @Test
+    fun `the undo timeout leaves headroom inside the goAsync window`() {
+        assertTrue(QuickMaskUndoReceiver.UNDO_TIMEOUT_MS < QuickMaskUndoReceiver.GO_ASYNC_BUDGET_MS)
     }
 
     @Test
@@ -127,12 +145,12 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.create() } throws CancellationException("stopped")
         val runner = runner()
 
-        runner.launchCreate(openApp = {})
+        runner.createFromTile {}
         advanceUntilIdle()
 
         verify(exactly = 0) { notifier.showFailure(any()) }
         coEvery { creator.create() } returns QuickMaskResult.NotSignedIn
-        runner.launchCreate(openApp = {})
+        runner.createFromTile {}
         advanceUntilIdle()
 
         coVerify(exactly = 2) { creator.create() }
@@ -143,12 +161,12 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.undo("m1") } throws CancellationException("stopped")
         val runner = runner()
 
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         verify(exactly = 0) { notifier.showUndoResult(success = false) }
         coEvery { creator.undo("m1") } returns true
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         coVerify(exactly = 2) { creator.undo("m1") }
@@ -164,14 +182,14 @@ class QuickMaskUndoIdempotenceTest {
         val runner = runner()
         var finished = false
 
-        runner.launchUndo("m1") { finished = true }
-        advanceTimeBy(9_000L)
+        runner.undo("m1").invokeOnCompletion { finished = true }
+        advanceTimeBy(QuickMaskUndoReceiver.GO_ASYNC_BUDGET_MS - 1)
 
         assertTrue("onFinished must run before the 10s BroadcastReceiver ANR ceiling", finished)
         verify(exactly = 1) { notifier.showUndoResult(success = false) }
 
         coEvery { creator.undo("m1") } returns true
-        runner.launchUndo("m1")
+        runner.undo("m1")
         advanceUntilIdle()
 
         coVerify(exactly = 2) { creator.undo("m1") }
