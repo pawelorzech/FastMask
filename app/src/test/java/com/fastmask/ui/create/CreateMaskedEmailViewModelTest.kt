@@ -104,6 +104,20 @@ class CreateMaskedEmailViewModelTest {
     }
 
     @Test
+    fun `create params are trimmed like the detail editor's save`() = runTest {
+        val repo = FakeMaskedEmailRepository()
+        val viewModel = vm(repo)
+        viewModel.onDescriptionChange("  newsletter \n")
+        viewModel.onUrlChange(" https://example.com ")
+
+        viewModel.create()
+        advanceUntilIdle()
+
+        assertEquals("newsletter", repo.lastCreateParams?.description)
+        assertEquals("https://example.com", repo.lastCreateParams?.url)
+    }
+
+    @Test
     fun `chosen initial state is passed through`() = runTest {
         val repo = FakeMaskedEmailRepository()
         val viewModel = vm(repo)

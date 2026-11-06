@@ -1,6 +1,5 @@
 package com.fastmask.ui.create
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -28,11 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -41,10 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -63,11 +56,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -82,6 +73,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
+import com.fastmask.ui.components.rememberDiscardChangesGuard
+import com.fastmask.ui.components.MaskStateToggle
+import com.fastmask.ui.components.MaskUrlField
+import com.fastmask.ui.components.MaskDescriptionField
+import com.fastmask.ui.components.MaskDomainField
+import com.fastmask.ui.components.MaskField
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.delayInfinite
 import com.fastmask.ui.components.expressive.MorphShape
@@ -89,7 +86,6 @@ import com.fastmask.ui.components.expressive.rememberMotionReduced
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
@@ -97,10 +93,8 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
-import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.theme.FastMaskTheme
-import kotlinx.coroutines.delay
 
 @Composable
 fun CreateMaskedEmailScreen(
@@ -116,15 +110,7 @@ fun CreateMaskedEmailScreen(
     // Guard against losing typed-but-uncreated input on back / swipe.
     val isDirty = uiState.emailPrefix.isNotEmpty() || uiState.forDomain.isNotEmpty() ||
         uiState.description.isNotEmpty() || uiState.url.isNotEmpty()
-    var showDiscardDialog by remember { mutableStateOf(false) }
-    val onClose = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
-    BackHandler(enabled = isDirty) { showDiscardDialog = true }
-    if (showDiscardDialog) {
-        DiscardChangesDialog(
-            onConfirm = { showDiscardDialog = false; onNavigateBack() },
-            onDismiss = { showDiscardDialog = false },
-        )
-    }
+    val onClose = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
 
     LaunchedEffect(Unit) {
         viewModel.applyPrefill(prefill)
@@ -226,7 +212,7 @@ internal fun CreateMaskedEmailContent(
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 val prefixError = uiState.prefixErrorRes?.let { stringResource(it) }
                 val prefixHint = stringResource(R.string.create_email_prefix_hint)
-                FormField(
+                MaskField(
                     value = uiState.emailPrefix,
                     onValueChange = onPrefixChange,
                     label = stringResource(R.string.create_email_prefix_label),
@@ -240,39 +226,27 @@ internal fun CreateMaskedEmailContent(
                     ),
                     keyboardActions = KeyboardActions(onNext = { domainFocus.requestFocus() }),
                 )
-                FormField(
+                MaskDomainField(
                     value = uiState.forDomain,
                     onValueChange = onDomainChange,
                     label = stringResource(R.string.create_email_domain_label),
-                    placeholder = stringResource(R.string.create_email_domain_placeholder),
                     enabled = !uiState.isLoading,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Uri,
-                        imeAction = ImeAction.Next,
-                    ),
-                    keyboardActions = KeyboardActions(onNext = { descriptionFocus.requestFocus() }),
+                    onNext = { descriptionFocus.requestFocus() },
                     modifier = Modifier.focusRequester(domainFocus),
                 )
-                FormField(
+                MaskDescriptionField(
                     value = uiState.description,
                     onValueChange = onDescriptionChange,
                     label = stringResource(R.string.create_email_description_label),
-                    placeholder = stringResource(R.string.create_email_description_placeholder),
                     enabled = !uiState.isLoading,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { urlFocus.requestFocus() }),
+                    onNext = { urlFocus.requestFocus() },
                     modifier = Modifier.focusRequester(descriptionFocus),
                 )
-                FormField(
+                MaskUrlField(
                     value = uiState.url,
                     onValueChange = onUrlChange,
                     label = stringResource(R.string.create_email_url_label),
-                    placeholder = stringResource(R.string.create_email_url_placeholder),
                     enabled = !uiState.isLoading,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Uri,
-                        imeAction = ImeAction.Done,
-                    ),
                     modifier = Modifier.focusRequester(urlFocus),
                 )
             }
@@ -463,41 +437,6 @@ private fun PreviewCard(prefix: String) {
 // --- form -------------------------------------------------------------------
 
 @Composable
-private fun FormField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String,
-    enabled: Boolean,
-    keyboardOptions: KeyboardOptions,
-    modifier: Modifier = Modifier,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    supporting: String? = null,
-    isError: Boolean = false,
-) {
-    ExpressiveTextField(
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled,
-        isError = isError,
-        label = label,
-        placeholder = placeholder,
-        supportingText = supporting?.let { text -> { Text(text) } },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        // The label is part of the field; naming the node explicitly keeps it
-        // addressable by label (TalkBack, instrumented tests), and an invalid
-        // entry puts its message on the field's own node.
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics {
-                contentDescription = label
-                if (isError && supporting != null) error(supporting)
-            },
-    )
-}
-
-@Composable
 private fun StateSegmented(
     selected: EmailState,
     onSelect: (EmailState) -> Unit,
@@ -507,7 +446,7 @@ private fun StateSegmented(
     AdaptiveToggleGroup(
         modifier = Modifier.radioButtonGroup(),
         first = { toggleModifier, stacked ->
-            StateOption(
+            MaskStateToggle(
                 label = stringResource(R.string.state_enabled),
                 checked = selected == EmailState.ENABLED,
                 enabled = enabled,
@@ -520,7 +459,7 @@ private fun StateSegmented(
             )
         },
         second = { toggleModifier, stacked ->
-            StateOption(
+            MaskStateToggle(
                 label = stringResource(R.string.state_disabled),
                 checked = selected == EmailState.DISABLED,
                 enabled = enabled,
@@ -533,47 +472,6 @@ private fun StateSegmented(
             )
         },
     )
-}
-
-@Composable
-private fun StateOption(
-    label: String,
-    checked: Boolean,
-    enabled: Boolean,
-    shapes: ToggleButtonShapes,
-    modifier: Modifier,
-    onSelect: () -> Unit,
-) {
-    val height = ButtonDefaults.MediumContainerHeight
-    ToggleButton(
-        checked = checked,
-        onCheckedChange = { if (it && !checked) onSelect() },
-        enabled = enabled,
-        // Exactly one option is always chosen, so it is a radio choice for
-        // screen readers rather than two independent toggles.
-        modifier = modifier
-            .heightIn(min = height)
-            .semantics { role = Role.RadioButton },
-        shapes = shapes,
-        contentPadding = ToggleButtonDefaults.contentPaddingFor(height),
-    ) {
-        AnimatedVisibility(
-            visible = checked,
-            enter = fadeIn(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                androidx.compose.animation.expandHorizontally(MaterialTheme.motionScheme.fastSpatialSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                androidx.compose.animation.shrinkHorizontally(MaterialTheme.motionScheme.fastSpatialSpec()),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = ToggleButtonDefaults.IconSpacing)
-                    .size(ToggleButtonDefaults.IconSize),
-            )
-        }
-        Text(text = label, style = MaterialTheme.typography.titleMedium)
-    }
 }
 
 @Composable
@@ -606,18 +504,6 @@ private fun CreateError(
             enabled = enabled,
         ) { Text(stringResource(R.string.error_retry)) }
     }
-}
-
-@Composable
-private fun DiscardChangesDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    ConfirmDialog(
-        title = stringResource(R.string.discard_changes_title),
-        message = stringResource(R.string.discard_changes_message),
-        confirmText = stringResource(R.string.discard_changes_confirm),
-        dismissText = stringResource(R.string.discard_changes_cancel),
-        onConfirm = onConfirm,
-        onDismiss = onDismiss,
-    )
 }
 
 // --- previews ---------------------------------------------------------------

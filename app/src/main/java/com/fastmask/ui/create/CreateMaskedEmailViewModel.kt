@@ -98,12 +98,15 @@ class CreateMaskedEmailViewModel @Inject constructor(
         // double-tap guard above cannot race the launch.
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
+            // Same text policy as the detail editor, which trims what it sends:
+            // the stray space an IME autocomplete leaves must not reach the
+            // account. Unlike there, an empty field means "not set", not "clear".
             val params = CreateMaskedEmailParams(
                 state = state.initialState,
-                forDomain = state.forDomain.takeIf { it.isNotBlank() },
-                description = state.description.takeIf { it.isNotBlank() },
-                emailPrefix = state.emailPrefix.takeIf { it.isNotBlank() },
-                url = state.url.takeIf { it.isNotBlank() }
+                forDomain = state.forDomain.trimToNull(),
+                description = state.description.trimToNull(),
+                emailPrefix = state.emailPrefix.trimToNull(),
+                url = state.url.trimToNull(),
             )
 
             maskedEmailRepository.createMaskedEmail(params).fold(
@@ -123,6 +126,8 @@ class CreateMaskedEmailViewModel @Inject constructor(
         }
     }
 }
+
+private fun String.trimToNull(): String? = trim().takeIf { it.isNotEmpty() }
 
 data class CreateMaskedEmailUiState(
     val emailPrefix: String = "",

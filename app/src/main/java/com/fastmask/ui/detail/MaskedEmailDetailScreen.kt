@@ -1,19 +1,16 @@
 package com.fastmask.ui.detail
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
@@ -32,8 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import com.fastmask.ui.accessibility.radioButtonGroup
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -63,11 +58,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.toShape
@@ -78,30 +68,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -114,7 +99,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
-import com.fastmask.ui.components.expressive.ExpressiveTextField
+import com.fastmask.ui.components.rememberDiscardChangesGuard
+import com.fastmask.ui.components.MaskStateToggle
+import com.fastmask.ui.components.MaskUrlField
+import com.fastmask.ui.components.MaskDescriptionField
+import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
@@ -126,12 +115,10 @@ import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.expressive.SectionHeader
-import com.fastmask.ui.components.expressive.SegmentedGap
 import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.StateChip
 import com.fastmask.ui.components.expressive.StateMorphAvatar
-import com.fastmask.ui.components.expressive.segmentedShape
 import com.fastmask.ui.navigation.maskContainer
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.util.RelativeTime
@@ -178,12 +165,10 @@ fun MaskedEmailDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showArchiveDialog by remember { mutableStateOf(false) }
-    var showDiscardDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val isDirty = uiState.hasChanges
-    val onBack = { if (isDirty) showDiscardDialog = true else onNavigateBack() }
-    BackHandler(enabled = isDirty) { showDiscardDialog = true }
+    val onBack = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
 
     val updatedMessage = stringResource(R.string.email_detail_updated)
 
@@ -214,17 +199,6 @@ fun MaskedEmailDetailScreen(
                 viewModel.delete()
             },
             onDismiss = { showArchiveDialog = false },
-        )
-    }
-
-    if (showDiscardDialog) {
-        ConfirmDialog(
-            title = stringResource(R.string.discard_changes_title),
-            message = stringResource(R.string.discard_changes_message),
-            confirmText = stringResource(R.string.discard_changes_confirm),
-            dismissText = stringResource(R.string.discard_changes_cancel),
-            onConfirm = { showDiscardDialog = false; onNavigateBack() },
-            onDismiss = { showDiscardDialog = false },
         )
     }
 
@@ -735,14 +709,14 @@ private fun StatusControl(
                     .radioButtonGroup()
                     .semantics { contentDescription = statusDesc },
                 first = { toggleModifier, stacked ->
-                    StatusToggle(
+                    MaskStateToggle(
                         label = stringResource(R.string.state_enabled),
                         checked = activeSelected,
                         loading = toggling && activeSelected,
                         shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
                         modifier = toggleModifier,
-                        onCheckedChange = { checked ->
-                            if (checked && !busy) {
+                        onSelect = {
+                            if (!busy) {
                                 pending = EmailState.ENABLED
                                 onEnable()
                             }
@@ -750,14 +724,14 @@ private fun StatusControl(
                     )
                 },
                 second = { toggleModifier, stacked ->
-                    StatusToggle(
+                    MaskStateToggle(
                         label = stringResource(R.string.state_disabled),
                         checked = !activeSelected,
                         loading = toggling && !activeSelected,
                         shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
                         modifier = toggleModifier,
-                        onCheckedChange = { checked ->
-                            if (checked && !busy) {
+                        onSelect = {
+                            if (!busy) {
                                 pending = EmailState.DISABLED
                                 onDisable()
                             }
@@ -766,49 +740,6 @@ private fun StatusControl(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun StatusToggle(
-    label: String,
-    checked: Boolean,
-    loading: Boolean,
-    shapes: ToggleButtonShapes,
-    modifier: Modifier,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    val height = ButtonDefaults.MediumContainerHeight
-    ToggleButton(
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        // Exactly one option is always chosen: a radio choice for screen readers.
-        modifier = modifier
-            .heightIn(min = height)
-            .semantics { role = Role.RadioButton },
-        shapes = shapes,
-        contentPadding = ToggleButtonDefaults.contentPaddingFor(height),
-    ) {
-        AnimatedVisibility(
-            visible = checked,
-            enter = fadeIn(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                expandHorizontally(MaterialTheme.motionScheme.fastSpatialSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                shrinkHorizontally(MaterialTheme.motionScheme.fastSpatialSpec()),
-        ) {
-            Box(modifier = Modifier.padding(end = ToggleButtonDefaults.IconSpacing)) {
-                if (loading) {
-                    LoadingIndicator(modifier = Modifier.size(ToggleButtonDefaults.IconSize))
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(ToggleButtonDefaults.IconSize),
-                    )
-                }
-            }
-        }
-        Text(text = label, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -982,60 +913,29 @@ private fun EditFields(
     val urlFocus = remember { FocusRequester() }
     val enabled = !uiState.isUpdating
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        EditFieldRow(
+        MaskDescriptionField(
             value = uiState.editedDescription,
             onValueChange = onDescriptionChange,
             label = stringResource(R.string.email_detail_description_label),
-            placeholder = stringResource(R.string.create_email_description_placeholder),
             enabled = enabled,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { domainFocus.requestFocus() }),
+            onNext = { domainFocus.requestFocus() },
         )
-        EditFieldRow(
+        MaskDomainField(
             value = uiState.editedForDomain,
             onValueChange = onForDomainChange,
             label = stringResource(R.string.email_detail_domain_label),
-            placeholder = stringResource(R.string.create_email_domain_placeholder),
             enabled = enabled,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { urlFocus.requestFocus() }),
+            onNext = { urlFocus.requestFocus() },
             modifier = Modifier.focusRequester(domainFocus),
         )
-        EditFieldRow(
+        MaskUrlField(
             value = uiState.editedUrl,
             onValueChange = onUrlChange,
             label = stringResource(R.string.email_detail_url_label),
-            placeholder = stringResource(R.string.create_email_url_placeholder),
             enabled = enabled,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             modifier = Modifier.focusRequester(urlFocus),
         )
     }
-}
-
-@Composable
-private fun EditFieldRow(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String,
-    enabled: Boolean,
-    keyboardOptions: KeyboardOptions,
-    modifier: Modifier = Modifier,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-) {
-    ExpressiveTextField(
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled,
-        label = label,
-        placeholder = placeholder,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        // The visible label is part of the field; naming the node explicitly
-        // keeps it addressable by label (TalkBack, instrumented tests).
-        modifier = modifier.semantics { contentDescription = label },
-    )
 }
 
 // --- error ----------------------------------------------------------------
