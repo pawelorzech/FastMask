@@ -11,10 +11,9 @@ package com.fastmask.data.api
  * advertises the capability under `accounts[id].accountCapabilities`. That is
  * positive evidence for one concrete account, so it is safe to use.
  *
- * What must never come back is the old positional fallback
- * `primaryAccounts.values.firstOrNull()`: that guesses an account from another
- * scope, lets a Mail-only token "log in", and delays the real diagnosis until
- * a masked-email call fails later with an opaque server error.
+ * Never fall back to `primaryAccounts.values.firstOrNull()`: that guesses an
+ * account from another scope, lets a Mail-only token "log in", and delays the
+ * diagnosis until a masked-email call fails with an opaque server error.
  */
 object MaskedEmailScope {
 

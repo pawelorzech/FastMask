@@ -50,13 +50,6 @@ interface MaskedEmailRepository {
      * state flip back — which is exactly what the confirmation dialog ("Mail
      * sent here will bounce. You can restore it later.") and the list's Undo
      * snackbar promise, and what the "Archived" filter chip exists to show.
-     *
-     * Split from [destroyMaskedEmail] by audit 2026-07-27. Both used to be one
-     * `deleteMaskedEmail`, sent as JMAP `destroy` against the real account
-     * while the DEMO repository implemented it as a state flip. The only
-     * automated test of "the highest-risk path in the app" ran in demo mode, so
-     * it exercised the reversible semantics the UI promises and never touched
-     * the irreversible ones the account actually received.
      */
     suspend fun archiveMaskedEmail(id: String): Result<Unit>
 

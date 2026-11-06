@@ -157,8 +157,6 @@ class CrashReporting(
         } catch (error: Throwable) {
             onFailure(error)
         }
-        // edit() touches this key only; replacing the whole Preferences object
-        // would wipe every other setting.
         dataStore.edit { preferences -> preferences[KEY] = enabled }
         lastKnown = Stored.Value(enabled)
     }

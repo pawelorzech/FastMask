@@ -14,15 +14,10 @@ import kotlinx.coroutines.flow.first
  * The crash reporting opt-out has a DataStore file of its own, owned by
  * [CrashReporting] alone.
  *
- * It used to live in the shared `settings` store, whose corruption handler
- * resets everything to "never set". For every other key that is harmless; for
- * this one "never set" means ENABLED, so a corrupt file would have silently
- * turned collection back on for someone who had opted out.
- *
- * Corruption of *this* file never yields "enabled": it is replaced by an
- * explicit opt-out ([CrashReporting.OPTED_OUT_ON_CORRUPTION]), so collection
- * stays off until the user flips the switch again. Opting out is the only
- * outcome that cannot expose anything the user had decided to withhold.
+ * The shared `settings` store resets a corrupt file to "never set", which for this
+ * key means ENABLED. Corruption of *this* file is replaced by an explicit opt-out
+ * ([CrashReporting.OPTED_OUT_ON_CORRUPTION]), so collection stays off until the
+ * user flips the switch again.
  */
 val Context.crashReportingDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "crash_reporting",

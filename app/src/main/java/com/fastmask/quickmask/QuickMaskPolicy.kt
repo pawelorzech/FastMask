@@ -36,13 +36,8 @@ internal object QuickMaskPolicy {
     /**
      * Whether an incoming launch of `QuickMaskActivity` may create a mask.
      *
-     * The activity used to create one unconditionally in `onCreate`, which —
-     * combined with `exported="true"` and no intent-filter — let any app on the
-     * device drive FastMask into minting real masks on the user's Fastmail
-     * account and overwriting the clipboard, with no interaction at all. The
-     * manifest now keeps the activity unexported; this check makes "create"
-     * conditional on OUR OWN action, so an unrecognized launch degrades into
-     * opening the app instead of writing to the account.
+     * Creation is conditional on OUR OWN action, so an unrecognized launch
+     * degrades into opening the app instead of writing to the account.
      *
      * @param action the launching intent's action.
      */

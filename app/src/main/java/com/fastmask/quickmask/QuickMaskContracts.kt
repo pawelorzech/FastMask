@@ -30,10 +30,9 @@ internal const val QUICK_MASK_CHANNEL_ID: String = "quick_mask"
  * codes that belong to it. The single source for both namespaces.
  *
  * Slots are separate because `notify` replaces whatever already sits under an
- * id. Success and failure once shared one, so a failed create wiped the "Mask
- * created" notification — and the Undo action on it, the only way back from a
- * mask created by accident — while a successful one silently erased an error
- * the user had not read yet.
+ * id: a failed create must not wipe the "Mask created" notification (and its
+ * Undo, the only way back from a mask created by accident), nor a success erase
+ * an error the user has not read yet.
  *
  * Request codes are separate because FLAG_UPDATE_CURRENT rewrites the
  * PendingIntent registered under a (requestCode, intent) pair; two live

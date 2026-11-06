@@ -127,12 +127,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // On every resume, not only on a cold start. That is what re-enters an
-        // immediate update the user was pulled out of mid-install, and what
-        // notices a background download that finished while FastMask was in
-        // another app — including across process death, since the state being
-        // read belongs to Play rather than to this process. The controller owns
-        // every rule about whether any of that turns into a prompt.
+        // On every resume, not only on a cold start: re-enters an interrupted
+        // immediate update and notices a download that finished meanwhile. The
+        // controller owns every rule about whether that becomes a prompt.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 appUpdateController.checkAndStart(this@MainActivity, appUpdateLauncher)
@@ -183,9 +180,9 @@ class MainActivity : AppCompatActivity() {
                     .collectAsState(initial = lockAtLaunch)
                 // The DISPLAY gate must not wait for the async Play/store
                 // read: on a locked cold start, proStatus still holds its
-                // initial FREE for the first frames — keying the gate on it
-                // would flash the mask list before the lock lands (P0).
-                // The gate is seeded synchronously from the cache above.
+                // initial FREE for the first frames, and keying the gate on it
+                // would flash the mask list before the lock lands. The gate is
+                // seeded synchronously from the cache above.
                 val isLocked = lockGate.locked && appLockEnabled
 
                 // Re-engage the lock whenever the app leaves the foreground.
@@ -283,15 +280,10 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Asks for POST_NOTIFICATIONS off a stream of session snapshots, not one
-     * startup guess.
-     *
-     * The reported miss was a user who launched signed out and signed in
-     * without leaving: one onCreate-time check off the start destination never
-     * saw the later real session. The gate now sees every route/lock/app-mode
-     * snapshot and decides when the one ask is warranted. The launcher call is
-     * wrapped in `runCatching` because an ActivityResultLauncher that is not
-     * registered for this lifecycle state throws; a thrown ask is better than a
-     * crash, and the Toast fallback still covers quick-create.
+     * startup guess: the gate sees every route/lock snapshot and decides when
+     * the one ask is warranted. The launcher call is wrapped in `runCatching`
+     * because an ActivityResultLauncher that is not registered for this
+     * lifecycle state throws; the Toast fallback still covers quick-create.
      */
     private fun maybeRequestNotificationPermission(
         signedIn: Boolean,

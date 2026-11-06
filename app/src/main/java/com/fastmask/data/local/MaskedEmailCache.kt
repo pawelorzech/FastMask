@@ -18,14 +18,12 @@ import javax.inject.Singleton
  * Last known good snapshot of the account's masks, so the list is readable
  * without a network.
  *
- * This is the user's full set of masked addresses on disk, which the app
- * otherwise never keeps — so it is encrypted with a Keystore-backed key, the
- * same protection [TokenStorage] gives the API token, and dropped on sign-out.
+ * This is the user's full set of masked addresses on disk, so it is encrypted
+ * with a Keystore-backed key (as [TokenStorage] does for the API token) and
+ * dropped on sign-out.
  *
  * Every failure is soft: a missing, unreadable or corrupt cache means "no
- * cache", never an error the user sees. It is derived data — the server
- * remains the source of truth, and the worst case is the offline list being
- * empty, exactly as it was before this existed.
+ * cache", never an error the user sees. The server remains the source of truth.
  */
 @Singleton
 class MaskedEmailCache @Inject constructor(
@@ -41,40 +39,24 @@ class MaskedEmailCache @Inject constructor(
      * as the associated data of the AEAD stream, so a file encrypted as
      * `masked_emails_cache.bin.tmp` and then renamed can never be decrypted
      * again — the AAD no longer matches and every read fails the tag check.
-     * (The instrumented round-trip test is what caught that; the JVM tests
-     * cannot, because there is no Keystore there.) Staging in a sibling
-     * directory keeps the name identical, so the rename is transparent.
+     * Staging in a sibling directory keeps the name identical, so the rename is
+     * transparent.
      */
     private val stagingFile: File
         get() = File(File(context.filesDir, STAGING_DIR).apply { mkdirs() }, FILE_NAME)
 
     /**
-     * Serializes [write] against [clear] and against itself.
-     *
-     * The race was invisible while every caller sat on the main thread; moving
-     * the repository onto Dispatchers.IO in the same audit made two concurrent
-     * writes reachable, and two writers interleaving on one EncryptedFile
-     * produce a file whose GCM tag will not verify — i.e. a silently empty
-     * offline list.
+     * Serializes [write] against [clear] and against itself: two writers
+     * interleaving on one EncryptedFile produce a file whose GCM tag will not
+     * verify, i.e. a silently empty offline list.
      */
     private val lock = Any()
 
     /**
-     * Advanced by every [clear]. A writer captures it before starting its fetch
-     * and hands it back to [write], which refuses a write stamped with a
-     * generation that has since been superseded.
-     *
-     * [lock] alone was not enough: it orders the two file operations but says
-     * nothing about which one the user asked for first. The sequence that got
-     * through was pull-to-refresh on a slow link, then Settings → Log out
-     * before the response landed. `logout()` clears the snapshot; the in-flight
-     * continuation then re-encrypts the account's full mask list back onto
-     * disk, where it stays until the next sign-in — the file is not readable by
-     * a second account (the owner check sees to that), but `docs/privacy.md`
-     * promises the snapshot is *removed* at log-out, and it was not.
-     *
-     * Cancellation could not close this: the write follows the network call
-     * with no suspension point in between, so there is nothing to preempt.
+     * Sign-out guard: a writer takes [currentGeneration] before its fetch and
+     * [write] drops the write if a [clear] happened since. Without it a slow
+     * fetch re-encrypts the account's masks onto disk after log-out, which
+     * `docs/privacy.md` promises removes them.
      */
     private val guard = GenerationGuard()
 
@@ -116,12 +98,8 @@ class MaskedEmailCache @Inject constructor(
      *
      * @param owner identifies the account this snapshot belongs to; see [read].
      * @param generation what [currentGeneration] returned when this write's
-     *   fetch began. A [clear] since then means the session this data belongs
-     *   to is over, and the write is dropped. Deliberately has no default: a
-     *   default would be read from the *current* value at call time, which is
-     *   exactly the stale-session case the parameter exists to catch, and it
-     *   would let a new call site opt out of the guard by simply not knowing
-     *   about it.
+     *   fetch began; a [clear] since then drops the write. Deliberately has no
+     *   default: it would be read at call time, defeating the stale-session check.
      */
     fun write(
         masks: List<MaskedEmail>,
@@ -137,10 +115,7 @@ class MaskedEmailCache @Inject constructor(
                 val payload = MaskedEmailSnapshotCodec.payload(masks, owner, now)
                 // Write to a temporary file and rename, so an interrupted write
                 // (process death, full disk) leaves the previous good snapshot
-                // in place. The old code deleted the target FIRST — because
-                // EncryptedFile refuses to overwrite — which meant the window
-                // between delete and flush had no cache at all, and a crash
-                // inside it lost the snapshot outright.
+                // in place; EncryptedFile refuses to overwrite in place.
                 val staging = stagingFile
                 staging.delete()
                 encryptedFile(staging).openFileOutput().use { out ->
@@ -169,15 +144,9 @@ class MaskedEmailCache @Inject constructor(
      * @param owner the account asking. A snapshot written for a different
      *   owner — or written before owners existed — is treated as absent rather
      *   than returned.
-     *
-     *   The snapshot carries no addresses of its own that would give the
-     *   mismatch away, and the file name is fixed, so without this check the
-     *   only thing separating one account's masks from another's was
-     *   [clear] having succeeded on sign-out — an unchecked `File.delete()`.
-     *   Any path that reaches a second account without a successful sign-out
-     *   (a token whose keyset became unreadable, so the app starts logged out
-     *   and the user signs in with a different token) would have shown account
-     *   A's masks to account B, labelled as their own offline data.
+     *   The file name is fixed and the snapshot carries no addresses of its own
+     *   to give a mismatch away, so this check is what keeps account A's masks
+     *   from being shown to account B if a sign-out cleanup failed.
      *
      * @return the snapshot, or null when there is none, it belongs to someone
      *   else, or it cannot be read.
