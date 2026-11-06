@@ -6,19 +6,19 @@ import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.core.ApplicationScope
 import com.fastmask.core.IoDispatcher
+import com.fastmask.core.sha256Hex
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
-import com.fastmask.domain.model.MaskedEmailMetadata
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.model.normalized
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import java.security.MessageDigest
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -53,35 +53,43 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     private suspend fun <T> mutation(block: suspend () -> Result<T>): Result<T> =
         appScope.async(ioDispatcher) { block() }.await()
 
-    override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
+    /**
+     * The one "signed in?" guard: runs [block] with the stored token, or fails
+     * with the same "Not authenticated" error every operation reports.
+     */
+    private inline fun <T> withToken(block: (token: String) -> Result<T>): Result<T> {
         val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            ?: return Result.failure(IllegalStateException("Not authenticated"))
+        return block(token)
+    }
 
-        // Captured BEFORE the network call: if a sign-out clears the cache while
-        // this fetch is in flight, the write below is dropped instead of putting
-        // the signed-out account's mask list back on disk. There is no
-        // suspension point between the response and the write, so cancellation
-        // cannot do this job.
-        val generation = cache.currentGeneration()
+    override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
+        withToken { token ->
+            // Captured BEFORE the network call: if a sign-out clears the cache while
+            // this fetch is in flight, the write below is dropped instead of putting
+            // the signed-out account's mask list back on disk. There is no
+            // suspension point between the response and the write, so cancellation
+            // cannot do this job.
+            val generation = cache.currentGeneration()
 
-        jmapApi.getMaskedEmails(token)
-            .map { dtos -> dtos.map { it.toDomain() } }
-            // Write through on every success, so the newest good answer is
-            // always what an offline read gets. A cache write failure must not
-            // fail the fetch — MaskedEmailCache swallows its own errors.
-            .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
+            jmapApi.getMaskedEmails(token)
+                .map { dtos -> dtos.map { it.toDomain() } }
+                // Write through on every success, so the newest good answer is
+                // always what an offline read gets. A cache write failure must not
+                // fail the fetch — MaskedEmailCache swallows its own errors.
+                .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
+        }
     }
 
     override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> = withContext(ioDispatcher) {
-        val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
-
-        // Deliberately NO write-through: the disk cache holds whole-list
-        // snapshots, and merging a single fresh mask into one would mean a
-        // read-modify-write of the encrypted file on every detail open — the
-        // exact cost this method exists to avoid. The snapshot catches up on
-        // the next full list fetch.
-        jmapApi.getMaskedEmail(token, id).map { it?.toDomain() }
+        withToken { token ->
+            // Deliberately NO write-through: the disk cache holds whole-list
+            // snapshots, and merging a single fresh mask into one would mean a
+            // read-modify-write of the encrypted file on every detail open — the
+            // exact cost this method exists to avoid. The snapshot catches up on
+            // the next full list fetch.
+            jmapApi.getMaskedEmail(token, id).map { it?.toDomain() }
+        }
     }
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = withContext(ioDispatcher) {
@@ -100,47 +108,27 @@ class MaskedEmailRepositoryImpl @Inject constructor(
      * different account means a different token, and a rotated token for the
      * same account means a mismatch, which costs one refetch.
      */
-    private fun cacheOwner(token: String): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(token.toByteArray())
-            .joinToString("") { "%02x".format(it) }
+    private fun cacheOwner(token: String): String = token.sha256Hex()
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = mutation {
-        val token = tokenStorage.getToken()
-            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
-        val forDomain = params.forDomain?.let { raw ->
-            MaskedEmailMetadata.normalizeForDomain(raw)
-                ?: return@mutation Result.failure(IllegalArgumentException("Invalid web origin"))
+        withToken { token ->
+            val create = params.normalized().getOrElse { return@withToken Result.failure(it) }
+            jmapApi.createMaskedEmail(token, create).map { it.toDomain() }
         }
-
-        val create = CreateMaskedEmailParams(
-            state = params.state,
-            forDomain = forDomain?.takeIf { it.isNotBlank() },
-            description = params.description?.takeIf { it.isNotBlank() },
-            emailPrefix = params.emailPrefix?.takeIf { it.isNotBlank() },
-            url = params.url?.takeIf { it.isNotBlank() }
-        )
-
-        jmapApi.createMaskedEmail(token, create).map { it.toDomain() }
     }
 
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = mutation {
-        val token = tokenStorage.getToken()
-            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
-        val forDomain = params.forDomain?.let { raw ->
-            MaskedEmailMetadata.normalizeForDomain(raw)
-                ?: return@mutation Result.failure(IllegalArgumentException("Invalid web origin"))
+        withToken { token ->
+            val normalized = params.normalized().getOrElse { return@withToken Result.failure(it) }
+            val update = MaskedEmailUpdate(
+                state = normalized.state,
+                forDomain = normalized.forDomain,
+                description = normalized.description,
+                url = normalized.urlToSet,
+                clearUrl = normalized.clearsUrl,
+            )
+            jmapApi.updateMaskedEmail(token, id, update)
         }
-
-        val update = MaskedEmailUpdate(
-            state = params.state,
-            forDomain = forDomain,
-            description = params.description,
-            url = params.url?.takeIf { it.isNotEmpty() },
-            clearUrl = params.url != null && params.url.isEmpty(),
-        )
-
-        jmapApi.updateMaskedEmail(token, id, update)
     }
 
     /**
@@ -152,21 +140,17 @@ class MaskedEmailRepositoryImpl @Inject constructor(
      * an id the server no longer knows.
      */
     override suspend fun archiveMaskedEmail(id: String): Result<Unit> = mutation {
-        val token = tokenStorage.getToken()
-            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
-
-        jmapApi.updateMaskedEmail(
-            token = token,
-            id = id,
-            update = MaskedEmailUpdate(state = EmailState.DELETED),
-        )
+        withToken { token ->
+            jmapApi.updateMaskedEmail(
+                token = token,
+                id = id,
+                update = MaskedEmailUpdate(state = EmailState.DELETED),
+            )
+        }
     }
 
     override suspend fun destroyMaskedEmail(id: String): Result<Unit> = mutation {
-        val token = tokenStorage.getToken()
-            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
-
-        jmapApi.deleteMaskedEmail(token, id)
+        withToken { token -> jmapApi.deleteMaskedEmail(token, id) }
     }
 }
 
