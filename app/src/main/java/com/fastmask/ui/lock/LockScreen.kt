@@ -1,5 +1,6 @@
 package com.fastmask.ui.lock
 
+import com.fastmask.ui.components.expressive.MorphingShape
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -46,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.theme.FastMaskTheme
-import com.fastmask.ui.welcome.MorphingShape
 import kotlinx.coroutines.delay
 
 /** How long the success burst stays on screen before the content behind the gate is composed. */

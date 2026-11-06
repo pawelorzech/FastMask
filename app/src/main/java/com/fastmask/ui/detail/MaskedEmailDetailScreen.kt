@@ -31,7 +31,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
+import com.fastmask.ui.accessibility.radioButtonGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -733,7 +733,7 @@ private fun StatusControl(
             val activeSelected = shown == EmailState.ENABLED || shown == EmailState.PENDING
             AdaptiveToggleGroup(
                 modifier = Modifier
-                    .selectableGroup()
+                    .radioButtonGroup()
                     .semantics { contentDescription = statusDesc },
                 first = { toggleModifier, stacked ->
                     StatusToggle(

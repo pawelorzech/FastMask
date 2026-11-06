@@ -86,7 +86,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
+import com.fastmask.ui.accessibility.screenHeading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -320,7 +320,7 @@ internal fun SettingsContent(
                 title = {
                     Text(
                         text = stringResource(R.string.settings_title),
-                        modifier = Modifier.semantics { heading() },
+                        modifier = Modifier.screenHeading(),
                     )
                 },
                 navigationIcon = {

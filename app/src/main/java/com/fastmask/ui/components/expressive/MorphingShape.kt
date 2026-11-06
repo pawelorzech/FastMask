@@ -1,6 +1,5 @@
-package com.fastmask.ui.welcome
+package com.fastmask.ui.components.expressive
 
-import android.provider.Settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -20,30 +19,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.graphics.shapes.Morph
-import com.fastmask.ui.components.expressive.delayInfinite
 import androidx.graphics.shapes.RoundedPolygon
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-
-/** True when the user has turned system animations off (animator duration scale 0). */
-@Composable
-internal fun rememberMotionReduced(): Boolean {
-    val context = LocalContext.current
-    return remember(context) {
-        runCatching {
-            Settings.Global.getFloat(
-                context.contentResolver,
-                Settings.Global.ANIMATOR_DURATION_SCALE,
-                1f,
-            ) == 0f
-        }.getOrDefault(false)
-    }
-}
 
 /** The shape currently drawn: `from` -> `to`, interpolated by an [Animatable] outside this holder. */
 private class MorphHolder(first: RoundedPolygon) {
