@@ -116,7 +116,7 @@ class SessionRepositoryImplTest {
 
     @Test
     fun `sign in drops the previous account's exports and snapshot`() = runTest {
-        val export = exportCache.write("email\nold@fastmail.com\n")
+        val export = exportCache.write("email\nold@fastmail.com\n", generation = exportCache.currentGeneration())
 
         repository().signIn("fmu1-token")
 
@@ -128,7 +128,7 @@ class SessionRepositoryImplTest {
     fun `sign out drops the token, exports and snapshot`() = runTest {
         hasToken = true
         val repository = repository()
-        val export = exportCache.write("email\na@fastmail.com\n")
+        val export = exportCache.write("email\na@fastmail.com\n", generation = exportCache.currentGeneration())
 
         repository.signOut()
 

@@ -34,18 +34,17 @@ class ExportCache @Inject constructor(
     internal var fileWriter: (File, String) -> Unit = { file, text -> file.writeText(text) }
 
     /**
-     * Bumped by every [clear], mirroring `MaskedEmailCache`. An export is built
-     * from a network fetch, so the sequence "tap Export on a slow link, then Log
-     * out from the same screen before it lands" wrote the account's complete
-     * mask list — in plaintext, the one place in the app where that is true —
-     * into the cache directory *after* the sign-out that was supposed to erase
-     * it. Ageing out after an hour is the wrong answer there; the file should
-     * never have been created.
+     * Advanced by every [clear]. An export is built from a network fetch, so the
+     * sequence "tap Export on a slow link, then Log out from the same screen
+     * before it lands" wrote the account's complete mask list — in plaintext,
+     * the one place in the app where that is true — into the cache directory
+     * *after* the sign-out that was supposed to erase it. Ageing out after an
+     * hour is the wrong answer there; the file should never have been created.
      */
-    private val generation = java.util.concurrent.atomic.AtomicLong(0)
+    private val guard = GenerationGuard()
 
     /** Snapshot of the current generation, for a caller about to fetch. */
-    fun currentGeneration(): Long = generation.get()
+    fun currentGeneration(): Long = guard.current()
 
     /**
      * Writes [csv] to a fresh timestamped file and returns it, after ageing out
@@ -53,7 +52,9 @@ class ExportCache @Inject constructor(
      *
      * @param now injected so the ageing rule is testable without a clock.
      * @param generation what [currentGeneration] returned when the export's
-     *   fetch began; a [clear] since then aborts the write.
+     *   fetch began; a [clear] since then aborts the write. Deliberately has no
+     *   default: one would be read at write time, which makes the check always
+     *   pass and silently drops the sign-out protection for a caller that forgets it.
      * @throws IllegalStateException when the session that asked for this export
      *   has ended. The caller already treats a failure as "export failed", which
      *   is the correct outcome: there is no session to export for any more.
@@ -61,9 +62,9 @@ class ExportCache @Inject constructor(
     fun write(
         csv: String,
         now: Long = System.currentTimeMillis(),
-        generation: Long = this.generation.get(),
+        generation: Long,
     ): File = synchronized(lock) {
-        check(generation == this.generation.get()) {
+        check(guard.isCurrent(generation)) {
             "Export abandoned: the session ended before the file was written"
         }
         val dir = dir.apply { mkdirs() }
@@ -89,7 +90,7 @@ class ExportCache @Inject constructor(
 
     /** Drops every export regardless of age. Called on sign-out. */
     fun clear() = synchronized(lock) {
-        generation.incrementAndGet()
+        guard.advance()
         dir.listFiles()?.forEach { it.delete() }
     }
 

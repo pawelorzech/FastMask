@@ -33,7 +33,7 @@ class ExportCacheTest {
     fun `write creates a timestamped file with the csv content`() {
         val (cache, dir) = cache()
 
-        val file = cache.write("email,state\na@b.c,enabled\n", now = 1_000_000L)
+        val file = cache.write("email,state\na@b.c,enabled\n", now = 1_000_000L, generation = cache.currentGeneration())
 
         assertEquals("fastmask-masks-1000000.csv", file.name)
         assertEquals(dir, file.parentFile)
@@ -56,7 +56,7 @@ class ExportCacheTest {
             setLastModified(now - TimeUnit.MINUTES.toMillis(5))
         }
 
-        cache.write("new", now = now)
+        cache.write("new", now = now, generation = cache.currentGeneration())
 
         assertTrue("a two-hour-old export should be gone", !stale.exists())
         assertTrue("a five-minute-old export may still be in use", recent.exists())
@@ -97,8 +97,8 @@ class ExportCacheTest {
     fun `clear removes every export regardless of age`() {
         val (cache, dir) = cache()
         val now = TimeUnit.DAYS.toMillis(10)
-        cache.write("first", now = now)
-        cache.write("second", now = now + 1)
+        cache.write("first", now = now, generation = cache.currentGeneration())
+        cache.write("second", now = now + 1, generation = cache.currentGeneration())
         assertEquals(2, dir.listFiles()?.size)
 
         cache.clear()
@@ -157,7 +157,8 @@ class ExportCacheTest {
         }
 
         try {
-            val write = executor.submit<File> { cache.write("every,mask") }
+            val generation = cache.currentGeneration()
+            val write = executor.submit<File> { cache.write("every,mask", generation = generation) }
             assertTrue(writeReachedDiskBoundary.await(2, TimeUnit.SECONDS))
 
             val clear = executor.submit {
