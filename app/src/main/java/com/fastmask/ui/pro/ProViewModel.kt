@@ -12,6 +12,7 @@ import com.fastmask.domain.repository.ProPurchaseEvent
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.PurchaseLaunch
 import com.fastmask.domain.repository.RestoreResult
+import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -32,7 +33,7 @@ class ProViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val source: String = savedStateHandle["source"] ?: "unknown"
+    private val source: String = savedStateHandle[NavRoutes.ARG_SOURCE] ?: "unknown"
 
     private val _uiState = MutableStateFlow(ProUiState())
     val uiState: StateFlow<ProUiState> = _uiState.asStateFlow()

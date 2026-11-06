@@ -54,8 +54,6 @@ class CreateMaskedEmailViewModel @Inject constructor(
             } else {
                 state.copy(
                     forDomain = prefill.forDomain,
-                    url = prefill.url,
-                    description = prefill.description,
                     prefilled = true,
                 )
             }

@@ -122,11 +122,7 @@ class CreateMaskedEmailViewModelTest {
 
     // --- share prefill ------------------------------------------------------
 
-    private val githubPrefill = SharePrefill(
-        forDomain = "https://www.github.com",
-        url = "",
-        description = "",
-    )
+    private val githubPrefill = SharePrefill(forDomain = "https://www.github.com")
 
     @Test
     fun `share prefill lands in the form state`() = runTest {

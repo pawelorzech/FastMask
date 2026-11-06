@@ -73,10 +73,7 @@ fun FastMaskNavHost(
                     navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
                 },
                 onEnterDemo = {
-                    navController.navigate(NavRoutes.EMAIL_LIST) {
-                        popUpTo(NavRoutes.WELCOME) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.EMAIL_LIST)
                 },
             )
         }
@@ -88,18 +85,10 @@ fun FastMaskNavHost(
         ) {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(NavRoutes.EMAIL_LIST) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.EMAIL_LIST)
                 },
                 onEnterDemo = {
-                    // Match the other authenticated/demo handoffs and clear
-                    // the stack completely so back never returns to Welcome/Login.
-                    navController.navigate(NavRoutes.EMAIL_LIST) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.EMAIL_LIST)
                 }
             )
         }
@@ -136,10 +125,7 @@ fun FastMaskNavHost(
                     navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
                 },
                 onSignInFromBanner = {
-                    navController.navigate(NavRoutes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.LOGIN)
                 },
                 onReauthenticate = {
                     // Keep the list entry underneath Login so cancelling the
@@ -151,7 +137,7 @@ fun FastMaskNavHost(
                 },
                 justArchivedId = justArchivedId,
                 justArchivedState = justArchivedState
-                    ?.let { runCatching { EmailState.valueOf(it) }.getOrNull() },
+                    ?.let { name -> EmailState.entries.firstOrNull { it.name == name } },
                 onArchivedConsumed = { consumedId ->
                     // A second archive can arrive while the first Undo is
                     // visible. Never let result A erase newer pending B.
@@ -168,16 +154,10 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onLogout = {
-                    navController.navigate(NavRoutes.WELCOME) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.WELCOME)
                 },
                 onSignInFromDemo = {
-                    navController.navigate(NavRoutes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.LOGIN)
                 },
                 onNavigateToPro = { source ->
                     navController.navigate(NavRoutes.pro(source)) { launchSingleTop = true }
@@ -188,7 +168,7 @@ fun FastMaskNavHost(
         screen(
             route = NavRoutes.PRO,
             arguments = listOf(
-                navArgument("source") {
+                navArgument(NavRoutes.ARG_SOURCE) {
                     type = NavType.StringType
                     defaultValue = "settings"
                 }
@@ -204,32 +184,15 @@ fun FastMaskNavHost(
         screen(
             route = NavRoutes.CREATE_EMAIL,
             arguments = listOf(
-                navArgument("forDomain") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                },
-                navArgument("url") {
-                    type = NavType.StringType
-                    defaultValue = ""
-                },
-                navArgument("description") {
+                navArgument(NavRoutes.ARG_FOR_DOMAIN) {
                     type = NavType.StringType
                     defaultValue = ""
                 },
             ),
         ) { entry ->
-            val forDomain: String = entry.arguments?.getString("forDomain").orEmpty()
-            val url: String = entry.arguments?.getString("url").orEmpty()
-            val description: String = entry.arguments?.getString("description").orEmpty()
-            val prefill: SharePrefill? = if (forDomain.isNotBlank()) {
-                SharePrefill(
-                    forDomain = forDomain,
-                    url = url,
-                    description = description,
-                )
-            } else {
-                null
-            }
+            val prefill: SharePrefill? = entry.arguments?.getString(NavRoutes.ARG_FOR_DOMAIN)
+                ?.takeIf { it.isNotBlank() }
+                ?.let(::SharePrefill)
             CreateMaskedEmailScreen(
                 onNavigateBack = {
                     navController.popBackStack()
@@ -242,10 +205,7 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
-                    navController.navigate(NavRoutes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.LOGIN)
                 },
                 prefill = prefill,
             )
@@ -256,7 +216,7 @@ fun FastMaskNavHost(
             enterTransition = { fadeIn(fadeInSpec) },
             popExitTransition = { fadeOut(fadeOutSpec) },
             arguments = listOf(
-                navArgument("emailId") { type = NavType.StringType }
+                navArgument(NavRoutes.ARG_EMAIL_ID) { type = NavType.StringType }
             )
         ) {
             MaskedEmailDetailScreen(
@@ -267,28 +227,14 @@ fun FastMaskNavHost(
                     // Hand the archived id + pre-archive state back to the
                     // list, then pop. State is written FIRST so the list's
                     // id-triggered latch never observes a torn pair.
-                    val backEntry = navController.previousBackStackEntry
-                    if (backEntry != null) {
-                        backEntry.savedStateHandle[KEY_ARCHIVED_STATE] = previousState.name
-                        backEntry.savedStateHandle[KEY_ARCHIVED_ID] = id
-                    } else {
-                        // Edge case: detail reached via deep-link with no list entry
-                        // on the back stack. Write to the current back stack entry's
-                        // SavedStateHandle so the data survives configuration changes.
-                        navController.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.apply {
-                                set(KEY_ARCHIVED_STATE, previousState.name)
-                                set(KEY_ARCHIVED_ID, id)
-                            }
+                    navController.previousBackStackEntry?.savedStateHandle?.apply {
+                        set(KEY_ARCHIVED_STATE, previousState.name)
+                        set(KEY_ARCHIVED_ID, id)
                     }
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
-                    navController.navigate(NavRoutes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.resetTo(NavRoutes.LOGIN)
                 },
             )
         }

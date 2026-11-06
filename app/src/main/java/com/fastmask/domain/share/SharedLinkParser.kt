@@ -6,17 +6,12 @@ import com.fastmask.domain.model.MaskedEmailMetadata
  * Prefill for the create screen, derived from text shared into FastMask
  * (ACTION_SEND, text/plain).
  *
- * @param forDomain the HTTP(S) origin required by Fastmail's Masked Email API.
- * @param url deliberately empty: Fastmail reserves this for a deep link back to
- *   the integrator's record, not the website for which the mask is created.
- * @param description deliberately empty: Fastmail says this must be a short
- *   user-supplied description and must not duplicate [forDomain].
+ * Only [forDomain], the HTTP(S) origin Fastmail's Masked Email API expects. A
+ * share never fills `url` or `description`: Fastmail reserves `url` for a deep
+ * link back to the integrator's record, and `description` must be short,
+ * user-supplied and must not repeat the domain.
  */
-data class SharePrefill(
-    val forDomain: String,
-    val url: String,
-    val description: String,
-)
+data class SharePrefill(val forDomain: String)
 
 /**
  * Pure Kotlin, no Android dependencies, so it is unit-testable in `src/test`.
@@ -108,7 +103,7 @@ object SharedLinkParser {
 
         val pageUrl: String = if (hasScheme) candidate else "https://$candidate"
         val forDomain = MaskedEmailMetadata.normalizeForDomain(pageUrl) ?: return null
-        return SharePrefill(forDomain = forDomain, url = "", description = "")
+        return SharePrefill(forDomain = forDomain)
     }
 
     private fun schemeCandidateEnd(text: CharSequence, start: Int): Int? {

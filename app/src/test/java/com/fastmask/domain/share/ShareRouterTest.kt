@@ -40,11 +40,7 @@ import org.junit.Test
  */
 class ShareRouterTest {
 
-    private val github = SharePrefill(
-        forDomain = "https://www.github.com",
-        url = "",
-        description = "",
-    )
+    private val github = SharePrefill(forDomain = "https://www.github.com")
 
     private fun request(prefill: SharePrefill? = github, deliveryId: Long = 1) =
         ShareRequest(prefill = prefill, deliveryId = deliveryId)

@@ -10,6 +10,7 @@ import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.core.ApplicationScope
+import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -31,8 +32,10 @@ class MaskedEmailDetailViewModel @Inject constructor(
     @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
-    private val emailId: String = savedStateHandle.get<String>("emailId")
-        ?: throw IllegalArgumentException("emailId is required")
+    /** From the route, so it is known from the first frame, before the mask has loaded. */
+    val emailId: String = requireNotNull(savedStateHandle.get<String>(NavRoutes.ARG_EMAIL_ID)) {
+        "emailId is required"
+    }
 
     private val _uiState = MutableStateFlow(MaskedEmailDetailUiState())
     val uiState: StateFlow<MaskedEmailDetailUiState> = _uiState.asStateFlow()

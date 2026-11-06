@@ -24,8 +24,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("https://www.github.com/signup")
 
         assertEquals("https://www.github.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
-        assertEquals("", prefill?.description)
     }
 
     // --- links inside prose -------------------------------------------------
@@ -36,14 +34,12 @@ class SharedLinkParserTest {
             SharedLinkParser.parse("Sign up here: https://example.com/promo and get 10% off")
 
         assertEquals("https://example.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     @Test
     fun `sentence-ending punctuation is not part of the url`() {
         val prefill = SharedLinkParser.parse("Visit https://example.com/promo.")
 
-        assertEquals("", prefill?.url)
         assertEquals("https://example.com", prefill?.forDomain)
     }
 
@@ -53,7 +49,6 @@ class SharedLinkParserTest {
             SharedLinkParser.parse("https://first.example.com/a then https://second.example.com/b")
 
         assertEquals("https://first.example.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     // --- schemes ------------------------------------------------------------
@@ -62,7 +57,6 @@ class SharedLinkParserTest {
     fun `http scheme is preserved, not silently upgraded`() {
         val prefill = SharedLinkParser.parse("http://example.com/a")
 
-        assertEquals("", prefill?.url)
         assertEquals("http://example.com", prefill?.forDomain)
     }
 
@@ -71,7 +65,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("github.com/x")
 
         assertEquals("https://github.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     // --- host shapes --------------------------------------------------------
@@ -81,7 +74,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("https://example.com:8443/panel")
 
         assertEquals("https://example.com:8443", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     @Test
@@ -102,7 +94,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("HTTPS://WWW.GitHub.COM/Signup")
 
         assertEquals("https://www.github.com", prefill?.forDomain)
-        assertEquals("", prefill?.description)
     }
 
     // --- nothing to extract -------------------------------------------------
@@ -145,7 +136,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("Sign up here: example.com/promo")
 
         assertEquals("https://example.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     @Test
@@ -190,7 +180,6 @@ class SharedLinkParserTest {
         val elapsedMs = (System.nanoTime() - started) / 1_000_000
         assertNotNull("a link at the end of a long share must still be found", prefill)
         assertEquals("https://example.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
         assertTrue("parsing took ${elapsedMs}ms — the pattern backtracks", elapsedMs < 1_000)
     }
 
@@ -235,7 +224,6 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse("b".repeat(100_000) + " https://example.com/deal")
 
         assertEquals("https://example.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 
     // --- input types --------------------------------------------------------
@@ -251,6 +239,5 @@ class SharedLinkParserTest {
         val prefill = SharedLinkParser.parse(shared)
 
         assertEquals("https://www.github.com", prefill?.forDomain)
-        assertEquals("", prefill?.url)
     }
 }

@@ -111,8 +111,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.navigation.NavBackStackEntry
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
@@ -230,11 +228,9 @@ fun MaskedEmailDetailScreen(
         )
     }
 
-    // The nav argument names the list row this screen grows out of; reading it
-    // here (instead of from the loaded mask) keeps the shared-bounds key stable
-    // from the very first frame, before the mask has loaded.
-    val containerId = (LocalViewModelStoreOwner.current as? NavBackStackEntry)
-        ?.arguments?.getString("emailId")
+    // The list row this screen grows out of. Taken from the route rather than the
+    // loaded mask, so the shared-bounds key is stable from the first frame.
+    val containerId = viewModel.emailId
 
     MaskedEmailDetailContent(
         uiState = uiState,
