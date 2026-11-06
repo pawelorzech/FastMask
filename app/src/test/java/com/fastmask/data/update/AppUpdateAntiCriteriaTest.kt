@@ -1,4 +1,4 @@
-package com.fastmask.ui.update
+package com.fastmask.data.update
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -75,9 +75,10 @@ class AppUpdateAntiCriteriaTest {
         val offenders = mainSources
             .filter { it.readText().contains("com.google.android.play.core.appupdate") }
             .map { it.name }
+            .sorted()
         assertEquals(
-            "the Play update SDK must stay inside AppUpdateController: $offenders",
-            listOf("AppUpdateController.kt"),
+            "the Play update SDK must stay inside AppUpdateController and its DI provider: $offenders",
+            listOf("AppUpdateController.kt", "AppUpdateModule.kt"),
             offenders,
         )
     }

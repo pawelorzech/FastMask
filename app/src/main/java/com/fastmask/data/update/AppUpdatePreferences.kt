@@ -2,6 +2,9 @@ package com.fastmask.data.update
 
 import android.content.Context
 import android.content.SharedPreferences
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * The one thing the update prompt has to remember between launches: which version the user said no
@@ -12,7 +15,8 @@ import android.content.SharedPreferences
  * stop asking, and turning it into a signal that leaves the device would make the "crash
  * diagnostics only" promise untrue.
  */
-class AppUpdatePreferences(context: Context) {
+@Singleton
+class AppUpdatePreferences @Inject constructor(@ApplicationContext context: Context) {
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
