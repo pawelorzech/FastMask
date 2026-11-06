@@ -25,17 +25,25 @@ class JmapApi @Inject constructor(
     private val jmapService: JmapService,
     private val json: Json
 ) {
-    // @Volatile: the fast path in ensureSession() and the lock-free reads in
-    // getAccountId()/getApiUrl() run on different Dispatchers.IO threads than
-    // the writers. Without it there is no happens-before guarantee, so a reader
-    // could see a stale null (redundant re-fetch) or a torn pair where
-    // getApiUrl() still returns the default while getAccountId() is already set.
+    /**
+     * Everything one successful session fetch produced, as one immutable value:
+     * the token it was fetched for, the masked-email account id and the session
+     * itself (whose `apiUrl` has passed the trust check).
+     */
+    private class CachedSession(
+        val token: String,
+        val accountId: String,
+        val session: JmapSession,
+    ) {
+        val apiUrl: String get() = session.apiUrl
+    }
+
+    // @Volatile: the lock-free fast path in ensureSession() runs on different
+    // Dispatchers.IO threads than the writers. One field holding one immutable
+    // value means a reader sees a whole session or none, never a torn mix of
+    // account id, URL and token from two different fetches.
     @Volatile
-    private var cachedSession: JmapSession? = null
-    @Volatile
-    private var cachedAccountId: String? = null
-    @Volatile
-    private var cachedToken: String? = null
+    private var cached: CachedSession? = null
     private val sessionMutex = Mutex()
 
     private fun bearer(token: String) = "Bearer $token"
@@ -50,33 +58,25 @@ class JmapApi @Inject constructor(
             onFailure = { Result.failure(it.asDomainFailure()) },
         )
 
-    suspend fun getSession(token: String): Result<JmapSession> = remote {
+    /** Fetches, validates and caches the session; also what sign-in uses to validate a token. */
+    suspend fun getSession(token: String): Result<JmapSession> = remote { loadSession(token).session }
+
+    private suspend fun loadSession(token: String): CachedSession {
         val session = jmapService.getSession(FastmailEndpoints.SESSION_URL, bearer(token))
         require(FastmailEndpoints.isTrustedHttpsUrl(session.apiUrl)) {
             "Untrusted apiUrl in session response"
         }
         val accountId = MaskedEmailScope.accountId(session)
             ?: throw MaskedEmailScopeMissingException() // Mail-only tokens used to borrow another account id and fail much later with an opaque masked-email error.
-        cachedSession = session
-        cachedAccountId = accountId
-        cachedToken = token
-        session
+        return CachedSession(token, accountId, session).also { cached = it }
     }
 
-    fun getAccountId(): String? = cachedAccountId
-
-    fun getApiUrl(): String = cachedSession?.apiUrl ?: FastmailEndpoints.API_URL
-
-    private suspend fun ensureSession(token: String): String {
-        val accountId = cachedAccountId
-        if (accountId != null && cachedToken == token) return accountId
+    private suspend fun ensureSession(token: String): CachedSession {
+        cached?.takeIf { it.token == token }?.let { return it }
         // Mutex so concurrent first calls fetch the session once instead of racing.
         sessionMutex.withLock {
-            val lockedAccountId = cachedAccountId
-            if (lockedAccountId != null && cachedToken == token) return lockedAccountId
-            getSession(token).getOrThrow()
-            return cachedAccountId
-                ?: throw IllegalStateException("Failed to get account ID from session")
+            cached?.takeIf { it.token == token }?.let { return it }
+            return loadSession(token)
         }
     }
 
@@ -127,18 +127,20 @@ class JmapApi @Inject constructor(
             throw jmapSetException("Failed to create", error)
         }
 
-        val created = response.created?.get(CREATE_ID)
+        // A SetResponse only has to return server-set properties, so what the
+        // request supplied may be absent (or an explicit null) and is merged back
+        // from the request. `state` has a default on the DTO, so its absence has
+        // to be seen on the raw entry: the default would be "pending", not what
+        // was asked for.
+        val entry = response.created?.get(CREATE_ID)
             ?: throw IllegalStateException("Created email not found in response")
-        MaskedEmailDto(
-            id = created.id,
-            email = created.email,
-            state = created.state ?: create.state,
-            forDomain = created.forDomain ?: create.forDomain,
-            description = created.description ?: create.description.orEmpty(),
-            createdBy = created.createdBy,
-            url = created.url ?: create.url,
-            createdAt = created.createdAt,
-            lastMessageAt = created.lastMessageAt,
+        val created = JsonObject(entry.filterValues { it !is JsonNull })
+        val dto = json.decodeFromJsonElement<MaskedEmailDto>(created)
+        dto.copy(
+            state = if ("state" in created) dto.state else create.state,
+            forDomain = dto.forDomain ?: create.forDomain,
+            description = dto.description ?: create.description.orEmpty(),
+            url = dto.url ?: create.url,
         )
     }
 
@@ -205,19 +207,19 @@ class JmapApi @Inject constructor(
         method: String,
         args: JsonObjectBuilder.() -> Unit,
     ): JsonObject {
-        val accountId = ensureSession(token)
+        val session = ensureSession(token)
 
         val methodCall = buildJsonArray {
             add(JsonPrimitive(method))
             add(buildJsonObject {
-                put("accountId", JsonPrimitive(accountId))
+                put("accountId", JsonPrimitive(session.accountId))
                 args()
             })
             add(JsonPrimitive("0"))
         }
 
         val response = jmapService.executeMethod(
-            url = getApiUrl(),
+            url = session.apiUrl,
             authHeader = bearer(token),
             request = JmapRequest(
                 using = FastmailEndpoints.CAPABILITIES,
@@ -237,9 +239,7 @@ class JmapApi @Inject constructor(
     }
 
     fun clearSession() {
-        cachedSession = null
-        cachedAccountId = null
-        cachedToken = null
+        cached = null
     }
 
     private fun jmapSetException(operation: String, error: JmapSetError): Exception {
