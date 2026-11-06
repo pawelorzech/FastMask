@@ -3,6 +3,7 @@ package com.fastmask.ui.list
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.domain.model.EmailState
 import java.io.Serializable
+import java.util.UUID
 
 /**
  * What a screen opened from the list hands back to it, as one typed value in the
@@ -10,8 +11,16 @@ import java.io.Serializable
  * process death, both in the handle and in the list's own `rememberSaveable`.
  */
 sealed interface ListResult : Serializable {
-    /** The detail screen archived mask [id], which was in [previousState] before. */
-    data class Archived(val id: String, val previousState: EmailState) : ListResult
+    /**
+     * The detail screen archived mask [id], which was in [previousState] before.
+     * [delivery] makes two archives of the same mask distinct values, so the list
+     * can tell a new one from the one it just showed.
+     */
+    data class Archived(
+        val id: String,
+        val previousState: EmailState,
+        val delivery: String = UUID.randomUUID().toString(),
+    ) : ListResult
 
     /** The create screen made the mask with this [email] address. */
     data class Created(val email: String) : ListResult

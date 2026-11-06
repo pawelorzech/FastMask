@@ -3,6 +3,7 @@ package com.fastmask.ui.list
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.domain.model.EmailState
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -54,8 +55,18 @@ class ListResultTest {
 
     @Test
     fun `an archive keeps its pre-archive state through the handle`() {
-        handle.postListResult(ListResult.Archived("a", EmailState.DISABLED))
+        val archived = ListResult.Archived("a", EmailState.DISABLED)
+        handle.postListResult(archived)
 
-        assertEquals(ListResult.Archived("a", EmailState.DISABLED), pending())
+        assertEquals(archived, pending())
+        assertEquals(EmailState.DISABLED, (pending() as ListResult.Archived).previousState)
+    }
+
+    @Test
+    fun `two archives of the same mask are different results`() {
+        assertNotEquals(
+            ListResult.Archived("a", EmailState.ENABLED),
+            ListResult.Archived("a", EmailState.ENABLED),
+        )
     }
 }

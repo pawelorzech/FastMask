@@ -126,9 +126,13 @@ fun MaskedEmailListScreen(
     //
     // Guard pendingUndo != null: a rapid second archive of another mask does
     // not overwrite the first undo — the user only gets one undo at a time.
+    // The result just shown is remembered too: consuming it reaches pendingResult
+    // a frame after pendingUndo clears, and in that frame the latch below would
+    // otherwise take the same result again and show the snackbar forever.
     var pendingUndo by rememberSaveable { mutableStateOf<ListResult.Archived?>(null) }
+    var handledUndo by rememberSaveable { mutableStateOf<ListResult.Archived?>(null) }
     LaunchedEffect(pendingResult, pendingUndo) {
-        if (pendingResult is ListResult.Archived && pendingUndo == null) {
+        if (pendingResult is ListResult.Archived && pendingUndo == null && pendingResult != handledUndo) {
             pendingUndo = pendingResult
         }
     }
@@ -147,6 +151,7 @@ fun MaskedEmailListScreen(
         // Consume navigation state only after the snackbar produced a result.
         // A recreation cancels this effect, so the saved id remains available
         // and rememberSaveable restarts the Undo instead of losing it.
+        handledUndo = undo
         onResultConsumed(undo)
         pendingUndo = null
     }
