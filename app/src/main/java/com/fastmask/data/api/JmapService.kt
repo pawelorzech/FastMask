@@ -10,7 +10,7 @@ interface JmapService {
 
     @GET
     suspend fun getSession(
-        @Url url: String = FASTMAIL_SESSION_URL,
+        @Url url: String,
         @Header("Authorization") authHeader: String
     ): JmapSession
 
@@ -20,14 +20,4 @@ interface JmapService {
         @Header("Authorization") authHeader: String,
         @Body request: JmapRequest
     ): JmapResponse
-
-    companion object {
-        const val FASTMAIL_SESSION_URL = "https://api.fastmail.com/jmap/session"
-        const val FASTMAIL_API_URL = "https://api.fastmail.com/jmap/api/"
-
-        val JMAP_CAPABILITIES = listOf(
-            "urn:ietf:params:jmap:core",
-            "https://www.fastmail.com/dev/maskedemail"
-        )
-    }
 }

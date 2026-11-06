@@ -19,7 +19,7 @@ package com.fastmask.data.api
 object MaskedEmailScope {
 
     /** Capability/primary-account key Fastmail uses for Masked Email. */
-    const val CAPABILITY_URI = "https://www.fastmail.com/dev/maskedemail"
+    const val CAPABILITY_URI = FastmailEndpoints.MASKED_EMAIL_CAPABILITY
 
     /**
      * The account id to use, or null when the session proves the token lacks

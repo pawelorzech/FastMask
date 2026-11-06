@@ -2,16 +2,17 @@ package com.fastmask.data.api
 
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import com.fastmask.domain.model.CreateMaskedEmailParams
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.decodeFromJsonElement
-import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,10 +34,11 @@ class JmapApi @Inject constructor(
     private var cachedToken: String? = null
     private val sessionMutex = Mutex()
 
+    private fun bearer(token: String) = "Bearer $token"
+
     suspend fun getSession(token: String): Result<JmapSession> = runSuspendCatching {
-        val authHeader = "Bearer $token"
-        val session = jmapService.getSession(authHeader = authHeader)
-        require(isFastmailHttpsUrl(session.apiUrl)) {
+        val session = jmapService.getSession(FastmailEndpoints.SESSION_URL, bearer(token))
+        require(FastmailEndpoints.isTrustedHttpsUrl(session.apiUrl)) {
             "Untrusted apiUrl in session response"
         }
         val accountId = MaskedEmailScope.accountId(session)
@@ -49,14 +51,7 @@ class JmapApi @Inject constructor(
 
     fun getAccountId(): String? = cachedAccountId
 
-    fun getApiUrl(): String = cachedSession?.apiUrl ?: JmapService.FASTMAIL_API_URL
-
-    private fun isFastmailHttpsUrl(raw: String): Boolean {
-        val uri = runCatching { URI(raw) }.getOrNull() ?: return false
-        if (!uri.scheme.equals("https", ignoreCase = true)) return false
-        val host = uri.host?.lowercase() ?: return false
-        return host == "api.fastmail.com" || host.endsWith(".fastmail.com")
-    }
+    fun getApiUrl(): String = cachedSession?.apiUrl ?: FastmailEndpoints.API_URL
 
     private suspend fun ensureSession(token: String): String {
         val accountId = cachedAccountId
@@ -89,46 +84,19 @@ class JmapApi @Inject constructor(
             fetchMaskedEmails(token, ids = listOf(id)).firstOrNull()
         }
 
-    private suspend fun fetchMaskedEmails(token: String, ids: List<String>?): List<MaskedEmailDto> {
-        val accountId = ensureSession(token)
-        val authHeader = "Bearer $token"
-
-        val methodCall = buildJsonArray {
-            add(JsonPrimitive("MaskedEmail/get"))
-            add(buildJsonObject {
-                put("accountId", JsonPrimitive(accountId))
-                ids?.let { idList ->
-                    put("ids", buildJsonArray {
-                        idList.forEach { add(JsonPrimitive(it)) }
-                    })
-                }
-            })
-            add(JsonPrimitive("0"))
-        }
-
-        val request = JmapRequest(
-            using = JmapService.JMAP_CAPABILITIES,
-            methodCalls = listOf(methodCall)
-        )
-
-        val response = jmapService.executeMethod(
-            url = getApiUrl(),
-            authHeader = authHeader,
-            request = request
-        )
-
-        return parseGetResponse(response)
-    }
+    private suspend fun fetchMaskedEmails(token: String, ids: List<String>?): List<MaskedEmailDto> =
+        call<MaskedEmailGetResponse>(token, "MaskedEmail/get") {
+            ids?.let { idList ->
+                put("ids", buildJsonArray { idList.forEach { add(JsonPrimitive(it)) } })
+            }
+        }.list
 
     suspend fun createMaskedEmail(
         token: String,
-        create: MaskedEmailCreate
+        create: CreateMaskedEmailParams
     ): Result<MaskedEmailDto> = runSuspendCatching {
-        val accountId = ensureSession(token)
-        val authHeader = "Bearer $token"
-
         val createObject = buildJsonObject {
-            put("state", JsonPrimitive(create.state.name.lowercase()))
+            put("state", JsonPrimitive(create.state.wire))
             create.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
             // Fastmail requires an empty string when the user supplied no
             // description; omitting it leaves interoperability to server defaults.
@@ -137,29 +105,27 @@ class JmapApi @Inject constructor(
             create.url?.let { put("url", JsonPrimitive(it)) }
         }
 
-        val methodCall = buildJsonArray {
-            add(JsonPrimitive("MaskedEmail/set"))
-            add(buildJsonObject {
-                put("accountId", JsonPrimitive(accountId))
-                put("create", buildJsonObject {
-                    put("new1", createObject)
-                })
-            })
-            add(JsonPrimitive("0"))
+        val response = call<MaskedEmailSetResponse>(token, "MaskedEmail/set") {
+            put("create", buildJsonObject { put(CREATE_ID, createObject) })
         }
 
-        val request = JmapRequest(
-            using = JmapService.JMAP_CAPABILITIES,
-            methodCalls = listOf(methodCall)
-        )
+        response.notCreated?.get(CREATE_ID)?.let { error ->
+            throw jmapSetException("Failed to create", error)
+        }
 
-        val response = jmapService.executeMethod(
-            url = getApiUrl(),
-            authHeader = authHeader,
-            request = request
+        val created = response.created?.get(CREATE_ID)
+            ?: throw IllegalStateException("Created email not found in response")
+        MaskedEmailDto(
+            id = created.id,
+            email = created.email,
+            state = created.state ?: create.state,
+            forDomain = created.forDomain ?: create.forDomain,
+            description = created.description ?: create.description.orEmpty(),
+            createdBy = created.createdBy,
+            url = created.url ?: create.url,
+            createdAt = created.createdAt,
+            lastMessageAt = created.lastMessageAt,
         )
-
-        parseSetResponseCreated(response, "new1", create)
     }
 
     suspend fun updateMaskedEmail(
@@ -167,11 +133,8 @@ class JmapApi @Inject constructor(
         id: String,
         update: MaskedEmailUpdate
     ): Result<Unit> = runSuspendCatching {
-        val accountId = ensureSession(token)
-        val authHeader = "Bearer $token"
-
         val updateObject = buildJsonObject {
-            update.state?.let { put("state", JsonPrimitive(it.name.lowercase())) }
+            update.state?.let { put("state", JsonPrimitive(it.wire)) }
             update.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
             update.description?.let { put("description", JsonPrimitive(it)) }
             when {
@@ -180,167 +143,83 @@ class JmapApi @Inject constructor(
             }
         }
 
-        val methodCall = buildJsonArray {
-            add(JsonPrimitive("MaskedEmail/set"))
-            add(buildJsonObject {
-                put("accountId", JsonPrimitive(accountId))
-                put("update", buildJsonObject {
-                    put(id, updateObject)
-                })
-            })
-            add(JsonPrimitive("0"))
+        val response = call<MaskedEmailSetResponse>(token, "MaskedEmail/set") {
+            put("update", buildJsonObject { put(id, updateObject) })
         }
 
-        val request = JmapRequest(
-            using = JmapService.JMAP_CAPABILITIES,
-            methodCalls = listOf(methodCall)
-        )
-
-        val response = jmapService.executeMethod(
-            url = getApiUrl(),
-            authHeader = authHeader,
-            request = request
-        )
-
-        parseSetResponseUpdated(response, id)
-    }
-
-    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runSuspendCatching {
-        val accountId = ensureSession(token)
-        val authHeader = "Bearer $token"
-
-        val methodCall = buildJsonArray {
-            add(JsonPrimitive("MaskedEmail/set"))
-            add(buildJsonObject {
-                put("accountId", JsonPrimitive(accountId))
-                put("destroy", buildJsonArray { add(JsonPrimitive(id)) })
-            })
-            add(JsonPrimitive("0"))
-        }
-
-        val request = JmapRequest(
-            using = JmapService.JMAP_CAPABILITIES,
-            methodCalls = listOf(methodCall)
-        )
-
-        val response = jmapService.executeMethod(
-            url = getApiUrl(),
-            authHeader = authHeader,
-            request = request
-        )
-
-        parseSetResponseDestroyed(response, id)
-    }
-
-    private fun parseGetResponse(response: JmapResponse): List<MaskedEmailDto> {
-        val methodResponse = response.methodResponses.firstOrNull()
-            ?: throw IllegalStateException("Empty response")
-
-        val responseType = (methodResponse[0] as? JsonPrimitive)?.content
-        if (responseType == "error") {
-            val errorData = methodResponse[1] as? JsonObject
-            val errorType = (errorData?.get("type") as? JsonPrimitive)?.content
-            throw JmapException("JMAP Error: $errorType")
-        }
-
-        val data = methodResponse[1] as? JsonObject
-            ?: throw IllegalStateException("Invalid response format")
-
-        val getResponse: MaskedEmailGetResponse = json.decodeFromJsonElement(data)
-        return getResponse.list
-    }
-
-    private fun parseSetResponseCreated(
-        response: JmapResponse,
-        createId: String,
-        request: MaskedEmailCreate,
-    ): MaskedEmailDto {
-        val methodResponse = response.methodResponses.firstOrNull()
-            ?: throw IllegalStateException("Empty response")
-
-        val responseType = (methodResponse[0] as? JsonPrimitive)?.content
-        if (responseType == "error") {
-            val errorData = methodResponse[1] as? JsonObject
-            val errorType = (errorData?.get("type") as? JsonPrimitive)?.content
-            throw JmapException("JMAP Error: $errorType")
-        }
-
-        val data = methodResponse[1] as? JsonObject
-            ?: throw IllegalStateException("Invalid response format")
-
-        val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
-
-        setResponse.notCreated?.get(createId)?.let { error ->
-            throw jmapSetException("Failed to create", error)
-        }
-
-        val created = setResponse.created?.get(createId)
-            ?: throw IllegalStateException("Created email not found in response")
-        return MaskedEmailDto(
-            id = created.id,
-            email = created.email,
-            state = created.state ?: request.state,
-            forDomain = created.forDomain ?: request.forDomain,
-            description = created.description ?: request.description.orEmpty(),
-            createdBy = created.createdBy,
-            url = created.url ?: request.url,
-            createdAt = created.createdAt,
-            lastMessageAt = created.lastMessageAt,
-        )
-    }
-
-    private fun parseSetResponseUpdated(response: JmapResponse, id: String) {
-        val methodResponse = response.methodResponses.firstOrNull()
-            ?: throw IllegalStateException("Empty response")
-
-        val responseType = (methodResponse[0] as? JsonPrimitive)?.content
-        if (responseType == "error") {
-            val errorData = methodResponse[1] as? JsonObject
-            val errorType = (errorData?.get("type") as? JsonPrimitive)?.content
-            throw JmapException("JMAP Error: $errorType")
-        }
-
-        val data = methodResponse[1] as? JsonObject
-            ?: throw IllegalStateException("Invalid response format")
-
-        val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
-
-        setResponse.notUpdated?.get(id)?.let { error ->
+        response.notUpdated?.get(id)?.let { error ->
             throw jmapSetException("Failed to update", error)
         }
 
         // Verify the update actually succeeded
-        if (setResponse.updated?.containsKey(id) != true) {
+        if (response.updated?.containsKey(id) != true) {
             throw JmapException("Update not confirmed by server - ID not found in updated response")
         }
     }
 
-    private fun parseSetResponseDestroyed(response: JmapResponse, id: String) {
-        val methodResponse = response.methodResponses.firstOrNull()
-            ?: throw IllegalStateException("Empty response")
-
-        val responseType = (methodResponse[0] as? JsonPrimitive)?.content
-        if (responseType == "error") {
-            val errorData = methodResponse[1] as? JsonObject
-            val errorType = (errorData?.get("type") as? JsonPrimitive)?.content
-            throw JmapException("JMAP Error: $errorType")
+    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runSuspendCatching {
+        val response = call<MaskedEmailSetResponse>(token, "MaskedEmail/set") {
+            put("destroy", buildJsonArray { add(JsonPrimitive(id)) })
         }
 
-        val data = methodResponse[1] as? JsonObject
-            ?: throw IllegalStateException("Invalid response format")
-
-        val setResponse: MaskedEmailSetResponse = json.decodeFromJsonElement(data)
-
-        setResponse.notDestroyed?.get(id)?.let { error ->
+        response.notDestroyed?.get(id)?.let { error ->
             throw jmapSetException("Failed to delete", error)
         }
 
         // Verify the destroy actually succeeded — mirrors the positive check in
-        // parseSetResponseUpdated. Without it a silent server no-op would be
+        // updateMaskedEmail. Without it a silent server no-op would be
         // reported to the user as a successful archive.
-        if (setResponse.destroyed?.contains(id) != true) {
+        if (response.destroyed?.contains(id) != true) {
             throw JmapException("Delete not confirmed by server - ID not found in destroyed response")
         }
+    }
+
+    /**
+     * One JMAP method call: makes sure there is a session for [token], sends
+     * the request envelope with the Bearer header, unwraps the single method
+     * response (turning a JMAP `error` into [JmapException]) and decodes it as
+     * [T]. [args] fills the method's arguments; `accountId` is added first.
+     */
+    private suspend inline fun <reified T> call(
+        token: String,
+        method: String,
+        noinline args: JsonObjectBuilder.() -> Unit,
+    ): T = json.decodeFromJsonElement(callRaw(token, method, args))
+
+    private suspend fun callRaw(
+        token: String,
+        method: String,
+        args: JsonObjectBuilder.() -> Unit,
+    ): JsonObject {
+        val accountId = ensureSession(token)
+
+        val methodCall = buildJsonArray {
+            add(JsonPrimitive(method))
+            add(buildJsonObject {
+                put("accountId", JsonPrimitive(accountId))
+                args()
+            })
+            add(JsonPrimitive("0"))
+        }
+
+        val response = jmapService.executeMethod(
+            url = getApiUrl(),
+            authHeader = bearer(token),
+            request = JmapRequest(
+                using = FastmailEndpoints.CAPABILITIES,
+                methodCalls = listOf(methodCall),
+            ),
+        )
+
+        val methodResponse = response.methodResponses.firstOrNull()
+            ?: throw IllegalStateException("Empty response")
+
+        val data = methodResponse[1] as? JsonObject
+        if ((methodResponse[0] as? JsonPrimitive)?.content == "error") {
+            val errorType = (data?.get("type") as? JsonPrimitive)?.content
+            throw JmapException("JMAP Error: $errorType")
+        }
+        return data ?: throw IllegalStateException("Invalid response format")
     }
 
     fun clearSession() {
@@ -356,6 +235,11 @@ class JmapApi @Inject constructor(
         } else {
             JmapException(message)
         }
+    }
+
+    private companion object {
+        /** Client-side id of the single record a create request carries. */
+        const val CREATE_ID = "new1"
     }
 }
 

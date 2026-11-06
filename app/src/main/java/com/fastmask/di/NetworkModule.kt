@@ -1,6 +1,7 @@
 package com.fastmask.di
 
 import com.fastmask.BuildConfig
+import com.fastmask.data.api.FastmailEndpoints
 import com.fastmask.data.api.JmapService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -61,7 +62,7 @@ object NetworkModule {
     ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl(JmapService.FASTMAIL_API_URL)
+            .baseUrl(FastmailEndpoints.API_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()

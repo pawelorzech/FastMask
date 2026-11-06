@@ -1,9 +1,7 @@
 package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
-import com.fastmask.data.api.MaskedEmailCreate
 import com.fastmask.data.api.MaskedEmailDto
-import com.fastmask.data.api.MaskedEmailState
 import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.core.IoDispatcher
@@ -100,8 +98,8 @@ class MaskedEmailRepositoryImpl @Inject constructor(
                 ?: return@withContext Result.failure(IllegalArgumentException("Invalid web origin"))
         }
 
-        val create = MaskedEmailCreate(
-            state = params.state.toApi(),
+        val create = CreateMaskedEmailParams(
+            state = params.state,
             forDomain = forDomain?.takeIf { it.isNotBlank() },
             description = params.description?.takeIf { it.isNotBlank() },
             emailPrefix = params.emailPrefix?.takeIf { it.isNotBlank() },
@@ -120,7 +118,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         }
 
         val update = MaskedEmailUpdate(
-            state = params.state?.toApi(),
+            state = params.state,
             forDomain = forDomain,
             description = params.description,
             url = params.url?.takeIf { it.isNotEmpty() },
@@ -145,7 +143,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         jmapApi.updateMaskedEmail(
             token = token,
             id = id,
-            update = MaskedEmailUpdate(state = MaskedEmailState.DELETED),
+            update = MaskedEmailUpdate(state = EmailState.DELETED),
         )
     }
 
@@ -161,7 +159,7 @@ private fun MaskedEmailDto.toDomain(): MaskedEmail {
     return MaskedEmail(
         id = id,
         email = email,
-        state = state.toDomain(),
+        state = state,
         forDomain = forDomain,
         description = description,
         createdBy = createdBy,
@@ -172,28 +170,6 @@ private fun MaskedEmailDto.toDomain(): MaskedEmail {
     )
 }
 
-private fun MaskedEmailState.toDomain(): EmailState {
-    return when (this) {
-        MaskedEmailState.PENDING -> EmailState.PENDING
-        MaskedEmailState.ENABLED -> EmailState.ENABLED
-        MaskedEmailState.DISABLED -> EmailState.DISABLED
-        MaskedEmailState.DELETED -> EmailState.DELETED
-    }
-}
-
-private fun EmailState.toApi(): MaskedEmailState {
-    return when (this) {
-        EmailState.PENDING -> MaskedEmailState.PENDING
-        EmailState.ENABLED -> MaskedEmailState.ENABLED
-        EmailState.DISABLED -> MaskedEmailState.DISABLED
-        EmailState.DELETED -> MaskedEmailState.DELETED
-    }
-}
-
-private fun parseInstant(dateString: String): Instant? {
-    return try {
-        Instant.parse(dateString)
-    } catch (e: Exception) {
-        null
-    }
-}
+/** Unparseable timestamps degrade to null rather than failing the whole list. */
+private fun parseInstant(dateString: String): Instant? =
+    runCatching { Instant.parse(dateString) }.getOrNull()
