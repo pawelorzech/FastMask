@@ -163,6 +163,7 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DemoBannerContent
+import com.fastmask.ui.components.labelRes
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.components.TutorialStep
 import com.fastmask.ui.components.expressive.MaskAvatar
@@ -493,24 +494,7 @@ internal fun MaskedEmailListContent(
     // remembered pass avoids iterating the whole list on every recomposition
     // of this screen (including every search keystroke) for numbers that
     // only move when `uiState.emails` changes.
-    val filterCounts = remember(uiState.emails) {
-        var enabled = 0
-        var disabled = 0
-        var deleted = 0
-        for (email in uiState.emails) {
-            when (email.state) {
-                EmailState.ENABLED, EmailState.PENDING -> enabled++
-                EmailState.DISABLED -> disabled++
-                EmailState.DELETED -> deleted++
-            }
-        }
-        mapOf(
-            EmailFilter.ALL to uiState.emails.size,
-            EmailFilter.ENABLED to enabled,
-            EmailFilter.DISABLED to disabled,
-            EmailFilter.DELETED to deleted,
-        )
-    }
+    val filterCounts = remember(uiState.emails) { EmailFilter.countsOf(uiState.emails) }
     val activeCount = filterCounts[EmailFilter.ENABLED] ?: 0
 
     var menuExpanded by rememberSaveable { mutableStateOf(initialMenuExpanded) }
@@ -1024,15 +1008,6 @@ private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
 /** Font scale from which a mask row drops its trailing time label / state chip. */
 private const val CompactRowFontScale = 1.3f
 
-// Reuses the already-translated state labels so TalkBack announces a mask's
-// state (Active / Off / Archived / Pending) that the avatar color conveys visually.
-private fun stateContentDescription(state: EmailState): Int = when (state) {
-    EmailState.ENABLED -> R.string.state_enabled
-    EmailState.DISABLED -> R.string.state_disabled
-    EmailState.DELETED -> R.string.state_deleted
-    EmailState.PENDING -> R.string.state_pending
-}
-
 @Composable
 internal fun MaskRow(
     email: MaskedEmail,
@@ -1046,12 +1021,12 @@ internal fun MaskRow(
 ) {
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
-    val stateLabel = stringResource(stateContentDescription(email.state))
+    val stateLabel = stringResource(email.state.labelRes)
     // Key the formatted string on the coarse relative bucket rather than raw
     // `nowSec` so a refresh that advances `nowSec` by a few seconds does not
     // re-run ICU formatting for every row whose bucket ("3d ago") did not change.
-    val timeBucket = remember(email.lastMessageAt, email.createdAt, nowSec) {
-        RelativeTimeBuckets.of((email.lastMessageAt ?: email.createdAt)?.epochSecond, nowSec)
+    val timeBucket = remember(email.lastActivityAt, nowSec) {
+        RelativeTimeBuckets.of(email.lastActivityAt?.epochSecond, nowSec)
     }
     val timeLabel = remember(timeBucket, context) {
         RelativeTime.format(context, timeBucket)
@@ -1070,7 +1045,7 @@ internal fun MaskRow(
             }
         }
     }
-    val domain = email.forDomain?.takeIf { it.isNotBlank() }
+    val domain = email.siteDomain
     val note = email.description?.takeIf { it.isNotBlank() }
     // At large font scales the timestamp / state chip beside the address left it a few
     // characters ("sha…"). Past this threshold they move under the address instead.
@@ -1111,7 +1086,7 @@ internal fun MaskRow(
             .semantics { stateDescription = stateLabel },
         leading = {
             MaskAvatar(
-                seedText = domain ?: email.email,
+                seedText = email.avatarSeed,
                 state = email.state,
                 size = 40.dp,
             )

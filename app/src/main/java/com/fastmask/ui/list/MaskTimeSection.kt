@@ -23,7 +23,7 @@ internal data class MaskSection(val section: MaskTimeSection, val items: List<Ma
 
 /** Which section a mask belongs to, by its last message (or creation) time. */
 internal fun maskTimeSection(email: MaskedEmail, nowSec: Long): MaskTimeSection {
-    val moment = (email.lastMessageAt ?: email.createdAt)?.epochSecond
+    val moment = email.lastActivityAt?.epochSecond
     return when (RelativeTimeBuckets.of(moment, nowSec).unit) {
         RelativeTimeUnit.JUST_NOW,
         RelativeTimeUnit.MINUTES,

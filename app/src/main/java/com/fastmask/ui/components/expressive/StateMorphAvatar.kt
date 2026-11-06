@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.components.statusColors
 import com.fastmask.ui.theme.FastMaskTheme
 
 /** Shape for a state: ENABLED Sunny, PENDING SoftBurst, DISABLED Circle, DELETED Square. */
@@ -69,7 +70,7 @@ fun StateMorphAvatar(
     val morph = remember(from, to) { Morph(polygonFor(from), polygonFor(to)) }
     val shape = remember(morph) { MorphShape(morph) { progress.value } }
 
-    val pair = statusPairFor(state)
+    val pair = state.statusColors()
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<androidx.compose.ui.graphics.Color>()
     val container by animateColorAsState(pair.container, effects, label = "avatarContainer")
     val content by animateColorAsState(pair.content, effects, label = "avatarContent")

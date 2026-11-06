@@ -91,14 +91,7 @@ internal fun FilterGroup(
             modifier = Modifier.horizontalScroll(scroll),
         ) { showCounts ->
             filters.forEachIndexed { index, filter ->
-                val label = stringResource(
-                    when (filter) {
-                        EmailFilter.ALL -> R.string.filter_all
-                        EmailFilter.ENABLED -> R.string.filter_enabled
-                        EmailFilter.DISABLED -> R.string.filter_disabled
-                        EmailFilter.DELETED -> R.string.filter_deleted
-                    },
-                )
+                val label = stringResource(filter.labelRes)
                 ToggleButton(
                     checked = selected == filter,
                     onCheckedChange = { checked -> if (checked) onSelect(filter) },

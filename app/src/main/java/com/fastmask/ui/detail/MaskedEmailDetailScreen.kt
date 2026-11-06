@@ -297,7 +297,7 @@ internal fun MaskedEmailDetailContent(
                 TopAppBar(
                     title = {
                         Text(
-                            text = email?.email?.substringBefore('@').orEmpty(),
+                            text = email?.localPart.orEmpty(),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             // The hero already carries the heading, so this faded
@@ -559,9 +559,8 @@ private fun DetailBody(
 
 @Composable
 private fun Hero(email: MaskedEmail) {
-    val local = email.email.substringBefore('@')
-    val domainPart = email.email.substringAfter('@', missingDelimiterValue = "")
-    val seed = email.forDomain?.takeIf { it.isNotBlank() } ?: email.email
+    val local = email.localPart
+    val domainPart = email.domainPart
 
     val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
@@ -598,7 +597,7 @@ private fun Hero(email: MaskedEmail) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         StateMorphAvatar(
-            initial = seed,
+            initial = email.avatarSeed,
             state = email.state,
             size = 88.dp,
         )

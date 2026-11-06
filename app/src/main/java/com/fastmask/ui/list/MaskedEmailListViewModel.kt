@@ -187,9 +187,7 @@ class MaskedEmailListViewModel @Inject constructor(
             try {
                 maskedEmailRepository.getMaskedEmails().fold(
                     onSuccess = { emails ->
-                        val sortedEmails = emails.sortedByDescending { email ->
-                            email.lastMessageAt ?: email.createdAt
-                        }
+                        val sortedEmails = emails.sortedByDescending { it.lastActivityAt }
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -218,9 +216,7 @@ class MaskedEmailListViewModel @Inject constructor(
                         } else {
                             null
                         }
-                        val sortedCached = cached?.masks?.sortedByDescending { email ->
-                            email.lastMessageAt ?: email.createdAt
-                        }
+                        val sortedCached = cached?.masks?.sortedByDescending { it.lastActivityAt }
                         _uiState.update {
                             when {
                                 cached != null && cached.masks.isNotEmpty() -> it.copy(
@@ -289,14 +285,7 @@ class MaskedEmailListViewModel @Inject constructor(
         val hasQuery = query.isNotBlank()
         if (filter == EmailFilter.ALL && !hasQuery) return emails
         return emails.filter { email ->
-            val matchesFilter = when (filter) {
-                EmailFilter.ALL -> true
-                // "Active" must match the chip count, which includes PENDING
-                // (a freshly created mask is pending until its first message).
-                EmailFilter.ENABLED -> email.isActive
-                EmailFilter.DISABLED -> email.state == EmailState.DISABLED
-                EmailFilter.DELETED -> email.state == EmailState.DELETED
-            }
+            val matchesFilter = filter.matches(email)
             matchesFilter && (!hasQuery ||
                 email.email.contains(query, ignoreCase = true) ||
                 email.description?.contains(query, ignoreCase = true) == true ||
@@ -332,6 +321,3 @@ sealed interface MaskedEmailListEvent {
     data class RandomFailed(@StringRes val messageRes: Int) : MaskedEmailListEvent
 }
 
-enum class EmailFilter {
-    ALL, ENABLED, DISABLED, DELETED
-}

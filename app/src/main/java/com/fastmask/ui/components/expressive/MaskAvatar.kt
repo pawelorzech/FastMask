@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.components.statusColors
 import com.fastmask.ui.theme.FastMaskTheme
 
 private val MaskAvatarPolygons: List<RoundedPolygon> = listOf(
@@ -58,7 +59,7 @@ fun MaskAvatar(
     val polygons = MaskAvatarPolygons
     val polygon = polygons[maskAvatarShapeIndex(seedText, polygons.size)]
     val shape = polygon.toShape()
-    val pair = statusPairFor(state)
+    val pair = state.statusColors()
     Box(
         modifier = modifier
             .size(size)

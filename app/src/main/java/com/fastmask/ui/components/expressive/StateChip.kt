@@ -16,28 +16,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskTheme
-import com.fastmask.ui.theme.StatusColorPair
-
-/** Container/content pair for [state], derived from the active color scheme. */
-@Composable
-internal fun statusPairFor(state: EmailState): StatusColorPair = with(MaterialTheme.colorScheme) {
-    when (state) {
-        EmailState.ENABLED -> StatusColorPair(primaryContainer, onPrimaryContainer)
-        EmailState.PENDING -> StatusColorPair(tertiaryContainer, onTertiaryContainer)
-        EmailState.DISABLED -> StatusColorPair(surfaceContainerHighest, onSurfaceVariant)
-        EmailState.DELETED -> StatusColorPair(errorContainer, onErrorContainer)
-    }
-}
-
-internal fun stateLabelRes(state: EmailState): Int = when (state) {
-    EmailState.ENABLED -> R.string.state_enabled
-    EmailState.PENDING -> R.string.state_pending
-    EmailState.DISABLED -> R.string.state_disabled
-    EmailState.DELETED -> R.string.state_deleted
-}
+import com.fastmask.ui.components.labelRes
+import com.fastmask.ui.components.statusColors
 
 /**
  * Small 24dp pill labelling a mask's state ("Active", "Off", "Archived",
@@ -45,7 +27,7 @@ internal fun stateLabelRes(state: EmailState): Int = when (state) {
  */
 @Composable
 fun StateChip(state: EmailState, modifier: Modifier = Modifier) {
-    val pair = statusPairFor(state)
+    val pair = state.statusColors()
     Box(
         modifier = modifier
             // A floor, not a fixed height: at 200% font the label is taller than 24dp and a
@@ -57,7 +39,7 @@ fun StateChip(state: EmailState, modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(stateLabelRes(state)),
+            text = stringResource(state.labelRes),
             style = MaterialTheme.typography.labelMedium,
             color = pair.content,
             maxLines = 1,
