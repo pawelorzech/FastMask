@@ -185,7 +185,6 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.ui:ui-text-google-fonts")
     implementation("androidx.compose.material3:material3:1.5.0-beta02")
     implementation("androidx.graphics:graphics-shapes:1.0.1")
     implementation("androidx.compose.material:material-icons-extended")
@@ -193,8 +192,6 @@ dependencies {
 
     // Large screen support
     implementation("androidx.compose.material3.adaptive:adaptive:1.0.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.0.0")
-    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.0.0")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.9.8")
@@ -211,9 +208,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
-    // Google Play Billing — base (Java) artifact, NOT billing-ktx: the ktx
-    // extensions are compiled with a newer Kotlin than this project's 1.9.22
-    // and only wrap listeners we replace with our own suspend wrappers anyway.
+    // Google Play Billing — base (Java) artifact, NOT billing-ktx: its
+    // extensions only wrap listeners we replace with our own suspend wrappers anyway.
     // 8.x satisfies Play's "Billing Library 8+" requirement (Aug 31, 2026).
     implementation("com.android.billingclient:billing:8.3.0")
 
