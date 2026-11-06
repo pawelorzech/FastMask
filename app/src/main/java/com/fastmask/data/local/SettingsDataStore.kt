@@ -21,8 +21,13 @@ import javax.inject.Singleton
 /**
  * A corrupt preferences file is unreadable for good once it happens (interrupted
  * write, full disk), and every read then throws. The handler trades the stored
- * settings — language, accent, app-lock flag, all re-settable — for an app that
- * still starts.
+ * settings for an app that still starts. It resets to "never set", so only keys
+ * where that is safe may live here: accent, app lock, language, demo mode and
+ * its tutorial flag, and the notification-prompt flag — all re-settable.
+ *
+ * Nothing whose default is the permissive side belongs in this file. The crash
+ * reporting opt-out (default: enabled) has its own store for that reason; see
+ * `com.fastmask.data.crash.crashReportingDataStore`.
  */
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",

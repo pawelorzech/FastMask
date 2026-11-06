@@ -1,9 +1,11 @@
 package com.fastmask.data.crash
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.preferencesOf
 import com.fastmask.domain.crash.CrashReporter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -19,11 +21,16 @@ import java.io.IOException
  * preference, the policy and how both are applied to the SDK behind
  * [CrashReporter].
  *
- * **Preference.** `crash_reporting_enabled` in the shared `settings` DataStore.
+ * **Preference.** `crash_reporting_enabled` in a DataStore of its own
+ * (`crash_reporting`, see [crashReportingDataStore]), owned by this class alone.
  * Opt-out: no key means ENABLED, which is what a fresh install and every
  * installation updating into the version that introduced the key get. The key
  * name is a contract with already-installed copies; renaming it silently
- * re-enables collection for everyone who opted out.
+ * re-enables collection for everyone who opted out. A value written by the
+ * older versions in the shared `settings` store is moved over once by
+ * [CrashOptOutMigration]. The store is separate because "no key" means ENABLED:
+ * the shared store resets to "no key" on corruption, which would have turned
+ * collection back on; this one resets to an explicit opt-out instead.
  *
  * **Policy.** Debug builds never collect, whatever the user says, so a
  * development crash cannot reach the production console.
@@ -173,7 +180,14 @@ class CrashReporting(
 
     companion object {
         const val KEY_NAME = "crash_reporting_enabled"
-        private val KEY = booleanPreferencesKey(KEY_NAME)
+        internal val KEY = booleanPreferencesKey(KEY_NAME)
+
+        /**
+         * What a corrupt store becomes: an explicit opt-out. An empty store would
+         * read as "never set", which is ENABLED.
+         */
+        internal val OPTED_OUT_ON_CORRUPTION: ReplaceFileCorruptionHandler<Preferences> =
+            ReplaceFileCorruptionHandler { preferencesOf(KEY to false) }
 
         /** Opt-out: on unless the user said otherwise. */
         private const val DEFAULT_ENABLED = true

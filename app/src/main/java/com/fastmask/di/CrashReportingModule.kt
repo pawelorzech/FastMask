@@ -5,7 +5,7 @@ import android.util.Log
 import com.fastmask.BuildConfig
 import com.fastmask.data.crash.CrashReporting
 import com.fastmask.data.crash.FirebaseCrashlyticsReporter
-import com.fastmask.data.local.settingsDataStore
+import com.fastmask.data.crash.crashReportingDataStore
 import com.fastmask.domain.crash.CrashReporter
 import dagger.Lazy
 import dagger.Module
@@ -39,7 +39,7 @@ object CrashReportingModule {
         @ApplicationContext context: Context,
         reporter: Lazy<CrashReporter>,
     ): CrashReporting = CrashReporting(
-        dataStore = context.settingsDataStore,
+        dataStore = context.crashReportingDataStore,
         reporter = { reporter.get() },
         isDebugBuild = BuildConfig.DEBUG,
         onFailure = { error ->
