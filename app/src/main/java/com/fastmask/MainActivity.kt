@@ -42,7 +42,7 @@ import com.fastmask.ui.navigation.PendingShare
 import com.fastmask.ui.navigation.RoutePendingShare
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.data.update.AppUpdateController
-import com.fastmask.ui.update.AppUpdateUiState
+import com.fastmask.data.update.AppUpdateUiState
 import com.fastmask.ui.update.UpdateReadyDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers

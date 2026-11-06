@@ -1,4 +1,4 @@
-package com.fastmask.ui.update
+package com.fastmask.data.update
 
 /** What the UI is allowed to know. Free of Play types on purpose — see `AppUpdateController`. */
 sealed interface AppUpdateUiState {
