@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.repository.AppLockSetting
+import com.fastmask.domain.repository.NotificationPromptSetting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -37,7 +38,7 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
 @Singleton
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
-) : AppLockSetting {
+) : AppLockSetting, NotificationPromptSetting {
     // --- Pro personalization: accent theme + biometric app lock ---
 
     private val accentKey = stringPreferencesKey("accent")
@@ -75,10 +76,10 @@ class SettingsDataStore @Inject constructor(
      * permission returns instantly with no dialog, which would silently do
      * nothing on every launch.
      */
-    suspend fun notificationPromptShown(): Boolean =
+    override suspend fun notificationPromptShown(): Boolean =
         context.settingsDataStore.data.first()[notificationPromptShownKey] ?: false
 
-    suspend fun setNotificationPromptShown(shown: Boolean) {
+    override suspend fun setNotificationPromptShown(shown: Boolean) {
         context.settingsDataStore.edit { preferences ->
             preferences[notificationPromptShownKey] = shown
         }

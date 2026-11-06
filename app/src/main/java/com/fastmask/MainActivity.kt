@@ -33,7 +33,7 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.ProRepository
-import com.fastmask.quickmask.NotificationPermissionGate
+import com.fastmask.quickmask.NotificationPrompt
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.AppLockGate
 import com.fastmask.ui.navigation.FastMaskNavHost
@@ -76,7 +76,10 @@ class MainActivity : AppCompatActivity() {
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    private val notificationPermissionGate = NotificationPermissionGate(Build.VERSION.SDK_INT)
+    // Owns the whole "ask once" rule; lazy because it needs the injected setting.
+    private val notificationPrompt by lazy {
+        NotificationPrompt(Build.VERSION.SDK_INT, settingsDataStore, lifecycleScope)
+    }
 
     @Inject
     lateinit var appUpdateController: AppUpdateController
@@ -93,10 +96,6 @@ class MainActivity : AppCompatActivity() {
 
     private val lockGate = AppLockGate()
     private val pendingShare = PendingShare()
-
-    // Until the persisted flag has been read, the safe answer is "already
-    // asked": a startup race must never spend the one system prompt.
-    private var notificationPromptShown: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -161,7 +160,7 @@ class MainActivity : AppCompatActivity() {
                         // always allowed.
                         lockAtLaunch = settingsDataStore.appLockEnabled.first()
                         cachedAccent = settingsDataStore.accent.first()
-                        notificationPromptShown = settingsDataStore.notificationPromptShown()
+                        notificationPrompt.load()
                         proCached.await()
                         session.await().isSignedIn
                     }
@@ -303,24 +302,16 @@ class MainActivity : AppCompatActivity() {
             this,
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
-        val shouldAsk = notificationPermissionGate.shouldPrompt(
+        // The rule, including "assume already asked until the flag is loaded" and
+        // recording the ask, lives in NotificationPrompt; this only launches.
+        val shouldAsk = notificationPrompt.shouldAsk(
             permissionGranted = granted,
-            alreadyAsked = notificationPromptShown,
             signedIn = signedIn,
             locked = locked,
             demoMode = demoMode,
         )
         if (!shouldAsk) return
 
-        // Recorded before the dialog resolves: whatever the user answers, the app
-        // has now had its one ask. The gate already latched in memory, so this
-        // write only has to survive to the NEXT process.
-        notificationPromptShown = true
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                runSuspendCatching { settingsDataStore.setNotificationPromptShown(true) }
-            }
-        }
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 
