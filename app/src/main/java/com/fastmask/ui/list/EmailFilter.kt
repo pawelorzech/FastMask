@@ -27,3 +27,20 @@ enum class EmailFilter(
             entries.associateWith { filter -> emails.count(filter::matches) }
     }
 }
+
+/**
+ * The masks the list shows: [emails] admitted by [filter] and, when [query] is
+ * not blank, matching it case-insensitively in the address, description, domain
+ * or URL. Order is preserved.
+ */
+fun filterMasks(emails: List<MaskedEmail>, query: String, filter: EmailFilter): List<MaskedEmail> {
+    val hasQuery = query.isNotBlank()
+    if (filter == EmailFilter.ALL && !hasQuery) return emails
+    return emails.filter { email ->
+        filter.matches(email) && (!hasQuery ||
+            email.email.contains(query, ignoreCase = true) ||
+            email.description?.contains(query, ignoreCase = true) == true ||
+            email.forDomain?.contains(query, ignoreCase = true) == true ||
+            email.url?.contains(query, ignoreCase = true) == true)
+    }
+}

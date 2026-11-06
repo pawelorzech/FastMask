@@ -153,16 +153,10 @@ class MaskedEmailListViewModel @Inject constructor(
     private suspend fun fetchOnce(userInitiated: Boolean) {
         maskedEmailRepository.getMaskedEmails().fold(
             onSuccess = { emails ->
-                val sortedEmails = emails.sortedByDescending { it.lastActivityAt }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        emails = sortedEmails,
-                        filteredEmails = filterEmails(
-                            sortedEmails,
-                            it.searchQuery,
-                            it.selectedFilter,
-                        ),
+                        emails = emails.sortedByDescending { mask -> mask.lastActivityAt },
                         // A successful fetch is by definition current.
                         cachedAt = null,
                         // A previous pull-to-refresh or Undo failure is
@@ -182,15 +176,11 @@ class MaskedEmailListViewModel @Inject constructor(
                 } else {
                     null
                 }
-                val sortedCached = cached?.masks?.sortedByDescending { it.lastActivityAt }
                 _uiState.update {
                     when {
                         cached != null && cached.masks.isNotEmpty() -> it.copy(
                             isLoading = false,
-                            emails = sortedCached.orEmpty(),
-                            filteredEmails = filterEmails(
-                                sortedCached.orEmpty(), it.searchQuery, it.selectedFilter,
-                            ),
+                            emails = cached.masks.sortedByDescending { mask -> mask.lastActivityAt },
                             // Shown, never hidden: presenting stale
                             // masks as current would be a quiet lie
                             // about which addresses still exist.
@@ -214,38 +204,11 @@ class MaskedEmailListViewModel @Inject constructor(
         // comparing an unbounded document on every keystroke can make typing
         // visibly lag on large mask lists.
         val boundedQuery = query.take(MAX_SEARCH_QUERY_LENGTH)
-        _uiState.update {
-            it.copy(
-                searchQuery = boundedQuery,
-                filteredEmails = filterEmails(it.emails, boundedQuery, it.selectedFilter)
-            )
-        }
+        _uiState.update { it.copy(searchQuery = boundedQuery) }
     }
 
     fun onFilterChange(filter: EmailFilter) {
-        _uiState.update {
-            it.copy(
-                selectedFilter = filter,
-                filteredEmails = filterEmails(it.emails, it.searchQuery, filter)
-            )
-        }
-    }
-
-    private fun filterEmails(
-        emails: List<MaskedEmail>,
-        query: String,
-        filter: EmailFilter
-    ): List<MaskedEmail> {
-        val hasQuery = query.isNotBlank()
-        if (filter == EmailFilter.ALL && !hasQuery) return emails
-        return emails.filter { email ->
-            val matchesFilter = filter.matches(email)
-            matchesFilter && (!hasQuery ||
-                email.email.contains(query, ignoreCase = true) ||
-                email.description?.contains(query, ignoreCase = true) == true ||
-                email.forDomain?.contains(query, ignoreCase = true) == true ||
-                email.url?.contains(query, ignoreCase = true) == true)
-        }
+        _uiState.update { it.copy(selectedFilter = filter) }
     }
 
     companion object {
@@ -256,7 +219,6 @@ class MaskedEmailListViewModel @Inject constructor(
 data class MaskedEmailListUiState(
     val isLoading: Boolean = false,
     val emails: List<MaskedEmail> = emptyList(),
-    val filteredEmails: List<MaskedEmail> = emptyList(),
     val searchQuery: String = "",
     /** Non-null when the list is a cached snapshot taken at this instant. */
     val cachedAt: java.time.Instant? = null,
@@ -268,6 +230,15 @@ data class MaskedEmailListUiState(
     /** An error shown above an existing list instead of replacing its data. */
     val inlineError: UiError?
         get() = error?.takeIf { emails.isNotEmpty() }
+
+    /**
+     * What the list shows: [emails] narrowed by [searchQuery] and
+     * [selectedFilter]. Derived here, once per state instance, so no code path
+     * can change one input and forget to refilter.
+     */
+    val filteredEmails: List<MaskedEmail> by lazy(LazyThreadSafetyMode.NONE) {
+        filterMasks(emails, searchQuery, selectedFilter)
+    }
 }
 
 sealed interface MaskedEmailListEvent {
