@@ -3,13 +3,13 @@ package com.fastmask.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import com.fastmask.domain.auth.TokenFormat
 import com.fastmask.domain.usecase.DemoModeActivator
 import com.fastmask.domain.usecase.LoginUseCase
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -89,7 +89,7 @@ class LoginViewModel @Inject constructor(
             it.copy(operation = LoginOperation.ENTER_DEMO, errorRes = null)
         }
         viewModelScope.launch {
-            try {
+            runSuspendCatching {
                 demoModeActivator.activate()
                 _uiState.update {
                     it.copy(
@@ -100,9 +100,7 @@ class LoginViewModel @Inject constructor(
                     )
                 }
                 _events.send(LoginEvent.EnterDemo)
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (_: Throwable) {
+            }.onFailure {
                 // Preserve the token so the user can still retry signing in;
                 // only the failed demo action is reset.
                 _uiState.update {

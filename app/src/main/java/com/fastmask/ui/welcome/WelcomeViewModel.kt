@@ -3,9 +3,9 @@ package com.fastmask.ui.welcome
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.usecase.DemoModeActivator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,13 +39,11 @@ class WelcomeViewModel @Inject constructor(
         if (_uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
-            try {
+            runSuspendCatching {
                 demoModeActivator.activate()
                 _uiState.update { it.copy(isLoading = false) }
                 _events.send(WelcomeEvent.EnterDemo)
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (_: Throwable) {
+            }.onFailure {
                 // A dead button is indistinguishable from a broken app. Keep
                 // the user on Welcome, release both CTAs and explain how to
                 // recover from the likely local-storage failure.

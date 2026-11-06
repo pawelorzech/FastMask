@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.crash.CrashReportingStartup
@@ -83,7 +84,7 @@ class FastMaskApplication : Application() {
 
     private fun restoreSavedLanguage() {
         startupScope.launch {
-            try {
+            runSuspendCatching {
                 val savedLanguageCode = settingsDataStore.languageFlow.first()
                 if (savedLanguageCode != null) {
                     val localeList = LocaleListCompat.forLanguageTags(savedLanguageCode)
@@ -93,7 +94,7 @@ class FastMaskApplication : Application() {
                         }
                     }
                 }
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 if (BuildConfig.DEBUG) {
                     Log.w("FastMask", "Failed to restore saved language", e)
                 }

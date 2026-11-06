@@ -3,6 +3,7 @@ package com.fastmask.quickmask
 import android.content.Context
 import android.util.Log
 import com.fastmask.R
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.usecase.QuickMaskCreator
 import com.fastmask.domain.usecase.QuickMaskResult
 import com.fastmask.ui.common.UiErrors
@@ -128,13 +129,8 @@ class QuickMaskRunner @Inject constructor(
                 // as an API rejection. Cancellation is different: swallowing it
                 // could post a stale failure after Android has cancelled the
                 // work, so it must keep its structured-concurrency meaning.
-                val result = try {
-                    quickMaskCreator.create()
-                } catch (cancellation: CancellationException) {
-                    throw cancellation
-                } catch (throwable: Throwable) {
-                    QuickMaskResult.Failed(cause = throwable)
-                }
+                val result = runSuspendCatching { quickMaskCreator.create() }
+                    .getOrElse { throwable -> QuickMaskResult.Failed(cause = throwable) }
 
                 when (result) {
                     is QuickMaskResult.Created -> {

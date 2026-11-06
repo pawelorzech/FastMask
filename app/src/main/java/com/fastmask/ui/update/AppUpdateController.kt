@@ -13,6 +13,7 @@ import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.update.AppUpdateAvailability
 import com.fastmask.data.update.AppUpdateDecision
 import com.fastmask.data.update.AppUpdateFlowType
@@ -217,7 +218,7 @@ class AppUpdateController private constructor(context: Context) {
         uiState.value = AppUpdateUiState.Idle
     }
 
-    private suspend fun requestInfo(): AppUpdateInfo? = runCatching {
+    private suspend fun requestInfo(): AppUpdateInfo? = runSuspendCatching {
         suspendCancellableCoroutine { continuation ->
             manager.appUpdateInfo
                 .addOnCompleteListener { task ->

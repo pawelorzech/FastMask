@@ -1,6 +1,7 @@
 package com.fastmask.data.repository
 
 import android.app.Activity
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.billing.BillingDataSource
 import com.fastmask.data.billing.BillingErrorCode
 import com.fastmask.data.billing.BillingPurchase
@@ -16,7 +17,6 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.PurchaseLaunch
 import com.fastmask.domain.repository.RefreshResult
 import com.fastmask.domain.repository.RestoreResult
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -72,7 +72,7 @@ class ProRepositoryImpl @Inject constructor(
 
     /** Cache seed — reconciliations wait for it so it can never clobber them. */
     private val seedJob = scope.launch {
-        val cached = runCatching { store.read() }.getOrDefault(ProStatus.FREE)
+        val cached = runSuspendCatching { store.read() }.getOrDefault(ProStatus.FREE)
         reconcileMutex.withLock {
             // compareAndSet semantics: never overwrite a value an authoritative
             // reconcile has already advanced past the initial FREE.
@@ -88,7 +88,7 @@ class ProRepositoryImpl @Inject constructor(
             billing.purchaseUpdates.collect { update ->
                 // A single failed update (DataStore I/O, closed channel…) must
                 // not kill the collector for the rest of the process lifetime.
-                runCatching { handleUpdate(update) }
+                runSuspendCatching { handleUpdate(update) }
             }
         }
     }
@@ -240,14 +240,10 @@ class ProRepositoryImpl @Inject constructor(
             // down. `lastPersistedToken` is only advanced on a successful write,
             // so a failure retries on the next reconciliation instead of being
             // silently recorded as done.
-            try {
+            runSuspendCatching {
                 store.write(newStatus, token)
                 lastPersistedToken = token
-            } catch (cancellation: CancellationException) {
-                // Belongs to the caller's coroutine — keep it propagating, as
-                // CrashReportingStartup does. runCatching would swallow it.
-                throw cancellation
-            } catch (_: Throwable) {
+            }.onFailure {
                 // Retried on the next reconciliation; lastPersistedToken stays
                 // behind deliberately so the retry is not skipped.
             }

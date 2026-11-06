@@ -31,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
@@ -54,7 +55,6 @@ import com.fastmask.ui.update.AppUpdateController
 import com.fastmask.ui.update.AppUpdateUiState
 import com.fastmask.ui.update.UpdateReadyDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -191,7 +191,7 @@ class MainActivity : AppCompatActivity() {
             var cachedAccent = Accent.DEFAULT
             var cachedAppMode = AppMode.REAL
             var loggedInAtLaunch = false
-            val startDestination = try {
+            val startDestination = runSuspendCatching {
                 withContext(Dispatchers.IO) {
                     coroutineScope {
                         // The token check constructs EncryptedSharedPreferences —
@@ -221,15 +221,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 if (loggedInAtLaunch) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
-            } catch (cancellation: CancellationException) {
-                // CancellationException is an Exception, so the broad catch below
-                // used to swallow it: an Activity finished or recreated while
-                // this startup I/O was still running had its cancellation
-                // discarded, and the coroutine carried on to call setContent on
-                // a dead Activity. Cancellation belongs to lifecycleScope —
-                // rethrow and let the launch end quietly.
-                throw cancellation
-            } catch (e: Exception) {
+            }.getOrElse {
                 // Storage double-fault (see TokenStorage recovery) — fall back to
                 // the welcome flow instead of stranding the splash or crashing.
                 loggedInAtLaunch = false
@@ -493,7 +485,7 @@ class MainActivity : AppCompatActivity() {
         notificationPromptShown = true
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                runCatching { settingsDataStore.setNotificationPromptShown(true) }
+                runSuspendCatching { settingsDataStore.setNotificationPromptShown(true) }
             }
         }
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }

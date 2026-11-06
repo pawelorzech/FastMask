@@ -1,5 +1,6 @@
 package com.fastmask.data.api
 
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -9,7 +10,6 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.decodeFromJsonElement
 import java.net.URI
 import javax.inject.Inject
@@ -363,17 +363,3 @@ open class JmapException(message: String) : Exception(message)
 
 class JmapRateLimitException(message: String) : JmapException(message)
 
-/**
- * Result wrapper for suspend I/O that preserves structured cancellation.
- * Kotlin's standard runCatching also catches CancellationException, turning a
- * closed screen or timeout into an ordinary UI error and allowing the cancelled
- * coroutine to continue mutating stale state.
- */
-private suspend fun <T> runSuspendCatching(block: suspend () -> T): Result<T> =
-    try {
-        Result.success(block())
-    } catch (cancellation: CancellationException) {
-        throw cancellation
-    } catch (error: Throwable) {
-        Result.failure(error)
-    }

@@ -1,5 +1,6 @@
 package com.fastmask.domain.crash
 
+import com.fastmask.core.runSuspendCatching
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -40,11 +41,7 @@ class CrashReportingStartup(
      *   caller's coroutine and must keep propagating.
      */
     suspend fun apply(): CrashReportingPreference {
-        val preference = try {
-            readPreference()
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
+        val preference = runSuspendCatching { readPreference() }.getOrElse { error ->
             onFailure(error)
             CrashReportingPreference.Unreadable
         }
@@ -56,13 +53,7 @@ class CrashReportingStartup(
             CrashReportingPreference.Unreadable -> return preference
         }
 
-        try {
-            controller().apply(enabled)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            onFailure(error)
-        }
+        runSuspendCatching { controller().apply(enabled) }.onFailure(onFailure)
 
         return preference
     }
