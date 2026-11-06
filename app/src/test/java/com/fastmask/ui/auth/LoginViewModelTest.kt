@@ -11,16 +11,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import com.fastmask.testutil.failureForStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
 
 class LoginViewModelTest {
@@ -29,11 +26,6 @@ class LoginViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private fun vm(session: FakeSessionRepository) = LoginViewModel(session)
-
-    private fun httpException(code: Int): HttpException =
-        HttpException(
-            Response.error<Unit>(code, "".toResponseBody("application/json".toMediaType()))
-        )
 
     // --- token hygiene (regression: token retained in UI state) ------------
 
@@ -50,7 +42,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is cleared from state after an auth rejection`() = runTest {
-        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(failureForStatus(401))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -76,7 +68,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is retained after a server error`() = runTest {
-        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(503))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(failureForStatus(503))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -87,7 +79,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is retained after rate limiting`() = runTest {
-        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(429))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(failureForStatus(429))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -142,7 +134,7 @@ class LoginViewModelTest {
 
     @Test
     fun `401 maps to localized auth error`() = runTest {
-        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(failureForStatus(401))))
         viewModel.onTokenChange("fmu1-bad")
 
         viewModel.login()
@@ -399,7 +391,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `the shape hint goes when an auth rejection empties the field`() = runTest {
-        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(failureForStatus(401))))
         viewModel.onTokenPasted("Tr0ub4dor&3")
         assertNotNull(viewModel.uiState.value.warningRes)
 

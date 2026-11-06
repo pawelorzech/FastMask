@@ -12,6 +12,8 @@ import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.core.ApplicationScope
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -118,7 +120,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     // Undo silently "succeeding" while the mask stays archived
                     // is worse than an error banner — surface it.
                     _uiState.update {
-                        it.copy(errorRes = UiErrors.messageRes(error, R.string.email_detail_error_update))
+                        it.copy(error = UiErrors.of(error, R.string.email_detail_error_update, UiErrorAction.RETRY))
                     }
                 }
         }
@@ -180,7 +182,7 @@ class MaskedEmailListViewModel @Inject constructor(
 
         val hadData = _uiState.value.emails.isNotEmpty()
         if (userInitiated || !hadData) {
-            _uiState.update { it.copy(isLoading = true, errorRes = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
         }
 
         viewModelScope.launch {
@@ -201,7 +203,7 @@ class MaskedEmailListViewModel @Inject constructor(
                                 cachedAt = null,
                                 // A previous pull-to-refresh or Undo failure is
                                 // no longer true once the server answers again.
-                                errorRes = null,
+                                error = null,
                             )
                         }
                     },
@@ -229,11 +231,11 @@ class MaskedEmailListViewModel @Inject constructor(
                                     // masks as current would be a quiet lie
                                     // about which addresses still exist.
                                     cachedAt = cached.cachedAt,
-                                    errorRes = null,
+                                    error = null,
                                 )
                                 userInitiated || it.emails.isEmpty() -> it.copy(
                                     isLoading = false,
-                                    errorRes = UiErrors.messageRes(error, R.string.error_load_emails),
+                                    error = UiErrors.of(error, R.string.error_load_emails, UiErrorAction.RETRY),
                                 )
                                 else -> it.copy(isLoading = false)
                             }
@@ -307,13 +309,13 @@ data class MaskedEmailListUiState(
     /** Non-null when the list is a cached snapshot taken at this instant. */
     val cachedAt: java.time.Instant? = null,
     val selectedFilter: EmailFilter = EmailFilter.ALL,
-    val errorRes: Int? = null,
+    val error: UiError? = null,
     /** True while the FAB menu's "Random mask" request is in flight. */
     val isCreatingRandom: Boolean = false,
 ) {
     /** An error shown above an existing list instead of replacing its data. */
-    val inlineErrorRes: Int?
-        get() = errorRes?.takeIf { emails.isNotEmpty() }
+    val inlineError: UiError?
+        get() = error?.takeIf { emails.isNotEmpty() }
 }
 
 sealed interface MaskedEmailListEvent {

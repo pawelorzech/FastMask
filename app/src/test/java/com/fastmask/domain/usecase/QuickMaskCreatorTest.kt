@@ -9,15 +9,12 @@ import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.ui.common.UiErrors
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import com.fastmask.testutil.failureForStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
 
 /**
  * The decision table behind the Quick Settings tile and the launcher shortcut.
@@ -30,11 +27,6 @@ import retrofit2.Response
  * P0 gate.
  */
 class QuickMaskCreatorTest {
-
-    private fun httpException(code: Int): HttpException =
-        HttpException(
-            Response.error<Unit>(code, "".toResponseBody("application/json".toMediaType()))
-        )
 
     private fun creator(
         repo: FakeMaskedEmailRepository = FakeMaskedEmailRepository(),
@@ -127,21 +119,21 @@ class QuickMaskCreatorTest {
 
     @Test
     fun `a rejected token reports the auth message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = httpException(401))
+        val repo = FakeMaskedEmailRepository(failure = failureForStatus(401))
 
         assertEquals(R.string.error_auth, messageFor(creator(repo = repo).create()))
     }
 
     @Test
     fun `rate limiting reports the rate limit message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = httpException(429))
+        val repo = FakeMaskedEmailRepository(failure = failureForStatus(429))
 
         assertEquals(R.string.error_rate_limit, messageFor(creator(repo = repo).create()))
     }
 
     @Test
     fun `a server error reports the server message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = httpException(503))
+        val repo = FakeMaskedEmailRepository(failure = failureForStatus(503))
 
         assertEquals(R.string.error_server, messageFor(creator(repo = repo).create()))
     }

@@ -1,25 +1,17 @@
 package com.fastmask.ui.common
 
 import com.fastmask.R
-import com.fastmask.data.api.JmapRateLimitException
+import com.fastmask.domain.error.RateLimitedException
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import com.fastmask.testutil.failureForStatus
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
 
 class UiErrorsTest {
 
     private val fallback = R.string.error_generic
-
-    private fun httpException(code: Int): HttpException =
-        HttpException(
-            Response.error<Unit>(code, "".toResponseBody("application/json".toMediaType()))
-        )
 
     @Test
     fun `io exceptions map to network error`() {
@@ -30,8 +22,8 @@ class UiErrorsTest {
 
     @Test
     fun `401 and 403 map to auth error`() {
-        assertEquals(R.string.error_auth, UiErrors.messageRes(httpException(401), fallback))
-        assertEquals(R.string.error_auth, UiErrors.messageRes(httpException(403), fallback))
+        assertEquals(R.string.error_auth, UiErrors.messageRes(failureForStatus(401), fallback))
+        assertEquals(R.string.error_auth, UiErrors.messageRes(failureForStatus(403), fallback))
     }
 
     // isRetryable decides whether the login screen preserves the pasted token.
@@ -41,16 +33,16 @@ class UiErrorsTest {
     fun `transport and server failures are retryable`() {
         assertEquals(true, UiErrors.isRetryable(IOException("x")))
         assertEquals(true, UiErrors.isRetryable(UnknownHostException("dns")))
-        assertEquals(true, UiErrors.isRetryable(httpException(429)))
-        assertEquals(true, UiErrors.isRetryable(httpException(500)))
-        assertEquals(true, UiErrors.isRetryable(httpException(503)))
+        assertEquals(true, UiErrors.isRetryable(failureForStatus(429)))
+        assertEquals(true, UiErrors.isRetryable(failureForStatus(500)))
+        assertEquals(true, UiErrors.isRetryable(failureForStatus(503)))
     }
 
     @Test
     fun `auth rejections and unknown throwables are not retryable`() {
-        assertEquals(false, UiErrors.isRetryable(httpException(401)))
-        assertEquals(false, UiErrors.isRetryable(httpException(403)))
-        assertEquals(false, UiErrors.isRetryable(httpException(400)))
+        assertEquals(false, UiErrors.isRetryable(failureForStatus(401)))
+        assertEquals(false, UiErrors.isRetryable(failureForStatus(403)))
+        assertEquals(false, UiErrors.isRetryable(failureForStatus(400)))
         assertEquals(false, UiErrors.isRetryable(RuntimeException("boom")))
         assertEquals(false, UiErrors.isRetryable(null))
     }
@@ -63,18 +55,37 @@ class UiErrorsTest {
 
     @Test
     fun `429 maps to rate limit error`() {
-        assertEquals(R.string.error_rate_limit, UiErrors.messageRes(httpException(429), fallback))
+        assertEquals(R.string.error_rate_limit, UiErrors.messageRes(failureForStatus(429), fallback))
         assertEquals(
             R.string.error_rate_limit,
-            UiErrors.messageRes(JmapRateLimitException("rateLimit"), fallback),
+            UiErrors.messageRes(RateLimitedException("rateLimit"), fallback),
         )
-        assertEquals(true, UiErrors.isRetryable(JmapRateLimitException("rateLimit")))
+        assertEquals(true, UiErrors.isRetryable(RateLimitedException("rateLimit")))
     }
 
     @Test
     fun `5xx maps to server error`() {
-        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(500), fallback))
-        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(502), fallback))
-        assertEquals(R.string.error_server, UiErrors.messageRes(httpException(503), fallback))
+        assertEquals(R.string.error_server, UiErrors.messageRes(failureForStatus(500), fallback))
+        assertEquals(R.string.error_server, UiErrors.messageRes(failureForStatus(502), fallback))
+        assertEquals(R.string.error_server, UiErrors.messageRes(failureForStatus(503), fallback))
+    }
+
+    // Ported from ListErrorActionTest: the action now comes out of the same table as the message.
+    
+    fun `rejected token routes to reauthentication`() {
+        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(401), fallback).action)
+        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(403), fallback).action)
+    }
+
+    @Test
+    fun `network and generic list failures remain retryable`() {
+        assertEquals(UiErrorAction.RETRY, UiErrors.of(IOException("x"), fallback).action)
+        val generic = UiErrors.of(RuntimeException("boom"), R.string.error_load_emails, UiErrorAction.RETRY)
+        assertEquals(UiError(R.string.error_load_emails, UiErrorAction.RETRY), generic)
+    }
+
+    @Test
+    fun `unknown failures offer nothing by default`() {
+        assertEquals(UiError(fallback, UiErrorAction.NONE), UiErrors.of(RuntimeException("boom"), fallback))
     }
 }

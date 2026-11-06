@@ -30,16 +30,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
+import com.fastmask.testutil.failureForStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -305,9 +302,7 @@ class SettingsViewModelTest {
     @Test
     fun `export failure reports rate limiting`() = runTest {
         proRepository.statusFlow.value = ProStatus.PRO
-        maskRepository.failure = HttpException(
-            Response.error<Unit>(429, "".toResponseBody("application/json".toMediaType()))
-        )
+        maskRepository.failure = failureForStatus(429)
         val vm = viewModel()
         vm.requestAndConfirmExport()
         advanceUntilIdle()

@@ -164,6 +164,8 @@ import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DemoBannerContent
 import com.fastmask.ui.components.labelRes
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.components.TutorialStep
 import com.fastmask.ui.components.expressive.MaskAvatar
@@ -609,21 +611,11 @@ internal fun MaskedEmailListContent(
                 // A manual refresh can fail while the previous good list is
                 // still usable. Keep the data on screen, but do not turn the
                 // failed request into a silent no-op.
-                uiState.inlineErrorRes?.let { errorRes ->
-                    val action = listErrorActionFor(errorRes)
+                uiState.inlineError?.let { error ->
                     InlineErrorBanner(
-                        text = stringResource(errorRes),
-                        actionLabel = stringResource(
-                            when (action) {
-                                ListErrorAction.RETRY -> R.string.error_retry
-                                ListErrorAction.REAUTHENTICATE ->
-                                    R.string.settings_signin_with_fastmail
-                            },
-                        ),
-                        onAction = when (action) {
-                            ListErrorAction.RETRY -> onRetry
-                            ListErrorAction.REAUTHENTICATE -> onReauthenticate
-                        },
+                        text = stringResource(error.message),
+                        actionLabel = error.recoveryLabel(),
+                        onAction = error.recovery(onRetry, onReauthenticate),
                         modifier = Modifier.readableWidth(ContentWidth.List),
                     )
                 }
@@ -703,24 +695,14 @@ internal fun MaskedEmailListContent(
                             )
                         }
                     }
-                    uiState.errorRes != null && uiState.emails.isEmpty() -> {
-                        val errorRes = uiState.errorRes ?: R.string.error_load_emails
-                        val action = listErrorActionFor(errorRes)
+                    uiState.error != null && uiState.emails.isEmpty() -> {
+                        val error = uiState.error
                         Column(Modifier.fillMaxSize()) {
                             demoBanner()
                             ErrorBlock(
-                                message = stringResource(errorRes),
-                                actionLabel = stringResource(
-                                    when (action) {
-                                        ListErrorAction.RETRY -> R.string.error_retry
-                                        ListErrorAction.REAUTHENTICATE ->
-                                            R.string.settings_signin_with_fastmail
-                                    },
-                                ),
-                                onAction = when (action) {
-                                    ListErrorAction.RETRY -> onRetry
-                                    ListErrorAction.REAUTHENTICATE -> onReauthenticate
-                                },
+                                message = stringResource(error.message),
+                                actionLabel = error.recoveryLabel(),
+                                onAction = error.recovery(onRetry, onReauthenticate),
                             )
                         }
                     }
@@ -1603,7 +1585,7 @@ private fun ListNoMatchesPreview() = PreviewList(
 @Preview(name = "List error", showBackground = true, heightDp = 800)
 @Composable
 private fun ListErrorPreview() = PreviewList(
-    MaskedEmailListUiState(errorRes = R.string.error_load_emails),
+    MaskedEmailListUiState(error = UiError(R.string.error_load_emails, UiErrorAction.RETRY)),
 )
 
 @Preview(name = "List offline", showBackground = true, heightDp = 800)
@@ -1620,3 +1602,15 @@ private fun ListOfflinePreview() = PreviewList(
 private fun InlineErrorPreview() = FastMaskTheme {
     InlineErrorBanner(text = "Could not refresh", actionLabel = "Retry", onAction = {})
 }
+
+/**
+ * The list can only offer to retry or to sign in again, so every action except
+ * [UiErrorAction.REAUTHENTICATE] is a retry.
+ */
+@Composable
+private fun UiError.recoveryLabel(): String = stringResource(
+    if (action == UiErrorAction.REAUTHENTICATE) R.string.settings_signin_with_fastmail else R.string.error_retry,
+)
+
+private fun UiError.recovery(onRetry: () -> Unit, onReauthenticate: () -> Unit): () -> Unit =
+    if (action == UiErrorAction.REAUTHENTICATE) onReauthenticate else onRetry

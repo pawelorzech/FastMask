@@ -2,6 +2,9 @@ package com.fastmask.data.api
 
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import com.fastmask.domain.error.AuthRejectedException
+import com.fastmask.domain.error.RateLimitedException
+import com.fastmask.domain.error.ServerErrorException
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,6 +16,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,7 +40,17 @@ class JmapApi @Inject constructor(
 
     private fun bearer(token: String) = "Bearer $token"
 
-    suspend fun getSession(token: String): Result<JmapSession> = runSuspendCatching {
+    /**
+     * [runSuspendCatching] that also translates transport failures into the domain's own
+     * types, so callers above the data layer never see Retrofit's `HttpException`.
+     */
+    private suspend inline fun <T> remote(block: suspend () -> T): Result<T> =
+        runSuspendCatching(block).fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(it.asDomainFailure()) },
+        )
+
+    suspend fun getSession(token: String): Result<JmapSession> = remote {
         val session = jmapService.getSession(FastmailEndpoints.SESSION_URL, bearer(token))
         require(FastmailEndpoints.isTrustedHttpsUrl(session.apiUrl)) {
             "Untrusted apiUrl in session response"
@@ -66,7 +80,7 @@ class JmapApi @Inject constructor(
         }
     }
 
-    suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = runSuspendCatching {
+    suspend fun getMaskedEmails(token: String): Result<List<MaskedEmailDto>> = remote {
         fetchMaskedEmails(token, ids = null)
     }
 
@@ -80,7 +94,7 @@ class JmapApi @Inject constructor(
      * so callers can distinguish "absent" from "network failed".
      */
     suspend fun getMaskedEmail(token: String, id: String): Result<MaskedEmailDto?> =
-        runSuspendCatching {
+        remote {
             fetchMaskedEmails(token, ids = listOf(id)).firstOrNull()
         }
 
@@ -94,7 +108,7 @@ class JmapApi @Inject constructor(
     suspend fun createMaskedEmail(
         token: String,
         create: CreateMaskedEmailParams
-    ): Result<MaskedEmailDto> = runSuspendCatching {
+    ): Result<MaskedEmailDto> = remote {
         val createObject = buildJsonObject {
             put("state", JsonPrimitive(create.state.wire))
             create.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
@@ -132,7 +146,7 @@ class JmapApi @Inject constructor(
         token: String,
         id: String,
         update: MaskedEmailUpdate
-    ): Result<Unit> = runSuspendCatching {
+    ): Result<Unit> = remote {
         val updateObject = buildJsonObject {
             update.state?.let { put("state", JsonPrimitive(it.wire)) }
             update.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
@@ -157,7 +171,7 @@ class JmapApi @Inject constructor(
         }
     }
 
-    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = runSuspendCatching {
+    suspend fun deleteMaskedEmail(token: String, id: String): Result<Unit> = remote {
         val response = call<MaskedEmailSetResponse>(token, "MaskedEmail/set") {
             put("destroy", buildJsonArray { add(JsonPrimitive(id)) })
         }
@@ -228,10 +242,10 @@ class JmapApi @Inject constructor(
         cachedToken = null
     }
 
-    private fun jmapSetException(operation: String, error: JmapSetError): JmapException {
+    private fun jmapSetException(operation: String, error: JmapSetError): Exception {
         val message = "$operation: ${error.type} - ${error.description}"
         return if (error.type == "rateLimit") {
-            JmapRateLimitException(message)
+            RateLimitedException(message)
         } else {
             JmapException(message)
         }
@@ -245,5 +259,11 @@ class JmapApi @Inject constructor(
 
 open class JmapException(message: String) : Exception(message)
 
-class JmapRateLimitException(message: String) : JmapException(message)
 
+/** HTTP status -> domain failure; anything else (IOException, JMAP errors, ...) passes through. */
+internal fun Throwable.asDomainFailure(): Throwable = when {
+    this is HttpException && (code() == 401 || code() == 403) -> AuthRejectedException(this)
+    this is HttpException && code() == 429 -> RateLimitedException(cause = this)
+    this is HttpException && code() in 500..599 -> ServerErrorException(this)
+    else -> this
+}

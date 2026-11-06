@@ -1,6 +1,9 @@
 package com.fastmask.data.api
 
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
+import com.fastmask.domain.error.AuthRejectedException
+import com.fastmask.domain.error.RateLimitedException
+import com.fastmask.domain.error.ServerErrorException
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import kotlinx.coroutines.CancellationException
@@ -13,6 +16,8 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -111,6 +116,32 @@ class JmapApiTest {
         } catch (_: CancellationException) {
             // Expected.
         }
+    }
+
+    private fun rawHttp(code: Int) = retrofit2.HttpException(
+        retrofit2.Response.error<Unit>(
+            code,
+            "".toResponseBody("application/json".toMediaType()),
+        ),
+    )
+
+    private suspend fun failureOf(code: Int): Throwable? = JmapApi(
+        FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            executeFailure = rawHttp(code),
+        ),
+        json,
+    ).getMaskedEmails("tok").exceptionOrNull()
+
+    @Test
+    fun `http statuses reach callers as domain failures not retrofit exceptions`() = runTest {
+        assertTrue(failureOf(401) is AuthRejectedException)
+        assertTrue(failureOf(403) is AuthRejectedException)
+        assertTrue(failureOf(429) is RateLimitedException)
+        assertTrue(failureOf(500) is ServerErrorException)
+        assertTrue(failureOf(503) is ServerErrorException)
+        // Anything else is not ours to name; it stays as it came.
+        assertTrue(failureOf(400) is retrofit2.HttpException)
     }
 
     @Test
@@ -400,7 +431,7 @@ class JmapApiTest {
 
         val result = api.createMaskedEmail("tok", CreateMaskedEmailParams())
 
-        assertTrue(result.exceptionOrNull() is JmapRateLimitException)
+        assertTrue(result.exceptionOrNull() is RateLimitedException)
     }
 
     // --- set parsing: update ----------------------------------------------

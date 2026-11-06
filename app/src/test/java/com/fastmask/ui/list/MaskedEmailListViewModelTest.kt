@@ -224,7 +224,7 @@ class MaskedEmailListViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
     }
 
     @Test
@@ -307,7 +307,7 @@ class MaskedEmailListViewModelTest {
 
         // Undo appearing to work while the mask stays archived is a silent
         // data-state lie — the failure must reach the UI.
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
     }
 
     @Test
@@ -321,7 +321,7 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         // Old data stays, no error banner over a working list.
-        assertEquals(null, viewModel.uiState.value.errorRes)
+        assertEquals(null, viewModel.uiState.value.error?.message)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
     }
 
@@ -394,8 +394,8 @@ class MaskedEmailListViewModelTest {
         viewModel.loadMaskedEmails()
         advanceUntilIdle()
 
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
-        assertEquals(R.string.error_network, viewModel.uiState.value.inlineErrorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+        assertEquals(R.string.error_network, viewModel.uiState.value.inlineError?.message)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
     }
 
@@ -408,14 +408,14 @@ class MaskedEmailListViewModelTest {
         repo.failure = IOException("offline now")
         viewModel.loadMaskedEmails()
         advanceUntilIdle()
-        assertEquals(R.string.error_network, viewModel.uiState.value.inlineErrorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.inlineError?.message)
 
         repo.failure = null
         repo.emails = listOf(mask("fresh"))
         viewModel.refreshMaskedEmails()
         advanceUntilIdle()
 
-        assertEquals(null, viewModel.uiState.value.inlineErrorRes)
+        assertEquals(null, viewModel.uiState.value.inlineError?.message)
         assertEquals(listOf("fresh"), viewModel.uiState.value.emails.map { it.id })
     }
 
@@ -441,7 +441,7 @@ class MaskedEmailListViewModelTest {
         // Marked stale rather than passed off as current.
         assertEquals(cachedAt, state.cachedAt)
         // No error banner over a usable list.
-        assertEquals(null, state.errorRes)
+        assertEquals(null, state.error)
     }
 
     @Test
@@ -450,8 +450,8 @@ class MaskedEmailListViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
-        assertEquals(null, viewModel.uiState.value.inlineErrorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+        assertEquals(null, viewModel.uiState.value.inlineError?.message)
         assertEquals(null, viewModel.uiState.value.cachedAt)
     }
 
@@ -464,7 +464,7 @@ class MaskedEmailListViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
         assertEquals(null, viewModel.uiState.value.cachedAt)
     }
 
