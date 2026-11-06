@@ -27,6 +27,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
+/**
+ * The one shape of "send the user to the app" that both entry points (tile and
+ * launcher shortcut) use. [open] returns whether the app was actually opened;
+ * a `false` or a throw is reported to the user rather than swallowed.
+ */
+fun interface AppHandOff {
+    fun open(): Boolean
+}
+
 @Singleton
 class QuickMaskRunner @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -122,13 +131,10 @@ class QuickMaskRunner @Inject constructor(
     }
 
     /**
-     * Quick Settings tile entry. [openApp] is the tile's own collapse-the-shade
+     * Quick Settings tile entry. [handOff] is the tile's own collapse-the-shade
      * hop, used when nothing can be created without the app.
      */
-    fun createFromTile(openApp: () -> Unit) = launchCreate {
-        openApp()
-        true
-    }
+    fun createFromTile(handOff: AppHandOff) = launchCreate(handOff)
 
     /**
      * Launcher-shortcut entry. Hands off through [openExternalIntent], so the
@@ -138,8 +144,7 @@ class QuickMaskRunner @Inject constructor(
         openExternalIntent(context, createAppLaunchIntent(context))
     }
 
-    /** @param openApp hands off to the app; returns whether it was opened. */
-    private fun launchCreate(openApp: () -> Boolean) {
+    private fun launchCreate(handOff: AppHandOff) {
         if (!createInFlight.compareAndSet(false, true)) {
             return
         }
@@ -170,7 +175,7 @@ class QuickMaskRunner @Inject constructor(
                     // the app — the tile must not be a way around it.
                     QuickMaskResult.NotSignedIn,
                     QuickMaskResult.DemoMode,
-                    QuickMaskResult.LockRequired -> handOffToApp(openApp)
+                    QuickMaskResult.LockRequired -> handOffToApp(handOff)
                     is QuickMaskResult.Failed -> notifyFailure(result.cause)
                 }
             } finally {
@@ -230,9 +235,9 @@ class QuickMaskRunner @Inject constructor(
      * Hands off to the app, guarded on every path. A hand-off that fails says
      * so instead of disappearing — the user tapped something.
      */
-    private suspend fun handOffToApp(openApp: () -> Boolean) {
+    private suspend fun handOffToApp(handOff: AppHandOff) {
         withContext(Dispatchers.Main) {
-            val opened = runCatching(openApp).getOrElse { throwable ->
+            val opened = runCatching { handOff.open() }.getOrElse { throwable ->
                 Log.w(TAG, "could not open the app", throwable)
                 false
             }

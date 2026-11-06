@@ -18,7 +18,10 @@ class QuickMaskTileService : TileService() {
     override fun onClick() {
         super.onClick()
         unlockAndRun {
-            runner.createFromTile(openApp = ::openAppAndCollapse)
+            runner.createFromTile {
+                openAppAndCollapse()
+                true
+            }
         }
     }
 

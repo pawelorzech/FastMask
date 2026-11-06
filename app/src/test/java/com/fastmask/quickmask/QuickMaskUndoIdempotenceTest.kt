@@ -129,7 +129,7 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.create() } returns QuickMaskResult.Created(id = "m1", email = "a@b.c")
         val runner = runner()
 
-        runner.createFromTile {}
+        runner.createFromTile { true }
         advanceUntilIdle()
 
         verify(exactly = 1) { notifier.showCreated(id = "m1", copied = false) }
@@ -145,12 +145,12 @@ class QuickMaskUndoIdempotenceTest {
         coEvery { creator.create() } throws CancellationException("stopped")
         val runner = runner()
 
-        runner.createFromTile {}
+        runner.createFromTile { true }
         advanceUntilIdle()
 
         verify(exactly = 0) { notifier.showFailure(any()) }
         coEvery { creator.create() } returns QuickMaskResult.NotSignedIn
-        runner.createFromTile {}
+        runner.createFromTile { true }
         advanceUntilIdle()
 
         coVerify(exactly = 2) { creator.create() }
