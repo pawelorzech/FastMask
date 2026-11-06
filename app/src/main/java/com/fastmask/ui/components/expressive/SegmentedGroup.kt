@@ -33,6 +33,12 @@ import com.fastmask.ui.theme.FastMaskTheme
 /** Gap between rows of a segmented group. */
 val SegmentedGap: Dp = 2.dp
 
+/** Corner radius at the outer edge of a segmented group (and of a pressed row). */
+internal val SegmentOuterCorner: Dp = 20.dp
+
+/** Corner radius where a segmented row meets its neighbour. */
+internal val SegmentInnerCorner: Dp = 4.dp
+
 /**
  * Corner shape for row [index] of [count] in a grouped list: the first row has
  * large top corners, the last large bottom corners, a single row large corners
@@ -41,8 +47,8 @@ val SegmentedGap: Dp = 2.dp
 fun segmentedShape(
     index: Int,
     count: Int,
-    outer: Dp = 20.dp,
-    inner: Dp = 4.dp,
+    outer: Dp = SegmentOuterCorner,
+    inner: Dp = SegmentInnerCorner,
 ): RoundedCornerShape {
     val top = if (index == 0) outer else inner
     val bottom = if (index == count - 1) outer else inner
@@ -89,8 +95,8 @@ fun SegmentedRow(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val outer = 20.dp
-    val inner = 4.dp
+    val outer = SegmentOuterCorner
+    val inner = SegmentInnerCorner
     val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
 
     val topTarget = if (pressed || index == 0) outer else inner

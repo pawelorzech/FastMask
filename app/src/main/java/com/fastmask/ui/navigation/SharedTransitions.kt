@@ -20,6 +20,7 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.fastmask.ui.components.expressive.SegmentOuterCorner
 
 /**
  * Shared-element plumbing for the M3 Expressive container transform: a mask row
@@ -43,7 +44,7 @@ fun maskContainerKey(id: String) = "mask-container-$id"
  * [shape] so the transform clips with the right corners while it flies.
  */
 @Composable
-fun Modifier.maskContainer(id: String, shape: Shape = RoundedCornerShape(20.dp)): Modifier {
+fun Modifier.maskContainer(id: String, shape: Shape = RoundedCornerShape(SegmentOuterCorner)): Modifier {
     val sharedScope = LocalSharedTransitionScope.current ?: return this
     val animatedScope = LocalNavAnimatedScope.current ?: return this
     val spec: FiniteAnimationSpec<Rect> = MaterialTheme.motionScheme.defaultSpatialSpec()

@@ -105,6 +105,8 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.common.openExternalIntent
 import com.fastmask.ui.components.expressive.SectionHeader
+import com.fastmask.ui.components.expressive.SegmentInnerCorner
+import com.fastmask.ui.components.expressive.SegmentOuterCorner
 import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.segmentedShape
@@ -738,8 +740,8 @@ private fun SettingsToggleRow(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
-    val outer = 20.dp
-    val inner = 4.dp
+    val outer = SegmentOuterCorner
+    val inner = SegmentInnerCorner
     val top by animateDpAsState(if (pressed || index == 0) outer else inner, spec, label = "toggleTop")
     val bottom by animateDpAsState(
         if (pressed || index == count - 1) outer else inner,
