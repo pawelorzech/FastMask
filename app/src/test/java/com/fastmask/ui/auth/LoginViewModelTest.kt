@@ -12,10 +12,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import com.fastmask.testutil.failureForStatus
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
@@ -457,6 +459,11 @@ class LoginViewModelTest {
         assertNotEquals(R.string.error_network, errorRes)
         assertNotEquals(R.string.error_server, errorRes)
         assertNotEquals(R.string.error_rate_limit, errorRes)
+        assertTrue(viewModel.uiState.value.missingScope)
+
+        // Editing the token clears the error and the shortcut with it.
+        viewModel.onTokenChange("fmu1-new")
+        assertFalse(viewModel.uiState.value.missingScope)
     }
 
     /** Retrying the same token cannot help, so the secret is dropped. */

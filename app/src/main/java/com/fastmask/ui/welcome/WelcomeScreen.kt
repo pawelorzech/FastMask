@@ -61,7 +61,6 @@ fun WelcomeScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is WelcomeEvent.EnterDemo -> onEnterDemo()
-                is WelcomeEvent.GoToSignIn -> onSignIn()
             }
         }
     }
@@ -69,7 +68,7 @@ fun WelcomeScreen(
     WelcomeContent(
         isLoading = uiState.isLoading,
         errorRes = uiState.errorRes,
-        onSignIn = viewModel::goToSignIn,
+        onSignIn = onSignIn,
         onEnterDemo = viewModel::enterDemoMode,
     )
 }

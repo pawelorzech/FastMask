@@ -3,11 +3,11 @@ package com.fastmask.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
-import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import com.fastmask.domain.auth.TokenFormat
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.ui.common.UiErrors
+import com.fastmask.ui.common.enterDemoOrErrorRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +42,7 @@ class LoginViewModel @Inject constructor(
             it.copy(
                 token = boundedToken,
                 errorRes = null,
+                missingScope = false,
                 warningRes = null,
             )
         }
@@ -64,13 +65,14 @@ class LoginViewModel @Inject constructor(
         if (pasted.isEmpty()) {
             // Deliberately leaves `token` alone: a whitespace-only clip must
             // not wipe a token the user typed by hand.
-            _uiState.update { it.copy(errorRes = null, warningRes = R.string.login_paste_empty) }
+            _uiState.update { it.copy(errorRes = null, missingScope = false, warningRes = R.string.login_paste_empty) }
             return
         }
         _uiState.update {
             it.copy(
                 token = pasted,
                 errorRes = null,
+                missingScope = false,
                 warningRes = if (TokenFormat.shouldWarn(pasted)) R.string.login_token_warning_shape else null,
             )
         }
@@ -84,26 +86,25 @@ class LoginViewModel @Inject constructor(
         // same-frame Unlock tap from persisting a real token into what is
         // about to become a demo session.
         _uiState.update {
-            it.copy(operation = LoginOperation.ENTER_DEMO, errorRes = null)
+            it.copy(operation = LoginOperation.ENTER_DEMO, errorRes = null, missingScope = false)
         }
         viewModelScope.launch {
-            runSuspendCatching {
-                sessionRepository.enterDemo()
+            val errorRes = sessionRepository.enterDemoOrErrorRes()
+            if (errorRes == null) {
                 _uiState.update {
                     it.copy(
                         token = "",
                         operation = null,
                         errorRes = null,
+                        missingScope = false,
                         warningRes = null,
                     )
                 }
                 _events.send(LoginEvent.EnterDemo)
-            }.onFailure {
+            } else {
                 // Preserve the token so the user can still retry signing in;
                 // only the failed demo action is reset.
-                _uiState.update {
-                    it.copy(operation = null, errorRes = R.string.demo_error_start)
-                }
+                _uiState.update { it.copy(operation = null, errorRes = errorRes, missingScope = false) }
             }
         }
     }
@@ -113,7 +114,13 @@ class LoginViewModel @Inject constructor(
         if (_uiState.value.isLoading) return
         val token = TokenFormat.sanitize(_uiState.value.token)
         if (token.isBlank()) {
-            _uiState.update { it.copy(errorRes = R.string.login_error_empty_token, warningRes = null) }
+            _uiState.update {
+                it.copy(
+                    errorRes = R.string.login_error_empty_token,
+                    missingScope = false,
+                    warningRes = null,
+                )
+            }
             return
         }
 
@@ -123,6 +130,7 @@ class LoginViewModel @Inject constructor(
             it.copy(
                 operation = LoginOperation.LOGIN,
                 errorRes = null,
+                missingScope = false,
                 warningRes = if (TokenFormat.shouldWarn(token)) R.string.login_token_warning_shape else null,
             )
         }
@@ -144,6 +152,7 @@ class LoginViewModel @Inject constructor(
                                 token = "",
                                 operation = null,
                                 errorRes = R.string.login_error_missing_masked_email_scope,
+                                missingScope = true,
                                 // The shape hint describes the field's content;
                                 // once that content is gone it describes
                                 // nothing, and would sit under an empty field
@@ -165,6 +174,7 @@ class LoginViewModel @Inject constructor(
                                 token = if (retryable) it.token else "",
                                 operation = null,
                                 errorRes = UiErrors.messageRes(error, R.string.login_error_failed),
+                                missingScope = false,
                                 // Tied to the token: the hint stays while the
                                 // content it describes is still in the field,
                                 // and goes when the field is emptied.
@@ -182,6 +192,8 @@ data class LoginUiState(
     val token: String = "",
     val operation: LoginOperation? = null,
     val errorRes: Int? = null,
+    /** The token lacks the Masked Email scope; the screen offers a shortcut to token settings. */
+    val missingScope: Boolean = false,
     /**
      * Soft, non-blocking hint that the field does not hold something shaped
      * like a Fastmail token. Distinct from [errorRes]: it never prevents a

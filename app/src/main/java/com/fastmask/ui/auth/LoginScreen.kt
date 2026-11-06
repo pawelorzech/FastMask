@@ -256,7 +256,7 @@ internal fun LoginContent(
             )
 
             // Action shortcut when the missing Masked Email scope error is displayed.
-            SpringVisibility(visible = uiState.errorRes == R.string.login_error_missing_masked_email_scope) {
+            SpringVisibility(visible = uiState.missingScope) {
                 FilledTonalButton(
                     onClick = onOpenTokenSettings,
                     shapes = ButtonDefaults.shapes(),
@@ -560,7 +560,11 @@ private fun LoginWarningPreview() = LoginPreviewHost(
 @Preview(name = "Login missing scope error", showBackground = true, widthDp = 360, heightDp = 800)
 @Composable
 private fun LoginScopeErrorPreview() = LoginPreviewHost(
-    LoginUiState(token = "fmu1-0000", errorRes = R.string.login_error_missing_masked_email_scope),
+    LoginUiState(
+        token = "fmu1-0000",
+        errorRes = R.string.login_error_missing_masked_email_scope,
+        missingScope = true,
+    ),
 )
 
 @Preview(name = "Login loading", showBackground = true, widthDp = 360, heightDp = 800)
