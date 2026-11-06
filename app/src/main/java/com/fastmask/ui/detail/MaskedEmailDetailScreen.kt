@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -13,46 +12,26 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import com.fastmask.ui.accessibility.radioButtonGroup
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Archive
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Unarchive
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -60,7 +39,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,13 +46,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -83,77 +59,28 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.ParagraphStyle
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.LineBreak
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
-import com.fastmask.ui.common.ContentWidth
-import com.fastmask.ui.common.readableWidth
-import com.fastmask.ui.components.rememberDiscardChangesGuard
-import com.fastmask.ui.components.MaskStateToggle
-import com.fastmask.ui.components.MaskUrlField
-import com.fastmask.ui.components.MaskDescriptionField
-import com.fastmask.ui.components.MaskDomainField
-import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
-import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.accessibility.screenHeading
+import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.copyToClipboard
-import com.fastmask.ui.components.ButtonLoadingLabel
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.expressive.SectionHeader
-import com.fastmask.ui.components.expressive.SegmentedGroup
-import com.fastmask.ui.components.expressive.SegmentedRow
-import com.fastmask.ui.components.expressive.StateChip
-import com.fastmask.ui.components.expressive.StateMorphAvatar
+import com.fastmask.ui.components.rememberDiscardChangesGuard
 import com.fastmask.ui.navigation.maskContainer
-import com.fastmask.ui.theme.FastMaskTheme
-import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.delay
-import java.time.Instant
 
 /** How long the copy button shows its "Copied" confirmation. */
 private const val COPIED_FEEDBACK_MS = 1800L
 
 /** Hero scroll offset after which the app bar title fades in. */
 private const val TITLE_REVEAL_SCROLL_DP = 120
-
-/**
- * Motion-scheme specs resolved in composition. `transitionSpec` lambdas are not
- * composable, so they capture these instead of reading `MaterialTheme` directly.
- */
-private class Motion(
-    val fastEffects: FiniteAnimationSpec<Float>,
-    val defaultEffects: FiniteAnimationSpec<Float>,
-    val fastSpatial: FiniteAnimationSpec<Float>,
-    val defaultSpatial: FiniteAnimationSpec<Float>,
-    val defaultSpatialSize: FiniteAnimationSpec<IntSize>,
-)
-
-@Composable
-private fun rememberMotion(): Motion {
-    val scheme = MaterialTheme.motionScheme
-    return Motion(
-        fastEffects = scheme.fastEffectsSpec(),
-        defaultEffects = scheme.defaultEffectsSpec(),
-        fastSpatial = scheme.fastSpatialSpec(),
-        defaultSpatial = scheme.defaultSpatialSpec(),
-        defaultSpatialSize = scheme.defaultSpatialSpec(),
-    )
-}
 
 @Composable
 fun MaskedEmailDetailScreen(
@@ -529,550 +456,8 @@ private fun DetailBody(
     }
 }
 
-// --- hero -----------------------------------------------------------------
 
-@Composable
-private fun Hero(email: MaskedEmail) {
-    val local = email.localPart
-    val domainPart = email.domainPart
 
-    val onSurface = MaterialTheme.colorScheme.onSurface
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val domainStyle = MaterialTheme.typography.titleMedium
 
-    // One Text whose string is exactly the address (selection, copy and the
-    // semantics tests all read it), laid out as two paragraphs: the local part
-    // in the headline style, "@domain" lighter underneath. A paragraph style
-    // starts a new line without adding a character.
-    val address = remember(email.email, onSurface, onSurfaceVariant, domainStyle) {
-        buildAnnotatedString {
-            withStyle(ParagraphStyle(lineBreak = LineBreak.Simple)) {
-                withStyle(SpanStyle(color = onSurface)) { append(local) }
-            }
-            if (domainPart.isNotEmpty()) {
-                withStyle(ParagraphStyle(lineHeight = 28.sp, lineBreak = LineBreak.Simple)) {
-                    withStyle(
-                        SpanStyle(
-                            color = onSurfaceVariant,
-                            fontSize = domainStyle.fontSize,
-                            fontWeight = domainStyle.fontWeight,
-                        ),
-                    ) { append("@$domainPart") }
-                }
-            }
-        }
-    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .padding(top = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        StateMorphAvatar(
-            initial = email.avatarSeed,
-            state = email.state,
-            size = 88.dp,
-        )
-        SelectionContainer {
-            Text(
-                text = address,
-                style = MaterialTheme.typography.headlineMediumEmphasized,
-                modifier = Modifier.screenHeading(),
-            )
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            StateChip(state = email.state)
-            Text(
-                text = email.forDomain?.takeIf { it.isNotBlank() }
-                    ?: stringResource(R.string.email_detail_no_domain),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-        }
-    }
-}
 
-// --- actions --------------------------------------------------------------
-
-@Composable
-private fun CopyButton(copied: Boolean, onClick: () -> Unit) {
-    val motion = rememberMotion()
-    val height = ButtonDefaults.MediumContainerHeight
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = height),
-        shapes = ButtonDefaults.shapes(),
-        contentPadding = ButtonDefaults.contentPaddingFor(height),
-    ) {
-        AnimatedContent(
-            targetState = copied,
-            transitionSpec = {
-                (fadeIn(motion.fastEffects) +
-                    scaleIn(motion.fastSpatial, initialScale = 0.85f)) togetherWith
-                    fadeOut(motion.fastEffects)
-            },
-            label = "copyLabel",
-        ) { isCopied ->
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = if (isCopied) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                )
-                Text(
-                    text = stringResource(
-                        if (isCopied) R.string.email_detail_copied else R.string.email_detail_copy_email,
-                    ),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.politeLiveRegion(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusControl(
-    state: EmailState,
-    toggling: Boolean,
-    busy: Boolean,
-    onEnable: () -> Unit,
-    onDisable: () -> Unit,
-) {
-    val motion = rememberMotion()
-    // Optimistic selection: show the tapped option immediately while the request
-    // is in flight. When the request fails the in-flight flag drops without the
-    // state having changed, which rolls the selection back.
-    var pending by remember { mutableStateOf<EmailState?>(null) }
-    val shown = if (toggling) pending ?: state else state
-    val statusDesc = stringResource(R.string.email_detail_status)
-
-    AnimatedContent(
-        targetState = state == EmailState.DELETED,
-        transitionSpec = {
-            (fadeIn(motion.defaultEffects) +
-                scaleIn(motion.defaultSpatial, initialScale = 0.92f)) togetherWith
-                fadeOut(motion.fastEffects) using
-                SizeTransform(clip = false) { _, _ -> motion.defaultSpatialSize }
-        },
-        label = "statusControl",
-    ) { archived ->
-        val height = ButtonDefaults.MediumContainerHeight
-        if (archived) {
-            FilledTonalButton(
-                onClick = {
-                    pending = EmailState.ENABLED
-                    onEnable()
-                },
-                enabled = !busy,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = height),
-                shapes = ButtonDefaults.shapes(),
-                contentPadding = ButtonDefaults.contentPaddingFor(height),
-            ) {
-                ButtonLoadingLabel(
-                    loading = toggling,
-                    loadingDescription = stringResource(R.string.state_working),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Unarchive,
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                        )
-                        Text(
-                            text = stringResource(R.string.email_detail_enable),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    }
-                }
-            }
-        } else {
-            val activeSelected = shown == EmailState.ENABLED || shown == EmailState.PENDING
-            AdaptiveToggleGroup(
-                modifier = Modifier
-                    .radioButtonGroup()
-                    .semantics { contentDescription = statusDesc },
-                first = { toggleModifier, stacked ->
-                    MaskStateToggle(
-                        label = stringResource(R.string.state_enabled),
-                        checked = activeSelected,
-                        loading = toggling && activeSelected,
-                        shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
-                        modifier = toggleModifier,
-                        onSelect = {
-                            if (!busy) {
-                                pending = EmailState.ENABLED
-                                onEnable()
-                            }
-                        },
-                    )
-                },
-                second = { toggleModifier, stacked ->
-                    MaskStateToggle(
-                        label = stringResource(R.string.state_disabled),
-                        checked = !activeSelected,
-                        loading = toggling && !activeSelected,
-                        shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
-                        modifier = toggleModifier,
-                        onSelect = {
-                            if (!busy) {
-                                pending = EmailState.DISABLED
-                                onDisable()
-                            }
-                        },
-                    )
-                },
-            )
-        }
-    }
-}
-
-@Composable
-private fun ArchiveButton(
-    deleting: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val height = ButtonDefaults.MediumContainerHeight
-    val error = MaterialTheme.colorScheme.error
-    val archiveDesc = stringResource(R.string.email_detail_delete)
-    OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = height)
-            // The label is also the accessible name; spelled out so the button
-            // stays addressable by name (TalkBack actions, instrumented tests).
-            .semantics { contentDescription = archiveDesc },
-        shapes = ButtonDefaults.shapes(),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = error),
-        border = BorderStroke(1.dp, error.copy(alpha = if (enabled) 1f else 0.38f)),
-        contentPadding = ButtonDefaults.contentPaddingFor(height),
-    ) {
-        ButtonLoadingLabel(
-            loading = deleting,
-            loadingDescription = stringResource(R.string.state_working),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.iconSpacingFor(height)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Archive,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(height)),
-                )
-                Text(
-                    text = stringResource(R.string.email_detail_delete),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EditActions(
-    saving: Boolean,
-    busy: Boolean,
-    canSave: Boolean,
-    onCancel: () -> Unit,
-    onSave: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val height = ButtonDefaults.MediumContainerHeight
-    val cancelText = stringResource(R.string.email_detail_delete_cancel)
-    val saveText = stringResource(R.string.email_detail_save)
-    val workingDesc = stringResource(R.string.state_working)
-    ButtonGroup(
-        overflowIndicator = { menuState -> ButtonGroupDefaults.OverflowIndicator(menuState) },
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-    ) {
-        customItem(
-            buttonGroupContent = {
-                val source = remember { MutableInteractionSource() }
-                OutlinedButton(
-                    onClick = onCancel,
-                    enabled = !busy,
-                    interactionSource = source,
-                    modifier = Modifier
-                        .heightIn(min = height)
-                        .animateWidth(source),
-                    shapes = ButtonDefaults.shapes(),
-                    contentPadding = ButtonDefaults.contentPaddingFor(height),
-                ) { Text(text = cancelText, style = MaterialTheme.typography.titleMedium) }
-            },
-            menuContent = { state ->
-                DropdownMenuItem(
-                    text = { Text(cancelText) },
-                    onClick = { onCancel(); state.dismiss() },
-                )
-            },
-        )
-        customItem(
-            buttonGroupContent = {
-                val source = remember { MutableInteractionSource() }
-                Button(
-                    onClick = onSave,
-                    enabled = canSave && !busy,
-                    interactionSource = source,
-                    modifier = Modifier
-                        .heightIn(min = height)
-                        .animateWidth(source),
-                    shapes = ButtonDefaults.shapes(),
-                    contentPadding = ButtonDefaults.contentPaddingFor(height),
-                ) {
-                    ButtonLoadingLabel(loading = saving, loadingDescription = workingDesc) {
-                        Text(text = saveText, style = MaterialTheme.typography.titleMedium)
-                    }
-                }
-            },
-            menuContent = { state ->
-                DropdownMenuItem(
-                    text = { Text(saveText) },
-                    enabled = canSave && !busy,
-                    onClick = { onSave(); state.dismiss() },
-                )
-            },
-        )
-    }
-}
-
-// --- details --------------------------------------------------------------
-
-@Composable
-private fun ReadFields(email: MaskedEmail) {
-    val dash = "—"
-    val rows = listOf(
-        stringResource(R.string.email_detail_description_label) to
-            (email.description?.takeIf { it.isNotBlank() } ?: dash),
-        stringResource(R.string.email_detail_domain_label) to
-            (email.forDomain?.takeIf { it.isNotBlank() } ?: dash),
-        stringResource(R.string.email_detail_url_label) to
-            (email.url?.takeIf { it.isNotBlank() } ?: dash),
-        stringResource(R.string.email_detail_created) to
-            (email.createdAt?.let { RelativeTime.full(it) } ?: dash),
-        stringResource(R.string.email_detail_last_message) to
-            (email.lastMessageAt?.let { RelativeTime.full(it) } ?: stringResource(R.string.time_never)),
-        stringResource(R.string.email_detail_created_by) to (email.createdBy ?: dash),
-    )
-    SegmentedGroup(count = rows.size) { index ->
-        val (label, value) = rows[index]
-        SegmentedRow(
-            index = index,
-            count = rows.size,
-            // Small label on top (headline slot), the wrapping, selectable value
-            // beneath it (supporting slot). Neither is truncated: long values
-            // wrap instead of ellipsizing.
-            supporting = {
-                SelectionContainer {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            },
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun EditFields(
-    uiState: MaskedEmailDetailUiState,
-    onDescriptionChange: (String) -> Unit,
-    onForDomainChange: (String) -> Unit,
-    onUrlChange: (String) -> Unit,
-) {
-    val domainFocus = remember { FocusRequester() }
-    val urlFocus = remember { FocusRequester() }
-    val enabled = !uiState.isUpdating
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        MaskDescriptionField(
-            value = uiState.editedDescription,
-            onValueChange = onDescriptionChange,
-            label = stringResource(R.string.email_detail_description_label),
-            enabled = enabled,
-            onNext = { domainFocus.requestFocus() },
-        )
-        MaskDomainField(
-            value = uiState.editedForDomain,
-            onValueChange = onForDomainChange,
-            label = stringResource(R.string.email_detail_domain_label),
-            enabled = enabled,
-            onNext = { urlFocus.requestFocus() },
-            modifier = Modifier.focusRequester(domainFocus),
-        )
-        MaskUrlField(
-            value = uiState.editedUrl,
-            onValueChange = onUrlChange,
-            label = stringResource(R.string.email_detail_url_label),
-            enabled = enabled,
-            modifier = Modifier.focusRequester(urlFocus),
-        )
-    }
-}
-
-// --- error ----------------------------------------------------------------
-
-@Composable
-private fun DetailErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(112.dp)
-                .clip(MaterialShapes.SoftBurst.toShape())
-                .background(MaterialTheme.colorScheme.errorContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ErrorOutline,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(40.dp),
-            )
-        }
-        Spacer(Modifier.size(20.dp))
-        Text(
-            text = stringResource(R.string.email_detail_error_load),
-            style = MaterialTheme.typography.titleLargeEmphasized,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.politeLiveRegion(),
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.size(24.dp))
-        // loadEmail() is fully re-runnable, so the error state offers a retry
-        // instead of a dead end.
-        FilledTonalButton(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
-            Text(stringResource(R.string.error_retry))
-        }
-    }
-}
-
-// --- previews -------------------------------------------------------------
-
-private val previewMask = MaskedEmail(
-    id = "m1",
-    email = "sharp.flame138@fastmail.com",
-    state = EmailState.ENABLED,
-    forDomain = "figma.com",
-    description = "Figma account",
-    createdBy = "FastMask",
-    url = "https://www.figma.com/login",
-    emailPrefix = "sharp",
-    createdAt = Instant.parse("2026-06-01T10:00:00Z"),
-    lastMessageAt = Instant.parse("2026-10-20T08:30:00Z"),
-)
-
-private fun previewState(email: MaskedEmail = previewMask) = MaskedEmailDetailUiState(
-    email = email,
-    editedDescription = email.description.orEmpty(),
-    editedForDomain = email.forDomain.orEmpty(),
-    editedUrl = email.url.orEmpty(),
-)
-
-@Composable
-private fun PreviewHost(uiState: MaskedEmailDetailUiState, startEditing: Boolean = false) {
-    FastMaskTheme {
-        MaskedEmailDetailContent(
-            uiState = uiState,
-            containerId = null,
-            snackbarHostState = remember { SnackbarHostState() },
-            banner = {},
-            onBack = {},
-            onRetry = {},
-            onDescriptionChange = {},
-            onForDomainChange = {},
-            onUrlChange = {},
-            onEnable = {},
-            onDisable = {},
-            onSaveChanges = {},
-            onCopyEmail = {},
-            onArchiveClick = {},
-            startEditing = startEditing,
-        )
-    }
-}
-
-@Preview(name = "Editing", showBackground = true, heightDp = 1000)
-@Composable
-private fun DetailEditingPreview() = PreviewHost(
-    previewState().copy(editedDescription = "Figma work account"),
-    startEditing = true,
-)
-
-@Preview(name = "Active", showBackground = true, heightDp = 900)
-@Composable
-private fun DetailActivePreview() = PreviewHost(previewState())
-
-@Preview(
-    name = "Active dark",
-    showBackground = true,
-    heightDp = 900,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-private fun DetailActiveDarkPreview() = PreviewHost(previewState())
-
-@Preview(name = "Archived", showBackground = true, heightDp = 900)
-@Composable
-private fun DetailArchivedPreview() =
-    PreviewHost(previewState(previewMask.copy(state = EmailState.DELETED)))
-
-@Preview(name = "Toggling", showBackground = true, heightDp = 900)
-@Composable
-private fun DetailTogglingPreview() =
-    PreviewHost(previewState().copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE))
-
-@Preview(name = "Loading", showBackground = true)
-@Composable
-private fun DetailLoadingPreview() = PreviewHost(MaskedEmailDetailUiState(isLoading = true))
-
-@Preview(name = "Error", showBackground = true)
-@Composable
-private fun DetailErrorPreview() =
-    PreviewHost(MaskedEmailDetailUiState(errorRes = R.string.email_detail_error_load))
-
-@Preview(name = "Long address", showBackground = true, heightDp = 900)
-@Composable
-private fun DetailLongAddressPreview() = PreviewHost(
-    previewState(previewMask.copy(email = "a-very-long-prefix-name-for-testing-wrapping.bright4821@fastmail.com")),
-)

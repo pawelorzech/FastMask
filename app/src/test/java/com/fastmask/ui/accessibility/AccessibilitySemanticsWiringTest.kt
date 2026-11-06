@@ -11,7 +11,7 @@ class AccessibilitySemanticsWiringTest {
         val titleAnchors = mapOf(
             "auth/LoginScreen.kt" to "text = annotated",
             "welcome/WelcomeScreen.kt" to "text = stringResource(R.string.app_name)",
-            "detail/MaskedEmailDetailScreen.kt" to "text = address",
+            "detail/DetailHero.kt" to "text = address",
             "lock/LockScreen.kt" to "text = stringResource(R.string.app_name)",
         )
 
