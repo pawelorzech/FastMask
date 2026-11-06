@@ -6,7 +6,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
@@ -27,52 +26,22 @@ class QuickMaskNotifier @Inject constructor(
 ) {
     private var channelReady = false
 
-    fun showCreated(id: String) {
+    /**
+     * @param copied whether the address actually reached the clipboard. The
+     *   notification (and its Toast fallback) only claims "copied" when it did;
+     *   otherwise it says just that the mask exists, so it never lies about
+     *   where the address went.
+     */
+    fun showCreated(id: String, copied: Boolean) {
         // Same neutral wording as the notification, and for the same reason: a
         // Toast is drawn over whatever is on screen, so spelling the address out
         // there would undo the decision to keep it off the display entirely. The
         // address is on the clipboard — that is where the user picks it up.
-        postOrToast(
-            notificationId = QuickMaskPolicy.notificationId(success = true),
-            fallbackMessage = context.getString(R.string.quick_mask_created_body),
-        ) {
-            val openPendingIntent = PendingIntent.getActivity(
-                context,
-                QUICK_MASK_OPEN_REQUEST_CODE,
-                createAppLaunchIntent(context),
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-            )
-            val undoIntent = Intent(context, QuickMaskUndoReceiver::class.java)
-                .putExtra(EXTRA_QUICK_MASK_ID, id)
-            val undoPendingIntent = PendingIntent.getBroadcast(
-                context,
-                QUICK_MASK_UNDO_REQUEST_CODE,
-                undoIntent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-            )
-
-            // Release builds mark the app FLAG_SECURE; showing the masked address
-            // on the lock screen would punch a privacy hole straight through
-            // that. Two independent measures, because either one alone leaks:
-            //
-            // - The address is NOT in the notification. VISIBILITY_PRIVATE does
-            //   not redact by default — SystemUI only redacts once the user has
-            //   turned off "Show sensitive content on the lock screen"
-            //   (Settings.Secure LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS, which
-            //   defaults to 1), so on a stock device the text would simply be
-            //   readable by anyone standing next to the phone.
-            // - VISIBILITY_SECRET (mirrored on the channel) keeps the
-            //   notification off the lock screen entirely.
-            //
-            // The address is on the clipboard, and the app itself — behind
-            // FLAG_SECURE and the biometric gate — is where it can be read.
-            NotificationCompat.Builder(context, QuickMaskChannel.id)
-                .setSmallIcon(R.drawable.ic_quick_mask)
-                .setContentTitle(context.getString(R.string.quick_mask_created_title))
-                .setContentText(context.getString(R.string.quick_mask_created_body))
-                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
-                .setAutoCancel(true)
-                .setContentIntent(openPendingIntent)
+        val title = context.getString(R.string.quick_mask_created_title)
+        val body = if (copied) context.getString(R.string.quick_mask_created_body) else null
+        postOrToast(QuickMaskSlot.CREATED, fallbackMessage = body ?: title) {
+            val openPendingIntent = createAppPendingIntent(context, QuickMaskSlot.CREATED)
+            notification(title = title, text = body, contentIntent = openPendingIntent)
                 .addAction(
                     R.drawable.ic_quick_mask,
                     context.getString(R.string.quick_mask_open),
@@ -81,7 +50,7 @@ class QuickMaskNotifier @Inject constructor(
                 .addAction(
                     R.drawable.ic_quick_mask,
                     context.getString(R.string.quick_mask_undo),
-                    undoPendingIntent,
+                    createUndoPendingIntent(context, QuickMaskSlot.CREATED, id),
                 )
                 .build()
         }
@@ -89,118 +58,105 @@ class QuickMaskNotifier @Inject constructor(
 
     fun showFailure(@StringRes messageRes: Int) {
         val message = context.getString(messageRes)
-        postOrToast(
-            notificationId = QuickMaskPolicy.notificationId(success = false),
-            fallbackMessage = message,
-        ) {
-            NotificationCompat.Builder(context, QuickMaskChannel.id)
-                .setSmallIcon(R.drawable.ic_quick_mask)
-                .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(message)
-                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
-                .setAutoCancel(true)
-                .build()
+        postOrToast(QuickMaskSlot.FAILURE, fallbackMessage = message) {
+            notification(title = context.getString(R.string.app_name), text = message).build()
         }
     }
 
-    fun cancel(notificationId: Int) {
-        NotificationManagerCompat.from(context).cancel(notificationId)
+    internal fun cancel(slot: QuickMaskSlot) {
+        NotificationManagerCompat.from(context).cancel(slot.notificationId)
     }
 
+    /**
+     * A notification is visible wherever the user is looking, so it is the
+     * default for BOTH outcomes; a Toast is drawn UNDER the notification
+     * shade's blur — exactly where the user stands when they tap Undo — and
+     * survives only as the fallback for a user who has denied notifications.
+     */
     fun showUndoResult(success: Boolean) {
-        val manager = NotificationManagerCompat.from(context)
-        val postPermissionGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED
-        val canPostNotification = QuickMaskPolicy.canPostNotification(
-            sdkInt = Build.VERSION.SDK_INT,
-            notificationsEnabled = manager.areNotificationsEnabled(),
-            postPermissionGranted = postPermissionGranted,
-        )
-        val feedback = QuickMaskUndoPolicy.feedback(
-            success = success,
-            canPostNotification = canPostNotification,
-        )
         val message = context.getString(
-            when (feedback.message) {
-                UndoFeedbackMessage.UNDONE -> R.string.quick_mask_undone
-                UndoFeedbackMessage.UNDO_FAILED -> R.string.quick_mask_undo_failed
-            },
+            if (success) R.string.quick_mask_undone else R.string.quick_mask_undo_failed,
         )
-        when (feedback.channel) {
-            UndoFeedbackChannel.TOAST -> showToast(message)
-            UndoFeedbackChannel.NOTIFICATION -> {
-                // The policy only asks for a notification together with a slot
-                // to post it in, so the null arm is unreachable today. It is
-                // written out rather than forced with !! because the failure it
-                // would cause — the one message the user must not miss going
-                // nowhere — is worse than a Toast they can still read.
-                when (val notificationId = feedback.notificationId) {
-                    null -> showToast(message)
-                    else -> {
-                        ensureChannel()
-                        // The failure text tells the user to open FastMask and
-                        // try again; without a contentIntent, tapping the
-                        // notification that says so did nothing. Both outcomes
-                        // get it — after a successful undo the app is still
-                        // where the mask list is — and it opens the launcher
-                        // intent, so the biometric gate stays in the path.
-                        val openPendingIntent = PendingIntent.getActivity(
-                            context,
-                            QUICK_MASK_UNDO_OPEN_REQUEST_CODE,
-                            createAppLaunchIntent(context),
-                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-                        )
-                        manager.notify(
-                            notificationId,
-                            NotificationCompat.Builder(context, QuickMaskChannel.id)
-                                .setSmallIcon(R.drawable.ic_quick_mask)
-                                .setContentTitle(context.getString(R.string.app_name))
-                                .setContentText(message)
-                                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
-                                .setAutoCancel(true)
-                                .setContentIntent(openPendingIntent)
-                                .build(),
-                        )
-                    }
-                }
-            }
+        postOrToast(QuickMaskSlot.UNDO_RESULT, fallbackMessage = message) {
+            // The failure text tells the user to open FastMask and try again;
+            // without a contentIntent, tapping the notification that says so did
+            // nothing. Both outcomes get it — after a successful undo the app is
+            // still where the mask list is — and it opens the launcher intent, so
+            // the biometric gate stays in the path.
+            notification(
+                title = context.getString(R.string.app_name),
+                text = message,
+                contentIntent = createAppPendingIntent(context, QuickMaskSlot.UNDO_RESULT),
+            ).build()
         }
     }
 
     /**
-     * The one place that calls `notify`. The POST_NOTIFICATIONS check is inlined
-     * here on purpose — both because the permission may genuinely be missing on
-     * Android 13+ (then the user still gets the message via Toast) and because a
-     * check hidden behind a helper is invisible to lint's MissingPermission
-     * data flow. The notification itself is only built once we know it can be
-     * posted, so the fallback path allocates no PendingIntents.
+     * Release builds mark the app FLAG_SECURE; showing the masked address on the
+     * lock screen would punch a privacy hole straight through that. Two
+     * independent measures, because either one alone leaks:
      *
-     * @param notificationId the caller's own slot — see [QuickMaskPolicy.notificationId].
+     * - The address is NOT in any notification. VISIBILITY_PRIVATE does not
+     *   redact by default — SystemUI only redacts once the user has turned off
+     *   "Show sensitive content on the lock screen"
+     *   (Settings.Secure LOCK_SCREEN_ALLOW_PRIVATE_NOTIFICATIONS, which defaults
+     *   to 1), so on a stock device the text would simply be readable by anyone
+     *   standing next to the phone.
+     * - VISIBILITY_SECRET (mirrored on the channel) keeps the notification off
+     *   the lock screen entirely.
+     *
+     * The address is on the clipboard, and the app itself — behind FLAG_SECURE
+     * and the biometric gate — is where it can be read.
      */
-    private fun postOrToast(
-        notificationId: Int,
-        fallbackMessage: String,
-        buildNotification: () -> Notification,
-    ) {
-        val manager = NotificationManagerCompat.from(context)
+    private fun notification(
+        title: String,
+        text: String?,
+        contentIntent: PendingIntent? = null,
+    ): NotificationCompat.Builder =
+        NotificationCompat.Builder(context, QuickMaskChannel.id)
+            .setSmallIcon(R.drawable.ic_quick_mask)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setAutoCancel(true)
+            .setContentIntent(contentIntent)
+
+    /**
+     * The one place that decides notification vs Toast: POST_NOTIFICATIONS may
+     * genuinely be missing on Android 13+, or notifications switched off for the
+     * app, and then the user still gets the message via Toast.
+     */
+    private fun canPost(manager: NotificationManagerCompat): Boolean {
         val postPermissionGranted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
-        val canPost = QuickMaskPolicy.canPostNotification(
+        return QuickMaskPolicy.canPostNotification(
             sdkInt = Build.VERSION.SDK_INT,
             notificationsEnabled = manager.areNotificationsEnabled(),
             postPermissionGranted = postPermissionGranted,
         )
-        if (!canPost) {
+    }
+
+    /**
+     * The one place that calls `notify`. The notification itself is only built
+     * once we know it can be posted, so the fallback path allocates no
+     * PendingIntents.
+     */
+    @android.annotation.SuppressLint("MissingPermission") // guarded by canPost()
+    private fun postOrToast(
+        slot: QuickMaskSlot,
+        fallbackMessage: String,
+        buildNotification: () -> Notification,
+    ) {
+        val manager = NotificationManagerCompat.from(context)
+        if (!canPost(manager)) {
             showToast(fallbackMessage)
             return
         }
 
         ensureChannel()
-        manager.notify(notificationId, buildNotification())
+        manager.notify(slot.notificationId, buildNotification())
     }
 
     // createNotificationChannel is a no-op for an id the system already knows:

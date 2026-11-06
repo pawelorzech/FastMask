@@ -30,7 +30,7 @@ class QuickMaskActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (QuickMaskPolicy.isQuickCreateLaunch(intent?.action)) {
-            runner.launchCreate()
+            runner.createFromShortcut()
         } else {
             // Never create from an intent we did not author. Opening the app is
             // the safe reading of "someone started this activity".

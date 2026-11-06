@@ -39,13 +39,13 @@ class QuickMaskUndoNotificationTest {
             context.packageName,
             "android.permission.POST_NOTIFICATIONS",
         )
-        manager.cancel(QUICK_MASK_UNDO_NOTIFICATION_ID)
+        manager.cancel(QuickMaskSlot.UNDO_RESULT.notificationId)
     }
 
     private fun postedUndoResult(): Notification {
         repeat(50) {
             val posted = manager.activeNotifications
-                .firstOrNull { it.id == QUICK_MASK_UNDO_NOTIFICATION_ID }
+                .firstOrNull { it.id == QuickMaskSlot.UNDO_RESULT.notificationId }
             if (posted != null) return posted.notification
             Thread.sleep(100)
         }

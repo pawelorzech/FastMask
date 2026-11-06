@@ -1,7 +1,6 @@
 package com.fastmask.quickmask
 
 import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -19,7 +18,7 @@ class QuickMaskTileService : TileService() {
     override fun onClick() {
         super.onClick()
         unlockAndRun {
-            runner.launchCreate(openApp = ::openAppAndCollapse)
+            runner.createFromTile(openApp = ::openAppAndCollapse)
         }
     }
 
@@ -55,19 +54,11 @@ class QuickMaskTileService : TileService() {
      */
     @SuppressLint("StartActivityAndCollapseDeprecated")
     private fun openAppAndCollapse() {
-        val launchIntent = createAppLaunchIntent(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val pendingIntent = PendingIntent.getActivity(
-                this,
-                QUICK_MASK_OPEN_REQUEST_CODE,
-                launchIntent,
-                // Immutable: the system must not be able to rewrite where this goes.
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-            )
-            startActivityAndCollapse(pendingIntent)
+            startActivityAndCollapse(createAppPendingIntent(this, QuickMaskSlot.CREATED))
         } else {
             @Suppress("DEPRECATION")
-            startActivityAndCollapse(launchIntent)
+            startActivityAndCollapse(createAppLaunchIntent(this))
         }
     }
 }

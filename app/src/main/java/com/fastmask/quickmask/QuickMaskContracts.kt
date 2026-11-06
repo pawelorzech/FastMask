@@ -1,5 +1,6 @@
 package com.fastmask.quickmask
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.fastmask.MainActivity
@@ -25,36 +26,43 @@ internal const val ACTION_QUICK_MASK: String = "com.fastmask.action.QUICK_MASK"
 internal const val QUICK_MASK_CHANNEL_ID: String = "quick_mask"
 
 /**
- * Success and failure occupy separate notification slots.
+ * Every notification slot quick-create posts in, with the PendingIntent request
+ * codes that belong to it. The single source for both namespaces.
  *
- * Both used to post under one id, so whichever came second replaced the first:
- * a failed create wiped the "Mask created" notification — and with it the Undo
- * action, the only way to take back a mask created by accident — while a
- * successful one silently erased an error the user had not read yet.
+ * Slots are separate because `notify` replaces whatever already sits under an
+ * id. Success and failure once shared one, so a failed create wiped the "Mask
+ * created" notification — and the Undo action on it, the only way back from a
+ * mask created by accident — while a successful one silently erased an error
+ * the user had not read yet.
+ *
+ * Request codes are separate because FLAG_UPDATE_CURRENT rewrites the
+ * PendingIntent registered under a (requestCode, intent) pair; two live
+ * notifications sharing a code would overwrite each other's target.
  */
-internal const val QUICK_MASK_CREATED_NOTIFICATION_ID: Int = 7_301
-internal const val QUICK_MASK_OPEN_REQUEST_CODE: Int = 7_302
-internal const val QUICK_MASK_UNDO_REQUEST_CODE: Int = 7_303
-internal const val QUICK_MASK_FAILURE_NOTIFICATION_ID: Int = 7_304
+internal enum class QuickMaskSlot(
+    val notificationId: Int,
+    /** "Open the app" intent of this slot's notification, or null when it has none. */
+    val openRequestCode: Int? = null,
+    /** "Undo" action of this slot's notification, or null when it has none. */
+    val undoRequestCode: Int? = null,
+) {
+    /** The only slot carrying an Undo; cancelled the moment Undo is tapped. */
+    CREATED(notificationId = 7_301, openRequestCode = 7_302, undoRequestCode = 7_303),
 
-/**
- * The slot the result of "Undo" posts in.
- *
- * Its own id, because the two neighbouring slots are already spoken for: the
- * "mask created" notification is CANCELLED the moment Undo is tapped (reusing
- * its id would resurrect a dismissed notification), and the quick-create
- * failure slot carries a different failure the user may not have read yet.
- */
-internal const val QUICK_MASK_UNDO_NOTIFICATION_ID: Int = 7_305
+    FAILURE(notificationId = 7_304),
 
-/**
- * Request code for the "open the app" intent on the undo-result notification.
- *
- * Its own code, not [QUICK_MASK_OPEN_REQUEST_CODE]: that one is reused with
- * FLAG_UPDATE_CURRENT by the "mask created" notification, and sharing it would
- * make two live notifications fight over one PendingIntent slot.
- */
-internal const val QUICK_MASK_UNDO_OPEN_REQUEST_CODE: Int = 7_306
+    /**
+     * Result of "Undo". Its own id, because reusing [CREATED] would resurrect a
+     * notification the user just dismissed, and [FAILURE] may carry an error
+     * they have not read yet.
+     */
+    UNDO_RESULT(notificationId = 7_305, openRequestCode = 7_306),
+}
+
+/** Flags for every PendingIntent here: immutable, so the system cannot rewrite where it goes. */
+internal const val QUICK_MASK_PENDING_FLAGS: Int =
+    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+
 internal const val EXTRA_QUICK_MASK_ID: String = "quick_mask_id"
 
 internal fun createAppLaunchIntent(context: Context): Intent {
@@ -62,3 +70,21 @@ internal fun createAppLaunchIntent(context: Context): Intent {
         ?: Intent(context, MainActivity::class.java)
     return launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 }
+
+/** The "open FastMask" PendingIntent of [slot]'s notification (the tile reuses [QuickMaskSlot.CREATED]'s). */
+internal fun createAppPendingIntent(context: Context, slot: QuickMaskSlot): PendingIntent =
+    PendingIntent.getActivity(
+        context,
+        checkNotNull(slot.openRequestCode) { "$slot has no open intent" },
+        createAppLaunchIntent(context),
+        QUICK_MASK_PENDING_FLAGS,
+    )
+
+/** The "Undo" action's broadcast PendingIntent for the mask [maskId]. */
+internal fun createUndoPendingIntent(context: Context, slot: QuickMaskSlot, maskId: String): PendingIntent =
+    PendingIntent.getBroadcast(
+        context,
+        checkNotNull(slot.undoRequestCode) { "$slot has no undo action" },
+        Intent(context, QuickMaskUndoReceiver::class.java).putExtra(EXTRA_QUICK_MASK_ID, maskId),
+        QUICK_MASK_PENDING_FLAGS,
+    )

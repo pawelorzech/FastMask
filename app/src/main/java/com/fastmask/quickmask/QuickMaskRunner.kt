@@ -2,6 +2,7 @@ package com.fastmask.quickmask
 
 import android.content.Context
 import android.util.Log
+import com.fastmask.BuildConfig
 import com.fastmask.R
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.usecase.QuickMaskCreator
@@ -19,6 +20,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
@@ -119,7 +121,25 @@ class QuickMaskRunner @Inject constructor(
         synchronized(undoneLock) { undoneIds.remove(id) }
     }
 
-    fun launchCreate(openApp: (() -> Unit)? = null) {
+    /**
+     * Quick Settings tile entry. [openApp] is the tile's own collapse-the-shade
+     * hop, used when nothing can be created without the app.
+     */
+    fun createFromTile(openApp: () -> Unit) = launchCreate {
+        openApp()
+        true
+    }
+
+    /**
+     * Launcher-shortcut entry. Hands off through [openExternalIntent], so the
+     * codebase keeps exactly one guarded `startActivity`.
+     */
+    fun createFromShortcut() = launchCreate {
+        openExternalIntent(context, createAppLaunchIntent(context))
+    }
+
+    /** @param openApp hands off to the app; returns whether it was opened. */
+    private fun launchCreate(openApp: () -> Boolean) {
         if (!createInFlight.compareAndSet(false, true)) {
             return
         }
@@ -140,10 +160,10 @@ class QuickMaskRunner @Inject constructor(
                         // after the mask is already live on Fastmail must never
                         // suppress showCreated() (with its Undo button) or report
                         // a false creation error.
-                        withContext(Dispatchers.Main) {
+                        val copied = withContext(Dispatchers.Main) {
                             copyToClipboard(context, result.email)
                         }
-                        notifier.showCreated(id = result.id)
+                        notifier.showCreated(id = result.id, copied = copied)
                     }
                     // Nothing was created on any of these. Signing in, leaving
                     // demo mode and passing the biometric gate all happen in
@@ -162,73 +182,57 @@ class QuickMaskRunner @Inject constructor(
     }
 
     /**
-     * @param onFinished released once the delete has been attempted. The
-     *   notification's Undo button hands us a `BroadcastReceiver.goAsync`
-     *   result through this callback: until it is finished the process keeps a
-     *   live component, so the delete is not racing the low-memory killer.
+     * Notification "Undo" entry. The returned [Job] completes once the delete
+     * has been attempted; [QuickMaskUndoReceiver] finishes its
+     * `BroadcastReceiver.goAsync` result from it, so the process keeps a live
+     * component and the delete is not racing the low-memory killer. The work is
+     * bounded by [QuickMaskUndoReceiver.UNDO_TIMEOUT_MS], so that completion
+     * always arrives inside the goAsync window.
      */
-    fun launchUndo(id: String, onFinished: () -> Unit = {}) {
+    fun undo(id: String): Job {
         if (!latchUndone(id)) {
             // Already undone (or being undone) — dismiss the notification the
             // second tap came from and stop. Re-running destroy would fail with
             // notFound and report that failure over the truthful result.
-            notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
-            onFinished()
-            return
+            notifier.cancel(QuickMaskSlot.CREATED)
+            return Job().apply { complete() }
         }
-        scope.launch {
-            try {
-                // Dismiss FIRST. The tap is the user's decision; leaving the
-                // notification up until the network round-trip returns (or
-                // forever, when it fails) reads as "the button did nothing".
-                // The "mask created" slot is the only one carrying an Undo.
-                notifier.cancel(QUICK_MASK_CREATED_NOTIFICATION_ID)
-                val success = try {
-                    // Bound the network call below the 10-second BroadcastReceiver
-                    // goAsync() ANR ceiling so PendingResult.finish() always runs
-                    // in time even when the connection hangs vs. OkHttp's 30s timeout.
-                    withTimeout(UNDO_TIMEOUT_MS) {
-                        quickMaskCreator.undo(id)
-                    }
-                } catch (_: TimeoutCancellationException) {
-                    false
-                } catch (cancellation: CancellationException) {
-                    // A cancelled attempt did not settle the mask's state. Let a
-                    // later notification action retry it.
-                    unlatchUndone(id)
-                    throw cancellation
-                } catch (_: Throwable) {
-                    false
+        return scope.launch {
+            // Dismiss FIRST. The tap is the user's decision; leaving the
+            // notification up until the network round-trip returns (or
+            // forever, when it fails) reads as "the button did nothing".
+            // The "mask created" slot is the only one carrying an Undo.
+            notifier.cancel(QuickMaskSlot.CREATED)
+            val success = try {
+                withTimeout(QuickMaskUndoReceiver.UNDO_TIMEOUT_MS) {
+                    quickMaskCreator.undo(id)
                 }
-                // Only a mask that is actually gone stays latched. A failed undo
-                // releases the id, so this guard can never be the reason a later
-                // attempt at the same mask is refused.
-                if (!success) unlatchUndone(id)
-                notifier.showUndoResult(success = success)
-            } finally {
-                onFinished()
+            } catch (_: TimeoutCancellationException) {
+                false
+            } catch (cancellation: CancellationException) {
+                // A cancelled attempt did not settle the mask's state. Let a
+                // later notification action retry it.
+                unlatchUndone(id)
+                throw cancellation
+            } catch (throwable: Throwable) {
+                if (BuildConfig.DEBUG) Log.w(TAG, "undo failed", throwable)
+                false
             }
+            // Only a mask that is actually gone stays latched. A failed undo
+            // releases the id, so this guard can never be the reason a later
+            // attempt at the same mask is refused.
+            if (!success) unlatchUndone(id)
+            notifier.showUndoResult(success = success)
         }
     }
 
     /**
-     * Hands off to the app, guarded on every path.
-     *
-     * [openApp] is the tile's own collapse-the-shade hop; the default is the
-     * shortcut/receiver path, which goes through [openExternalIntent] so the
-     * codebase keeps exactly one guarded `startActivity`. A hand-off that fails
-     * says so instead of disappearing — the user tapped something.
+     * Hands off to the app, guarded on every path. A hand-off that fails says
+     * so instead of disappearing — the user tapped something.
      */
-    private suspend fun handOffToApp(openApp: (() -> Unit)?) {
+    private suspend fun handOffToApp(openApp: () -> Boolean) {
         withContext(Dispatchers.Main) {
-            val opened = runCatching {
-                if (openApp != null) {
-                    openApp()
-                    true
-                } else {
-                    openExternalIntent(context, createAppLaunchIntent(context))
-                }
-            }.getOrElse { throwable ->
+            val opened = runCatching(openApp).getOrElse { throwable ->
                 Log.w(TAG, "could not open the app", throwable)
                 false
             }
@@ -252,12 +256,5 @@ class QuickMaskRunner @Inject constructor(
          * an evicted id.
          */
         const val UNDONE_LATCH_LIMIT = 256
-
-        /**
-         * Keeps [launchUndo] inside the 10-second `BroadcastReceiver.goAsync()`
-         * execution window so [QuickMaskUndoReceiver] cannot trigger a system ANR
-         * when OkHttp's 30-second socket timeouts are hit on a dead network.
-         */
-        const val UNDO_TIMEOUT_MS = 8_000L
     }
 }
