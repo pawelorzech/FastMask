@@ -84,7 +84,7 @@ fun StateMorphAvatar(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = initial.trim().take(1).uppercase().ifEmpty { "?" },
+            text = maskAvatarInitial(initial),
             color = content,
             style = MaterialTheme.typography.titleMediumEmphasized,
             fontSize = (size.value * 0.4f).sp,
