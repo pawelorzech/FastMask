@@ -63,12 +63,12 @@ class AccessibilitySemanticsWiringTest {
             ".politeLiveRegion()",
         )
         assertInFunction(
-            "list/MaskedEmailListScreen.kt",
-            "private fun LoadingShimmer(",
+            "list/ListStates.kt",
+            "internal fun LoadingShimmer(",
             ".politeLiveRegion()",
         )
         assertInFunction(
-            "list/MaskedEmailListScreen.kt",
+            "list/ListStates.kt",
             "internal fun ErrorBlock(",
             ".politeLiveRegion()",
         )
