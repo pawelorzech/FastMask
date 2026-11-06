@@ -1,4 +1,4 @@
-package com.fastmask.ui.update
+package com.fastmask.data.update
 
 import android.app.Activity
 import android.content.Context
@@ -7,32 +7,22 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.fastmask.core.runSuspendCatching
-import com.fastmask.data.update.AppUpdateAvailability
-import com.fastmask.data.update.AppUpdateDecision
-import com.fastmask.data.update.AppUpdateFlowType
-import com.fastmask.data.update.AppUpdatePolicy
-import com.fastmask.data.update.AppUpdatePreferences
-import com.fastmask.data.update.AppUpdateSnapshot
+import com.fastmask.ui.update.AppUpdateUiState
+import dagger.Lazy
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.coroutines.resume
-
-/** What the UI is allowed to know. Free of Play types on purpose — see [AppUpdateController]. */
-sealed interface AppUpdateUiState {
-    data object Idle : AppUpdateUiState
-
-    /** Bytes are on the device. The only thing left is the user agreeing to restart. */
-    data object ReadyToInstall : AppUpdateUiState
-}
 
 /**
  * The only place in FastMask that touches Play's In-App Update API.
@@ -50,12 +40,14 @@ sealed interface AppUpdateUiState {
  * object that Play refuses to accept twice, so exposing it to Compose would mean recomposing
  * against a value that silently expires; the UI sees [AppUpdateUiState] instead.
  */
-class AppUpdateController private constructor(context: Context) {
+@Singleton
+class AppUpdateController @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+    private val preferences: AppUpdatePreferences,
+    managerProvider: Lazy<AppUpdateManager>,
+) {
 
-    private val appContext = context.applicationContext
-    private val preferences = AppUpdatePreferences(appContext)
-
-    private val manager: AppUpdateManager by lazy { AppUpdateManagerFactory.create(appContext) }
+    private val manager: AppUpdateManager by lazy { managerProvider.get() }
 
     private val uiState = MutableStateFlow<AppUpdateUiState>(AppUpdateUiState.Idle)
     val state: StateFlow<AppUpdateUiState> = uiState.asStateFlow()
@@ -116,7 +108,7 @@ class AppUpdateController private constructor(context: Context) {
         // realistic way to test this and those builds are debuggable, so gating on debuggability
         // would switch the feature off in exactly the builds that exist to exercise it; conversely
         // a sideloaded release build would otherwise fail this check on every resume for nothing.
-        if (!isInstalledFromPlay(appContext)) return
+        if (!isInstalledFromPlay()) return
 
         val info = requestInfo() ?: return
         val snapshot = snapshotOf(info)
@@ -253,36 +245,23 @@ class AppUpdateController private constructor(context: Context) {
         isListening = false
     }
 
-    companion object {
+    /**
+     * True when Play installed this app, which is the only case where the update API works at
+     * all. Internal app sharing installs come from the Play Store too, so this stays true for
+     * the builds used to test the feature.
+     */
+    private fun isInstalledFromPlay(): Boolean = runCatching {
+        val packages = appContext.packageManager
+        val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            packages.getInstallSourceInfo(appContext.packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            packages.getInstallerPackageName(appContext.packageName)
+        }
+        installer == PLAY_STORE_PACKAGE
+    }.getOrDefault(false)
 
-        @Volatile
-        private var instance: AppUpdateController? = null
-
-        /**
-         * Process-wide: a second controller would carry its own [hasPromptedThisProcess], so a
-         * configuration change would hand the user a fresh offer of the update they just declined.
-         */
-        fun get(context: Context): AppUpdateController =
-            instance ?: synchronized(this) {
-                instance ?: AppUpdateController(context).also { instance = it }
-            }
-
-        /**
-         * True when Play installed this app, which is the only case where the update API works at
-         * all. Internal app sharing installs come from the Play Store too, so this stays true for
-         * the builds used to test the feature.
-         */
-        fun isInstalledFromPlay(context: Context): Boolean = runCatching {
-            val packages = context.packageManager
-            val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                packages.getInstallSourceInfo(context.packageName).installingPackageName
-            } else {
-                @Suppress("DEPRECATION")
-                packages.getInstallerPackageName(context.packageName)
-            }
-            installer == PLAY_STORE_PACKAGE
-        }.getOrDefault(false)
-
-        private const val PLAY_STORE_PACKAGE = "com.android.vending"
+    private companion object {
+        const val PLAY_STORE_PACKAGE = "com.android.vending"
     }
 }

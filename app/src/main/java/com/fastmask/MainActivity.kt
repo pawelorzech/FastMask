@@ -41,7 +41,7 @@ import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.navigation.PendingShare
 import com.fastmask.ui.navigation.RoutePendingShare
 import com.fastmask.ui.theme.FastMaskTheme
-import com.fastmask.ui.update.AppUpdateController
+import com.fastmask.data.update.AppUpdateController
 import com.fastmask.ui.update.AppUpdateUiState
 import com.fastmask.ui.update.UpdateReadyDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -78,7 +78,8 @@ class MainActivity : AppCompatActivity() {
 
     private val notificationPermissionGate = NotificationPermissionGate(Build.VERSION.SDK_INT)
 
-    private val appUpdateController by lazy { AppUpdateController.get(this) }
+    @Inject
+    lateinit var appUpdateController: AppUpdateController
 
     /**
      * Play's update flow hands its result back through the Activity Result API.
