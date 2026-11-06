@@ -18,8 +18,11 @@ enum class Accent {
     /** Every accent but the wallpaper colours is part of Pro. */
     val isPro: Boolean get() = this != DYNAMIC
 
+    /** True when this accent is a Pro seed and the user does not have Pro. */
+    fun isLockedFor(hasPro: Boolean): Boolean = isPro && !hasPro
+
     /** What is actually painted: without Pro a stored seed falls back to the wallpaper, and the stored choice is kept. */
-    fun shownFor(status: ProStatus): Accent = if (!isPro || status.isPro) this else DEFAULT
+    fun shownFor(status: ProStatus): Accent = if (isLockedFor(status.isPro)) DEFAULT else this
 
     companion object {
         val DEFAULT = DYNAMIC

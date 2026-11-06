@@ -73,7 +73,7 @@ internal fun ColorSwatchRow(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Accent.entries.forEach { accent ->
-            val locked = accent.isPro && !isPro
+            val locked = accent.isLockedFor(isPro)
             ColorSwatch(
                 accent = accent,
                 selected = accent == selected,

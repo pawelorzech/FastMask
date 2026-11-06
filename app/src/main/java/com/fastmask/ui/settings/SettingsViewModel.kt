@@ -169,7 +169,7 @@ class SettingsViewModel @Inject constructor(
 
     fun onAccentSelected(accent: Accent) {
         // The picker locks Pro seeds, so a tap on one never reaches here without Pro.
-        if (accent.shownFor(proStatus.value) != accent) return
+        if (accent.isLockedFor(proStatus.value.isPro)) return
         viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
     }
 
