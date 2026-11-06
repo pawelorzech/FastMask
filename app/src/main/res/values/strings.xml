@@ -137,7 +137,7 @@
     <string name="settings_language_description">Select app language</string>
     <string name="settings_system_default">System default</string>
     <string name="settings_contact">Send feedback</string>
-    <string name="settings_contact_description">pawel@orzech.me</string>
+    <string name="settings_contact_description">@string/support_email</string>
     <string name="settings_logout">Sign out</string>
     <string name="settings_logout_description">Forget this token on this device</string>
     <string name="settings_footer">FastMask · Version %s</string>

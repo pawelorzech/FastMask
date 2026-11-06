@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Support address: an identifier, not prose. Shown as the contact row's text in the default locale and used as the mail recipient. -->
+    <string name="support_email" translatable="false">pawel@orzech.me</string>
+</resources>

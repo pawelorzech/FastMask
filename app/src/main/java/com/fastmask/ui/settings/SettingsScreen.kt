@@ -105,11 +105,9 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.common.openExternalIntent
 import com.fastmask.ui.components.expressive.SectionHeader
-import com.fastmask.ui.components.expressive.SegmentInnerCorner
-import com.fastmask.ui.components.expressive.SegmentOuterCorner
+import com.fastmask.ui.components.expressive.SegmentedSurface
 import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
-import com.fastmask.ui.components.expressive.segmentedShape
 import com.fastmask.ui.lock.canUseAppLock
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
@@ -252,6 +250,7 @@ internal fun SettingsContent(
     val unlockLabel = stringResource(R.string.settings_colors_unlock)
     val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
     val feedbackSubject = stringResource(R.string.settings_feedback_subject)
+    val supportEmail = stringResource(R.string.support_email)
     val backDesc = stringResource(R.string.navigate_back)
     val isPro = state.isPro
 
@@ -574,7 +573,7 @@ internal fun SettingsContent(
                         onClick = {
                             val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                                 data = Uri.parse("mailto:")
-                                putExtra(Intent.EXTRA_EMAIL, arrayOf("pawel@orzech.me"))
+                                putExtra(Intent.EXTRA_EMAIL, arrayOf(supportEmail))
                                 putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
                             }
                             // No resolveActivity() pre-check: on Android 11+ it is
@@ -670,17 +669,7 @@ private fun StaticSegment(
     count: Int,
     content: @Composable RowScope.() -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(segmentedShape(index, count))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .defaultMinSize(minHeight = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        content = content,
-    )
+    SegmentedSurface(index = index, count = count, minHeight = 56.dp, content = content)
 }
 
 @Composable
@@ -737,75 +726,37 @@ private fun SettingsToggleRow(
     onCheckedChange: (Boolean) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
-    val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
-    val outer = SegmentOuterCorner
-    val inner = SegmentInnerCorner
-    val top by animateDpAsState(if (pressed || index == 0) outer else inner, spec, label = "toggleTop")
-    val bottom by animateDpAsState(
-        if (pressed || index == count - 1) outer else inner,
-        spec,
-        label = "toggleBottom",
-    )
-    // Spatial springs overshoot; a negative corner radius is invalid.
-    val t = top.coerceAtLeast(0.dp)
-    val b = bottom.coerceAtLeast(0.dp)
-    val shape = RoundedCornerShape(topStart = t, topEnd = t, bottomEnd = b, bottomStart = b)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .toggleable(
-                value = checked,
-                interactionSource = interaction,
-                indication = ripple(),
-                role = Role.Switch,
-                onValueChange = { enabled ->
-                    haptic.performHapticFeedback(
-                        if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
-                    )
-                    onCheckedChange(enabled)
+    SegmentedRow(
+        index = index,
+        count = count,
+        checked = checked,
+        onCheckedChange = { enabled ->
+            haptic.performHapticFeedback(
+                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
+            )
+            onCheckedChange(enabled)
+        },
+        leading = leading,
+        supporting = { Text(supporting) },
+        trailing = {
+            Switch(
+                checked = checked,
+                onCheckedChange = null,
+                thumbContent = if (checked) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
                 },
             )
-            .defaultMinSize(minHeight = 72.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
-            leading()
-        }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = supporting,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = null,
-            thumbContent = if (checked) {
-                {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                    )
-                }
-            } else {
-                null
-            },
-        )
-    }
+        },
+        headline = { Text(label) },
+    )
 }
 
 /** Sunny badge with the premium glyph, the Pro row's leading element. */

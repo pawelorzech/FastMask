@@ -7,9 +7,11 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -42,16 +44,11 @@ internal val SegmentInnerCorner: Dp = 4.dp
 /**
  * Corner shape for row [index] of [count] in a grouped list: the first row has
  * large top corners, the last large bottom corners, a single row large corners
- * everywhere; every other corner is [inner].
+ * everywhere; every other corner is [SegmentInnerCorner].
  */
-fun segmentedShape(
-    index: Int,
-    count: Int,
-    outer: Dp = SegmentOuterCorner,
-    inner: Dp = SegmentInnerCorner,
-): RoundedCornerShape {
-    val top = if (index == 0) outer else inner
-    val bottom = if (index == count - 1) outer else inner
+fun segmentedShape(index: Int, count: Int): RoundedCornerShape {
+    val top = if (index == 0) SegmentOuterCorner else SegmentInnerCorner
+    val bottom = if (index == count - 1) SegmentOuterCorner else SegmentInnerCorner
     return RoundedCornerShape(topStart = top, topEnd = top, bottomEnd = bottom, bottomStart = bottom)
 }
 
@@ -80,7 +77,9 @@ fun SegmentedGroup(
  * Corners follow [segmentedShape]; while pressed all corners morph to the outer radius (20dp)
  * (`fastSpatialSpec`). Minimum height is 56dp, or 72dp when [supporting] is
  * present. When [onClick] is set the whole row is a single `Role.Button`
- * target with merged semantics; otherwise it is a static container.
+ * target with merged semantics; when [onCheckedChange] is set it is instead a
+ * single `Role.Switch` target (put a visual-only Switch in [trailing]);
+ * otherwise it is a static container.
  */
 @Composable
 fun SegmentedRow(
@@ -88,48 +87,38 @@ fun SegmentedRow(
     count: Int,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    checked: Boolean = false,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
     leading: (@Composable () -> Unit)? = null,
     supporting: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
     headline: @Composable () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val outer = SegmentOuterCorner
-    val inner = SegmentInnerCorner
-    val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
-
-    val topTarget = if (pressed || index == 0) outer else inner
-    val bottomTarget = if (pressed || index == count - 1) outer else inner
-    val top by animateDpAsState(topTarget, spec, label = "segTop")
-    val bottom by animateDpAsState(bottomTarget, spec, label = "segBottom")
-    // Spatial springs overshoot; a negative corner radius is invalid.
-    val t = top.coerceAtLeast(0.dp)
-    val b = bottom.coerceAtLeast(0.dp)
-    val shape = RoundedCornerShape(topStart = t, topEnd = t, bottomEnd = b, bottomStart = b)
-
-    val minHeight = if (supporting != null) 72.dp else 56.dp
-    val clickModifier = if (onClick != null) {
-        Modifier.clickable(
+    val interactionModifier = when {
+        onCheckedChange != null -> Modifier.toggleable(
+            value = checked,
+            interactionSource = interaction,
+            indication = androidx.compose.material3.ripple(),
+            role = Role.Switch,
+            onValueChange = onCheckedChange,
+        )
+        onClick != null -> Modifier.clickable(
             interactionSource = interaction,
             indication = androidx.compose.material3.ripple(),
             role = Role.Button,
             onClick = onClick,
         )
-    } else {
-        Modifier.semantics(mergeDescendants = true) { }
+        else -> Modifier.semantics(mergeDescendants = true) { }
     }
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .then(clickModifier)
-            .defaultMinSize(minHeight = minHeight)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    SegmentedSurface(
+        index = index,
+        count = count,
+        interaction = interaction,
+        minHeight = if (supporting != null) 72.dp else 56.dp,
+        modifier = modifier,
+        interactionModifier = interactionModifier,
     ) {
         if (leading != null) {
             CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant) {
@@ -152,6 +141,53 @@ fun SegmentedRow(
             }
         }
     }
+}
+
+/**
+ * The shared body of a segmented row: shape with press morph, surface colour,
+ * [interactionModifier], minimum height and padding. [SegmentedRow] builds on
+ * it; a static member whose children keep their own semantics uses it
+ * directly with the default (no-op) [interactionModifier].
+ */
+@Composable
+internal fun SegmentedSurface(
+    index: Int,
+    count: Int,
+    minHeight: Dp,
+    modifier: Modifier = Modifier,
+    interaction: MutableInteractionSource = remember { MutableInteractionSource() },
+    interactionModifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit,
+) {
+    val pressed by interaction.collectIsPressedAsState()
+    val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
+    val top by animateDpAsState(
+        if (pressed || index == 0) SegmentOuterCorner else SegmentInnerCorner,
+        spec,
+        label = "segTop",
+    )
+    val bottom by animateDpAsState(
+        if (pressed || index == count - 1) SegmentOuterCorner else SegmentInnerCorner,
+        spec,
+        label = "segBottom",
+    )
+    // Spatial springs overshoot; a negative corner radius is invalid.
+    val t = top.coerceAtLeast(0.dp)
+    val b = bottom.coerceAtLeast(0.dp)
+    val shape = RoundedCornerShape(topStart = t, topEnd = t, bottomEnd = b, bottomStart = b)
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .then(interactionModifier)
+            .defaultMinSize(minHeight = minHeight)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        content = content,
+    )
 }
 
 @Preview(showBackground = true)

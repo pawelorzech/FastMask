@@ -122,7 +122,7 @@
     <string name="settings_language_description">Wybierz język aplikacji</string>
     <string name="settings_system_default">Systemowy</string>
     <string name="settings_contact">Wyślij opinię</string>
-    <string name="settings_contact_description">pawel@orzech.me</string>
+    <string name="settings_contact_description">@string/support_email</string>
     <string name="settings_logout">Wyloguj</string>
     <string name="settings_logout_description">Zapomnij token na tym urządzeniu</string>
     <string name="settings_footer">FastMask · Wersja %s</string>
