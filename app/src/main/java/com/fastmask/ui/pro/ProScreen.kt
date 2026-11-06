@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.fastmask.ui.accessibility.screenHeading
 import androidx.compose.ui.semantics.semantics
@@ -100,40 +101,17 @@ fun ProScreen(
     val context = LocalContext.current
     val activity = context as? Activity
     val haptic = LocalHapticFeedback.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val messages = ProMessages(
-        purchaseCompleted = stringResource(R.string.pro_purchase_success),
-        purchasePending = stringResource(R.string.pro_purchase_pending),
-        purchaseCancelled = stringResource(R.string.pro_purchase_cancelled),
-        purchaseFailed = stringResource(R.string.pro_purchase_failed),
-        billingUnavailable = stringResource(R.string.pro_billing_unavailable),
-        restored = stringResource(R.string.pro_restore_success),
-        nothingToRestore = stringResource(R.string.pro_restore_nothing),
-        restoreFailed = stringResource(R.string.pro_restore_failed),
-    )
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            when (event) {
-                ProUiEvent.PurchaseCompleted, ProUiEvent.Restored ->
-                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                ProUiEvent.PurchaseFailed, ProUiEvent.RestoreFailed, ProUiEvent.BillingUnavailable ->
-                    haptic.performHapticFeedback(HapticFeedbackType.Reject)
-                else -> Unit
+            when (event.haptic) {
+                ProHaptic.CONFIRM -> haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                ProHaptic.REJECT -> haptic.performHapticFeedback(HapticFeedbackType.Reject)
+                ProHaptic.NONE -> Unit
             }
-            snackbarHostState.showSnackbar(
-                when (event) {
-                    ProUiEvent.PurchaseCompleted -> messages.purchaseCompleted
-                    ProUiEvent.PurchasePending -> messages.purchasePending
-                    ProUiEvent.PurchaseCancelled -> messages.purchaseCancelled
-                    ProUiEvent.PurchaseFailed -> messages.purchaseFailed
-                    ProUiEvent.BillingUnavailable -> messages.billingUnavailable
-                    ProUiEvent.Restored -> messages.restored
-                    ProUiEvent.NothingToRestore -> messages.nothingToRestore
-                    ProUiEvent.RestoreFailed -> messages.restoreFailed
-                }
-            )
+            snackbarHostState.showSnackbar(resources.getString(event.message))
         }
     }
 
@@ -553,17 +531,6 @@ private fun InlineNotice(
         )
     }
 }
-
-private data class ProMessages(
-    val purchaseCompleted: String,
-    val purchasePending: String,
-    val purchaseCancelled: String,
-    val purchaseFailed: String,
-    val billingUnavailable: String,
-    val restored: String,
-    val nothingToRestore: String,
-    val restoreFailed: String,
-)
 
 // --- Previews ---------------------------------------------------------------
 

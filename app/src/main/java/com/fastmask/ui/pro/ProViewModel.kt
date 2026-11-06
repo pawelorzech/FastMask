@@ -1,9 +1,11 @@
 package com.fastmask.ui.pro
 
 import android.app.Activity
+import androidx.annotation.StringRes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fastmask.R
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.ProStatus
@@ -154,13 +156,17 @@ data class ProUiState(
 
 enum class ProductState { LOADING, READY, UNAVAILABLE }
 
-sealed class ProUiEvent {
-    data object PurchaseCompleted : ProUiEvent()
-    data object PurchasePending : ProUiEvent()
-    data object PurchaseCancelled : ProUiEvent()
-    data object PurchaseFailed : ProUiEvent()
-    data object BillingUnavailable : ProUiEvent()
-    data object Restored : ProUiEvent()
-    data object NothingToRestore : ProUiEvent()
-    data object RestoreFailed : ProUiEvent()
+/** Haptic that accompanies a paywall snackbar. */
+enum class ProHaptic { NONE, CONFIRM, REJECT }
+
+/** One-shot paywall outcome: the snackbar [message] and the [haptic] that goes with it. */
+sealed class ProUiEvent(@StringRes val message: Int, val haptic: ProHaptic = ProHaptic.NONE) {
+    data object PurchaseCompleted : ProUiEvent(R.string.pro_purchase_success, ProHaptic.CONFIRM)
+    data object PurchasePending : ProUiEvent(R.string.pro_purchase_pending)
+    data object PurchaseCancelled : ProUiEvent(R.string.pro_purchase_cancelled)
+    data object PurchaseFailed : ProUiEvent(R.string.pro_purchase_failed, ProHaptic.REJECT)
+    data object BillingUnavailable : ProUiEvent(R.string.pro_billing_unavailable, ProHaptic.REJECT)
+    data object Restored : ProUiEvent(R.string.pro_restore_success, ProHaptic.CONFIRM)
+    data object NothingToRestore : ProUiEvent(R.string.pro_restore_nothing)
+    data object RestoreFailed : ProUiEvent(R.string.pro_restore_failed, ProHaptic.REJECT)
 }
