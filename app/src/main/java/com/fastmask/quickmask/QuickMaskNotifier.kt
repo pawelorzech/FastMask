@@ -171,7 +171,7 @@ class QuickMaskNotifier @Inject constructor(
             // Superseded channels would otherwise sit in system settings forever
             // as dead duplicates. Deleting an id the system does not know does
             // nothing, so this is safe on a fresh install.
-            QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+            QuickMaskChannel.staleIds
                 .forEach { manager.deleteNotificationChannel(it) }
             channelReady = true
         }
