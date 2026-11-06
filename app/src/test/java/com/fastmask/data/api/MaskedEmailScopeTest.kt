@@ -1,6 +1,5 @@
 package com.fastmask.data.api
 
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.putJsonObject
 import org.junit.Assert.assertEquals
@@ -29,26 +28,17 @@ class MaskedEmailScopeTest {
     private fun session(
         primaryAccounts: Map<String, String> = emptyMap(),
         accounts: Map<String, JmapAccount> = emptyMap(),
-        capabilities: JsonObject = JsonObject(emptyMap()),
     ) = JmapSession(
-        username = "user@fastmail.com",
         apiUrl = "https://api.fastmail.com/jmap/api/",
         primaryAccounts = primaryAccounts,
         accounts = accounts,
-        capabilities = capabilities,
-        state = "s1",
     )
 
     private fun account(vararg capabilities: String) = JmapAccount(
-        name = "an account",
         accountCapabilities = buildJsonObject {
             capabilities.forEach { putJsonObject(it) { } }
         },
     )
-
-    private fun capabilities(vararg uris: String) = buildJsonObject {
-        uris.forEach { putJsonObject(it) { } }
-    }
 
     // --- the scope is present ----------------------------------------------
 
@@ -162,17 +152,16 @@ class MaskedEmailScopeTest {
     }
 
     /**
-     * Session-level `capabilities` describe what the *server* supports, not
-     * what this token may reach or which account holds it. On their own they
-     * authorize nothing — otherwise the old "first account" guess returns
-     * through the back door.
+     * Session-level `capabilities` (which JmapSession no longer even decodes)
+     * describe what the *server* supports, not what this token may reach. A
+     * mail-only session must not authorize any account — otherwise the old
+     * "first account" guess returns through the back door.
      */
     @Test
-    fun `server capabilities alone do not authorize picking an account`() {
+    fun `a mail-only session does not authorize picking an account`() {
         val session = session(
             primaryAccounts = mapOf(mailCapability to "acc-mail"),
             accounts = mapOf("acc-mail" to account(mailCapability)),
-            capabilities = capabilities(mailCapability, MaskedEmailScope.CAPABILITY_URI),
         )
 
         assertNull(MaskedEmailScope.accountId(session))

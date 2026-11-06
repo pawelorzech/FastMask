@@ -37,6 +37,7 @@ class JmapApiTest {
         var lastMethodUrl: String? = null
         var executeCount = 0
         var lastRequest: JmapRequest? = null
+        var lastAuthHeader: String? = null
 
         override suspend fun getSession(url: String, authHeader: String): JmapSession =
             sessionFailure?.let { throw it } ?: session ?: error("no session configured")
@@ -49,6 +50,7 @@ class JmapApiTest {
             executeFailure?.let { throw it }
             lastMethodUrl = url
             lastRequest = request
+            lastAuthHeader = authHeader
             executeCount++
             return response ?: error("no response configured")
         }
@@ -60,12 +62,9 @@ class JmapApiTest {
             mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-1"),
         accounts: Map<String, JmapAccount> = emptyMap(),
     ) = JmapSession(
-        username = "user@fastmail.com",
         apiUrl = apiUrl,
         primaryAccounts = primaryAccounts,
         accounts = accounts,
-        capabilities = JsonObject(emptyMap()),
-        state = "s1"
     )
 
     private fun methodResponse(name: String, payload: JsonObject): JmapResponse =
@@ -136,7 +135,7 @@ class JmapApiTest {
         assertTrue(result.isFailure)
         assertNull(api.getAccountId())
         // Fallback stays on the hardcoded Fastmail URL.
-        assertEquals(JmapService.FASTMAIL_API_URL, api.getApiUrl())
+        assertEquals(FastmailEndpoints.API_URL, api.getApiUrl())
     }
 
     @Test
@@ -192,6 +191,26 @@ class JmapApiTest {
         assertEquals(1, list.size)
         assertEquals("m1", list[0].id)
         assertEquals(EmailState.ENABLED, list[0].state)
+    }
+
+    @Test
+    fun `every method call carries the bearer header, capabilities and account id`() = runTest {
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse(
+                "MaskedEmail/get",
+                buildJsonObject { put("list", buildJsonArray { }) },
+            ),
+        )
+
+        JmapApi(service, json).getMaskedEmails("tok").getOrThrow()
+
+        assertEquals("Bearer tok", service.lastAuthHeader)
+        assertEquals(FastmailEndpoints.CAPABILITIES, service.lastRequest!!.using)
+        val call = service.lastRequest!!.methodCalls.single()
+        assertEquals("MaskedEmail/get", (call[0] as JsonPrimitive).content)
+        assertEquals("acc-1", ((call[1] as JsonObject)["accountId"] as JsonPrimitive).content)
+        assertEquals("0", (call[2] as JsonPrimitive).content)
     }
 
     @Test
@@ -502,7 +521,7 @@ class JmapApiTest {
         api.clearSession()
 
         assertNull(api.getAccountId())
-        assertEquals(JmapService.FASTMAIL_API_URL, api.getApiUrl())
+        assertEquals(FastmailEndpoints.API_URL, api.getApiUrl())
     }
 
     @Test

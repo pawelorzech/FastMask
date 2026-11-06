@@ -8,19 +8,13 @@ import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class JmapSession(
-    val username: String,
     val apiUrl: String,
     val primaryAccounts: Map<String, String>,
     val accounts: Map<String, JmapAccount>,
-    val capabilities: JsonObject,
-    val state: String
 )
 
 @Serializable
 data class JmapAccount(
-    val name: String,
-    val isPersonal: Boolean = true,
-    val isReadOnly: Boolean = false,
     val accountCapabilities: JsonObject = JsonObject(emptyMap())
 )
 
@@ -33,22 +27,15 @@ data class JmapRequest(
 @Serializable
 data class JmapResponse(
     val methodResponses: List<JsonArray>,
-    val sessionState: String? = null
 )
 
 @Serializable
 data class MaskedEmailGetResponse(
-    val accountId: String,
-    val state: String,
     val list: List<MaskedEmailDto>,
-    val notFound: List<String> = emptyList()
 )
 
 @Serializable
 data class MaskedEmailSetResponse(
-    val accountId: String,
-    val oldState: String? = null,
-    val newState: String? = null,
     val created: Map<String, MaskedEmailCreated>? = null,
     val updated: Map<String, JsonElement?>? = null,
     val destroyed: List<String>? = null,
