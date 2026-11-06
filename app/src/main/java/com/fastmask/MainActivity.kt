@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -20,7 +19,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -33,19 +31,15 @@ import androidx.navigation.compose.rememberNavController
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.share.ShareInbox
-import com.fastmask.domain.share.ShareIntentPolicy
-import com.fastmask.domain.share.ShareRequest
-import com.fastmask.domain.share.ShareRoute
-import com.fastmask.domain.share.ShareRouter
-import com.fastmask.domain.share.SharedLinkParser
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.quickmask.NotificationPermissionGate
 import com.fastmask.ui.lock.LockScreen
-import com.fastmask.ui.lock.showUnlockPrompt
+import com.fastmask.ui.lock.AppLockGate
 import com.fastmask.ui.navigation.FastMaskNavHost
 import com.fastmask.ui.navigation.NavRoutes
+import com.fastmask.ui.navigation.PendingShare
+import com.fastmask.ui.navigation.RoutePendingShare
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.update.AppUpdateController
 import com.fastmask.ui.update.AppUpdateUiState
@@ -96,41 +90,17 @@ class MainActivity : AppCompatActivity() {
             appUpdateController.onFlowResult(result.resultCode)
         }
 
-    /** Biometric app-lock gate (Pro). True = LockScreen covers all content. */
-    private val locked = mutableStateOf(false)
+    private val lockGate = AppLockGate()
+    private val pendingShare = PendingShare()
 
-    /**
-     * UI-only mirrors for LockScreen's motion; neither one opens the gate.
-     * [unlockPromptUi]: the system prompt is on screen. [unlockSucceeded]: auth
-     * passed and the success animation is playing, after which LockScreen asks
-     * for the gate to open. Re-locking (ON_STOP) clears [unlockSucceeded], so
-     * backgrounding inside that window can never open the gate afterwards.
-     */
-    private val unlockPromptUi = mutableStateOf(false)
-    private val unlockSucceeded = mutableStateOf(false)
-    private val pendingShare = mutableStateOf<ShareRequest?>(null)
-    private val shareInbox = ShareInbox()
     // Until the persisted flag has been read, the safe answer is "already
     // asked": a startup race must never spend the one system prompt.
     private var notificationPromptShown: Boolean = true
 
-    /**
-     * True once the current launch intent's share has been routed to the create
-     * screen.
-     *
-     * A configuration change re-runs [onCreate] with the SAME ACTION_SEND
-     * intent, so without this flag the share is replayed on every rotation —
-     * re-opening a create form the user had already filled in or dismissed.
-     * It is persisted in the instance state because a rotation is exactly the
-     * event that would otherwise reset it.
-     */
-    private var shareConsumed = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        shareConsumed = savedInstanceState?.getBoolean(KEY_SHARE_CONSUMED) ?: false
-        pendingShare.value = if (shareConsumed) null else shareRequestFromIntent(intent)
+        pendingShare.onCreate(intent, savedInstanceState)
 
         if (!BuildConfig.DEBUG) {
             window.setFlags(
@@ -201,20 +171,7 @@ class MainActivity : AppCompatActivity() {
                 // the welcome flow instead of stranding the splash or crashing.
                 NavRoutes.WELCOME
             }
-            // A config change (rotation) recreates the Activity mid-session;
-            // don't demand a fresh unlock when the previous instance was open.
-            // Only a bundle from THIS process may be trusted: on API < 28
-            // onSaveInstanceState runs BEFORE onStop, so a bundle persisted by a
-            // process that later died in the background carries locked=false
-            // from before the ON_STOP re-lock — restoring it would bypass the
-            // lock. A process token distinguishes rotation from process death.
-            val sameProcess =
-                savedInstanceState?.getString(KEY_PROCESS_TOKEN) == processToken
-            locked.value = if (savedInstanceState != null && sameProcess) {
-                savedInstanceState.getBoolean(KEY_LOCKED, lockAtLaunch)
-            } else {
-                lockAtLaunch
-            }
+            lockGate.restore(savedInstanceState, lockAtLaunch)
             isReady = true
 
             setContent {
@@ -228,8 +185,8 @@ class MainActivity : AppCompatActivity() {
                 // read: on a locked cold start, proStatus still holds its
                 // initial FREE for the first frames — keying the gate on it
                 // would flash the mask list before the lock lands (P0).
-                // locked.value is seeded synchronously from the cache above.
-                val isLocked = locked.value && appLockEnabled
+                // The gate is seeded synchronously from the cache above.
+                val isLocked = lockGate.locked && appLockEnabled
 
                 // Re-engage the lock whenever the app leaves the foreground.
                 // Keyed on the DataStore flag alone (not proStatus): proStatus
@@ -240,8 +197,7 @@ class MainActivity : AppCompatActivity() {
                 DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
-                            unlockSucceeded.value = false
-                            locked.value = true
+                            lockGate.relock()
                         }
                     }
                     lifecycle.addObserver(observer)
@@ -275,56 +231,18 @@ class MainActivity : AppCompatActivity() {
                             // Content behind the gate is not composed at all.
                             LockScreen(
                                 onUnlockClick = ::requestUnlock,
-                                promptActive = unlockPromptUi.value,
-                                unlocked = unlockSucceeded.value,
-                                onUnlockedAnimationFinished = {
-                                    // Guarded: a re-lock during the animation cleared the flag.
-                                    if (unlockSucceeded.value) {
-                                        unlockSucceeded.value = false
-                                        locked.value = false
-                                    }
-                                },
+                                promptActive = lockGate.promptShowing,
+                                unlocked = lockGate.unlocked,
+                                onUnlockedAnimationFinished = lockGate::onUnlockAnimationFinished,
                             )
                             LaunchedEffect(Unit) { requestUnlock() }
                         } else {
-                            // This must stay INSIDE the unlocked branch: a pending share waits behind
-                            // the biometric gate (ShareRoute.WaitForUnlock) until content is allowed to
-                            // compose. A share must never become a way past the app lock, and
-                            // ShareRouter.consumes() refuses to clear a share that is still waiting.
-                            LaunchedEffect(pendingShare.value, signedIn, isLocked) {
-                                val route = ShareRouter.route(
-                                    request = pendingShare.value,
-                                    signedIn = signedIn,
-                                    locked = isLocked,
-                                )
-                                when (route) {
-                                    is ShareRoute.OpenCreate ->
-                                        navController.navigate(NavRoutes.createEmail(route.prefill)) {
-                                            launchSingleTop = true
-                                        }
-                                    // Dropped, but never in silence: the create form cannot be
-                                    // submitted without a session, and holding the text across an
-                                    // external OAuth round-trip (and a possible process death) to
-                                    // replay it minutes later is a surprise the user cannot connect
-                                    // to anything they did. A Toast rather than a Snackbar because
-                                    // MainActivity has no Scaffold/SnackbarHost and this lands on the
-                                    // welcome screen, where there is nothing to obscure; adding a host
-                                    // around the NavHost would be an out-of-scope change to an
-                                    // edge-to-edge layout.
-                                    ShareRoute.RejectSignedOut ->
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            R.string.share_requires_sign_in,
-                                            Toast.LENGTH_LONG,
-                                        ).show()
-                                    ShareRoute.WaitForUnlock -> Unit
-                                    ShareRoute.Idle -> Unit
-                                }
-                                if (ShareRouter.consumes(route)) {
-                                    shareConsumed = true
-                                    pendingShare.value = null
-                                }
-                            }
+                            RoutePendingShare(
+                                pending = pendingShare,
+                                signedIn = signedIn,
+                                locked = isLocked,
+                                navController = navController,
+                            )
                             FastMaskNavHost(
                                 navController = navController,
                                 startDestination = startDestination
@@ -352,52 +270,16 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // Only a genuinely new share re-arms the flag; an unrelated intent must
-        // not resurrect one that was already routed.
-        val share = shareRequestFromIntent(intent) ?: return
-        shareConsumed = false
-        pendingShare.value = share
+        pendingShare.onNewIntent(intent)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_LOCKED, locked.value)
-        outState.putString(KEY_PROCESS_TOKEN, processToken)
-        outState.putBoolean(KEY_SHARE_CONSUMED, shareConsumed)
+        lockGate.save(outState)
+        pendingShare.save(outState)
     }
 
-    /**
-     * True while a system unlock prompt is on screen.
-     *
-     * Two paths ask for one: the [LaunchedEffect] that fires when the gate
-     * appears, and the LockScreen button. Without the guard a tap landing while
-     * the automatic prompt was already up called `authenticate()` twice, which
-     * cancels the first prompt.
-     *
-     * Released by `onFinished` on EVERY terminal outcome — including a cancel
-     * or a lockout — so the retry button can never be left dead. That is the
-     * whole risk in this guard, and it is why the release is not conditional.
-     */
-    private var unlockPromptShowing = false
-
-    private fun requestUnlock() {
-        if (unlockPromptShowing) return
-        unlockPromptShowing = true
-        unlockPromptUi.value = true
-        showUnlockPrompt(
-            activity = this,
-            title = getString(R.string.app_lock_prompt_title),
-            // The gate opens from LockScreen once its success animation is done.
-            onSuccess = { unlockSucceeded.value = true },
-            // Device can no longer authenticate at all (screen lock removed) —
-            // unlock rather than brick; equivalent to a device without a lock.
-            onUnavailable = { locked.value = false },
-            onFinished = {
-                unlockPromptShowing = false
-                unlockPromptUi.value = false
-            },
-        )
-    }
+    private fun requestUnlock() = lockGate.requestUnlock(this, getString(R.string.app_lock_prompt_title))
 
     /**
      * Asks for POST_NOTIFICATIONS off a stream of session snapshots, not one
@@ -441,28 +323,4 @@ class MainActivity : AppCompatActivity() {
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 
-    private fun shareRequestFromIntent(intent: Intent?): ShareRequest? {
-        // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
-        // and a Spanned from the sending app makes getStringExtra return null.
-        // The type/length rules live in ShareIntentPolicy, where they are tested.
-        val sharedText: String = ShareIntentPolicy.sharedText(
-            action = intent?.action,
-            type = intent?.type,
-            text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
-        ) ?: return null
-        return shareInbox.offer(prefill = SharedLinkParser.parse(sharedText))
-    }
-
-    private companion object {
-        const val KEY_LOCKED = "fastmask_locked"
-        const val KEY_PROCESS_TOKEN = "fastmask_process_token"
-        const val KEY_SHARE_CONSUMED = "fastmask_share_consumed"
-
-        /**
-         * Identifies this OS process. A saved-instance bundle whose token does
-         * not match was written by a previous process (background process
-         * death) — its lock flag is stale and must not be trusted.
-         */
-        val processToken: String = java.util.UUID.randomUUID().toString()
-    }
 }
