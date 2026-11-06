@@ -4,6 +4,7 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.AppLockSetting
+import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
 import javax.inject.Inject
 
@@ -42,8 +43,7 @@ sealed interface QuickMaskResult {
 class QuickMaskCreator @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val appLockSetting: AppLockSetting,
-    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
-    private val destroyMaskedEmailUseCase: DestroyMaskedEmailUseCase,
+    private val maskedEmailRepository: MaskedEmailRepository,
 ) {
 
     /** Runs the gates, then creates one ENABLED mask with no prefix. */
@@ -65,7 +65,7 @@ class QuickMaskCreator @Inject constructor(
             state = EmailState.ENABLED,
             emailPrefix = null,
         )
-        return createMaskedEmailUseCase(params).fold(
+        return maskedEmailRepository.createMaskedEmail(params).fold(
             onSuccess = { mask ->
                 QuickMaskResult.Created(id = mask.id, email = mask.email)
             },
@@ -81,5 +81,5 @@ class QuickMaskCreator @Inject constructor(
      * back means "remove it", not "archive it" — the opposite of what the
      * detail screen's Archive button promises.
      */
-    suspend fun undo(id: String): Boolean = destroyMaskedEmailUseCase(id).isSuccess
+    suspend fun undo(id: String): Boolean = maskedEmailRepository.destroyMaskedEmail(id).isSuccess
 }

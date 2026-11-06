@@ -1,20 +1,9 @@
-package com.fastmask.domain.usecase
-
-import com.fastmask.domain.model.MaskedEmail
-import com.fastmask.domain.repository.MaskedEmailRepository
-import javax.inject.Inject
+package com.fastmask.domain.model
 
 /**
- * Builds a CSV snapshot of all masks (Pro feature). Pure string output — file
+ * Builds a CSV snapshot of masks (Pro feature). Pure string output — file
  * writing and the share sheet are UI-layer concerns.
  */
-class ExportMasksUseCase @Inject constructor(
-    private val repository: MaskedEmailRepository,
-) {
-    suspend operator fun invoke(): Result<String> =
-        repository.getMaskedEmails().map { masks -> MaskCsv.build(masks) }
-}
-
 object MaskCsv {
 
     private val HEADER = listOf(

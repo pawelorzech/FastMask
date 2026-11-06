@@ -7,10 +7,7 @@ import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
-import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailUseCase
-import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
+import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.core.ApplicationScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,10 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MaskedEmailDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getMaskedEmailUseCase: GetMaskedEmailUseCase,
-    private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
-    private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
-    private val archiveMaskedEmailUseCase: ArchiveMaskedEmailUseCase,
+    private val maskedEmailRepository: MaskedEmailRepository,
     @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
@@ -109,7 +103,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     seedFromCache(resetEdits)
                 }
 
-                getMaskedEmailUseCase(emailId).fold(
+                maskedEmailRepository.getMaskedEmail(emailId).fold(
                     onSuccess = { email ->
                         if (email != null) {
                             applyLoadedEmail(email, resetEdits)
@@ -149,7 +143,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     private suspend fun seedFromCache(resetEdits: Boolean) {
-        val cached = getCachedMaskedEmailsUseCase()?.masks?.find { it.id == emailId } ?: return
+        val cached = maskedEmailRepository.cachedMaskedEmails()?.masks?.find { it.id == emailId } ?: return
         // The fresh fetch may have landed while the cache was being decrypted.
         if (_uiState.value.email != null) return
         applyLoadedEmail(cached, resetEdits)
@@ -199,7 +193,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
             // mid-request must not cancel a change the server may already have
             // applied, leaving the UI and the account disagreeing.
             appScope.async {
-                updateMaskedEmailUseCase(emailId, UpdateMaskedEmailParams(state = newState))
+                maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState))
             }.await().fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
@@ -226,7 +220,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
         viewModelScope.launch {
 
-            appScope.async { updateMaskedEmailUseCase(emailId, params) }.await().fold(
+            appScope.async { maskedEmailRepository.updateMaskedEmail(emailId, params) }.await().fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
@@ -252,7 +246,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
             // The archive in particular: cancelling it after the server acted
             // meant the mask was archived but the Deleted event never fired, so
             // the list showed no Undo snackbar for a change that had happened.
-            appScope.async { archiveMaskedEmailUseCase(emailId) }.await().fold(
+            appScope.async { maskedEmailRepository.archiveMaskedEmail(emailId) }.await().fold(
                 onSuccess = {
                     // Carry the pre-archive state so the list's Undo can put
                     // the mask back EXACTLY as it was — a DISABLED mask must

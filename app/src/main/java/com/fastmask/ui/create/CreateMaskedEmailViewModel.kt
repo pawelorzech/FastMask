@@ -5,8 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.MaskPrefix
 import com.fastmask.domain.share.SharePrefill
-import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
+import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.core.ApplicationScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateMaskedEmailViewModel @Inject constructor(
-    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
+    private val maskedEmailRepository: MaskedEmailRepository,
     @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
@@ -67,13 +68,12 @@ class CreateMaskedEmailViewModel @Inject constructor(
         // user under a fully-translated form (isLetterOrDigit() lets through
         // Unicode letters/digits the ASCII check below then rejects, so both
         // branches are reachable).
-        val errorRes = when {
-            sanitized.length > 64 -> R.string.create_email_error_prefix_length
-            sanitized.isNotEmpty() && !sanitized.all { it in 'a'..'z' || it in '0'..'9' || it == '_' } ->
-                R.string.create_email_error_prefix_chars
-            else -> null
+        val errorRes = when (MaskPrefix.validate(sanitized)) {
+            MaskPrefix.Error.TOO_LONG -> R.string.create_email_error_prefix_length
+            MaskPrefix.Error.INVALID_CHARS -> R.string.create_email_error_prefix_chars
+            null -> null
         }
-        _uiState.update { it.copy(emailPrefix = sanitized.take(64), prefixErrorRes = errorRes) }
+        _uiState.update { it.copy(emailPrefix = sanitized.take(MaskPrefix.MAX_LENGTH), prefixErrorRes = errorRes) }
     }
 
     fun onDomainChange(domain: String) {
@@ -119,7 +119,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
             // exist on the account with nobody ever seeing its address, which is
             // the worst outcome this screen has: an orphan the user cannot use
             // and did not knowingly create.
-            appScope.async { createMaskedEmailUseCase(params) }.await().fold(
+            appScope.async { maskedEmailRepository.createMaskedEmail(params) }.await().fold(
                 onSuccess = { email ->
                     _uiState.update { it.copy(isLoading = false) }
                     _events.send(CreateMaskedEmailEvent.Created(email.email))

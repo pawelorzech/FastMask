@@ -43,8 +43,7 @@ class QuickMaskCreatorTest {
     ) = QuickMaskCreator(
         sessionRepository = FakeSessionRepository(initial = session),
         appLockSetting = lock,
-        createMaskedEmailUseCase = CreateMaskedEmailUseCase(repo),
-        destroyMaskedEmailUseCase = DestroyMaskedEmailUseCase(repo),
+        maskedEmailRepository = repo,
     )
 
     // --- gates: nothing may be created behind them --------------------------

@@ -8,7 +8,6 @@ import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.ProStatus
-import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.domain.usecase.SetLanguageUseCase
@@ -89,7 +88,7 @@ class SettingsViewModelTest {
             sessionRepository = FakeSessionRepository(),
             settingsDataStore = settingsDataStore,
             proRepository = proRepository,
-            exportMasksUseCase = ExportMasksUseCase(maskRepository),
+            maskedEmailRepository = maskRepository,
             exportCache = exportCache,
             ioDispatcher = mainDispatcherRule.dispatcher,
             analytics = analytics,

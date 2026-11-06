@@ -1,4 +1,4 @@
-package com.fastmask.domain.usecase
+package com.fastmask.domain.model
 
 import com.fastmask.domain.model.EmailState
 import com.fastmask.testutil.mask

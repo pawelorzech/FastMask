@@ -10,10 +10,7 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.SessionRepository
-import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
-import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
+import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.core.ApplicationScope
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,12 +32,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MaskedEmailListViewModel @Inject constructor(
-    private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
-    private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
-    private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
+    private val maskedEmailRepository: MaskedEmailRepository,
     private val sessionRepository: SessionRepository,
     @ApplicationScope private val appScope: CoroutineScope,
-    private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
 ) : ViewModel() {
 
     // One-shot results of the FAB menu's "Random mask". Channel-backed so an
@@ -60,7 +54,7 @@ class MaskedEmailListViewModel @Inject constructor(
         _uiState.update { it.copy(isCreatingRandom = true) }
         viewModelScope.launch {
             appScope.async {
-                createMaskedEmailUseCase(CreateMaskedEmailParams())
+                maskedEmailRepository.createMaskedEmail(CreateMaskedEmailParams())
             }.await().fold(
                 onSuccess = { created ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
@@ -117,7 +111,7 @@ class MaskedEmailListViewModel @Inject constructor(
             // to say so. If the request had already reached Fastmail, the mask
             // came back on the account while the list never reloaded.
             appScope.async {
-                updateMaskedEmailUseCase(id, UpdateMaskedEmailParams(state = restoreTo))
+                maskedEmailRepository.updateMaskedEmail(id, UpdateMaskedEmailParams(state = restoreTo))
             }.await()
                 .onSuccess { loadMaskedEmails() }
                 .onFailure { error ->
@@ -191,7 +185,7 @@ class MaskedEmailListViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                getMaskedEmailsUseCase().fold(
+                maskedEmailRepository.getMaskedEmails().fold(
                     onSuccess = { emails ->
                         val sortedEmails = emails.sortedByDescending { email ->
                             email.lastMessageAt ?: email.createdAt
@@ -220,7 +214,7 @@ class MaskedEmailListViewModel @Inject constructor(
                         // read back an address they already created, and that
                         // should not require a connection.
                         val cached = if (_uiState.value.emails.isEmpty()) {
-                            getCachedMaskedEmailsUseCase()
+                            maskedEmailRepository.cachedMaskedEmails()
                         } else {
                             null
                         }

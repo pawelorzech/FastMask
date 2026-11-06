@@ -7,10 +7,6 @@ import com.fastmask.domain.model.Session
 import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
-import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
@@ -37,12 +33,9 @@ class MaskedEmailListViewModelTest {
         appScope: CoroutineScope = CoroutineScope(mainDispatcherRule.dispatcher),
     ) =
         MaskedEmailListViewModel(
-            GetMaskedEmailsUseCase(repo),
-            GetCachedMaskedEmailsUseCase(repo),
-            UpdateMaskedEmailUseCase(repo),
+            repo,
             session,
             appScope,
-            CreateMaskedEmailUseCase(repo),
         )
 
     private val t1: Instant = Instant.parse("2026-01-01T10:00:00Z")

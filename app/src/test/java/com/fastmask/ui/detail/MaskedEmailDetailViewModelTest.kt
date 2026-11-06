@@ -8,10 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CompletableDeferred
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.usecase.ArchiveMaskedEmailUseCase
-import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
-import com.fastmask.domain.usecase.GetMaskedEmailUseCase
-import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
@@ -33,10 +29,7 @@ class MaskedEmailDetailViewModelTest {
     private fun vm(repo: FakeMaskedEmailRepository, emailId: String = "m1") =
         MaskedEmailDetailViewModel(
             savedStateHandle = SavedStateHandle(mapOf("emailId" to emailId)),
-            getMaskedEmailUseCase = GetMaskedEmailUseCase(repo),
-            getCachedMaskedEmailsUseCase = GetCachedMaskedEmailsUseCase(repo),
-            updateMaskedEmailUseCase = UpdateMaskedEmailUseCase(repo),
-            archiveMaskedEmailUseCase = ArchiveMaskedEmailUseCase(repo),
+            maskedEmailRepository = repo,
             // Shares the rule's scheduler so application-scoped mutations still
             // advance under runTest's virtual time.
             appScope = CoroutineScope(mainDispatcherRule.dispatcher),

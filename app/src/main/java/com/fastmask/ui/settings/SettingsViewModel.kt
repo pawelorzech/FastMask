@@ -11,10 +11,11 @@ import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
+import com.fastmask.domain.model.MaskCsv
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
-import com.fastmask.domain.usecase.ExportMasksUseCase
+import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.usecase.SetLanguageUseCase
@@ -44,7 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
-    private val exportMasksUseCase: ExportMasksUseCase,
+    private val maskedEmailRepository: MaskedEmailRepository,
     // The injected singleton, deliberately: the screen used to construct its own
     // `ExportCache(context)`, which was harmless while the class was a stateless
     // wrapper over cacheDir/exports but is not any more — the sign-out guard is
@@ -226,7 +227,8 @@ class SettingsViewModel @Inject constructor(
             // must not reach the disk at all. Ageing it out an hour later is the
             // wrong remedy for a file that should never have been written.
             val generation = exportCache.currentGeneration()
-            exportMasksUseCase()
+            maskedEmailRepository.getMaskedEmails()
+                .map { masks -> MaskCsv.build(masks) }
                 .onSuccess { csv ->
                     // Writing moved off the composable and onto the injected
                     // singleton, so the guard and the sign-out cleanup act on

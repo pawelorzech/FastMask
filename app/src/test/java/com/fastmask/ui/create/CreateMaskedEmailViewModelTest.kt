@@ -4,7 +4,6 @@ package com.fastmask.ui.create
 
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
-import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -28,7 +27,7 @@ class CreateMaskedEmailViewModelTest {
     private fun appScope() = CoroutineScope(mainDispatcherRule.dispatcher)
 
     private fun vm(repo: FakeMaskedEmailRepository) =
-        CreateMaskedEmailViewModel(CreateMaskedEmailUseCase(repo), appScope())
+        CreateMaskedEmailViewModel(repo, appScope())
 
     // --- double-tap guard (regression: duplicate masks created) ------------
 
