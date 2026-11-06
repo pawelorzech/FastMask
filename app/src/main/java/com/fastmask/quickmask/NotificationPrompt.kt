@@ -12,15 +12,11 @@ import kotlinx.coroutines.launch
  * [QuickMaskPolicy.shouldRequestNotificationPermission] is the pure predicate
  * ("does this snapshot warrant the prompt?"). It cannot answer "has this
  * process already asked?", because the persisted flag is written asynchronously
- * and a second snapshot can arrive before that write lands. MainActivity used
- * to evaluate the predicate exactly once, in `onCreate`, off the START
- * DESTINATION — so a user who launched signed out and signed in during the same
- * session (welcome → login → list) was never asked, and never saw the
- * quick-create confirmation that carries the only "Undo" action.
- *
- * So this is fed every session-state change and decides each time. It owes the
- * caller exactly one `true` per process, and none in later processes once the
- * ask has been persisted. The caller only launches the system request.
+ * and a second snapshot can arrive before that write lands. So this is fed every
+ * session-state change and decides each time (a user who signs in without
+ * leaving the process must still be asked). It owes the caller exactly one
+ * `true` per process, and none in later processes once the ask has been
+ * persisted. The caller only launches the system request.
  *
  * @param scope where the flag is persisted; it only has to outlive the ask
  *   itself, so the Activity's lifecycle scope is enough.

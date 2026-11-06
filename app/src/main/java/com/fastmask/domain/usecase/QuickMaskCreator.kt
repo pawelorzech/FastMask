@@ -53,10 +53,8 @@ class QuickMaskCreator @Inject constructor(
             Session.DEMO -> return QuickMaskResult.DemoMode
             Session.ACCOUNT -> Unit
         }
-        // The preference alone arms the lock — see MainActivity's gate. Pairing
-        // it with the entitlement here let the tile mint a mask straight to the
-        // clipboard on a device whose owner had switched the lock on and whose
-        // Pro had since lapsed.
+        // The preference alone arms the lock, as in MainActivity's gate: a lapsed
+        // Pro must not let the tile bypass a lock the owner switched on.
         if (appLockSetting.isAppLockEnabled()) {
             return QuickMaskResult.LockRequired
         }

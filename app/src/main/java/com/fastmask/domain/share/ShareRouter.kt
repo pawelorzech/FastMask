@@ -5,12 +5,9 @@ import java.util.concurrent.atomic.AtomicLong
 /**
  * One delivery of shared text into FastMask.
  *
- * [deliveryId] exists because the routing state used to be held in a Compose
- * `mutableStateOf`, whose default `structuralEqualityPolicy()` treats an equal
- * value as "no change". A data class carrying only [prefill] therefore made the
- * SECOND share of the same link a no-op: the state never reported a change, so
- * the effect that navigates never re-ran. A monotonically increasing id makes
- * every delivery structurally distinct, whatever the payload.
+ * [deliveryId] makes every delivery structurally distinct: Compose
+ * `mutableStateOf` treats an equal value as "no change", so without it a second
+ * share of the same link would not re-run the navigating effect.
  *
  * @param prefill parsed link, or null when the shared text carried none — that
  *   is still a share, and it opens an EMPTY create form.
@@ -24,9 +21,8 @@ data class ShareRequest(
 /**
  * What the app should do with a [ShareRequest].
  *
- * Every branch is explicit because the bug being fixed was a silent one: a
- * share that matched no condition fell through to "clear it and say nothing",
- * so the user saw the app come to the front unchanged and assumed a mis-tap.
+ * Every branch is explicit: a share must never fall through to "clear it and
+ * say nothing".
  */
 sealed interface ShareRoute {
 
@@ -71,12 +67,8 @@ class ShareInbox {
 /**
  * The share routing decision, free of Android and Compose types.
  *
- * Pulled out of `MainActivity` because the decision there was keyed on
- * `startDestination` — the destination computed ONCE in `onCreate`. A process
- * that started signed out (start destination `WELCOME`) and signed in without
- * leaving kept that value for its whole life, so every later share was dropped
- * in silence. The routing input is the LIVE session state, and nothing here
- * knows that a "start destination" exists.
+ * The routing input is the LIVE session state, never a launch-time start
+ * destination.
  */
 object ShareRouter {
 

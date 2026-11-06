@@ -7,20 +7,13 @@ plugins {
 }
 
 // `google-services.json` is deliberately NOT in the repository (see .gitignore),
-// so applying the Firebase plugins unconditionally made a clean clone unbuildable:
-// `processDebugGoogleServices` fails with "File google-services.json is missing"
-// before a line of Kotlin is compiled — including for the exact `./gradlew
-// assembleDebug` the README, CLAUDE.md and AGENTS.md tell contributors to run.
-//
-// Applying them only when the config is present keeps the maintainer's builds
-// (and every release) fully instrumented, while a contributor without the file
-// gets a working app with crash reporting inert. That degradation is safe by
-// construction, not by luck: `FirebaseCrashlyticsReporter` resolves the SDK
-// handle lazily per call, and `CrashReporting.applyAtStartup` already catches the
-// `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when
-// no default `FirebaseApp` exists — the path OEM ROMs without content providers
-// already take. `CrashReporting.setEnabled` wraps its call in
-// `runCatching` for the same reason.
+// and `processDebugGoogleServices` fails without it, so the Firebase plugins are
+// applied only when the config is present. A contributor without the file gets a
+// working app with crash reporting inert, which is safe by construction:
+// `FirebaseCrashlyticsReporter` resolves the SDK handle lazily per call, and
+// `CrashReporting.applyAtStartup` / `setEnabled` catch the
+// `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when no
+// default `FirebaseApp` exists.
 val hasFirebaseConfig = file("google-services.json").exists()
 if (hasFirebaseConfig) {
     apply(plugin = "com.google.gms.google-services")
@@ -33,11 +26,9 @@ if (hasFirebaseConfig) {
     )
 }
 
-// Play licence key and release keystore are looked up ONCE and reused by
-// defaultConfig, signingConfigs, buildTypes and the release guard below, so a
-// renamed property cannot leave one of them reading something different.
-// Both come from the environment first, then from a Gradle property
-// (e.g. ~/.gradle/gradle.properties), and are never in the repository.
+// Play licence key and release keystore come from the environment first, then
+// from a Gradle property (e.g. ~/.gradle/gradle.properties), and are never in
+// the repository.
 val playLicenseKey: String? = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
     ?: (project.findProperty("fastmask.playLicenseKey") as String?)
 val releaseKeystorePath: String? = System.getenv("FASTMASK_KEYSTORE")
@@ -223,9 +214,6 @@ dependencies {
     implementation("com.google.android.play:app-update:2.1.0")
 
     // Security for encrypted storage
-    // 1.1.0 stable (same API line as the previously pinned 1.1.0-alpha06 —
-    // TokenStorage's MasterKey.Builder API is unchanged). Closes the alpha-pin
-    // trade-off documented in Plans/security-audit-report.md F-05.
     implementation("androidx.security:security-crypto:1.1.0")
 
     // DataStore

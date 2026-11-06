@@ -41,25 +41,17 @@ class QuickMaskRunner @Inject constructor(
     @ApplicationContext private val context: Context,
     private val quickMaskCreator: QuickMaskCreator,
     private val notifier: QuickMaskNotifier,
-    /**
-     * Injected so the create and undo guards can be tested deterministically.
-     * With `Dispatchers.IO` hardcoded there is nothing a test can advance, so
-     * assertions raced the real thread pool and the double-tap behaviour this
-     * class exists to enforce could not be pinned down at all.
-     */
+    /** Injected so the create and undo guards can be tested deterministically. */
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
 
     /**
-     * Last line of defence for this scope.
-     *
-     * Without a handler, a throwable escaping one of these coroutines reaches
-     * the default handler and takes the PROCESS down — triggered from a tile
-     * tap or a notification button, i.e. from outside the app's own UI, where
-     * the user has no idea what crashed. The realistic sources are the hand-off
-     * to the app (`startActivityAndCollapse` throws once the tile has left its
-     * click window; a background activity launch can be refused) and whatever
-     * the storage layer throws before `create()`'s own runCatching is reached.
+     * Last line of defence: a throwable escaping these coroutines would take the
+     * PROCESS down, and they are triggered from a tile tap or notification button,
+     * outside the app's own UI. Realistic sources are the hand-off to the app
+     * (`startActivityAndCollapse` throws once the tile has left its click window;
+     * a background activity launch can be refused) and storage errors thrown
+     * before `create()`'s own runCatching.
      */
     private val crashGuard = CoroutineExceptionHandler { _, throwable ->
         Log.w(TAG, "quick mask work failed", throwable)
@@ -72,17 +64,9 @@ class QuickMaskRunner @Inject constructor(
         CoroutineScope(SupervisorJob() + dispatcher + crashGuard)
 
     /**
-     * True from the moment a create is accepted until it settles.
-     *
-     * Every ViewModel that can mint a mask sets an in-flight flag synchronously
-     * before launching, "against rapid double-tap… two taps in one frame would
-     * otherwise both land here and create two real masks on the Fastmail
-     * account" (CreateMaskedEmailViewModel). This entry point had no such
-     * guard, and it is the easiest one to hit twice: a Quick Settings tile
-     * gives no feedback until the notification arrives a network round-trip
-     * later, so three impatient taps meant three real masks — with one
-     * notification, because they share a notification id, so only the last was
-     * undoable and only the last reached the clipboard.
+     * True from the moment a create is accepted until it settles. A Quick Settings
+     * tile gives no feedback until the notification arrives, so impatient taps
+     * would otherwise create several real masks that share one notification.
      *
      * compareAndSet, not a plain Boolean: tile clicks and notification actions
      * arrive on the main thread, but the release happens on Dispatchers.IO.
@@ -90,26 +74,14 @@ class QuickMaskRunner @Inject constructor(
     private val createInFlight = AtomicBoolean(false)
 
     /**
-     * Ids whose undo has already been accepted.
+     * Ids whose undo has already been accepted. The notification's Undo button
+     * stays on screen for tens of milliseconds after the first tap, so two
+     * broadcasts would run `destroy` twice for one id; the second comes back
+     * `notFound`, is reported as a failure and overwrites the truthful "Undone".
      *
-     * `launchCreate` got a double-tap guard in a previous audit; undo did not,
-     * and it is reachable the same way. `notifier.cancel` runs inside the
-     * coroutine on Dispatchers.IO, so the notification's Undo button is still on
-     * screen for tens of milliseconds after the first tap. Two broadcasts meant
-     * two `destroy` calls for one id: the first succeeded, the second came back
-     * `notFound` — which `JmapApi` reports as a failure — and the resulting
-     * "Undo failed" overwrote the truthful "Undone" in the same notification
-     * slot. The user was told the mask was still on their account when it was
-     * already gone, which is the more dangerous of the two possible lies.
-     *
-     * A map rather than a single flag: two different masks can legitimately be
-     * undone in sequence, and each id needs its own answer.
-     *
-     * Bounded on purpose: this singleton lives for the whole process and a
-     * successful undo latched its id forever, so the set grew without limit.
-     * An insertion-ordered LRU keeps exactly the same guarantee for any id a
-     * live notification can still reference while never holding more than
-     * [UNDONE_LATCH_LIMIT] entries.
+     * A map rather than a single flag: different masks can be undone in sequence.
+     * Bounded (insertion-ordered LRU of [UNDONE_LATCH_LIMIT]) because this
+     * singleton lives for the whole process.
      */
     private val undoneLock = Any()
     private val undoneIds = LinkedHashMap<String, Unit>(64)

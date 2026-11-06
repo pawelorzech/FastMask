@@ -23,10 +23,7 @@ class AppUpdatePreferences @Inject constructor(@ApplicationContext context: Cont
 
     /**
      * The versionCode of the flexible update the user declined, or [AppUpdatePolicy.NO_VERSION].
-     *
-     * Storing the version rather than a flag is what keeps a refusal narrow: it silences exactly
-     * the release that was turned down, and the next one asks again. A boolean would have meant
-     * one "not now" opting the user out of every future update.
+     * A version rather than a flag, so one "not now" silences only that release.
      */
     var dismissedVersionCode: Int
         get() = prefs.getInt(KEY_DISMISSED_VERSION, AppUpdatePolicy.NO_VERSION)

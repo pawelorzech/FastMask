@@ -22,18 +22,12 @@ import javax.inject.Singleton
 /**
  * In-memory implementation of [MaskedEmailRepository] used in demo mode.
  *
- * Backed by a [MutableStateFlow] of [MaskedEmail]. CRUD operations mutate this list and
- * return a snapshot. No persistence — state survives only for the lifetime of the
- * application process, which is intentional: leaving demo mode (logout / "Sign in")
- * should always come back to the same pristine seed list.
+ * State lives only for the process; leaving demo mode and entering it again
+ * always restarts from the same seed list.
  *
- * [archiveMaskedEmail] flips state to [EmailState.DELETED] rather than removing the
- * entry, so the "Archived" filter chip has content to show. Until audit 2026-07-27 this
- * was the ONLY implementation with those semantics: the real repository sent JMAP
- * `destroy` from the same use case, and the instrumented test covering "the highest-risk
- * path in the app" ran here — so it verified the reversible behaviour the UI promises
- * against a repository users never archive with. [destroyMaskedEmail] now models the
- * irreversible half honestly, by dropping the entry.
+ * [archiveMaskedEmail] flips state to [EmailState.DELETED] (reversible, shown under
+ * the "Archived" filter), while [destroyMaskedEmail] drops the entry (irreversible),
+ * as the real repository does.
  */
 @Singleton
 class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository {
@@ -43,12 +37,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val changes: Flow<Unit> = _changes.asSharedFlow()
 
-    /**
-     * Entering demo mode starts from the seed list again. Without this the
-     * singleton kept the previous demo's edits for the whole process lifetime,
-     * so "Try demo" after a sign-out reopened a half-used demo — contradicting
-     * the contract described above.
-     */
+    /** Entering demo mode starts from the seed list again. */
     fun reset() {
         state.value = INITIAL_DEMO_MASKS
     }

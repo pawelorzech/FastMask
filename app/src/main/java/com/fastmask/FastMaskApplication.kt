@@ -49,11 +49,9 @@ class FastMaskApplication : Application() {
     }
 
     /**
-     * The CSV export is the only copy of the user's full mask list that sits on
-     * disk unencrypted, and it is supposed to age out after an hour. That
-     * ageing used to happen only inside [ExportCache.write], so for anyone who
-     * exported once and never again it never happened at all. A cold start is
-     * an independent trigger that costs one directory listing.
+     * The CSV export is the only unencrypted copy of the user's full mask list on
+     * disk and must age out after an hour; a cold start is an independent trigger
+     * that costs one directory listing.
      */
     private fun pruneExpiredExports() {
         startupScope.launch {

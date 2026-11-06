@@ -50,8 +50,6 @@ class ProRepositoryImpl @Inject constructor(
     private val _proStatus = MutableStateFlow(ProStatus.FREE)
     override val proStatus: StateFlow<ProStatus> = _proStatus.asStateFlow()
 
-    // Channel-backed one-time events — same pattern as the ViewModels: buffered
-    // delivery survives collector gaps (rotation) and each event fires once.
     private val _events = Channel<ProPurchaseEvent>(Channel.BUFFERED)
     override val events: Flow<ProPurchaseEvent> = _events.receiveAsFlow()
 
@@ -226,22 +224,17 @@ class ProRepositoryImpl @Inject constructor(
         }
 
         // Persist when the status moved, and also when it held at PRO across a
-        // DIFFERENT purchase token (a re-purchase after a refund). The stored
-        // proof digest is derived from that token, so skipping the write left
-        // it pointing at a purchase the account no longer holds. Guarding on
-        // the token as well keeps the common case — an unchanged entitlement
-        // reconciled on every resume — free of DataStore writes.
+        // DIFFERENT purchase token (a re-purchase after a refund): the stored
+        // proof digest derives from the token. Keeps an unchanged entitlement
+        // free of DataStore writes.
         val token = proPurchase?.purchaseToken
         if (newStatus != previous || token != lastPersistedToken) {
             _proStatus.value = newStatus
-            // The in-memory status is what gates Pro features this session, and
-            // it is already set. Persisting is a cache write for the NEXT cold
-            // start, so a storage failure must not propagate: `refresh()` is
-            // called from a bare `lifecycleScope.launch` in MainActivity, where
-            // a throwable reaches the uncaught handler and takes the process
-            // down. `lastPersistedToken` is only advanced on a successful write,
-            // so a failure retries on the next reconciliation instead of being
-            // silently recorded as done.
+            // The in-memory status already gates Pro this session; persisting is
+            // a cache write for the NEXT cold start, so a storage failure must not
+            // propagate (`refresh()` runs in a bare `lifecycleScope.launch`, where
+            // a throwable kills the process). `lastPersistedToken` advances only
+            // on a successful write, so a failure retries.
             runSuspendCatching {
                 store.write(newStatus, token)
                 lastPersistedToken = token

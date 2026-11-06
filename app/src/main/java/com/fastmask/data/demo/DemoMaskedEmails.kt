@@ -8,10 +8,7 @@ import java.time.Instant
 /**
  * Static seed data used by the in-memory demo repository.
  *
- * The list is anchored to a fixed "today" reference [DEMO_NOW] so screenshots and demo
- * walkthroughs render identically regardless of wall-clock time. Each entry covers a
- * different state / domain / recency bucket so the list, detail, filter, and search
- * surfaces all have realistic content to display.
+ * Anchored to a fixed "today" ([DEMO_NOW]) so screenshots and walkthroughs render identically at any time.
  */
 internal val DEMO_NOW: Instant = Instant.parse("2026-05-13T10:00:00Z")
 

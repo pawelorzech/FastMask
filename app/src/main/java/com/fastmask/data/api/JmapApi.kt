@@ -67,13 +67,12 @@ class JmapApi @Inject constructor(
             "Untrusted apiUrl in session response"
         }
         val accountId = MaskedEmailScope.accountId(session)
-            ?: throw MaskedEmailScopeMissingException() // Mail-only tokens used to borrow another account id and fail much later with an opaque masked-email error.
+            ?: throw MaskedEmailScopeMissingException()
         return CachedSession(token, accountId, session).also { cached = it }
     }
 
     private suspend fun ensureSession(token: String): CachedSession {
         cached?.takeIf { it.token == token }?.let { return it }
-        // Mutex so concurrent first calls fetch the session once instead of racing.
         sessionMutex.withLock {
             cached?.takeIf { it.token == token }?.let { return it }
             return loadSession(token)
@@ -85,13 +84,9 @@ class JmapApi @Inject constructor(
     }
 
     /**
-     * One mask by id — the same JMAP `MaskedEmail/get` restricted with `ids`.
-     *
-     * The detail screen used to satisfy every open (and every post-edit
-     * reload) with a full account fetch; on large accounts that turned "peek
-     * at one address" into the most expensive read in the app. Returns null
-     * when the server does not know the id (deleted elsewhere / bad deep link)
-     * so callers can distinguish "absent" from "network failed".
+     * One mask by id (`MaskedEmail/get` restricted with `ids`). Returns null
+     * when the server does not know the id, so callers can distinguish
+     * "absent" from "network failed".
      */
     suspend fun getMaskedEmail(token: String, id: String): Result<MaskedEmailDto?> =
         remote {
@@ -167,7 +162,6 @@ class JmapApi @Inject constructor(
             throw jmapSetException("Failed to update", error)
         }
 
-        // Verify the update actually succeeded
         if (response.updated?.containsKey(id) != true) {
             throw JmapException("Update not confirmed by server - ID not found in updated response")
         }
@@ -182,9 +176,7 @@ class JmapApi @Inject constructor(
             throw jmapSetException("Failed to delete", error)
         }
 
-        // Verify the destroy actually succeeded — mirrors the positive check in
-        // updateMaskedEmail. Without it a silent server no-op would be
-        // reported to the user as a successful archive.
+        // A silent server no-op must not be reported as a successful destroy.
         if (response.destroyed?.contains(id) != true) {
             throw JmapException("Delete not confirmed by server - ID not found in destroyed response")
         }

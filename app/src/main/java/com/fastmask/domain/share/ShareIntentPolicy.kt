@@ -4,8 +4,7 @@ package com.fastmask.domain.share
  * Decides whether an incoming intent is a share FastMask should act on, and
  * hands back the text to parse.
  *
- * Split out of `MainActivity` and kept free of Android types so the three rules
- * that used to be one silent `if` are unit-testable:
+ * Kept free of Android types so the three rules below are unit-testable:
  *
  * 1. `EXTRA_TEXT` is declared as a **CharSequence**. Senders that put a
  *    `Spanned` in it (Gmail, Docs, several readers) made `getStringExtra`

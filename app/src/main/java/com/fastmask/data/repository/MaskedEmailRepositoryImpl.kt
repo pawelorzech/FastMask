@@ -28,20 +28,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Every method runs on the injected IO dispatcher.
- *
- * Retrofit resumes a suspend call on the caller's dispatcher, and every caller
- * here is a ViewModel on `Dispatchers.Main.immediate`. So although the HTTP
- * itself was off the main thread, everything around it was not: reading the
- * token initialises Tink and touches the KeyStore, and the write-through below
- * AES-encrypts the entire mask list and writes it to disk — on the UI thread,
- * once per refresh, growing with the size of the account.
+ * Every method runs on the injected IO dispatcher: Retrofit resumes a suspend call
+ * on the caller's dispatcher (`Dispatchers.Main.immediate` for ViewModels), and
+ * reading the token (Tink, KeyStore) and the encrypted cache write-through are
+ * disk work that grows with the size of the account.
  *
  * Mutations (create / update / archive / destroy) additionally run in the
  * application scope. A request that may already have reached Fastmail must not
- * be cancelled because the caller went away: backing out of the create screen
- * would leave a mask on the account that nobody ever sees, and cancelling an
- * archive or Undo leaves the UI and the account disagreeing. The caller may stop
+ * be cancelled because the caller went away: that leaves a mask nobody sees, or
+ * a UI and account that disagree after an archive or Undo. The caller may stop
  * waiting; the request still completes.
  */
 @Singleton

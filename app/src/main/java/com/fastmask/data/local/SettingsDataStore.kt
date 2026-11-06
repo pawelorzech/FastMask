@@ -39,7 +39,6 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) : AppLockSetting, NotificationPromptSetting {
-    // --- Pro personalization: accent theme + biometric app lock ---
 
     private val accentKey = stringPreferencesKey("accent")
     private val appLockKey = booleanPreferencesKey("app_lock_enabled")
@@ -66,7 +65,6 @@ class SettingsDataStore @Inject constructor(
 
     override suspend fun isAppLockEnabled(): Boolean = appLockEnabled.first()
 
-    // --- POST_NOTIFICATIONS prompt (asked at most once) ---
 
     private val notificationPromptShownKey = booleanPreferencesKey("notification_prompt_shown")
 

@@ -55,8 +55,7 @@
       LockScreen composes behind the attacker's activity.
 
       Android 12 (API 31) blocks cross-uid task insertion, so the exposure is
-      API 26-30, which minSdk = 26 keeps in scope. QuickMaskActivity already set
-      this; the activity holding the token field did not.
+      API 26-30, which minSdk = 26 keeps in scope.
 
       An empty affinity is compatible with MainActivity's standard launch mode,
       which must stay standard so a share re-evaluates the lock (see below).
@@ -146,11 +145,11 @@
         <!--
           exported="false" is a security requirement, not a default.
 
-          Exported (as this was) and with no intent-filter, ANY app on the
-          device could `startActivity` it with zero permissions and zero user
-          interaction, and FastMask — a confused deputy holding the user's
-          Fastmail token — would mint a real mask on their account and
-          overwrite the clipboard, in a loop if asked.
+          Exported with no intent-filter, ANY app on the device could
+          `startActivity` it with zero permissions and zero user interaction, and
+          FastMask — a confused deputy holding the user's Fastmail token — would
+          mint a real mask on their account and overwrite the clipboard, in a
+          loop if asked.
 
           The launcher shortcut does not need the export: the system starts
           shortcuts through LauncherApps#startShortcut, which runs the intent

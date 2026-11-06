@@ -30,10 +30,9 @@ object SharedLinkParser {
      * `Spanned` in it, so the share path hands us whatever they wrote.
      *
      * Every branch of the loop below moves [index] strictly forward by at least
-     * the whole run it just examined — never by one character after a scan.
-     * That is what keeps the walk O(n): the earlier `index++` fallback rescanned
-     * the same host run once per character, which is quadratic and turned a
-     * ~300k-char share (or a long CJK article, whose letters are all
+     * the whole run it just examined, never by one character after a scan. That
+     * keeps the walk O(n): rescanning a host run per character is quadratic and
+     * turns a ~300k-char share (or a long CJK article, whose letters are all
      * `isLetterOrDigit` with no ASCII dot to stop them) into an ANR on the main
      * thread. See the timing tests in SharedLinkParserTest.
      *
@@ -176,20 +175,15 @@ object SharedLinkParser {
      * Whether a bare-host candidate at [start] is really a fragment of
      * something else.
      *
-     * This used to reject on ':' as well, which killed the single most common
-     * shape of shared text: "Sign up here: example.com", "Rejestracja:
-     * sklep.pl". The rejection then jumped past the whole candidate, so the
-     * share target opened an EMPTY create form. A colon in prose introduces a
-     * link far more often than it hides one, and the case the ':' rule was
-     * written for — "mailto:foo@example.com" — was never caught by it anyway
-     * (the scan restarts at every character, and the run at 'e' is preceded by
-     * '@', not ':').
+     * A ':' is deliberately not a reason to reject: "Sign up here: example.com"
+     * is the commonest shape of shared text, and a colon in prose introduces a
+     * link far more often than it hides one.
      *
-     * The '/' half stays, and it keeps the backwards whitespace walk: without
-     * it "http:// spaces.example.com" — a broken link, not an endorsement of
-     * spaces.example.com — silently resolves to a DIFFERENT domain than the one
-     * shared, and "path/to/file.txt" resolves to a "domain" called file.txt.
-     * Nothing else in prose puts a slash immediately before a host.
+     * The '/' check stays, with the backwards whitespace walk: without it
+     * "http:// spaces.example.com" (a broken link) silently resolves to a
+     * DIFFERENT domain than the one shared, and "path/to/file.txt" resolves to a
+     * "domain" called file.txt. Nothing else in prose puts a slash immediately
+     * before a host.
      */
     private fun hasForbiddenSchemelessPrefix(text: CharSequence, start: Int): Boolean {
         var cursor: Int = start - 1

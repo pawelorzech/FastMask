@@ -16,21 +16,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The corruption handler is not optional here, and it is the counterpart of the
- * one [com.fastmask.data.local.settingsDataStore] already carries.
+ * The corruption handler is required, as on [com.fastmask.data.local.settingsDataStore].
  *
- * A truncated `pro_entitlement.preferences_pb` (interrupted write, full disk)
- * makes every read *and every write* throw `CorruptionException`. Reads were
- * already guarded at the call site, so the app degraded to FREE and carried on
- * — but the write on the next Play reconciliation was not, and it runs inside a
- * bare `lifecycleScope.launch { proRepository.refresh() }`, where a throwable
- * reaches the uncaught handler and kills the process. That is a permanent
- * launch-time crash loop, and it can only happen to someone who actually paid:
- * a FREE user reconciles to the same status with the same null token, so no
- * write is attempted.
- *
- * Replacing the file costs the offline entitlement cache, which Play restores on
- * the very next reconciliation. Crashing costs the app.
+ * A truncated `pro_entitlement.preferences_pb` (interrupted write, full disk) makes
+ * every read *and every write* throw `CorruptionException`. The write on the next
+ * Play reconciliation runs in a bare `lifecycleScope.launch`, where a throwable
+ * kills the process: a permanent launch-time crash loop for anyone who paid.
+ * Replacing the file only costs the offline cache, which Play restores on the
+ * next reconciliation.
  */
 private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "pro_entitlement",
