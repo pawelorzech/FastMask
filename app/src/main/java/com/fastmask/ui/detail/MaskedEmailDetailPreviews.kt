@@ -31,7 +31,7 @@ private fun previewState(email: MaskedEmail = previewMask) = MaskedEmailDetailUi
 )
 
 @Composable
-private fun PreviewHost(uiState: MaskedEmailDetailUiState, startEditing: Boolean = false) {
+private fun PreviewHost(uiState: MaskedEmailDetailUiState) {
     FastMaskTheme {
         MaskedEmailDetailContent(
             uiState = uiState,
@@ -46,9 +46,10 @@ private fun PreviewHost(uiState: MaskedEmailDetailUiState, startEditing: Boolean
             onEnable = {},
             onDisable = {},
             onSaveChanges = {},
+            onStartEditing = {},
+            onDiscardEdits = {},
             onCopyEmail = {},
             onArchiveClick = {},
-            startEditing = startEditing,
         )
     }
 }
@@ -56,8 +57,7 @@ private fun PreviewHost(uiState: MaskedEmailDetailUiState, startEditing: Boolean
 @Preview(name = "Editing", showBackground = true, heightDp = 1000)
 @Composable
 private fun DetailEditingPreview() = PreviewHost(
-    previewState().copy(editedDescription = "Figma work account"),
-    startEditing = true,
+    previewState().copy(isEditing = true, editedDescription = "Figma work account"),
 )
 
 @Preview(name = "Active", showBackground = true, heightDp = 900)
