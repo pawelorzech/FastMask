@@ -15,9 +15,11 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.UnfetchedProduct
 import com.fastmask.BuildConfig
-import com.fastmask.di.ApplicationScope
+import com.fastmask.core.ApplicationScope
+import com.fastmask.core.IoDispatcher
 import com.fastmask.domain.repository.ProProduct
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,6 +45,7 @@ import kotlin.coroutines.resume
 class PlayBillingDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     @ApplicationScope private val scope: CoroutineScope,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BillingDataSource {
 
     // replay=1 closes a narrow startup window: an update arriving before the
@@ -78,7 +81,7 @@ class PlayBillingDataSource @Inject constructor(
 
     private val connectionMutex = Mutex()
 
-    private suspend fun ensureConnected(): BillingResponse<Unit> = withContext(Dispatchers.IO) {
+    private suspend fun ensureConnected(): BillingResponse<Unit> = withContext(ioDispatcher) {
         connectionMutex.withLock {
             if (client.isReady) return@withLock BillingResponse.Ok(Unit)
             // Timeout guards against a wedged Play Store never delivering the

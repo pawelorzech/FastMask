@@ -7,7 +7,7 @@ import com.fastmask.data.billing.BillingErrorCode
 import com.fastmask.data.billing.BillingPurchase
 import com.fastmask.data.billing.BillingResponse
 import com.fastmask.data.local.ProEntitlementStore
-import com.fastmask.di.ApplicationScope
+import com.fastmask.core.ApplicationScope
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.ProStatus

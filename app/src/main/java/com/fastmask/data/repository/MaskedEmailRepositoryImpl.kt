@@ -6,6 +6,7 @@ import com.fastmask.data.api.MaskedEmailDto
 import com.fastmask.data.api.MaskedEmailState
 import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
+import com.fastmask.core.IoDispatcher
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
@@ -14,7 +15,7 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.MaskedEmailMetadata
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
@@ -22,7 +23,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Every method runs on [Dispatchers.IO].
+ * Every method runs on the injected IO dispatcher.
  *
  * Retrofit resumes a suspend call on the caller's dispatcher, and every caller
  * here is a ViewModel on `Dispatchers.Main.immediate`. So although the HTTP
@@ -36,9 +37,10 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     private val jmapApi: JmapApi,
     private val tokenStorage: TokenStorage,
     private val cache: MaskedEmailCache,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : MaskedEmailRepository {
 
-    override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(Dispatchers.IO) {
+    override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
 
@@ -57,7 +59,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
             .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
     }
 
-    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> = withContext(Dispatchers.IO) {
+    override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
 
@@ -69,7 +71,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         jmapApi.getMaskedEmail(token, id).map { it?.toDomain() }
     }
 
-    override suspend fun cachedMaskedEmails(): CachedMasks? = withContext(Dispatchers.IO) {
+    override suspend fun cachedMaskedEmails(): CachedMasks? = withContext(ioDispatcher) {
         val token = tokenStorage.getToken() ?: return@withContext null
         cache.read(owner = cacheOwner(token))
     }
@@ -90,7 +92,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
             .digest(token.toByteArray())
             .joinToString("") { "%02x".format(it) }
 
-    override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = withContext(Dispatchers.IO) {
+    override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
         val forDomain = params.forDomain?.let { raw ->
@@ -109,7 +111,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         jmapApi.createMaskedEmail(token, create).map { it.toDomain() }
     }
 
-    override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
         val forDomain = params.forDomain?.let { raw ->
@@ -136,7 +138,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
      * promise. `destroy` removes the record outright and leaves Undo updating
      * an id the server no longer knows.
      */
-    override suspend fun archiveMaskedEmail(id: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
 
@@ -147,7 +149,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun destroyMaskedEmail(id: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
             ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
 

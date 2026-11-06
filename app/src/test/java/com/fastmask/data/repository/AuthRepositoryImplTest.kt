@@ -12,6 +12,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Test
 
 class AuthRepositoryImplTest {
@@ -22,7 +23,7 @@ class AuthRepositoryImplTest {
     private val exportCache = mockk<ExportCache>(relaxed = true)
     private val maskCache = mockk<MaskedEmailCache>(relaxed = true)
 
-    private val repository = AuthRepositoryImpl(tokenStorage, jmapApi, settings, exportCache, maskCache)
+    private val repository = AuthRepositoryImpl(tokenStorage, jmapApi, settings, exportCache, maskCache, UnconfinedTestDispatcher())
 
     @Test
     fun `demo session skips encrypted token storage on startup`() {

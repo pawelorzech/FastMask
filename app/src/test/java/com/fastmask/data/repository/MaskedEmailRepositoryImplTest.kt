@@ -16,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import java.time.Instant
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -29,7 +30,7 @@ class MaskedEmailRepositoryImplTest {
     private val jmapApi = mockk<JmapApi>()
     private val tokenStorage = mockk<TokenStorage>()
     private val cache = mockk<MaskedEmailCache>(relaxed = true)
-    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache)
+    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache, UnconfinedTestDispatcher())
 
     private fun dto(
         createdAt: String? = null,

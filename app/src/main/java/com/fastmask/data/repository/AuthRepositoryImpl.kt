@@ -1,5 +1,6 @@
 package com.fastmask.data.repository
 
+import com.fastmask.core.IoDispatcher
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.MaskedEmailCache
@@ -7,7 +8,7 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.repository.AuthRepository
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,9 +20,10 @@ class AuthRepositoryImpl @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val exportCache: ExportCache,
     private val maskCache: MaskedEmailCache,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : AuthRepository {
 
-    override suspend fun login(token: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun login(token: String): Result<Unit> = withContext(ioDispatcher) {
         jmapApi.getSession(token).map {
             // Sign-in is the second place the device changes hands between
             // accounts, and until now only sign-out cleaned up. A sign-out
@@ -37,7 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun logout() = withContext(Dispatchers.IO) {
+    override suspend fun logout() = withContext(ioDispatcher) {
         tokenStorage.clearToken()
         jmapApi.clearSession()
         // A CSV export holds every mask in plaintext in the cache directory.

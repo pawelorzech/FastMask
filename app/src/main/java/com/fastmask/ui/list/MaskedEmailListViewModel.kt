@@ -14,7 +14,7 @@ import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
-import com.fastmask.di.ApplicationScope
+import com.fastmask.core.ApplicationScope
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler

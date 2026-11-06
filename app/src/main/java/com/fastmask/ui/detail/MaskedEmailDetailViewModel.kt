@@ -12,7 +12,7 @@ import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailUseCase
 import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.ui.common.UiErrors
-import com.fastmask.di.ApplicationScope
+import com.fastmask.core.ApplicationScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async

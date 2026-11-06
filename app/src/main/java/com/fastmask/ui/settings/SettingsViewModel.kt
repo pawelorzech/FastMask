@@ -18,7 +18,7 @@ import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.usecase.LogoutUseCase
 import com.fastmask.domain.usecase.SetLanguageUseCase
-import com.fastmask.di.IoDispatcher
+import com.fastmask.core.IoDispatcher
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
