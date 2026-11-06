@@ -6,6 +6,7 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.model.normalized
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -57,12 +58,17 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     override suspend fun cachedMaskedEmails(): CachedMasks? = null
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
-        val newMask = buildNewMask(params)
+        // The same parameter rules as the real repository, so demo mode shows
+        // what an account would: a normalised origin, blanks as "not supplied",
+        // and a refusal for an origin Fastmail would not take.
+        val normalized = params.normalized().getOrElse { return Result.failure(it) }
+        val newMask = buildNewMask(normalized)
         state.update { current -> current + newMask }
         return Result.success(newMask)
     }
 
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> {
+        val normalized = params.normalized().getOrElse { return Result.failure(it) }
         var found = false
         state.update { current ->
             found = false
@@ -70,10 +76,10 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
                 if (mask.id == id) {
                     found = true
                     mask.copy(
-                        state = params.state ?: mask.state,
-                        forDomain = params.forDomain ?: mask.forDomain,
-                        description = params.description ?: mask.description,
-                        url = params.url ?: mask.url
+                        state = normalized.state ?: mask.state,
+                        forDomain = normalized.forDomain ?: mask.forDomain,
+                        description = normalized.description ?: mask.description,
+                        url = if (normalized.clearsUrl) null else normalized.urlToSet ?: mask.url,
                     )
                 } else {
                     mask
@@ -124,20 +130,20 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         }
     }
 
+    /** [params] are already normalised: blank fields are null. */
     private fun buildNewMask(params: CreateMaskedEmailParams): MaskedEmail {
         val id = "demo-${UUID.randomUUID().toString().substring(0, 8)}"
-        val prefix = params.emailPrefix?.takeIf { it.isNotBlank() }
-            ?: generatePrefix()
+        val prefix = params.emailPrefix ?: generatePrefix()
         val email = "$prefix@fastmask.com"
         val now = Instant.now()
         return MaskedEmail(
             id = id,
             email = email,
             state = params.state,
-            forDomain = params.forDomain?.takeIf { it.isNotBlank() },
-            description = params.description?.takeIf { it.isNotBlank() },
+            forDomain = params.forDomain,
+            description = params.description,
             createdBy = "demo",
-            url = params.url?.takeIf { it.isNotBlank() },
+            url = params.url,
             emailPrefix = prefix,
             createdAt = now,
             lastMessageAt = null
