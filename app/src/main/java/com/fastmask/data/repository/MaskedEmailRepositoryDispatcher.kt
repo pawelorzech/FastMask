@@ -6,6 +6,8 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.merge
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,6 +18,8 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
     private val demoRepo: DemoMaskedEmailRepositoryImpl,
     private val sessionRepository: SessionRepository,
 ) : MaskedEmailRepository {
+
+    override val changes: Flow<Unit> = merge(realRepo.changes, demoRepo.changes)
 
     private suspend fun current(): MaskedEmailRepository =
         if (sessionRepository.current().isDemo) demoRepo else realRepo

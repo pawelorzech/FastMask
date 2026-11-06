@@ -6,7 +6,9 @@ import com.fastmask.R
 import com.fastmask.domain.model.Session
 import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.domain.model.CachedMasks
+import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
@@ -201,6 +203,88 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+    }
+
+    // --- change signal and resume throttle -------------------------------
+
+    @Test
+    fun `a mutation made right after a refresh still refreshes the list once`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle() // init load; the clock never moves, so the resume throttle would block everything
+        assertEquals(1, repo.getCalls)
+
+        repo.emails = listOf(mask("m1"), mask("m2"))
+        repo.createMaskedEmail(CreateMaskedEmailParams())
+        advanceUntilIdle()
+
+        assertEquals(2, repo.getCalls)
+        assertEquals(listOf("m1", "m2").toSet(), viewModel.uiState.value.emails.map { it.id }.toSet())
+        assertEquals(false, viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `update archive and destroy each trigger a refresh and a failed mutation does not`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        vm(repo)
+        advanceUntilIdle()
+
+        repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(state = EmailState.DISABLED))
+        advanceUntilIdle()
+        repo.archiveMaskedEmail("m1")
+        advanceUntilIdle()
+        repo.destroyMaskedEmail("m1")
+        advanceUntilIdle()
+        assertEquals(4, repo.getCalls)
+
+        repo.failure = IOException("offline")
+        repo.archiveMaskedEmail("m1")
+        advanceUntilIdle()
+        assertEquals(4, repo.getCalls)
+    }
+
+    @Test
+    fun `a cold start fetches once even though the screen resumes right after`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        viewModel.refreshIfStale() // the first resume, before the init fetch has even run
+        advanceUntilIdle()
+        viewModel.refreshIfStale()
+        advanceUntilIdle()
+
+        assertEquals(1, repo.getCalls)
+    }
+
+    @Test
+    fun `resume refreshes again once the last fetch is older than the throttle`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
+        val viewModel = vm(repo)
+        advanceUntilIdle() // the init fetch stamped the real clock
+        var now = System.currentTimeMillis()
+        viewModel.clockMillis = { now }
+
+        now += MaskedEmailListViewModel.STALE_AFTER_MS - 1_000
+        viewModel.refreshIfStale()
+        advanceUntilIdle()
+        assertEquals(1, repo.getCalls)
+
+        now += 2_000
+        viewModel.refreshIfStale()
+        advanceUntilIdle()
+        assertEquals(2, repo.getCalls)
+    }
+
+    @Test
+    fun `resume retries straight away after a failed fetch`() = runTest {
+        val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+        assertEquals(1, repo.getCalls)
+
+        viewModel.refreshIfStale()
         advanceUntilIdle()
 
         assertEquals(2, repo.getCalls)

@@ -73,7 +73,7 @@ import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.rememberDiscardChangesGuard
-import com.fastmask.ui.navigation.maskContainer
+import com.fastmask.ui.components.expressive.maskContainer
 import kotlinx.coroutines.delay
 
 /** How long the copy button shows its "Copied" confirmation. */

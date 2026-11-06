@@ -13,31 +13,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
-import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
+import com.fastmask.ui.components.expressive.LocalSharedTransitionScope
+import com.fastmask.ui.list.ListResult
 import com.fastmask.ui.list.MaskedEmailListScreen
+import com.fastmask.ui.list.consumeListResult
+import com.fastmask.ui.list.postListResult
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
-
-private const val KEY_ARCHIVED_ID = "archived_mask_id"
-private const val KEY_ARCHIVED_STATE = "archived_mask_state"
-private const val KEY_CREATED_EMAIL = "created_mask_email"
-
-internal fun SavedStateHandle.consumeArchivedResultIfCurrent(consumedId: String) {
-    if (get<String>(KEY_ARCHIVED_ID) == consumedId) {
-        this[KEY_ARCHIVED_ID] = null
-        this[KEY_ARCHIVED_STATE] = null
-    }
-}
 
 @Composable
 fun FastMaskNavHost(
@@ -100,19 +91,10 @@ fun FastMaskNavHost(
             exitTransition = { if (isDetail(targetState)) fadeOut(fadeOutSpec) else slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
             popEnterTransition = { if (isDetail(initialState)) fadeIn(fadeInSpec) else slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
         ) { entry ->
-            // Set by the detail screen after archiving, so the list can show
-            // an "archived — undo" snackbar where the mask reappears.
-            val justArchivedId by entry.savedStateHandle
-                .getStateFlow<String?>(KEY_ARCHIVED_ID, null)
-                .collectAsState()
-            val justArchivedState by entry.savedStateHandle
-                .getStateFlow<String?>(KEY_ARCHIVED_STATE, null)
-                .collectAsState()
-            // Set by the create screen, so the "mask created — copy"
-            // confirmation appears on the list rather than holding the
-            // form open until the snackbar times out.
-            val justCreatedEmail by entry.savedStateHandle
-                .getStateFlow<String?>(KEY_CREATED_EMAIL, null)
+            // What the detail screen (archived) or the create screen (created) handed
+            // back: the list shows its Undo / "mask created" snackbar and consumes it.
+            val pendingResult by entry.savedStateHandle
+                .getStateFlow<ListResult?>(ListResult.KEY, null)
                 .collectAsState()
             MaskedEmailListScreen(
                 onNavigateToCreate = {
@@ -135,16 +117,10 @@ fun FastMaskNavHost(
                         launchSingleTop = true
                     }
                 },
-                justArchivedId = justArchivedId,
-                justArchivedState = justArchivedState
-                    ?.let { name -> EmailState.entries.firstOrNull { it.name == name } },
-                onArchivedConsumed = { consumedId ->
-                    // A second archive can arrive while the first Undo is
-                    // visible. Never let result A erase newer pending B.
-                    entry.savedStateHandle.consumeArchivedResultIfCurrent(consumedId)
-                },
-                justCreatedEmail = justCreatedEmail,
-                onCreatedConsumed = { entry.savedStateHandle[KEY_CREATED_EMAIL] = null },
+                pendingResult = pendingResult,
+                // Consuming only clears the result it was shown for, so a newer
+                // archive that arrived meanwhile is never erased.
+                onResultConsumed = { entry.savedStateHandle.consumeListResult(it) },
             )
         }
 
@@ -201,7 +177,7 @@ fun FastMaskNavHost(
                     // Hand the address to the list entry, then leave at
                     // once — the confirmation belongs where the new mask is.
                     navController.previousBackStackEntry
-                        ?.savedStateHandle?.set(KEY_CREATED_EMAIL, email)
+                        ?.savedStateHandle?.postListResult(ListResult.Created(email))
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
@@ -224,13 +200,9 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onArchived = { id, previousState ->
-                    // Hand the archived id + pre-archive state back to the
-                    // list, then pop. State is written FIRST so the list's
-                    // id-triggered latch never observes a torn pair.
-                    navController.previousBackStackEntry?.savedStateHandle?.apply {
-                        set(KEY_ARCHIVED_STATE, previousState.name)
-                        set(KEY_ARCHIVED_ID, id)
-                    }
+                    // Hand the archived id + pre-archive state back to the list, then pop.
+                    navController.previousBackStackEntry?.savedStateHandle
+                        ?.postListResult(ListResult.Archived(id, previousState))
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {

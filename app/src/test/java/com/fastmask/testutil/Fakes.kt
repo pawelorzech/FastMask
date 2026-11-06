@@ -10,7 +10,9 @@ import com.fastmask.domain.repository.AppLockSetting
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 
@@ -47,6 +49,9 @@ class FakeMaskedEmailRepository(
      */
     var singleResult: Result<MaskedEmail?>? = null,
 ) : MaskedEmailRepository {
+
+    private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    override val changes: Flow<Unit> = _changes.asSharedFlow()
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = cached
 
@@ -96,6 +101,7 @@ class FakeMaskedEmailRepository(
         createCalls++
         lastCreateParams = params
         failure?.let { return Result.failure(it) }
+        _changes.tryEmit(Unit)
         return Result.success(mask("created"))
     }
 
@@ -105,6 +111,7 @@ class FakeMaskedEmailRepository(
         lastUpdateParams = params
         beforeUpdate?.invoke()
         failure?.let { return Result.failure(it) }
+        _changes.tryEmit(Unit)
         return Result.success(Unit)
     }
 
@@ -112,6 +119,7 @@ class FakeMaskedEmailRepository(
         archiveCalls++
         lastArchiveId = id
         failure?.let { return Result.failure(it) }
+        _changes.tryEmit(Unit)
         return Result.success(Unit)
     }
 
@@ -119,6 +127,7 @@ class FakeMaskedEmailRepository(
         destroyCalls++
         lastDestroyId = id
         failure?.let { return Result.failure(it) }
+        _changes.tryEmit(Unit)
         return Result.success(Unit)
     }
 }

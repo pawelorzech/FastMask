@@ -81,7 +81,7 @@ private fun PreviewList(
     }
 }
 
-private fun populated() = MaskedEmailListUiState(emails = previewMasks, filteredEmails = previewMasks)
+private fun populated() = MaskedEmailListUiState(emails = previewMasks)
 
 @Preview(name = "List", showBackground = true, heightDp = 800)
 @Composable

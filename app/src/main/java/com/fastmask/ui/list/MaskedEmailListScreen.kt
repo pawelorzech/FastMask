@@ -40,13 +40,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -92,27 +90,6 @@ import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private data class PendingArchiveUndo(
-    val id: String,
-    val previousState: EmailState,
-)
-
-/** Saves the archive id and its exact pre-archive state as one atomic value. */
-private val PendingArchiveUndoStateSaver = Saver<MutableState<PendingArchiveUndo?>, List<String>>(
-    save = { state ->
-        state.value?.let { undo -> listOf(undo.id, undo.previousState.name) }.orEmpty()
-    },
-    restore = { saved ->
-        mutableStateOf(
-            saved.takeIf { it.size == 2 }?.let { values ->
-                runCatching {
-                    PendingArchiveUndo(values[0], EmailState.valueOf(values[1]))
-                }.getOrNull()
-            },
-        )
-    },
-)
-
 @Composable
 fun MaskedEmailListScreen(
     onNavigateToCreate: () -> Unit,
@@ -120,11 +97,9 @@ fun MaskedEmailListScreen(
     onNavigateToSettings: () -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
-    justArchivedId: String? = null,
-    justArchivedState: EmailState? = null,
-    onArchivedConsumed: (String) -> Unit = {},
-    justCreatedEmail: String? = null,
-    onCreatedConsumed: () -> Unit = {},
+    /** What the detail or create screen handed back; null when nothing is waiting. */
+    pendingResult: ListResult? = null,
+    onResultConsumed: (ListResult) -> Unit = {},
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -151,15 +126,10 @@ fun MaskedEmailListScreen(
     //
     // Guard pendingUndo != null: a rapid second archive of another mask does
     // not overwrite the first undo — the user only gets one undo at a time.
-    var pendingUndo by rememberSaveable(saver = PendingArchiveUndoStateSaver) {
-        mutableStateOf(null)
-    }
-    LaunchedEffect(justArchivedId, justArchivedState, pendingUndo) {
-        if (justArchivedId != null && justArchivedState != null && pendingUndo == null) {
-            pendingUndo = PendingArchiveUndo(
-                id = justArchivedId,
-                previousState = justArchivedState,
-            )
+    var pendingUndo by rememberSaveable { mutableStateOf<ListResult.Archived?>(null) }
+    LaunchedEffect(pendingResult, pendingUndo) {
+        if (pendingResult is ListResult.Archived && pendingUndo == null) {
+            pendingUndo = pendingResult
         }
     }
     LaunchedEffect(pendingUndo) {
@@ -177,7 +147,7 @@ fun MaskedEmailListScreen(
         // Consume navigation state only after the snackbar produced a result.
         // A recreation cancels this effect, so the saved id remains available
         // and rememberSaveable restarts the Undo instead of losing it.
-        onArchivedConsumed(undo.id)
+        onResultConsumed(undo)
         pendingUndo = null
     }
 
@@ -190,11 +160,11 @@ fun MaskedEmailListScreen(
     // The address that gets the brief "just created" highlight once it shows up
     // in the list (the list reloads on resume / after a random mask).
     var highlightEmail by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(justCreatedEmail) {
-        if (justCreatedEmail != null && pendingCreated == null) {
-            pendingCreated = justCreatedEmail
-            highlightEmail = justCreatedEmail
-            onCreatedConsumed()
+    LaunchedEffect(pendingResult) {
+        if (pendingResult is ListResult.Created && pendingCreated == null) {
+            pendingCreated = pendingResult.email
+            highlightEmail = pendingResult.email
+            onResultConsumed(pendingResult)
         }
     }
     // The FAB menu's "Random mask" reports back through the same confirmation
@@ -282,21 +252,14 @@ fun MaskedEmailListScreen(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    // Deliberately starts at 0: the resume refresh is not only a freshness
-    // nicety — it is how this screen learns about masks created or archived
-    // on other screens (those mutations do not write back into this list).
-    // Anchoring at "now" skipped the refetch after every return from
-    // create/detail, leaving stale counts and rows. The 30 s throttle only
-    // guards rapid background/foreground toggles while staying composed.
-    var lastRefreshTime by remember { mutableLongStateOf(0L) }
+    // Changes made inside the app reach the view model through the repository's
+    // `changes` signal. This resume refresh is for everything else (another
+    // device, a long time in the background); the view model skips it when a
+    // fetch began less than 30 s ago, which also spares cold start a second fetch.
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             delay(250L)
-            val now = System.currentTimeMillis()
-            if (now - lastRefreshTime > 30_000L) {
-                lastRefreshTime = now
-                viewModel.refreshMaskedEmails()
-            }
+            viewModel.refreshIfStale()
         }
     }
 

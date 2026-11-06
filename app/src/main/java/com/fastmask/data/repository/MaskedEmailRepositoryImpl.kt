@@ -17,6 +17,10 @@ import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
@@ -49,9 +53,17 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     @ApplicationScope private val appScope: CoroutineScope,
 ) : MaskedEmailRepository {
 
-    /** Runs a mutation on [appScope]; cancelling the caller only abandons the wait. */
+    private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    override val changes: Flow<Unit> = _changes.asSharedFlow()
+
+    /**
+     * Runs a mutation on [appScope]; cancelling the caller only abandons the wait.
+     * A success is announced on [changes] before the caller hears about it.
+     */
     private suspend fun <T> mutation(block: suspend () -> Result<T>): Result<T> =
-        appScope.async(ioDispatcher) { block() }.await()
+        appScope.async(ioDispatcher) {
+            block().also { if (it.isSuccess) _changes.tryEmit(Unit) }
+        }.await()
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()

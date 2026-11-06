@@ -7,7 +7,11 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import java.time.Instant
 import java.util.UUID
@@ -35,6 +39,9 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
 
     private val state = MutableStateFlow(INITIAL_DEMO_MASKS)
 
+    private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    override val changes: Flow<Unit> = _changes.asSharedFlow()
+
     /**
      * Entering demo mode starts from the seed list again. Without this the
      * singleton kept the previous demo's edits for the whole process lifetime,
@@ -59,6 +66,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
         val newMask = buildNewMask(params)
         state.update { current -> current + newMask }
+        _changes.tryEmit(Unit)
         return Result.success(newMask)
     }
 
@@ -81,6 +89,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
             }
         }
         return if (found) {
+            _changes.tryEmit(Unit)
             Result.success(Unit)
         } else {
             Result.failure(NoSuchElementException("Demo mask not found: $id"))
@@ -101,6 +110,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
             }
         }
         return if (found) {
+            _changes.tryEmit(Unit)
             Result.success(Unit)
         } else {
             Result.failure(NoSuchElementException("Demo mask not found: $id"))
@@ -118,6 +128,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
             }
         }
         return if (found) {
+            _changes.tryEmit(Unit)
             Result.success(Unit)
         } else {
             Result.failure(NoSuchElementException("Demo mask not found: $id"))
