@@ -53,10 +53,9 @@ class MaskedEmailListViewModel @Inject constructor(
             maskedEmailRepository.createMaskedEmail(CreateMaskedEmailParams()).fold(
                 onSuccess = { created ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
+                    // The new mask reaches the list through the repository's
+                    // `changes` signal, which refreshes silently.
                     _events.send(MaskedEmailListEvent.RandomCreated(created.email))
-                    // The repository does not write the new mask into the list;
-                    // pull it in without flashing the spinner.
-                    refreshMaskedEmails()
                 },
                 onFailure = { error ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
@@ -93,11 +92,11 @@ class MaskedEmailListViewModel @Inject constructor(
      * Restore a just-archived mask (the "Undo" snackbar action) to the state it
      * had BEFORE archiving — undo promises the previous state, so a DISABLED
      * mask must not come back accepting mail.
+     * The list reloads through the repository's `changes` signal.
      */
     fun restoreMask(id: String, restoreTo: EmailState = EmailState.ENABLED) {
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(id, UpdateMaskedEmailParams(state = restoreTo))
-                .onSuccess { loadMaskedEmails() }
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived
                     // is worse than an error banner — surface it.
@@ -110,6 +109,12 @@ class MaskedEmailListViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(MaskedEmailListUiState())
     val uiState: StateFlow<MaskedEmailListUiState> = _uiState.asStateFlow()
+
+    /** Test seam for [refreshIfStale]. */
+    internal var clockMillis: () -> Long = System::currentTimeMillis
+
+    /** Null until the first fetch, and again after a failed one so the next resume retries. */
+    private var lastFetchStartedAt: Long? = null
 
     /**
      * One flag for BOTH entry points on purpose: a silent refresh does not
@@ -127,17 +132,22 @@ class MaskedEmailListViewModel @Inject constructor(
             if (userInitiated || !hadData) {
                 _uiState.update { it.copy(isLoading = true, error = null) }
             }
+            lastFetchStartedAt = clockMillis()
             suspend { fetchOnce(userInitiated) }
         },
     )
 
     init {
         loadMaskedEmails()
+        // Any successful create / edit / toggle / archive, from any screen or
+        // service, makes what is on screen stale: refetch silently. This is what
+        // keeps the list current; the resume throttle below only damps flapping.
+        viewModelScope.launch { maskedEmailRepository.changes.collect { refreshMaskedEmails() } }
     }
 
     /**
      * Explicit, user-visible load: pull-to-refresh, the error-state retry, and
-     * the reload after a successful undo. Always shows the spinner, and always
+     * the retry after a failed fetch. Always shows the spinner, and always
      * surfaces a failure — the user asked for this and is waiting on it.
      */
     fun loadMaskedEmails() = fetchFlight.request(true)
@@ -149,6 +159,17 @@ class MaskedEmailListViewModel @Inject constructor(
      * showing slightly stale masks.
      */
     fun refreshMaskedEmails() = fetchFlight.request(false)
+
+    /**
+     * The on-resume refresh: only when the last fetch began more than
+     * [STALE_AFTER_MS] ago (or failed). Returning to the screen right after the
+     * initial load, or flipping between background and foreground, costs no
+     * second request; changes made in this app arrive through `changes`.
+     */
+    fun refreshIfStale() {
+        val last = lastFetchStartedAt
+        if (last == null || clockMillis() - last > STALE_AFTER_MS) refreshMaskedEmails()
+    }
 
     private suspend fun fetchOnce(userInitiated: Boolean) {
         maskedEmailRepository.getMaskedEmails().fold(
@@ -166,6 +187,7 @@ class MaskedEmailListViewModel @Inject constructor(
                 }
             },
             onFailure = { error ->
+                lastFetchStartedAt = null
                 // Nothing on screen and no network: fall back to the
                 // last good snapshot rather than an empty error state.
                 // The most common thing a user opens this app to do is
@@ -213,6 +235,7 @@ class MaskedEmailListViewModel @Inject constructor(
 
     companion object {
         internal const val MAX_SEARCH_QUERY_LENGTH = 256
+        internal const val STALE_AFTER_MS = 30_000L
     }
 }
 

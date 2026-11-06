@@ -4,8 +4,18 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import kotlinx.coroutines.flow.Flow
 
 interface MaskedEmailRepository {
+    /**
+     * Emits once after every SUCCESSFUL mutation (create, update, archive,
+     * destroy), from whichever screen or service made it. Lets a list that is
+     * already on screen, or sitting in the back stack, refetch instead of
+     * waiting for a resume. Hot, no replay: a collector sees only changes made
+     * while it is collecting, and bursts may be conflated into one signal.
+     */
+    val changes: Flow<Unit>
+
     suspend fun getMaskedEmails(): Result<List<MaskedEmail>>
 
     /**

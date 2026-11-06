@@ -302,4 +302,22 @@ class MaskedEmailRepositoryImplTest {
         gate.complete(Unit)
         assertTrue(completed)
     }
+
+    // The list refetches off this signal, so it must follow success and only success.
+    @Test
+    fun `a successful mutation announces a change and a failed one does not`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        coEvery { jmapApi.updateMaskedEmail("tok", "ok", any()) } returns Result.success(Unit)
+        coEvery { jmapApi.updateMaskedEmail("tok", "bad", any()) } returns Result.failure(java.io.IOException("offline"))
+        var changes = 0
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { repo.changes.collect { changes++ } }
+
+        repo.updateMaskedEmail("bad", UpdateMaskedEmailParams(state = EmailState.DISABLED))
+        assertEquals(0, changes)
+
+        repo.updateMaskedEmail("ok", UpdateMaskedEmailParams(state = EmailState.DISABLED))
+        assertEquals(1, changes)
+        repo.archiveMaskedEmail("ok")
+        assertEquals(2, changes)
+    }
 }

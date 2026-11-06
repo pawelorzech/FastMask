@@ -40,7 +40,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -282,21 +281,14 @@ fun MaskedEmailListScreen(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    // Deliberately starts at 0: the resume refresh is not only a freshness
-    // nicety — it is how this screen learns about masks created or archived
-    // on other screens (those mutations do not write back into this list).
-    // Anchoring at "now" skipped the refetch after every return from
-    // create/detail, leaving stale counts and rows. The 30 s throttle only
-    // guards rapid background/foreground toggles while staying composed.
-    var lastRefreshTime by remember { mutableLongStateOf(0L) }
+    // Changes made inside the app reach the view model through the repository's
+    // `changes` signal. This resume refresh is for everything else (another
+    // device, a long time in the background); the view model skips it when a
+    // fetch began less than 30 s ago, which also spares cold start a second fetch.
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             delay(250L)
-            val now = System.currentTimeMillis()
-            if (now - lastRefreshTime > 30_000L) {
-                lastRefreshTime = now
-                viewModel.refreshMaskedEmails()
-            }
+            viewModel.refreshIfStale()
         }
     }
 
