@@ -3,14 +3,13 @@ package com.fastmask.ui.settings
 import android.content.Context
 import com.fastmask.R
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.LanguageSettings
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.ProStatus
-import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.testutil.FakeSessionRepository
-import com.fastmask.domain.usecase.SetLanguageUseCase
 import com.fastmask.testutil.FakeCrashReporter
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.FakeMonetizationAnalytics
@@ -79,12 +78,11 @@ class SettingsViewModelTest {
     }
 
     private fun viewModel(): SettingsViewModel {
-        val getLanguage = mockk<GetCurrentLanguageUseCase> {
-            every { this@mockk.invoke() } returns flowOf(null)
+        val languageSettings = mockk<LanguageSettings>(relaxed = true) {
+            every { language } returns flowOf(null)
         }
         return SettingsViewModel(
-            getCurrentLanguageUseCase = getLanguage,
-            setLanguageUseCase = mockk<SetLanguageUseCase>(relaxed = true),
+            languageSettings = languageSettings,
             sessionRepository = FakeSessionRepository(),
             settingsDataStore = settingsDataStore,
             proRepository = proRepository,

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.LanguageSettings
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
@@ -16,9 +17,7 @@ import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
-import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
 import com.fastmask.domain.repository.SessionRepository
-import com.fastmask.domain.usecase.SetLanguageUseCase
 import com.fastmask.core.IoDispatcher
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,8 +39,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
-    private val setLanguageUseCase: SetLanguageUseCase,
+    private val languageSettings: LanguageSettings,
     private val sessionRepository: SessionRepository,
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
@@ -130,7 +128,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadCurrentLanguage() {
         viewModelScope.launch {
-            getCurrentLanguageUseCase().collect { language ->
+            languageSettings.language.collect { language ->
                 _uiState.update { it.copy(selectedLanguage = language) }
             }
         }
@@ -138,7 +136,7 @@ class SettingsViewModel @Inject constructor(
 
     fun onLanguageSelected(language: Language?) {
         viewModelScope.launch(writeErrorHandler) {
-            setLanguageUseCase(language)
+            languageSettings.set(language)
             _uiState.update { it.copy(selectedLanguage = language) }
         }
     }

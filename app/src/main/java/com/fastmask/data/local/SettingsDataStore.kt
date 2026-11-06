@@ -35,22 +35,6 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) : AppLockSetting {
-    private val languageKey = stringPreferencesKey("language_code")
-
-    val languageFlow: Flow<String?> = context.settingsDataStore.data.map { preferences ->
-        preferences[languageKey]
-    }
-
-    suspend fun setLanguage(languageCode: String?) {
-        context.settingsDataStore.edit { preferences ->
-            if (languageCode == null) {
-                preferences.remove(languageKey)
-            } else {
-                preferences[languageKey] = languageCode
-            }
-        }
-    }
-
     // --- Pro personalization: accent theme + biometric app lock ---
 
     private val accentKey = stringPreferencesKey("accent")

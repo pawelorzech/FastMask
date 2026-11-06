@@ -1,0 +1,65 @@
+package com.fastmask.data.local
+
+import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import com.fastmask.domain.model.Language
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * The single owner of the in-app language choice: the persisted `language_code`
+ * (in the shared `settings` DataStore, so existing users keep their choice) and
+ * the step that applies it to the process via [AppCompatDelegate].
+ *
+ * Both the Settings screen ([set]) and app start ([restore]) go through here,
+ * so persisting and applying cannot drift apart.
+ */
+@Singleton
+class LanguageSettings @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    private val languageKey = stringPreferencesKey("language_code")
+
+    val language: Flow<Language?> = context.settingsDataStore.data.map { preferences ->
+        Language.fromCode(preferences[languageKey])
+    }
+
+    /** Persists [language] (null = follow the system) and applies it immediately. */
+    suspend fun set(language: Language?) {
+        val code = language?.code
+        context.settingsDataStore.edit { preferences ->
+            if (code == null) {
+                preferences.remove(languageKey)
+            } else {
+                preferences[languageKey] = code
+            }
+        }
+        AppCompatDelegate.setApplicationLocales(
+            if (code != null) LocaleListCompat.forLanguageTags(code) else LocaleListCompat.getEmptyLocaleList()
+        )
+    }
+
+    /**
+     * Re-applies the stored choice at app start; a no-op when none is stored or
+     * the process already has it. The store is read on the caller's dispatcher
+     * and the locale applied on the main thread.
+     */
+    suspend fun restore() {
+        val code = context.settingsDataStore.data.map { it[languageKey] }.first() ?: return
+        val localeList = LocaleListCompat.forLanguageTags(code)
+        withContext(Dispatchers.Main.immediate) {
+            if (AppCompatDelegate.getApplicationLocales() != localeList) {
+                AppCompatDelegate.setApplicationLocales(localeList)
+            }
+        }
+    }
+}

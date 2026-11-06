@@ -2,20 +2,16 @@ package com.fastmask
 
 import android.app.Application
 import android.util.Log
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.local.ExportCache
-import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.data.local.LanguageSettings
 import com.fastmask.domain.crash.CrashReportingStartup
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -43,7 +39,7 @@ class FastMaskApplication : Application() {
     lateinit var exportCache: ExportCache
 
     @Inject
-    lateinit var settingsDataStore: SettingsDataStore
+    lateinit var languageSettings: LanguageSettings
 
     override fun onCreate() {
         super.onCreate()
@@ -84,17 +80,7 @@ class FastMaskApplication : Application() {
 
     private fun restoreSavedLanguage() {
         startupScope.launch {
-            runSuspendCatching {
-                val savedLanguageCode = settingsDataStore.languageFlow.first()
-                if (savedLanguageCode != null) {
-                    val localeList = LocaleListCompat.forLanguageTags(savedLanguageCode)
-                    withContext(Dispatchers.Main.immediate) {
-                        if (AppCompatDelegate.getApplicationLocales() != localeList) {
-                            AppCompatDelegate.setApplicationLocales(localeList)
-                        }
-                    }
-                }
-            }.onFailure { e ->
+            runSuspendCatching { languageSettings.restore() }.onFailure { e ->
                 if (BuildConfig.DEBUG) {
                     Log.w("FastMask", "Failed to restore saved language", e)
                 }
