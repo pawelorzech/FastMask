@@ -13,28 +13,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.ui.theme.FastMaskTheme
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import com.fastmask.ui.components.expressive.delayInfinite
-import com.fastmask.ui.components.expressive.drawMorph
-import com.fastmask.ui.components.expressive.rememberMotionReduced
-import kotlinx.coroutines.launch
+import com.fastmask.ui.components.expressive.MorphingShape
 
 /**
  * The Pro paywall hero: three [MaterialShapes] on staggered morph timers, the
@@ -67,18 +55,13 @@ internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
             modifier = Modifier.offset(x = 34.dp, y = 30.dp).size(132.dp),
             contentAlignment = Alignment.Center,
         ) {
-            MorphingBlob(
-                sequence = listOf(
-                    MaterialShapes.Sunny,
-                    MaterialShapes.Cookie9Sided,
-                    MaterialShapes.Burst,
-                    MaterialShapes.Cookie4Sided,
-                ),
-                startDelayMs = 0,
+            MorphingShape(
+                // Celebrating stops the cycle and morphs to a burst.
+                polygons = if (celebrate) CelebrationShapes else MainShapes,
                 color = scheme.primary,
-                spinDegrees = 30f,
-                size = 132.dp,
-                target = if (celebrate) MaterialShapes.Burst else null,
+                holdMillis = CYCLE_INTERVAL_MS,
+                rotationStepDegrees = 30f,
+                modifier = Modifier.size(132.dp),
             )
             Icon(
                 imageVector = Icons.Filled.WorkspacePremium,
@@ -87,92 +70,36 @@ internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
                 modifier = Modifier.size(56.dp),
             )
         }
-        MorphingBlob(
-            sequence = listOf(MaterialShapes.Flower, MaterialShapes.Circle, MaterialShapes.Gem),
-            startDelayMs = 700,
+        MorphingShape(
+            polygons = TertiaryShapes,
             color = scheme.tertiaryContainer,
-            spinDegrees = -50f,
-            size = 70.dp,
-            modifier = Modifier.align(Alignment.TopEnd),
+            holdMillis = CYCLE_INTERVAL_MS,
+            startDelayMillis = 700,
+            rotationStepDegrees = -50f,
+            modifier = Modifier.align(Alignment.TopEnd).size(70.dp),
         )
-        MorphingBlob(
-            sequence = listOf(MaterialShapes.Cookie6Sided, MaterialShapes.Triangle, MaterialShapes.Square),
-            startDelayMs = 1400,
+        MorphingShape(
+            polygons = SecondaryShapes,
             color = scheme.secondaryContainer,
-            spinDegrees = 70f,
-            size = 56.dp,
-            modifier = Modifier.align(Alignment.BottomStart),
+            holdMillis = CYCLE_INTERVAL_MS,
+            startDelayMillis = 1400,
+            rotationStepDegrees = 70f,
+            modifier = Modifier.align(Alignment.BottomStart).size(56.dp),
         )
     }
 }
 
 private const val CYCLE_INTERVAL_MS = 2200L
 
-/**
- * A filled shape that walks through [sequence], morphing with a slow spatial
- * spring and turning by [spinDegrees] each step. A non-null [target] stops the
- * cycle and morphs there instead.
- */
-@Composable
-private fun MorphingBlob(
-    sequence: List<RoundedPolygon>,
-    startDelayMs: Long,
-    color: Color,
-    spinDegrees: Float,
-    size: Dp,
-    modifier: Modifier = Modifier,
-    target: RoundedPolygon? = null,
-) {
-    val motion = MaterialTheme.motionScheme
-    val reduced = rememberMotionReduced()
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    var morph by remember { mutableStateOf(Morph(sequence.first(), sequence.first())) }
-    var progress by remember { mutableFloatStateOf(1f) }
-    var rotation by remember { mutableFloatStateOf(0f) }
-    var current by remember { mutableStateOf(sequence.first()) }
-
-    LaunchedEffect(target, reduced) {
-        suspend fun moveTo(next: RoundedPolygon) {
-            // One snapshot, so no frame draws the new morph at the old progress.
-            Snapshot.withMutableSnapshot {
-                morph = Morph(current, next)
-                progress = 0f
-            }
-            current = next
-            val from = rotation
-            launch {
-                animate(from, from + spinDegrees, animationSpec = motion.slowSpatialSpec()) { v, _ -> rotation = v }
-            }
-            animate(0f, 1f, animationSpec = motion.slowSpatialSpec()) { v, _ -> progress = v }
-        }
-
-        if (target != null) {
-            moveTo(target)
-            return@LaunchedEffect
-        }
-        if (reduced) return@LaunchedEffect
-        var firstRun = true
-        // Nothing animates while the host is not RESUMED, and the hold phases go
-        // through the InfiniteAnimationPolicy so tests can stop the loop.
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            if (firstRun) delayInfinite(startDelayMs)
-            firstRun = false
-            var i = sequence.indexOf(current).coerceAtLeast(0)
-            while (true) {
-                delayInfinite(CYCLE_INTERVAL_MS)
-                i = (i + 1) % sequence.size
-                moveTo(sequence[i])
-            }
-        }
-    }
-
-    Box(
-        modifier = modifier
-            .size(size)
-            .graphicsLayer { rotationZ = rotation }
-            .drawMorph(morph = { morph }, progress = { progress }) { path -> drawPath(path, color) },
-    )
-}
+private val MainShapes = listOf(
+    MaterialShapes.Sunny,
+    MaterialShapes.Cookie9Sided,
+    MaterialShapes.Burst,
+    MaterialShapes.Cookie4Sided,
+)
+private val CelebrationShapes = listOf(MaterialShapes.Burst)
+private val TertiaryShapes = listOf(MaterialShapes.Flower, MaterialShapes.Circle, MaterialShapes.Gem)
+private val SecondaryShapes = listOf(MaterialShapes.Cookie6Sided, MaterialShapes.Triangle, MaterialShapes.Square)
 
 @Preview(showBackground = true)
 @Composable

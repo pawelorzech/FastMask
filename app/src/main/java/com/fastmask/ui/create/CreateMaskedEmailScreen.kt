@@ -68,7 +68,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
@@ -80,12 +79,7 @@ import com.fastmask.ui.components.MaskDescriptionField
 import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.MaskField
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
-import com.fastmask.ui.components.expressive.delayInfinite
-import com.fastmask.ui.components.expressive.MorphShape
-import com.fastmask.ui.components.expressive.rememberMotionReduced
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
+import com.fastmask.ui.components.expressive.MorphingShape
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
@@ -336,34 +330,6 @@ private fun PreviewCard(prefix: String) {
     val randomText = stringResource(R.string.create_email_preview_random)
     val suffix = stringResource(R.string.create_email_preview_suffix)
 
-    // Slowly morphing decorative blob: hold a shape, then spring into the next.
-    val progress = remember { Animatable(1f) }
-    var index by remember { mutableStateOf(0) }
-    val spatial = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
-    val reduced = rememberMotionReduced()
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(reduced) {
-        if (reduced) return@LaunchedEffect
-        // Paused while the screen is not RESUMED; the hold goes through the
-        // InfiniteAnimationPolicy so tests and idle detection can stop the loop.
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            if (progress.value != 1f) progress.animateTo(1f, spatial)
-            while (true) {
-                delayInfinite(2600)
-                index = (index + 1) % blobShapes.size
-                progress.snapTo(0f)
-                progress.animateTo(1f, spatial)
-            }
-        }
-    }
-    val morph = remember(index) {
-        Morph(
-            blobShapes[(index + blobShapes.size - 1) % blobShapes.size],
-            blobShapes[index],
-        )
-    }
-    val blobShape = remember(morph) { MorphShape(morph) { progress.value } }
-
     // Subtle spring "pop" whenever the address changes.
     val pop = remember { Animatable(1f) }
     val popSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
@@ -399,14 +365,16 @@ private fun PreviewCard(prefix: String) {
         // Decorative: no semantics. matchParentSize keeps the blob from stretching the card:
         // the card is exactly as tall as the label and address.
         Box(modifier = Modifier.matchParentSize().clearAndSetSemantics { }) {
-            Box(
+            // Slowly morphing: holds a shape, then springs into the next. Low
+            // emphasis: it sits behind the address and must never fight it.
+            MorphingShape(
+                polygons = blobShapes,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                holdMillis = 2600L,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .offset(x = 40.dp, y = (-44).dp)
-                    .size(112.dp)
-                    .clip(blobShape)
-                    // Low emphasis: it sits behind the address and must never fight it.
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                    .size(112.dp),
             )
         }
         Column(
