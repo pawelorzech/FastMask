@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">활성 — 감사합니다!</string>
     <string name="settings_accent">색상</string>
     <string name="settings_accent_locked">FastMask Pro 기능</string>
-    <string name="settings_select_accent">색상 선택</string>
     <string name="accent_amber">앰버</string>
     <string name="accent_ink">잉크</string>
     <string name="accent_sage">세이지</string>

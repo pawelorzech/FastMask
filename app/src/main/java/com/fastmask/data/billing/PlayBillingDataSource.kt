@@ -258,9 +258,6 @@ class PlayBillingDataSource @Inject constructor(
     private fun ProductDetails.toProProduct(): ProProduct? {
         val price = oneTimePurchaseOfferDetails?.formattedPrice ?: return null
         return ProProduct(
-            productId = productId,
-            title = title,
-            description = description,
             formattedPrice = price,
         )
     }

@@ -59,16 +59,6 @@ import com.fastmask.R
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.theme.FastMaskTheme
 
-/**
- * Where the tooltip card sits relative to the highlighted target.
- *
- * [AUTO] (what the list passes) puts the card at the bottom of the screen
- * unless the target is a compact element in the lower part of the screen — the
- * create FAB — in which case the card moves to the top so it never covers what
- * it is pointing at. [TOP] and [BOTTOM] force a side.
- */
-enum class TooltipPosition { TOP, BOTTOM, AUTO }
-
 data class TutorialStep(
     val title: String,
     val description: String,
@@ -78,7 +68,6 @@ data class TutorialStep(
      * a single UI element to highlight.
      */
     val targetBounds: Rect?,
-    val tooltipPosition: TooltipPosition = TooltipPosition.AUTO,
 )
 
 private val TooltipMaxWidth = 480.dp
@@ -276,12 +265,7 @@ private fun TooltipBubble(
         // sits in the upper half keeps the card at the bottom, where the
         // thumb is. Targets are never chased around the screen: that is what
         // pushed the card off-screen in earlier revisions.
-        val atTop = when (step.tooltipPosition) {
-            TooltipPosition.TOP -> true
-            TooltipPosition.BOTTOM -> false
-            TooltipPosition.AUTO ->
-                bounds != null && bounds.height < screenHeight * 0.4f && bounds.center.y > screenHeight * 0.55f
-        }
+        val atTop = bounds != null && bounds.height < screenHeight * 0.4f && bounds.center.y > screenHeight * 0.55f
 
         Surface(
             shape = MaterialTheme.shapes.extraLarge,

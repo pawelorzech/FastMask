@@ -51,7 +51,6 @@ private fun style(
 private val W400 = FontWeight.Normal
 private val W500 = FontWeight.Medium
 private val W600 = FontWeight.SemiBold
-private val W700 = FontWeight.Bold
 
 /**
  * M3 Expressive type scale. Each role has a baseline and an `…Emphasized`

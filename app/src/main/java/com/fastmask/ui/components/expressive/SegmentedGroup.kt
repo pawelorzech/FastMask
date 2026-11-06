@@ -71,7 +71,7 @@ fun SegmentedGroup(
 /**
  * One row of a segmented group, on `surfaceContainer`.
  *
- * Corners follow [segmentedShape]; while pressed all corners morph to [outer]
+ * Corners follow [segmentedShape]; while pressed all corners morph to the outer radius (20dp)
  * (`fastSpatialSpec`). Minimum height is 56dp, or 72dp when [supporting] is
  * present. When [onClick] is set the whole row is a single `Role.Button`
  * target with merged semantics; otherwise it is a static container.
@@ -82,8 +82,6 @@ fun SegmentedRow(
     count: Int,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    outer: Dp = 20.dp,
-    inner: Dp = 4.dp,
     leading: (@Composable () -> Unit)? = null,
     supporting: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -91,6 +89,8 @@ fun SegmentedRow(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
+    val outer = 20.dp
+    val inner = 4.dp
     val spec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
 
     val topTarget = if (pressed || index == 0) outer else inner

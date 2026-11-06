@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Aktiv — danke!</string>
     <string name="settings_accent">Farben</string>
     <string name="settings_accent_locked">Eine FastMask Pro-Funktion</string>
-    <string name="settings_select_accent">Farben wählen</string>
     <string name="accent_amber">Bernstein</string>
     <string name="accent_ink">Tinte</string>
     <string name="accent_sage">Salbei</string>

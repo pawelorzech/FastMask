@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Активне — дякуємо!</string>
     <string name="settings_accent">Кольори</string>
     <string name="settings_accent_locked">Функція FastMask Pro</string>
-    <string name="settings_select_accent">Вибрати кольори</string>
     <string name="accent_amber">Бурштин</string>
     <string name="accent_ink">Чорнило</string>
     <string name="accent_sage">Шавлія</string>

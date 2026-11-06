@@ -174,20 +174,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onAccentClick() {
-        if (proStatus.value.isPro) {
-            _uiState.update { it.copy(showAccentDialog = true) }
-        } else {
-            analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "accent")
-            viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "accent")) }
-        }
-    }
-
-    fun onAccentDialogDismissed() {
-        _uiState.update { it.copy(showAccentDialog = false) }
+        if (proStatus.value.isPro) return
+        analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = "accent")
+        viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "accent")) }
     }
 
     fun onAccentSelected(accent: Accent) {
-        _uiState.update { it.copy(showAccentDialog = false) }
         // Wallpaper colors are free; only the five seeds are Pro (the picker locks them).
         if (accent != Accent.DYNAMIC && !proStatus.value.isPro) return
         viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
@@ -278,7 +270,6 @@ class SettingsViewModel @Inject constructor(
 
 data class SettingsUiState(
     val selectedLanguage: Language? = null,
-    val showAccentDialog: Boolean = false,
     val showExportConfirmation: Boolean = false,
     val exportInFlight: Boolean = false,
 )

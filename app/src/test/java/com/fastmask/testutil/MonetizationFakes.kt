@@ -37,9 +37,6 @@ fun billingPurchase(
 )
 
 val testProduct = ProProduct(
-    productId = "pro_lifetime",
-    title = "FastMask Pro",
-    description = "Accents, app lock, CSV export",
     formattedPrice = "€4.99",
 )
 

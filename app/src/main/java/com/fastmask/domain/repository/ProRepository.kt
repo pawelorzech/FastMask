@@ -42,11 +42,8 @@ interface ProRepository {
     suspend fun restore(): RestoreResult
 }
 
-/** Price and copy come formatted from Play — never hardcoded. */
+/** The price comes formatted from Play — never hardcoded. */
 data class ProProduct(
-    val productId: String,
-    val title: String,
-    val description: String,
     val formattedPrice: String,
 )
 
@@ -60,5 +57,5 @@ sealed class ProPurchaseEvent {
     data object Completed : ProPurchaseEvent()
     data object Pending : ProPurchaseEvent()
     data object Cancelled : ProPurchaseEvent()
-    data class Failed(val code: String) : ProPurchaseEvent()
+    data object Failed : ProPurchaseEvent()
 }

@@ -29,9 +29,6 @@ import kotlin.coroutines.resume
 sealed interface AppUpdateUiState {
     data object Idle : AppUpdateUiState
 
-    /** A flexible update is coming down in the background; the app stays fully usable. */
-    data object Downloading : AppUpdateUiState
-
     /** Bytes are on the device. The only thing left is the user agreeing to restart. */
     data object ReadyToInstall : AppUpdateUiState
 }
@@ -85,13 +82,12 @@ class AppUpdateController private constructor(context: Context) {
 
     private val installListener = InstallStateUpdatedListener { installState ->
         when (installState.installStatus()) {
-            InstallStatus.DOWNLOADING -> uiState.value = AppUpdateUiState.Downloading
             InstallStatus.DOWNLOADED -> {
                 uiState.value = AppUpdateUiState.ReadyToInstall
                 unregisterListener()
             }
             // A failed, cancelled or already-installed update has nothing left to say. Drop back
-            // to Idle rather than leaving a stale "downloading" the user can never resolve.
+            // to Idle rather than leaving a stale state the user can never resolve.
             InstallStatus.FAILED, InstallStatus.CANCELED, InstallStatus.INSTALLED -> {
                 uiState.value = AppUpdateUiState.Idle
                 unregisterListener()

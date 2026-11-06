@@ -33,10 +33,7 @@ private val MaskAvatarPolygons: List<RoundedPolygon> = listOf(
     MaterialShapes.Triangle,
 )
 
-/** The shapes [MaskAvatar] picks from, in a fixed order so the pick is stable across releases. */
-internal fun maskAvatarPolygons(): List<RoundedPolygon> = MaskAvatarPolygons
-
-/** Deterministic index into [maskAvatarPolygons] for [seedText]. */
+/** Deterministic index into [MaskAvatarPolygons] for [seedText]. */
 internal fun maskAvatarShapeIndex(seedText: String, shapeCount: Int): Int =
     Math.floorMod(seedText.hashCode(), shapeCount)
 

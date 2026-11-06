@@ -108,7 +108,7 @@ class ProRepositoryImpl @Inject constructor(
                     if (_proStatus.value == ProStatus.PRO) {
                         _events.send(ProPurchaseEvent.Completed)
                     } else {
-                        _events.send(ProPurchaseEvent.Failed(update.code.name))
+                        _events.send(ProPurchaseEvent.Failed)
                     }
                 }
                 else -> {
@@ -116,7 +116,7 @@ class ProRepositoryImpl @Inject constructor(
                         MonetizationEvent.PURCHASE_FAILED,
                         detail = update.code.name,
                     )
-                    _events.send(ProPurchaseEvent.Failed(update.code.name))
+                    _events.send(ProPurchaseEvent.Failed)
                 }
             }
         }
@@ -197,7 +197,7 @@ class ProRepositoryImpl @Inject constructor(
             // Still emit a terminal event: buy() reports LAUNCHED and relies on
             // an event to clear its in-flight flag, so a silent return here would
             // leave the paywall's buy button spinning forever.
-            _events.send(ProPurchaseEvent.Failed("NO_MATCHING_PURCHASE"))
+            _events.send(ProPurchaseEvent.Failed)
             return@withLock
         }
         val previous = _proStatus.value
@@ -274,7 +274,7 @@ class ProRepositoryImpl @Inject constructor(
                 // A buy-flow update that resolves to FREE (purchase neither
                 // PURCHASED nor PENDING) is still terminal — emit so the buy
                 // button's in-flight spinner is always cleared.
-                ProStatus.FREE -> _events.send(ProPurchaseEvent.Failed("NOT_PURCHASED"))
+                ProStatus.FREE -> _events.send(ProPurchaseEvent.Failed)
             }
         }
     }

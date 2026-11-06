@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Etkin — teşekkürler!</string>
     <string name="settings_accent">Renkler</string>
     <string name="settings_accent_locked">Bir FastMask Pro özelliği</string>
-    <string name="settings_select_accent">Renkleri seçin</string>
     <string name="accent_amber">Kehribar</string>
     <string name="accent_ink">Mürekkep</string>
     <string name="accent_sage">Adaçayı</string>

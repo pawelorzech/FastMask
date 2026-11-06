@@ -123,15 +123,6 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `accent tap with pro opens the picker dialog`() = runTest {
-        proRepository.statusFlow.value = ProStatus.PRO
-        val vm = viewModel()
-        vm.onAccentClick()
-
-        assertTrue(vm.uiState.value.showAccentDialog)
-    }
-
-    @Test
     fun `selecting an accent with pro persists it`() = runTest {
         proRepository.statusFlow.value = ProStatus.PRO
         val vm = viewModel()

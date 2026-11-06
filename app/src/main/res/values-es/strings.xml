@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Activo — ¡gracias!</string>
     <string name="settings_accent">Colores</string>
     <string name="settings_accent_locked">Una característica de FastMask Pro</string>
-    <string name="settings_select_accent">Elige los colores</string>
     <string name="accent_amber">Ámbar</string>
     <string name="accent_ink">Tinta</string>
     <string name="accent_sage">Salvia</string>

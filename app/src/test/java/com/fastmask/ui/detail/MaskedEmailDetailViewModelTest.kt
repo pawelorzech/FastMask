@@ -136,7 +136,7 @@ class MaskedEmailDetailViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        viewModel.toggleState()
+        viewModel.disable()
         advanceUntilIdle()
 
         assertEquals(1, repo.updateCalls)
@@ -152,7 +152,7 @@ class MaskedEmailDetailViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        viewModel.toggleState()
+        viewModel.disable()
         runCurrent()
 
         assertEquals(MaskedEmailDetailUpdate.TOGGLE_STATE, viewModel.uiState.value.updateOperation)
@@ -193,7 +193,7 @@ class MaskedEmailDetailViewModelTest {
         // User is mid-edit, then toggles state; the toggle's success reload must
         // NOT clobber the half-typed description back to the server value.
         viewModel.onDescriptionChange("half-typed draft")
-        viewModel.toggleState()
+        viewModel.disable()
         advanceUntilIdle()
 
         assertEquals("half-typed draft", viewModel.uiState.value.editedDescription)

@@ -185,12 +185,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(editedUrl = url) }
     }
 
-    fun toggleState() {
-        val email = _uiState.value.email ?: return
-        val newState = if (email.state == EmailState.ENABLED) EmailState.DISABLED else EmailState.ENABLED
-        updateState(newState)
-    }
-
     fun enable() = updateState(EmailState.ENABLED)
 
     fun disable() = updateState(EmailState.DISABLED)

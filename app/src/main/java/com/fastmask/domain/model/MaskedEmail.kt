@@ -14,11 +14,6 @@ data class MaskedEmail(
     val createdAt: Instant?,
     val lastMessageAt: Instant?
 ) {
-    val displayName: String
-        get() = description?.takeIf { it.isNotBlank() }
-            ?: forDomain?.takeIf { it.isNotBlank() }
-            ?: email.substringBefore("@")
-
     val isActive: Boolean
         get() = state == EmailState.ENABLED || state == EmailState.PENDING
 }

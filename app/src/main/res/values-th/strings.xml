@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">เปิดใช้งาน — ขอบคุณ!</string>
     <string name="settings_accent">สี</string>
     <string name="settings_accent_locked">คุณสมบัติ FastMask Pro</string>
-    <string name="settings_select_accent">เลือกสี</string>
     <string name="accent_amber">สีทอง</string>
     <string name="accent_ink">สีดำ</string>
     <string name="accent_sage">สีเขียว</string>

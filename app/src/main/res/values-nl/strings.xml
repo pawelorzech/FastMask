@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Actief — dank je!</string>
     <string name="settings_accent">Kleuren</string>
     <string name="settings_accent_locked">Een FastMask Pro-functie</string>
-    <string name="settings_select_accent">Kleuren kiezen</string>
     <string name="accent_amber">Amber</string>
     <string name="accent_ink">Inkt</string>
     <string name="accent_sage">Salie</string>

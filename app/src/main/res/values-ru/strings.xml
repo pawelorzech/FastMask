@@ -210,7 +210,6 @@
     <string name="settings_pro_value_active">Активно — спасибо!</string>
     <string name="settings_accent">Цвета</string>
     <string name="settings_accent_locked">Функция FastMask Pro</string>
-    <string name="settings_select_accent">Выбрать цвета</string>
     <string name="accent_amber">Янтарный</string>
     <string name="accent_ink">Тёмный</string>
     <string name="accent_sage">Мудрец</string>

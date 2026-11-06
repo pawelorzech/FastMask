@@ -96,7 +96,6 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onEnterDemo: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel(),
-    onBack: (() -> Unit)? = null,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showToken by rememberSaveable { mutableStateOf(false) }
@@ -141,7 +140,7 @@ fun LoginScreen(
             )
         },
         onEnterDemo = viewModel::enterDemoMode,
-        onBack = onBack ?: { backDispatcher?.onBackPressed(); Unit },
+        onBack = { backDispatcher?.onBackPressed(); Unit },
     )
 }
 

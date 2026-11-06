@@ -14,8 +14,4 @@ class GetCurrentLanguageUseCase @Inject constructor(
             Language.fromCode(code)
         }
     }
-
-    fun getBlocking(): Language? {
-        return Language.fromCode(settingsDataStore.getLanguageBlocking())
-    }
 }

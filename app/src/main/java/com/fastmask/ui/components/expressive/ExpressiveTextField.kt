@@ -45,7 +45,6 @@ fun ExpressiveTextField(
     supportingText: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     isError: Boolean = false,
-    singleLine: Boolean = true,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -78,7 +77,7 @@ fun ExpressiveTextField(
                 .fillMaxWidth()
                 .border(width = 2.dp, color = outline, shape = shape),
             enabled = enabled,
-            singleLine = singleLine,
+            singleLine = true,
             isError = isError,
             label = label?.let { { Text(it) } },
             placeholder = placeholder?.let { { Text(it) } },

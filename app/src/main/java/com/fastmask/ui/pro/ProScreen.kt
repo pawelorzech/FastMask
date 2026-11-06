@@ -568,9 +568,6 @@ private data class ProMessages(
 // --- Previews ---------------------------------------------------------------
 
 private val PreviewProduct = ProProduct(
-    productId = "pro",
-    title = "FastMask Pro",
-    description = "",
     formattedPrice = "14,99 zł",
 )
 

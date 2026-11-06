@@ -60,8 +60,4 @@ class AuthRepositoryImpl @Inject constructor(
         // used to sit on every demo cold-start's critical path for no result.
         return settingsDataStore.appModeBlocking() == AppMode.DEMO || tokenStorage.hasToken()
     }
-
-    override fun getToken(): String? {
-        return tokenStorage.getToken()
-    }
 }

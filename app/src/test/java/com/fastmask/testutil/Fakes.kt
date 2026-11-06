@@ -145,8 +145,6 @@ class FakeAuthRepository(
     }
 
     override fun isLoggedIn(): Boolean = loggedIn
-
-    override fun getToken(): String? = null
 }
 
 /**

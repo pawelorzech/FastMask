@@ -164,7 +164,6 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.copyToClipboard
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.DemoBannerContent
-import com.fastmask.ui.components.TooltipPosition
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.components.TutorialStep
 import com.fastmask.ui.components.expressive.MaskAvatar
@@ -928,7 +927,6 @@ private fun rememberTutorialSteps(bounds: Map<Int, Rect>): List<TutorialStep> {
             title = titles[i],
             description = bodies[i],
             targetBounds = bounds[i],
-            tooltipPosition = TooltipPosition.AUTO,
         )
     }
 }
