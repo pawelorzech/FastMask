@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.core.runSuspendCatching
-import com.fastmask.domain.usecase.DemoModeActivator
+import com.fastmask.domain.repository.SessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    private val demoModeActivator: DemoModeActivator,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WelcomeUiState())
@@ -29,10 +29,6 @@ class WelcomeViewModel @Inject constructor(
     private val _events = Channel<WelcomeEvent>(Channel.BUFFERED)
     val events: Flow<WelcomeEvent> = _events.receiveAsFlow()
 
-    /**
-     * Enter demo mode. The sequence itself lives in [DemoModeActivator] so the
-     * login screen's demo exit runs it too, instead of a second copy.
-     */
     fun enterDemoMode() {
         // Synchronous guard: two taps in one frame must not run two DataStore
         // writes and enqueue two navigation events.
@@ -40,7 +36,7 @@ class WelcomeViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
             runSuspendCatching {
-                demoModeActivator.activate()
+                sessionRepository.enterDemo()
                 _uiState.update { it.copy(isLoading = false) }
                 _events.send(WelcomeEvent.EnterDemo)
             }.onFailure {

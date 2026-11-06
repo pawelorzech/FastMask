@@ -3,8 +3,8 @@
 package com.fastmask.ui.list
 
 import com.fastmask.R
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.Session
+import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
@@ -14,12 +14,9 @@ import com.fastmask.domain.usecase.UpdateMaskedEmailUseCase
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
-import io.mockk.every
-import io.mockk.mockk
 import java.io.IOException
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -33,11 +30,7 @@ class MaskedEmailListViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val settings = mockk<SettingsDataStore> {
-        every { appModeBlocking() } returns AppMode.REAL
-        every { appMode } returns flowOf(AppMode.REAL)
-        every { tutorialCompleted } returns flowOf(true)
-    }
+    private val session = FakeSessionRepository(initial = Session.ACCOUNT)
 
     private fun vm(
         repo: FakeMaskedEmailRepository,
@@ -47,7 +40,7 @@ class MaskedEmailListViewModelTest {
             GetMaskedEmailsUseCase(repo),
             GetCachedMaskedEmailsUseCase(repo),
             UpdateMaskedEmailUseCase(repo),
-            settings,
+            session,
             appScope,
             CreateMaskedEmailUseCase(repo),
         )

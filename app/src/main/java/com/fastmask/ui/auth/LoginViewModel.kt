@@ -6,8 +6,7 @@ import com.fastmask.R
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import com.fastmask.domain.auth.TokenFormat
-import com.fastmask.domain.usecase.DemoModeActivator
-import com.fastmask.domain.usecase.LoginUseCase
+import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -22,8 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase,
-    private val demoModeActivator: DemoModeActivator,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -90,7 +88,7 @@ class LoginViewModel @Inject constructor(
         }
         viewModelScope.launch {
             runSuspendCatching {
-                demoModeActivator.activate()
+                sessionRepository.enterDemo()
                 _uiState.update {
                     it.copy(
                         token = "",
@@ -129,7 +127,7 @@ class LoginViewModel @Inject constructor(
             )
         }
         viewModelScope.launch {
-            loginUseCase(token).fold(
+            sessionRepository.signIn(token).fold(
                 onSuccess = {
                     // Drop the secret from UI state only once it is safely in
                     // encrypted storage. The shape hint is deliberately left

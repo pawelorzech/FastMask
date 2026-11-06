@@ -5,9 +5,7 @@ package com.fastmask.ui.auth
 import com.fastmask.R
 import com.fastmask.domain.auth.MaskedEmailScopeMissingException
 import com.fastmask.domain.auth.TokenFormat
-import com.fastmask.domain.usecase.LoginUseCase
-import com.fastmask.testutil.FakeAuthRepository
-import com.fastmask.testutil.FakeDemoModeActivator
+import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,10 +28,7 @@ class LoginViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun vm(
-        auth: FakeAuthRepository,
-        demo: FakeDemoModeActivator = FakeDemoModeActivator(),
-    ) = LoginViewModel(LoginUseCase(auth), demo)
+    private fun vm(session: FakeSessionRepository) = LoginViewModel(session)
 
     private fun httpException(code: Int): HttpException =
         HttpException(
@@ -44,7 +39,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is cleared from state after successful login`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -55,7 +50,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is cleared from state after an auth rejection`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -69,7 +64,7 @@ class LoginViewModelTest {
     // re-paste of a ~40-character secret just to press the button twice.
     @Test
     fun `token is retained after a network failure`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(IOException("offline"))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(IOException("offline"))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -81,7 +76,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is retained after a server error`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(503))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(503))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -92,7 +87,7 @@ class LoginViewModelTest {
 
     @Test
     fun `token is retained after rate limiting`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(429))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(429))))
         viewModel.onTokenChange("fmu1-secret-token")
 
         viewModel.login()
@@ -105,7 +100,7 @@ class LoginViewModelTest {
 
     @Test
     fun `whitespace is stripped from pasted token`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenChange("  fmu1-abc\n def\t")
 
@@ -117,7 +112,7 @@ class LoginViewModelTest {
 
     @Test
     fun `empty token shows localized error without calling the API`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenChange("   ")
 
@@ -125,14 +120,14 @@ class LoginViewModelTest {
         advanceUntilIdle()
 
         assertEquals(R.string.login_error_empty_token, viewModel.uiState.value.errorRes)
-        assertEquals(0, auth.loginCalls)
+        assertEquals(0, auth.signInCalls)
     }
 
     // --- double-tap guard --------------------------------------------------
 
     @Test
     fun `rapid double tap fires exactly one login request`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenChange("fmu1-abc")
 
@@ -140,14 +135,14 @@ class LoginViewModelTest {
         viewModel.login()
         advanceUntilIdle()
 
-        assertEquals(1, auth.loginCalls)
+        assertEquals(1, auth.signInCalls)
     }
 
     // --- error mapping -----------------------------------------------------
 
     @Test
     fun `401 maps to localized auth error`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
         viewModel.onTokenChange("fmu1-bad")
 
         viewModel.login()
@@ -159,7 +154,7 @@ class LoginViewModelTest {
     @Test
     fun `network failure maps to localized network error`() = runTest {
         val viewModel = vm(
-            FakeAuthRepository(loginResult = Result.failure(java.io.IOException("no route")))
+            FakeSessionRepository(signInResult = Result.failure(java.io.IOException("no route")))
         )
         viewModel.onTokenChange("fmu1-abc")
 
@@ -173,7 +168,7 @@ class LoginViewModelTest {
 
     @Test
     fun `success event is buffered for collectors subscribing after emit`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenChange("fmu1-abc")
 
         viewModel.login()
@@ -195,7 +190,7 @@ class LoginViewModelTest {
 
     @Test
     fun `pasting stores the cleaned token and clears the previous error`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenChange("   ")
         viewModel.login() // provokes the empty-token error
         advanceUntilIdle()
@@ -209,7 +204,7 @@ class LoginViewModelTest {
 
     @Test
     fun `pasting a real token raises no warning`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("fmu1-8f2c1d9e4a")
 
@@ -219,7 +214,7 @@ class LoginViewModelTest {
     /** The case this exists for: a password pasted into the token field. */
     @Test
     fun `pasting something that is not a token raises a warning`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("Tr0ub4dor&3")
 
@@ -231,7 +226,7 @@ class LoginViewModelTest {
 
     @Test
     fun `the warning is not an error`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("Tr0ub4dor&3")
 
@@ -241,7 +236,7 @@ class LoginViewModelTest {
 
     @Test
     fun `the warning clears once a real token is pasted`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenPasted("Tr0ub4dor&3")
         assertNotNull(viewModel.uiState.value.warningRes)
 
@@ -253,7 +248,7 @@ class LoginViewModelTest {
     /** Typing after a warned paste is the user acting on the hint. */
     @Test
     fun `the warning clears when the user edits the field`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenPasted("Tr0ub4dor&3")
         assertNotNull(viewModel.uiState.value.warningRes)
 
@@ -268,28 +263,28 @@ class LoginViewModelTest {
      */
     @Test
     fun `a warned token is still submitted`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenPasted("Tr0ub4dor&3")
 
         viewModel.login()
         advanceUntilIdle()
 
-        assertEquals(1, auth.loginCalls)
+        assertEquals(1, auth.signInCalls)
         assertEquals("Tr0ub4dor&3", auth.lastToken)
         assertNotNull(viewModel.uiState.value.warningRes)
     }
 
     @Test
     fun `submitting a hand typed non-token warns without blocking`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenChange("hunter2")
 
         viewModel.login()
         advanceUntilIdle()
 
-        assertEquals(1, auth.loginCalls)
+        assertEquals(1, auth.signInCalls)
         assertNotNull(viewModel.uiState.value.warningRes)
     }
 
@@ -299,7 +294,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `login cleans the token with the shared sanitizer`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         val pasted = "fmu1-8f2c\u00A01d9e4a"
         viewModel.onTokenChange(pasted)
@@ -318,7 +313,7 @@ class LoginViewModelTest {
 
     @Test
     fun `pasting an empty clipboard says so instead of doing nothing`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("")
 
@@ -328,7 +323,7 @@ class LoginViewModelTest {
     /** An image or URI clip reaches the ViewModel as an empty string. */
     @Test
     fun `pasting a clipboard holding no text says so`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("")
 
@@ -338,7 +333,7 @@ class LoginViewModelTest {
 
     @Test
     fun `pasting a whitespace only clipboard says so`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("\n   \t")
 
@@ -351,7 +346,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `a whitespace only clipboard does not wipe the typed token`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenChange("fmu1-typed-by-hand")
 
         viewModel.onTokenPasted("\n")
@@ -361,7 +356,7 @@ class LoginViewModelTest {
 
     @Test
     fun `the empty paste hint clears once something is pasted`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenPasted("")
         assertNotNull(viewModel.uiState.value.warningRes)
 
@@ -379,7 +374,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `an oversized paste is capped before it reaches state`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("x".repeat(500_000))
 
@@ -388,7 +383,7 @@ class LoginViewModelTest {
 
     @Test
     fun `a normal token is not truncated`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenPasted("fmu1-8f2c1d9e4a")
 
@@ -404,7 +399,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `the shape hint goes when an auth rejection empties the field`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(httpException(401))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(httpException(401))))
         viewModel.onTokenPasted("Tr0ub4dor&3")
         assertNotNull(viewModel.uiState.value.warningRes)
 
@@ -419,7 +414,7 @@ class LoginViewModelTest {
     @Test
     fun `the shape hint goes when the scope failure empties the field`() = runTest {
         val viewModel = vm(
-            FakeAuthRepository(loginResult = Result.failure(MaskedEmailScopeMissingException()))
+            FakeSessionRepository(signInResult = Result.failure(MaskedEmailScopeMissingException()))
         )
         viewModel.onTokenPasted("Tr0ub4dor&3")
         assertNotNull(viewModel.uiState.value.warningRes)
@@ -434,7 +429,7 @@ class LoginViewModelTest {
     /** The other half of the rule: content still there, hint still there. */
     @Test
     fun `the shape hint stays while a retryable failure keeps the token`() = runTest {
-        val viewModel = vm(FakeAuthRepository(loginResult = Result.failure(IOException("offline"))))
+        val viewModel = vm(FakeSessionRepository(signInResult = Result.failure(IOException("offline"))))
         viewModel.onTokenPasted("Tr0ub4dor&3")
 
         viewModel.login()
@@ -454,7 +449,7 @@ class LoginViewModelTest {
     @Test
     fun `a token without masked email scope gets its own message`() = runTest {
         val viewModel = vm(
-            FakeAuthRepository(loginResult = Result.failure(MaskedEmailScopeMissingException()))
+            FakeSessionRepository(signInResult = Result.failure(MaskedEmailScopeMissingException()))
         )
         viewModel.onTokenChange("fmu1-8f2c1d9e4a")
 
@@ -476,7 +471,7 @@ class LoginViewModelTest {
     @Test
     fun `a token without masked email scope is cleared from state`() = runTest {
         val viewModel = vm(
-            FakeAuthRepository(loginResult = Result.failure(MaskedEmailScopeMissingException()))
+            FakeSessionRepository(signInResult = Result.failure(MaskedEmailScopeMissingException()))
         )
         viewModel.onTokenChange("fmu1-8f2c1d9e4a")
 
@@ -491,8 +486,8 @@ class LoginViewModelTest {
 
     @Test
     fun `the demo exit enters demo mode and navigates`() = runTest {
-        val demo = FakeDemoModeActivator()
-        val viewModel = vm(FakeAuthRepository(), demo)
+        val demo = FakeSessionRepository()
+        val viewModel = vm(demo)
 
         viewModel.enterDemoMode()
         var received: LoginEvent? = null
@@ -500,7 +495,7 @@ class LoginViewModelTest {
         advanceUntilIdle()
         job.cancel()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
         assertEquals(LoginEvent.EnterDemo, received)
     }
 
@@ -510,8 +505,8 @@ class LoginViewModelTest {
      */
     @Test
     fun `a failed demo activation neither navigates nor crashes`() = runTest {
-        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
-        val viewModel = vm(FakeAuthRepository(), demo)
+        val demo = FakeSessionRepository(enterDemoFailure = IllegalStateException("disk full"))
+        val viewModel = vm(demo)
 
         viewModel.enterDemoMode()
         var received: LoginEvent? = null
@@ -519,20 +514,20 @@ class LoginViewModelTest {
         advanceUntilIdle()
         job.cancel()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
         assertNull(received)
         assertEquals(R.string.demo_error_start, viewModel.uiState.value.errorRes)
     }
 
     @Test
     fun `the demo exit does not attempt a login`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
 
         viewModel.enterDemoMode()
         advanceUntilIdle()
 
-        assertEquals(0, auth.loginCalls)
+        assertEquals(0, auth.signInCalls)
     }
 
     /**
@@ -543,7 +538,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `the demo exit clears the token from state`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
         viewModel.onTokenPasted("Tr0ub4dor&3")
 
         viewModel.enterDemoMode()
@@ -556,8 +551,8 @@ class LoginViewModelTest {
     /** A write that never landed must leave the user's input to retry with. */
     @Test
     fun `a failed demo activation keeps the token`() = runTest {
-        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
-        val viewModel = vm(FakeAuthRepository(), demo)
+        val demo = FakeSessionRepository(enterDemoFailure = IllegalStateException("disk full"))
+        val viewModel = vm(demo)
         viewModel.onTokenChange("fmu1-8f2c1d9e4a")
 
         viewModel.enterDemoMode()
@@ -575,7 +570,7 @@ class LoginViewModelTest {
      */
     @Test
     fun `a login tapped in the same frame as the demo exit is ignored`() = runTest {
-        val auth = FakeAuthRepository()
+        val auth = FakeSessionRepository()
         val viewModel = vm(auth)
         viewModel.onTokenChange("fmu1-8f2c1d9e4a")
 
@@ -583,24 +578,24 @@ class LoginViewModelTest {
         viewModel.login()
         advanceUntilIdle()
 
-        assertEquals(0, auth.loginCalls)
+        assertEquals(0, auth.signInCalls)
     }
 
     @Test
     fun `a second demo tap does not activate twice`() = runTest {
-        val demo = FakeDemoModeActivator()
-        val viewModel = vm(FakeAuthRepository(), demo)
+        val demo = FakeSessionRepository()
+        val viewModel = vm(demo)
 
         viewModel.enterDemoMode()
         viewModel.enterDemoMode()
         advanceUntilIdle()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
     }
 
     @Test
     fun `demo progress is attached to the demo action not the login action`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.enterDemoMode()
 
@@ -611,7 +606,7 @@ class LoginViewModelTest {
 
     @Test
     fun `native field paste is capped before text layout`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.onTokenChange("x".repeat(500_000))
 
@@ -621,8 +616,8 @@ class LoginViewModelTest {
     /** A failed activation must not leave both buttons disabled for good. */
     @Test
     fun `a failed demo activation releases the buttons`() = runTest {
-        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
-        val viewModel = vm(FakeAuthRepository(), demo)
+        val demo = FakeSessionRepository(enterDemoFailure = IllegalStateException("disk full"))
+        val viewModel = vm(demo)
 
         viewModel.enterDemoMode()
         advanceUntilIdle()
@@ -632,7 +627,7 @@ class LoginViewModelTest {
 
     @Test
     fun `a successful demo activation releases the buttons`() = runTest {
-        val viewModel = vm(FakeAuthRepository())
+        val viewModel = vm(FakeSessionRepository())
 
         viewModel.enterDemoMode()
         advanceUntilIdle()

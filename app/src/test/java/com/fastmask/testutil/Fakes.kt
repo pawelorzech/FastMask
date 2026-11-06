@@ -1,15 +1,17 @@
 package com.fastmask.testutil
 
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.model.Session
 import com.fastmask.domain.model.UpdateMaskedEmailParams
-import com.fastmask.domain.repository.AuthRepository
+import com.fastmask.domain.repository.AppLockSetting
 import com.fastmask.domain.repository.MaskedEmailRepository
-import com.fastmask.domain.repository.QuickMaskGuard
-import com.fastmask.domain.usecase.DemoModeActivator
+import com.fastmask.domain.repository.SessionRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 
 fun mask(
@@ -121,53 +123,46 @@ class FakeMaskedEmailRepository(
     }
 }
 
-class FakeAuthRepository(
-    var loginResult: Result<Unit> = Result.success(Unit),
-    /**
-     * What [isLoggedIn] answers. Mirrors the real implementation's contract:
-     * a DEMO session also reports `true` (see AuthRepositoryImpl), so callers
-     * must not treat "logged in" as "has a real Fastmail token".
-     */
-    var loggedIn: Boolean = false,
-) : AuthRepository {
-    var loginCalls = 0
+class FakeSessionRepository(
+    initial: Session = Session.SIGNED_OUT,
+    var signInResult: Result<Unit> = Result.success(Unit),
+    /** Thrown by [enterDemo], to simulate a failed DataStore write. */
+    var enterDemoFailure: Throwable? = null,
+) : SessionRepository {
+    private val _session = MutableStateFlow(initial)
+    override val session: StateFlow<Session> = _session
+    val tutorial = MutableStateFlow(false)
+    override val tutorialCompleted: Flow<Boolean> = tutorial
+
+    var signInCalls = 0
     var lastToken: String? = null
-    var loggedOut = false
+    var enterDemoCalls = 0
+    var signOutCalls = 0
 
-    override suspend fun login(token: String): Result<Unit> {
-        loginCalls++
+    override suspend fun current(): Session = _session.value
+
+    override suspend fun signIn(token: String): Result<Unit> {
+        signInCalls++
         lastToken = token
-        return loginResult
+        return signInResult.onSuccess { _session.value = Session.ACCOUNT }
     }
 
-    override suspend fun logout() {
-        loggedOut = true
+    override suspend fun enterDemo() {
+        enterDemoCalls++
+        enterDemoFailure?.let { throw it }
+        _session.value = Session.DEMO
     }
 
-    override fun isLoggedIn(): Boolean = loggedIn
-}
+    override suspend fun signOut() {
+        signOutCalls++
+        _session.value = Session.SIGNED_OUT
+    }
 
-/**
- * The shared way into demo mode. Counting calls is how the tests assert that
- * Welcome and Login run the *same* mechanism rather than two copies of it.
- */
-class FakeDemoModeActivator(
-    /** Set to simulate a failed DataStore write. */
-    var failure: Throwable? = null,
-) : DemoModeActivator {
-    var activateCalls = 0
-
-    override suspend fun activate() {
-        activateCalls++
-        failure?.let { throw it }
+    override suspend fun completeTutorial() {
+        tutorial.value = true
     }
 }
 
-/** Preconditions for the quick-create entry points (tile / launcher shortcut). */
-class FakeQuickMaskGuard(
-    var mode: AppMode = AppMode.REAL,
-    var lockEnabled: Boolean = false,
-) : QuickMaskGuard {
-    override suspend fun appMode(): AppMode = mode
-    override suspend fun appLockEnabled(): Boolean = lockEnabled
+class FakeAppLockSetting(var enabled: Boolean = false) : AppLockSetting {
+    override suspend fun isAppLockEnabled(): Boolean = enabled
 }

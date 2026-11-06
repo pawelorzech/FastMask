@@ -6,7 +6,6 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
-import com.fastmask.domain.repository.DemoSession
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -32,7 +31,7 @@ import javax.inject.Singleton
  * irreversible half honestly, by dropping the entry.
  */
 @Singleton
-class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository, DemoSession {
+class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository {
 
     private val state = MutableStateFlow(INITIAL_DEMO_MASKS)
 
@@ -42,7 +41,7 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
      * so "Try demo" after a sign-out reopened a half-used demo — contradicting
      * the contract described above.
      */
-    override fun reset() {
+    fun reset() {
         state.value = INITIAL_DEMO_MASKS
     }
 

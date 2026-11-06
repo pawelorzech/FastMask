@@ -1,11 +1,11 @@
 package com.fastmask.domain.usecase
 
 import com.fastmask.R
-import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.Session
 import com.fastmask.domain.model.EmailState
-import com.fastmask.testutil.FakeAuthRepository
+import com.fastmask.testutil.FakeAppLockSetting
 import com.fastmask.testutil.FakeMaskedEmailRepository
-import com.fastmask.testutil.FakeQuickMaskGuard
+import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.ui.common.UiErrors
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
@@ -38,11 +38,11 @@ class QuickMaskCreatorTest {
 
     private fun creator(
         repo: FakeMaskedEmailRepository = FakeMaskedEmailRepository(),
-        auth: FakeAuthRepository = FakeAuthRepository(loggedIn = true),
-        guard: FakeQuickMaskGuard = FakeQuickMaskGuard(),
+        session: Session = Session.ACCOUNT,
+        lock: FakeAppLockSetting = FakeAppLockSetting(),
     ) = QuickMaskCreator(
-        authRepository = auth,
-        guard = guard,
+        sessionRepository = FakeSessionRepository(initial = session),
+        appLockSetting = lock,
         createMaskedEmailUseCase = CreateMaskedEmailUseCase(repo),
         destroyMaskedEmailUseCase = DestroyMaskedEmailUseCase(repo),
     )
@@ -53,25 +53,18 @@ class QuickMaskCreatorTest {
     fun `signed out tap creates nothing and asks for the app`() = runTest {
         val repo = FakeMaskedEmailRepository()
 
-        val result = creator(repo = repo, auth = FakeAuthRepository(loggedIn = false)).create()
+        val result = creator(repo = repo, session = Session.SIGNED_OUT).create()
 
         assertEquals(QuickMaskResult.NotSignedIn, result)
         assertEquals(0, repo.createCalls)
     }
 
     @Test
-    fun `demo mode creates nothing even though isLoggedIn reports true`() = runTest {
+    fun `demo mode creates nothing even though it counts as signed in`() = runTest {
         val repo = FakeMaskedEmailRepository()
 
-        // The real AuthRepositoryImpl answers isLoggedIn() with true in demo
-        // mode. Trusting that alone would route the tile into the demo
-        // repository, which happily mints an in-memory address the user would
-        // then paste into a real signup form.
-        val result = creator(
-            repo = repo,
-            auth = FakeAuthRepository(loggedIn = true),
-            guard = FakeQuickMaskGuard(mode = AppMode.DEMO),
-        ).create()
+        // A demo mask minted in memory would end up pasted into a real signup form.
+        val result = creator(repo = repo, session = Session.DEMO).create()
 
         assertEquals(QuickMaskResult.DemoMode, result)
         assertEquals(0, repo.createCalls)
@@ -83,27 +76,12 @@ class QuickMaskCreatorTest {
 
         val result = creator(
             repo = repo,
-            guard = FakeQuickMaskGuard(lockEnabled = true),
+            lock = FakeAppLockSetting(enabled = true),
         ).create()
 
         assertEquals(QuickMaskResult.LockRequired, result)
         assertEquals(0, repo.createCalls)
     }
-
-    /*
-     * There used to be a second test here asserting the opposite: that the lock
-     * preference WITHOUT Pro let quick creation through, on the stated grounds
-     * that the gate matched "the same conjunction MainActivity uses:
-     * appLockEnabled && Pro". MainActivity did not use that conjunction
-     * consistently — it re-locked on the raw preference at ON_STOP — so a user
-     * whose purchase lapsed met a lock screen on every resume while the tile
-     * minted masks straight to the clipboard past it. Audit 2026-07-27 removed
-     * the conjunction from all four sites that carried it.
-     *
-     * The regression guard is the compiler, not a test: QuickMaskGuard no longer
-     * exposes an entitlement at all, so the conjunction cannot be written again
-     * without first re-adding the method and arguing for it.
-     */
 
     // --- happy path ---------------------------------------------------------
 

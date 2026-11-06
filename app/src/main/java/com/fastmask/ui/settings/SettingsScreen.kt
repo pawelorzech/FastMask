@@ -100,7 +100,6 @@ import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -117,7 +116,7 @@ import kotlinx.coroutines.launch
 
 /** Everything the settings content draws, so it can be previewed without Hilt. */
 internal data class SettingsViewState(
-    val appMode: AppMode = AppMode.REAL,
+    val isDemo: Boolean = false,
     val isPro: Boolean = false,
     val accent: Accent = Accent.DYNAMIC,
     val appLockEnabled: Boolean = false,
@@ -151,7 +150,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val appMode by viewModel.appMode.collectAsState()
+    val session by viewModel.session.collectAsState()
     val proStatus by viewModel.proStatus.collectAsState()
     val selectedAccent by viewModel.accent.collectAsState()
     val appLockEnabled by viewModel.appLockEnabled.collectAsState()
@@ -207,7 +206,7 @@ fun SettingsScreen(
     val isPro = proStatus == ProStatus.PRO
     SettingsContent(
         state = SettingsViewState(
-            appMode = appMode,
+            isDemo = session.isDemo,
             isPro = isPro,
             // Without Pro the theme ignores a stored seed (MainActivity), so
             // the picker shows what is actually painted.
@@ -350,7 +349,7 @@ internal fun SettingsContent(
         ) {
             // --- Account ---
             SettingsSection(title = stringResource(R.string.settings_demo_section)) {
-                if (state.appMode == AppMode.DEMO) {
+                if (state.isDemo) {
                     add { index, count ->
                         StaticSegment(index, count) {
                             Icon(
@@ -981,4 +980,4 @@ private fun SettingsProDarkPreview() = SettingsPreviewHost(
 
 @Preview(name = "Demo", showBackground = true, heightDp = 1500)
 @Composable
-private fun SettingsDemoPreview() = SettingsPreviewHost(SettingsViewState(appMode = AppMode.DEMO))
+private fun SettingsDemoPreview() = SettingsPreviewHost(SettingsViewState(isDemo = true))

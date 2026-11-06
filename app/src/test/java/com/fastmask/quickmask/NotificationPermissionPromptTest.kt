@@ -97,8 +97,7 @@ class NotificationPermissionPromptTest {
     }
 
     /**
-     * Demo mode is signed in as far as `AuthRepository.isLoggedIn()` is
-     * concerned (it returns true for AppMode.DEMO), but quick-create refuses to
+     * Demo mode counts as signed in for navigation, but quick-create refuses to
      * run there — `QuickMaskCreator` returns `DemoMode` before touching the
      * account, so the confirmation notification this permission exists for can
      * never be posted. Asking would spend the one prompt Android gives us on a

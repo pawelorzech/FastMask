@@ -4,12 +4,12 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.model.Session
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
+import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.usecase.CreateMaskedEmailUseCase
 import com.fastmask.domain.usecase.GetCachedMaskedEmailsUseCase
 import com.fastmask.domain.usecase.GetMaskedEmailsUseCase
@@ -38,7 +38,7 @@ class MaskedEmailListViewModel @Inject constructor(
     private val getMaskedEmailsUseCase: GetMaskedEmailsUseCase,
     private val getCachedMaskedEmailsUseCase: GetCachedMaskedEmailsUseCase,
     private val updateMaskedEmailUseCase: UpdateMaskedEmailUseCase,
-    private val settingsDataStore: SettingsDataStore,
+    private val sessionRepository: SessionRepository,
     @ApplicationScope private val appScope: CoroutineScope,
     private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
 ) : ViewModel() {
@@ -81,15 +81,10 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
-    /** Live app-mode flag used by the screen to gate the demo tutorial overlay. */
-    val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = settingsDataStore.appModeBlocking(),
-    )
+    val session: StateFlow<Session> = sessionRepository.session
 
     /** Whether the user has already seen the demo tutorial. */
-    val tutorialCompleted: StateFlow<Boolean> = settingsDataStore.tutorialCompleted.stateIn(
+    val tutorialCompleted: StateFlow<Boolean> = sessionRepository.tutorialCompleted.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false,
@@ -101,7 +96,7 @@ class MaskedEmailListViewModel @Inject constructor(
 
     fun markTutorialCompleted() {
         viewModelScope.launch(writeErrorHandler) {
-            settingsDataStore.setTutorialCompleted(true)
+            sessionRepository.completeTutorial()
         }
     }
 

@@ -29,13 +29,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.data.local.ProEntitlementStore
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.share.ShareInbox
 import com.fastmask.domain.share.ShareIntentPolicy
@@ -43,7 +41,7 @@ import com.fastmask.domain.share.ShareRequest
 import com.fastmask.domain.share.ShareRoute
 import com.fastmask.domain.share.ShareRouter
 import com.fastmask.domain.share.SharedLinkParser
-import com.fastmask.domain.repository.AuthRepository
+import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.quickmask.NotificationPermissionGate
 import com.fastmask.ui.lock.LockScreen
@@ -67,7 +65,7 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var authRepository: AuthRepository
+    lateinit var sessionRepository: SessionRepository
 
     @Inject
     lateinit var settingsDataStore: SettingsDataStore
@@ -151,15 +149,6 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
 
-        // Users who have a real Fastmail token, or who have explicitly entered
-        // demo mode, jump straight to the list. Everyone else starts on the
-        // welcome screen — the entry point for "Sign in with Fastmail" and
-        // "Try demo". See [AuthRepositoryImpl.isLoggedIn] for the demo bypass.
-        //
-        // isLoggedIn() touches EncryptedSharedPreferences (Tink/KeyStore init +
-        // disk read) and DataStore — both blocking I/O. It runs off the main
-        // thread here; the splash stays up until the destination is known, so
-        // there is no flash of the wrong screen.
         // Reconcile the entitlement against Play every time the app comes to
         // the foreground (Billing guidance): catches PENDING purchases completed
         // while backgrounded, purchases made on another device, and retries a
@@ -185,20 +174,20 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // The splash stays up until this block has picked the start destination,
+        // so a signed-in user never sees Welcome flash by.
         lifecycleScope.launch {
             var lockAtLaunch = false
             var cachedPro = false
             var cachedAccent = Accent.DEFAULT
-            var cachedAppMode = AppMode.REAL
-            var loggedInAtLaunch = false
             val startDestination = runSuspendCatching {
-                withContext(Dispatchers.IO) {
+                val signedIn = withContext(Dispatchers.IO) {
                     coroutineScope {
                         // The token check constructs EncryptedSharedPreferences —
                         // Tink + Android Keystore, the slowest read here. Launch it
                         // FIRST so its initialization overlaps the DataStore reads
                         // below instead of queuing behind them on the splash clock.
-                        val loggedIn = async { authRepository.isLoggedIn() }
+                        val session = async { sessionRepository.current() }
                         // Read for the ACCENT fallback below, not for the lock.
                         cachedPro = proEntitlementStore.read() == ProStatus.PRO
                         // The lock engages from the preference ALONE, deliberately
@@ -216,15 +205,13 @@ class MainActivity : AppCompatActivity() {
                         lockAtLaunch = settingsDataStore.appLockEnabled.first()
                         cachedAccent = settingsDataStore.accent.first()
                         notificationPromptShown = settingsDataStore.notificationPromptShown()
-                        cachedAppMode = settingsDataStore.appMode.first()
-                        loggedInAtLaunch = loggedIn.await()
+                        session.await().isSignedIn
                     }
                 }
-                if (loggedInAtLaunch) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
+                if (signedIn) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
             }.getOrElse {
                 // Storage double-fault (see TokenStorage recovery) — fall back to
                 // the welcome flow instead of stranding the splash or crashing.
-                loggedInAtLaunch = false
                 NavRoutes.WELCOME
             }
             // A config change (rotation) recreates the Activity mid-session;
@@ -295,29 +282,16 @@ class MainActivity : AppCompatActivity() {
                         // the screen ViewModels (half-typed create form, unsaved
                         // edit). Only the NavHost content is gated.
                         val navController = rememberNavController()
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val appMode by settingsDataStore.appMode.collectAsState(initial = cachedAppMode)
-                        // Live session state, not a launch-time snapshot: the reproduced bug was a
-                        // process that started signed out and signed in without leaving. WELCOME and
-                        // LOGIN are the only destinations reachable without a session (demo mode goes
-                        // to EMAIL_LIST and can create masks, so it counts as signed in). A null route
-                        // means the NavHost has not composed yet — fall back to the launch answer.
-                        val signedIn = when (navBackStackEntry?.destination?.route) {
-                            null -> loggedInAtLaunch
-                            NavRoutes.WELCOME, NavRoutes.LOGIN -> false
-                            else -> true
-                        }
-                        // One snapshot per session-state change, instead of one evaluation in
-                        // onCreate: the reported bug was a user who launched signed out and signed
-                        // in without leaving (welcome -> login -> list). The route is the sign-in
-                        // signal, and it is null while the lock gate is up because the NavHost is
-                        // not composed behind it — which is exactly the deferral we want. The gate
-                        // owns the "at most once" part.
-                        LaunchedEffect(navBackStackEntry?.destination?.route, isLocked, appMode) {
+                        val session by sessionRepository.session.collectAsState()
+                        val signedIn = session.isSignedIn
+                        // Re-evaluated on every session change, not once at launch: a user
+                        // who starts signed out and signs in without leaving must still be
+                        // asked. The gate owns the "at most once" part.
+                        LaunchedEffect(session, isLocked) {
                             maybeRequestNotificationPermission(
-                                signedIn = navBackStackEntry?.destination?.route == NavRoutes.EMAIL_LIST,
+                                signedIn = signedIn,
                                 locked = isLocked,
-                                demoMode = appMode == AppMode.DEMO,
+                                demoMode = session.isDemo,
                             )
                         }
 

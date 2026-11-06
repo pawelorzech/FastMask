@@ -3,11 +3,8 @@
 package com.fastmask.ui.welcome
 
 import com.fastmask.R
-import com.fastmask.domain.usecase.LoginUseCase
-import com.fastmask.testutil.FakeAuthRepository
-import com.fastmask.testutil.FakeDemoModeActivator
+import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.testutil.MainDispatcherRule
-import com.fastmask.ui.auth.LoginViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -17,11 +14,6 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Welcome is the older of the two demo entry points. These tests pin the
- * contract it now shares with the login screen: the demo sequence itself lives
- * behind `DemoModeActivator`, and both screens run that one mechanism.
- */
 class WelcomeViewModelTest {
 
     @get:Rule
@@ -29,7 +21,7 @@ class WelcomeViewModelTest {
 
     @Test
     fun `entering demo runs the shared activation and navigates`() = runTest {
-        val demo = FakeDemoModeActivator()
+        val demo = FakeSessionRepository()
         val viewModel = WelcomeViewModel(demo)
 
         viewModel.enterDemoMode()
@@ -38,13 +30,13 @@ class WelcomeViewModelTest {
         advanceUntilIdle()
         job.cancel()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
         assertEquals(WelcomeEvent.EnterDemo, received)
     }
 
     @Test
     fun `a failed activation neither navigates nor crashes`() = runTest {
-        val demo = FakeDemoModeActivator(failure = IllegalStateException("disk full"))
+        val demo = FakeSessionRepository(enterDemoFailure = IllegalStateException("disk full"))
         val viewModel = WelcomeViewModel(demo)
 
         viewModel.enterDemoMode()
@@ -53,7 +45,7 @@ class WelcomeViewModelTest {
         advanceUntilIdle()
         job.cancel()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
         assertNull(received)
         assertEquals(R.string.demo_error_start, viewModel.uiState.value.errorRes)
         assertEquals(false, viewModel.uiState.value.isLoading)
@@ -61,7 +53,7 @@ class WelcomeViewModelTest {
 
     @Test
     fun `rapid demo taps activate once and expose immediate progress`() = runTest {
-        val demo = FakeDemoModeActivator()
+        val demo = FakeSessionRepository()
         val viewModel = WelcomeViewModel(demo)
 
         viewModel.enterDemoMode()
@@ -69,13 +61,13 @@ class WelcomeViewModelTest {
         viewModel.enterDemoMode()
         advanceUntilIdle()
 
-        assertEquals(1, demo.activateCalls)
+        assertEquals(1, demo.enterDemoCalls)
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
     @Test
     fun `sign in emits the navigation event`() = runTest {
-        val viewModel = WelcomeViewModel(FakeDemoModeActivator())
+        val viewModel = WelcomeViewModel(FakeSessionRepository())
 
         viewModel.goToSignIn()
         var received: WelcomeEvent? = null
@@ -84,22 +76,5 @@ class WelcomeViewModelTest {
         job.cancel()
 
         assertEquals(WelcomeEvent.GoToSignIn, received)
-    }
-
-    /**
-     * The anti-duplication check. Adding a demo exit to the login screen is an
-     * invitation to re-type "reset, set DEMO, clear tutorial" a second time —
-     * at which point the two paths drift. Both entry points must go through
-     * the same collaborator, so one activator sees both taps.
-     */
-    @Test
-    fun `welcome and login enter demo through the same mechanism`() = runTest {
-        val demo = FakeDemoModeActivator()
-
-        WelcomeViewModel(demo).enterDemoMode()
-        LoginViewModel(LoginUseCase(FakeAuthRepository()), demo).enterDemoMode()
-        advanceUntilIdle()
-
-        assertEquals(2, demo.activateCalls)
     }
 }

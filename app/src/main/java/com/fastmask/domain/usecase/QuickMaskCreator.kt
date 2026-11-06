@@ -1,10 +1,10 @@
 package com.fastmask.domain.usecase
 
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.repository.AuthRepository
-import com.fastmask.domain.repository.QuickMaskGuard
+import com.fastmask.domain.model.Session
+import com.fastmask.domain.repository.AppLockSetting
+import com.fastmask.domain.repository.SessionRepository
 import javax.inject.Inject
 
 /**
@@ -40,25 +40,24 @@ sealed interface QuickMaskResult {
  * unit-testable.
  */
 class QuickMaskCreator @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val guard: QuickMaskGuard,
+    private val sessionRepository: SessionRepository,
+    private val appLockSetting: AppLockSetting,
     private val createMaskedEmailUseCase: CreateMaskedEmailUseCase,
     private val destroyMaskedEmailUseCase: DestroyMaskedEmailUseCase,
 ) {
 
     /** Runs the gates, then creates one ENABLED mask with no prefix. */
     suspend fun create(): QuickMaskResult {
-        if (!authRepository.isLoggedIn()) {
-            return QuickMaskResult.NotSignedIn
-        }
-        if (guard.appMode() == AppMode.DEMO) {
-            return QuickMaskResult.DemoMode
+        when (sessionRepository.current()) {
+            Session.SIGNED_OUT -> return QuickMaskResult.NotSignedIn
+            Session.DEMO -> return QuickMaskResult.DemoMode
+            Session.ACCOUNT -> Unit
         }
         // The preference alone arms the lock — see MainActivity's gate. Pairing
         // it with the entitlement here let the tile mint a mask straight to the
         // clipboard on a device whose owner had switched the lock on and whose
         // Pro had since lapsed.
-        if (guard.appLockEnabled()) {
+        if (appLockSetting.isAppLockEnabled()) {
             return QuickMaskResult.LockRequired
         }
 

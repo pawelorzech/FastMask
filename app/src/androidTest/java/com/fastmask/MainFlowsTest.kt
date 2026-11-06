@@ -23,10 +23,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.data.local.TokenStorage
-import com.fastmask.domain.model.AppMode
-import com.fastmask.domain.repository.DemoSession
+import com.fastmask.domain.repository.SessionRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.After
@@ -63,13 +60,7 @@ class MainFlowsTest {
     val composeRule = createEmptyComposeRule()
 
     @Inject
-    lateinit var settings: SettingsDataStore
-
-    @Inject
-    lateinit var tokenStorage: TokenStorage
-
-    @Inject
-    lateinit var demoSession: DemoSession
+    lateinit var sessionRepository: SessionRepository
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
@@ -109,14 +100,11 @@ class MainFlowsTest {
      * Deleting the DataStore files instead does not work: DataStore is a
      * process-wide singleton that keeps serving its in-memory value, so the
      * second test would still start in demo mode and never see the welcome
-     * screen. The demo repository is a singleton too — [DemoSession.reset]
-     * gives each test the same seed list to count.
+     * screen. Entering the demo restores its seed list, so each test counts
+     * the same masks.
      */
     private fun resetToFreshInstall() = runBlocking {
-        tokenStorage.clearToken()
-        settings.setAppMode(AppMode.REAL)
-        settings.setTutorialCompleted(false)
-        demoSession.reset()
+        sessionRepository.signOut()
     }
 
     /**

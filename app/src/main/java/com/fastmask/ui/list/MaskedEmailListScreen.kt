@@ -157,7 +157,6 @@ import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.common.readableWidth
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -341,7 +340,7 @@ fun MaskedEmailListScreen(
         highlightEmail = null
     }
 
-    val appMode by viewModel.appMode.collectAsState()
+    val session by viewModel.session.collectAsState()
     val tutorialCompleted by viewModel.tutorialCompleted.collectAsState()
 
     // One stable callback pair for ALL rows. Lambdas created inside
@@ -397,8 +396,8 @@ fun MaskedEmailListScreen(
     // Show the tutorial once all 5 target elements have measured their bounds
     // (only relevant in demo mode and only once per demo session). A timeout
     // ensures the tutorial eventually appears even if a view fails to lay out.
-    val shouldShow = appMode == AppMode.DEMO && !tutorialCompleted && tutorialBounds.size >= 5
-    LaunchedEffect(appMode, tutorialCompleted, shouldShow) {
+    val shouldShow = session.isDemo && !tutorialCompleted && tutorialBounds.size >= 5
+    LaunchedEffect(session, tutorialCompleted, shouldShow) {
         showTutorial = shouldShow
     }
 

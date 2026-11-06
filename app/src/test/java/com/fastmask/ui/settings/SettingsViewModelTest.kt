@@ -7,11 +7,10 @@ import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
-import com.fastmask.domain.usecase.LogoutUseCase
+import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.domain.usecase.SetLanguageUseCase
 import com.fastmask.testutil.FakeCrashReporter
 import com.fastmask.testutil.FakeMaskedEmailRepository
@@ -71,8 +70,6 @@ class SettingsViewModelTest {
     private val storedCrashReporting = MutableStateFlow(true)
 
     private val settingsDataStore = mockk<SettingsDataStore> {
-        every { appMode } returns flowOf(AppMode.REAL)
-        every { appModeBlocking() } returns AppMode.REAL
         every { accent } returns flowOf(Accent.AMBER)
         every { appLockEnabled } returns flowOf(false)
         every { crashReportingEnabled } returns storedCrashReporting
@@ -89,7 +86,7 @@ class SettingsViewModelTest {
         return SettingsViewModel(
             getCurrentLanguageUseCase = getLanguage,
             setLanguageUseCase = mockk<SetLanguageUseCase>(relaxed = true),
-            logoutUseCase = mockk<LogoutUseCase>(relaxed = true),
+            sessionRepository = FakeSessionRepository(),
             settingsDataStore = settingsDataStore,
             proRepository = proRepository,
             exportMasksUseCase = ExportMasksUseCase(maskRepository),

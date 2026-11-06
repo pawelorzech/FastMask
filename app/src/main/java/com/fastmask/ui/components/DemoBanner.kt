@@ -31,23 +31,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.domain.model.AppMode
+import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.domain.model.Session
 import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * Banner shown on screens that benefit from a hint that the user is in
- * demo mode. The banner is self-contained: it observes [AppMode] internally,
- * hides itself when the app is in [AppMode.REAL], and renders a tap target
- * that switches the app back to real mode and emits a "go to sign-in" event
- * the caller can react to.
+ * demo mode. It hides itself outside the demo, and its action ends the demo
+ * before handing control to [onSignInClick].
  *
  * Lives in [com.fastmask.ui.components] so all feature screens can drop it
  * in without owning demo-mode state themselves.
@@ -58,8 +54,8 @@ fun DemoBanner(
     modifier: Modifier = Modifier,
     viewModel: DemoBannerViewModel = hiltViewModel(),
 ) {
-    val appMode by viewModel.appMode.collectAsState()
-    if (appMode != AppMode.DEMO) return
+    val session by viewModel.session.collectAsState()
+    if (!session.isDemo) return
 
     val haptic = LocalHapticFeedback.current
     DemoBannerContent(
@@ -152,37 +148,28 @@ private const val STACKED_FONT_SCALE = 1.5f
 
 @HiltViewModel
 class DemoBannerViewModel @Inject constructor(
-    private val settingsDataStore: SettingsDataStore,
+    private val sessionRepository: SessionRepository,
 ) : ViewModel() {
 
-    val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = settingsDataStore.appModeBlocking(),
-    )
+    val session: StateFlow<Session> = sessionRepository.session
 
-    /**
-     * Switch out of demo mode, reset the tutorial flag, then invoke [onDone]
-     * (typically a navigation callback to the login screen). The callback is
-     * fired *after* the state flip so that subsequent screens observe REAL mode.
-     */
+    /** Ends the demo, then calls [onDone], so the next screen already sees the signed-out session. */
     fun exitDemoMode(onDone: () -> Unit) {
         // Same synchronous double-tap guard as every other mutating entry
-        // point: the button stays enabled during the two DataStore writes, and
+        // point: the button stays enabled during the sign-out, and
         // two taps in that window would each fire [onDone] — double navigation.
         if (exitInFlight) return
         exitInFlight = true
         // Swallow a DataStore write failure instead of crashing on the main
         // thread (viewModelScope rethrows uncaught exceptions); [onDone] only
-        // runs after both writes succeed, so navigation never fires on a
+        // runs after sign-out succeeds, so navigation never fires on a
         // half-applied state change. The guard releases on every terminal
         // outcome so a failed write can still be retried with the next tap.
         viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
             exitInFlight = false
         }) {
             try {
-                settingsDataStore.setAppMode(AppMode.REAL)
-                settingsDataStore.setTutorialCompleted(false)
+                sessionRepository.signOut()
                 onDone()
             } finally {
                 exitInFlight = false

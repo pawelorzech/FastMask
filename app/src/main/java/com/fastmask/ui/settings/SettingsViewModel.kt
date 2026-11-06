@@ -10,13 +10,13 @@ import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.crash.CrashReportingController
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.model.AppMode
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProStatus
+import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.usecase.ExportMasksUseCase
 import com.fastmask.domain.usecase.GetCurrentLanguageUseCase
-import com.fastmask.domain.usecase.LogoutUseCase
+import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.usecase.SetLanguageUseCase
 import com.fastmask.core.IoDispatcher
 import com.fastmask.ui.common.UiErrors
@@ -41,7 +41,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val setLanguageUseCase: SetLanguageUseCase,
-    private val logoutUseCase: LogoutUseCase,
+    private val sessionRepository: SessionRepository,
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
     private val exportMasksUseCase: ExportMasksUseCase,
@@ -71,12 +71,7 @@ class SettingsViewModel @Inject constructor(
     // half-completed state change.
     private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
 
-    /** Live app-mode flag — used to render the demo "sign in" section. */
-    val appMode: StateFlow<AppMode> = settingsDataStore.appMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = settingsDataStore.appModeBlocking(),
-    )
+    val session: StateFlow<Session> = sessionRepository.session
 
     val proStatus: StateFlow<ProStatus> = proRepository.proStatus
 
@@ -95,7 +90,7 @@ class SettingsViewModel @Inject constructor(
     // --- Crash reporting (opt-out) ---
 
     /**
-     * Seeded from storage the way [appMode] is, not from the opt-out default.
+     * Seeded from storage, not from the opt-out default.
      * This ViewModel is scoped to the Settings back-stack entry, so a plain
      * default meant the switch painted ON for the first frames of *every* entry
      * into Settings — showing a user who had opted out the opposite of their
@@ -149,20 +144,15 @@ class SettingsViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch(writeErrorHandler) {
-            logoutUseCase()
+            sessionRepository.signOut()
             _events.send(SettingsEvent.LoggedOut)
         }
     }
 
-    /**
-     * Leave demo mode without nuking auth state — flip the mode flag, reset
-     * the tutorial flag (so a future demo entry shows it again), then emit
-     * an event the screen turns into navigation to the login flow.
-     */
+    /** Ends the demo and sends the user to sign in with a real account. */
     fun exitDemoMode() {
         viewModelScope.launch(writeErrorHandler) {
-            settingsDataStore.setAppMode(AppMode.REAL)
-            settingsDataStore.setTutorialCompleted(false)
+            sessionRepository.signOut()
             _events.send(SettingsEvent.GoToSignIn)
         }
     }

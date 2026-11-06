@@ -21,10 +21,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.MainActivity
 import com.fastmask.R
-import com.fastmask.data.local.SettingsDataStore
-import com.fastmask.data.local.TokenStorage
-import com.fastmask.domain.model.AppMode
-import com.fastmask.domain.repository.DemoSession
+import com.fastmask.domain.repository.SessionRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -78,13 +75,7 @@ class MaskedEmailAddressTruncationSemanticsTest {
     val composeRule = createEmptyComposeRule()
 
     @Inject
-    lateinit var settings: SettingsDataStore
-
-    @Inject
-    lateinit var tokenStorage: TokenStorage
-
-    @Inject
-    lateinit var demoSession: DemoSession
+    lateinit var sessionRepository: SessionRepository
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
@@ -96,10 +87,7 @@ class MaskedEmailAddressTruncationSemanticsTest {
     fun launchOnAFreshInstall() {
         hiltRule.inject()
         runBlocking {
-            tokenStorage.clearToken()
-            settings.setAppMode(AppMode.REAL)
-            settings.setTutorialCompleted(false)
-            demoSession.reset()
+            sessionRepository.signOut()
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
         composeRule.waitUntil(timeoutMillis = 10_000) {
