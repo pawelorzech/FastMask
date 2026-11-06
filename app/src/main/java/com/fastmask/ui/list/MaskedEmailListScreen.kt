@@ -390,16 +390,20 @@ fun MaskedEmailListScreen(
         }
     }
 
-    // Tutorial coach-mark bounds. Each key corresponds to a step index defined
-    // below; values are filled in via Modifier.onGloballyPositioned on the
-    // respective UI elements as they enter composition.
-    val tutorialBounds = remember { mutableStateMapOf<Int, Rect>() }
+    // Tutorial coach-mark bounds, filled in via Modifier.onGloballyPositioned on
+    // each target as it enters composition.
+    val tutorialBounds = remember { mutableStateMapOf<TutorialTarget, Rect>() }
     var showTutorial by remember { mutableStateOf(false) }
 
-    // Show the tutorial once all 5 target elements have measured their bounds
-    // (only relevant in demo mode and only once per demo session). A timeout
-    // ensures the tutorial eventually appears even if a view fails to lay out.
-    val shouldShow = session.isDemo && !tutorialCompleted && tutorialBounds.size >= 5
+    // Show the tutorial once every target has measured its bounds (only in demo
+    // mode, and only until it is completed or skipped). A target that never
+    // lays out keeps the tutorial from appearing.
+    val shouldShow = session.isDemo && !tutorialCompleted &&
+        TutorialTarget.entries.all { it in tutorialBounds }
+    val finishTutorial = {
+        viewModel.markTutorialCompleted()
+        showTutorial = false
+    }
     LaunchedEffect(session, tutorialCompleted, shouldShow) {
         showTutorial = shouldShow
     }
@@ -423,7 +427,7 @@ fun MaskedEmailListScreen(
             onNavigateToCreate = onNavigateToCreate,
             onRandomMask = viewModel::createRandomMask,
             onNavigateToSettings = onNavigateToSettings,
-            onTutorialBounds = { index, bounds -> tutorialBounds[index] = bounds },
+            onTutorialBounds = { target, bounds -> tutorialBounds[target] = bounds },
             demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner) },
             // While the tutorial is up, drop this whole subtree out of the
             // semantics tree. The scrim already blocks touch; without this a
@@ -440,14 +444,8 @@ fun MaskedEmailListScreen(
         TutorialOverlay(
             visible = showTutorial,
             steps = rememberTutorialSteps(bounds = tutorialBounds),
-            onComplete = {
-                viewModel.markTutorialCompleted()
-                showTutorial = false
-            },
-            onSkip = {
-                viewModel.markTutorialCompleted()
-                showTutorial = false
-            },
+            onComplete = finishTutorial,
+            onSkip = finishTutorial,
         )
     }
 }
@@ -473,7 +471,7 @@ internal fun MaskedEmailListContent(
     onNavigateToCreate: () -> Unit,
     onRandomMask: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onTutorialBounds: (Int, Rect) -> Unit,
+    onTutorialBounds: (TutorialTarget, Rect) -> Unit,
     demoBanner: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     initialMenuExpanded: Boolean = false,
@@ -588,7 +586,7 @@ internal fun MaskedEmailListContent(
                     onRandomMask()
                 },
                 modifier = Modifier.onGloballyPositioned { coords ->
-                    onTutorialBounds(4, coords.boundsInRoot())
+                    onTutorialBounds(TutorialTarget.CREATE_FAB, coords.boundsInRoot())
                 },
             )
         },
@@ -653,7 +651,7 @@ internal fun MaskedEmailListContent(
                         query = uiState.searchQuery,
                         onQueryChange = onSearchQueryChange,
                         modifier = Modifier.padding(horizontal = FilterGutter).onGloballyPositioned { coords ->
-                            onTutorialBounds(1, coords.boundsInRoot())
+                            onTutorialBounds(TutorialTarget.SEARCH, coords.boundsInRoot())
                         },
                     )
 
@@ -665,7 +663,7 @@ internal fun MaskedEmailListContent(
                             // The row is full-bleed; the tutorial spotlight keeps the
                             // gutter-inset bounds the other steps use.
                             val full = coords.boundsInRoot()
-                            onTutorialBounds(2, full.copy(left = full.left + gutterPx, right = full.right - gutterPx))
+                            onTutorialBounds(TutorialTarget.FILTER, full.copy(left = full.left + gutterPx, right = full.right - gutterPx))
                         },
                     )
 
@@ -782,7 +780,7 @@ private fun MaskList(
     onRefresh: () -> Unit,
     onRowOpen: (MaskedEmail) -> Unit,
     onRowCopy: (MaskedEmail) -> Unit,
-    onTutorialBounds: (Int, Rect) -> Unit,
+    onTutorialBounds: (TutorialTarget, Rect) -> Unit,
     demoBanner: @Composable () -> Unit,
 ) {
     val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
@@ -818,8 +816,7 @@ private fun MaskList(
             modifier = Modifier
                 .fillMaxSize()
                 .onGloballyPositioned { coords ->
-                    // Step 0 highlights the list as a whole.
-                    onTutorialBounds(0, coords.boundsInRoot())
+                    onTutorialBounds(TutorialTarget.LIST, coords.boundsInRoot())
                 },
         ) {
             item(key = "demo-banner") {
@@ -850,8 +847,7 @@ private fun MaskList(
                     )
                     if (sectionIndex == 0 && index == 0) {
                         rowModifier = rowModifier.onGloballyPositioned { coords ->
-                            // Step 3 highlights the first mask card.
-                            onTutorialBounds(3, coords.boundsInRoot())
+                            onTutorialBounds(TutorialTarget.FIRST_MASK, coords.boundsInRoot())
                         }
                     }
                     MaskRow(
@@ -872,29 +868,14 @@ private fun MaskList(
 }
 
 @Composable
-private fun rememberTutorialSteps(bounds: Map<Int, Rect>): List<TutorialStep> {
-    val titles = listOf(
-        stringResource(R.string.tutorial_step_1_title),
-        stringResource(R.string.tutorial_step_2_title),
-        stringResource(R.string.tutorial_step_3_title),
-        stringResource(R.string.tutorial_step_4_title),
-        stringResource(R.string.tutorial_step_5_title),
-    )
-    val bodies = listOf(
-        stringResource(R.string.tutorial_step_1_body),
-        stringResource(R.string.tutorial_step_2_body),
-        stringResource(R.string.tutorial_step_3_body),
-        stringResource(R.string.tutorial_step_4_body),
-        stringResource(R.string.tutorial_step_5_body),
-    )
-    return titles.indices.map { i ->
+private fun rememberTutorialSteps(bounds: Map<TutorialTarget, Rect>): List<TutorialStep> =
+    TutorialTarget.entries.map { target ->
         TutorialStep(
-            title = titles[i],
-            description = bodies[i],
-            targetBounds = bounds[i],
+            title = stringResource(target.titleRes),
+            description = stringResource(target.bodyRes),
+            targetBounds = bounds[target],
         )
     }
-}
 
 /**
  * Docked search field: a pill on `surfaceContainerHigh` whose corner radius
