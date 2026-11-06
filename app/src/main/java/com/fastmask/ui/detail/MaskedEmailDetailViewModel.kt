@@ -9,6 +9,7 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
+import com.fastmask.ui.common.trimmedIfChangedFrom
 import com.fastmask.core.SingleFlight
 import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -297,9 +298,9 @@ data class MaskedEmailDetailUiState(
             val current = email ?: return null
             // Empty string clears a field; null leaves its server value unchanged.
             val params = UpdateMaskedEmailParams(
-                description = editedDescription.trim().takeIf { it != current.description.orEmpty() },
-                forDomain = editedForDomain.trim().takeIf { it != current.forDomain.orEmpty() },
-                url = editedUrl.trim().takeIf { it != current.url.orEmpty() },
+                description = editedDescription.trimmedIfChangedFrom(current.description),
+                forDomain = editedForDomain.trimmedIfChangedFrom(current.forDomain),
+                url = editedUrl.trimmedIfChangedFrom(current.url),
             )
             return params.takeIf { it.description != null || it.forDomain != null || it.url != null }
         }

@@ -322,14 +322,8 @@ private fun DetailBody(
                 state = email.state,
                 toggling = uiState.updateOperation == MaskedEmailDetailUpdate.TOGGLE_STATE,
                 busy = uiState.isUpdating || uiState.isDeleting,
-                onEnable = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    onEnable()
-                },
-                onDisable = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    onDisable()
-                },
+                onEnable = onEnable,
+                onDisable = onDisable,
             )
         }
 

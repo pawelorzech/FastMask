@@ -23,9 +23,9 @@ class AccessibilitySemanticsWiringTest {
     @Test
     fun allRadioButtonContainersExposeTheirGroupRelationship() {
         assertInFunction(
-            "create/CreateMaskedEmailScreen.kt",
-            "private fun StateSegmented(",
-            ".radioButtonGroup()",
+            "components/MaskFields.kt",
+            "fun EnabledDisabledToggle(",
+            "modifier = modifier.radioButtonGroup()",
         )
         assertInFunction(
             "settings/ColorSwatches.kt",

@@ -203,4 +203,18 @@ class CreateMaskedEmailViewModelTest {
         assertEquals(EmailState.ENABLED, state.initialState)
         assertFalse(state.prefilled)
     }
+
+    // --- the discard guard reads the state, not the screen -----------------
+
+    @Test
+    fun `any typed field makes the form dirty`() = runTest {
+        val clean = CreateMaskedEmailUiState()
+        assertFalse(clean.isDirty)
+        assertEquals(true, clean.copy(emailPrefix = "a").isDirty)
+        assertEquals(true, clean.copy(forDomain = "a.com").isDirty)
+        assertEquals(true, clean.copy(description = "d").isDirty)
+        assertEquals(true, clean.copy(url = "https://a.com").isDirty)
+        // Picking Disabled alone is not typed input worth a discard dialog.
+        assertFalse(clean.copy(initialState = EmailState.DISABLED).isDirty)
+    }
 }

@@ -53,8 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -73,21 +71,18 @@ import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.rememberDiscardChangesGuard
-import com.fastmask.ui.components.MaskStateToggle
 import com.fastmask.ui.components.MaskUrlField
 import com.fastmask.ui.components.MaskDescriptionField
 import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.MaskField
-import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.MorphingShape
-import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.EnabledDisabledToggle
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
@@ -102,9 +97,7 @@ fun CreateMaskedEmailScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // Guard against losing typed-but-uncreated input on back / swipe.
-    val isDirty = uiState.emailPrefix.isNotEmpty() || uiState.forDomain.isNotEmpty() ||
-        uiState.description.isNotEmpty() || uiState.url.isNotEmpty()
-    val onClose = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
+    val onClose = rememberDiscardChangesGuard(uiState.isDirty, onLeave = onNavigateBack)
 
     LaunchedEffect(Unit) {
         viewModel.applyPrefill(prefill)
@@ -253,9 +246,10 @@ internal fun CreateMaskedEmailContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
             )
-            StateSegmented(
-                selected = uiState.initialState,
-                onSelect = onStateChange,
+            EnabledDisabledToggle(
+                activeSelected = uiState.initialState.isActive,
+                onEnable = { onStateChange(EmailState.ENABLED) },
+                onDisable = { onStateChange(EmailState.DISABLED) },
                 enabled = !uiState.isLoading,
             )
 
@@ -393,44 +387,6 @@ private fun PreviewCard(prefix: String) {
 }
 
 // --- form -------------------------------------------------------------------
-
-@Composable
-private fun StateSegmented(
-    selected: EmailState,
-    onSelect: (EmailState) -> Unit,
-    enabled: Boolean,
-) {
-    val haptic = LocalHapticFeedback.current
-    AdaptiveToggleGroup(
-        modifier = Modifier.radioButtonGroup(),
-        first = { toggleModifier, stacked ->
-            MaskStateToggle(
-                label = stringResource(R.string.state_enabled),
-                checked = selected == EmailState.ENABLED,
-                enabled = enabled,
-                shapes = connectedToggleShapes(index = 0, count = 2, vertical = stacked),
-                modifier = toggleModifier,
-                onSelect = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    onSelect(EmailState.ENABLED)
-                },
-            )
-        },
-        second = { toggleModifier, stacked ->
-            MaskStateToggle(
-                label = stringResource(R.string.state_disabled),
-                checked = selected == EmailState.DISABLED,
-                enabled = enabled,
-                shapes = connectedToggleShapes(index = 1, count = 2, vertical = stacked),
-                modifier = toggleModifier,
-                onSelect = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    onSelect(EmailState.DISABLED)
-                },
-            )
-        },
-    )
-}
 
 @Composable
 private fun CreateError(
