@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
+import com.fastmask.ui.accessibility.radioButtonGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -69,7 +69,7 @@ internal fun FilterGroup(
     // Horizontal extent (start, end) of each button inside the scrolled content.
     val spans = remember { mutableStateMapOf<EmailFilter, IntRange>() }
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth().selectableGroup()) {
+    BoxWithConstraints(modifier = modifier.fillMaxWidth().radioButtonGroup()) {
         val viewportPx = constraints.maxWidth
         val span = spans[selected]
 

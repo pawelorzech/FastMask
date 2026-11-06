@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -48,7 +47,6 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,11 +59,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Matrix
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -83,8 +76,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -93,10 +84,11 @@ import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.delayInfinite
+import com.fastmask.ui.components.expressive.MorphShape
+import com.fastmask.ui.components.expressive.rememberMotionReduced
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.fastmask.ui.welcome.rememberMotionReduced
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 import com.fastmask.domain.model.EmailState
@@ -363,25 +355,6 @@ private val blobShapes = listOf(
     MaterialShapes.Clover4Leaf,
 )
 
-/** Clips to [morph] at [progress] (read lazily so the animation never recomposes). */
-private class BlobShape(
-    private val morph: Morph,
-    private val progress: () -> Float,
-) : Shape {
-    private val path = Path()
-    private val matrix = Matrix()
-
-    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        path.rewind()
-        morph.toPath(progress = progress(), path = path)
-        // MaterialShapes polygons are normalized to a 1x1 box.
-        matrix.reset()
-        matrix.scale(size.width, size.height)
-        path.transform(matrix)
-        return Outline.Generic(path)
-    }
-}
-
 @Composable
 private fun PreviewCard(prefix: String) {
     val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
@@ -415,7 +388,7 @@ private fun PreviewCard(prefix: String) {
             blobShapes[index],
         )
     }
-    val blobShape = remember(morph) { BlobShape(morph) { progress.value } }
+    val blobShape = remember(morph) { MorphShape(morph) { progress.value } }
 
     // Subtle spring "pop" whenever the address changes.
     val pop = remember { Animatable(1f) }

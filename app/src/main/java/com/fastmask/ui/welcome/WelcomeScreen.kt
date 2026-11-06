@@ -1,5 +1,7 @@
 package com.fastmask.ui.welcome
 
+import com.fastmask.ui.components.expressive.MorphingShape
+import com.fastmask.ui.components.expressive.rememberMotionReduced
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

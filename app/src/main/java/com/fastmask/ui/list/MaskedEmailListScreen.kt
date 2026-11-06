@@ -132,7 +132,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
+import com.fastmask.ui.accessibility.screenHeading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -539,7 +539,7 @@ internal fun MaskedEmailListContent(
                     } else {
                         MaterialTheme.typography.displaySmallEmphasized
                     },
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.screenHeading(),
                 )
             }
             // Two pluralized fragments joined by a translatable
@@ -1489,9 +1489,7 @@ internal fun InlineErrorBanner(
             // Keep the recovery button as a separate semantics node. Merging
             // descendants here used to make the banner readable as one phrase,
             // but would hide the newly actionable control from TalkBack.
-            .semantics {
-                liveRegion = LiveRegionMode.Polite
-            },
+            .politeLiveRegion(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.errorContainer,
         contentColor = MaterialTheme.colorScheme.onErrorContainer,

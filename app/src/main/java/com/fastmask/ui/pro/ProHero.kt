@@ -1,6 +1,5 @@
 package com.fastmask.ui.pro
 
-import android.provider.Settings
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -22,19 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
-import com.fastmask.ui.settings.drawMorph
 import com.fastmask.ui.theme.FastMaskTheme
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.fastmask.ui.components.expressive.delayInfinite
+import com.fastmask.ui.components.expressive.drawMorph
+import com.fastmask.ui.components.expressive.rememberMotionReduced
 import kotlinx.coroutines.launch
 
 /**
@@ -109,17 +108,6 @@ internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
 
 private const val CYCLE_INTERVAL_MS = 2200L
 
-/** True unless the user turned system animations off (animator scale 0). */
-@Composable
-private fun rememberAnimationsEnabled(): Boolean {
-    val resolver = LocalContext.current.contentResolver
-    return remember(resolver) {
-        runCatching {
-            Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
-        }.getOrDefault(true)
-    }
-}
-
 /**
  * A filled shape that walks through [sequence], morphing with a slow spatial
  * spring and turning by [spinDegrees] each step. A non-null [target] stops the
@@ -136,14 +124,14 @@ private fun MorphingBlob(
     target: RoundedPolygon? = null,
 ) {
     val motion = MaterialTheme.motionScheme
-    val animationsEnabled = rememberAnimationsEnabled()
+    val reduced = rememberMotionReduced()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var morph by remember { mutableStateOf(Morph(sequence.first(), sequence.first())) }
     var progress by remember { mutableFloatStateOf(1f) }
     var rotation by remember { mutableFloatStateOf(0f) }
     var current by remember { mutableStateOf(sequence.first()) }
 
-    LaunchedEffect(target, animationsEnabled) {
+    LaunchedEffect(target, reduced) {
         suspend fun moveTo(next: RoundedPolygon) {
             // One snapshot, so no frame draws the new morph at the old progress.
             Snapshot.withMutableSnapshot {
@@ -162,7 +150,7 @@ private fun MorphingBlob(
             moveTo(target)
             return@LaunchedEffect
         }
-        if (!animationsEnabled) return@LaunchedEffect
+        if (reduced) return@LaunchedEffect
         var firstRun = true
         // Nothing animates while the host is not RESUMED, and the hold phases go
         // through the InfiniteAnimationPolicy so tests can stop the loop.

@@ -5,8 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
+import com.fastmask.ui.accessibility.screenHeading
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fastmask.ui.theme.FastMaskTheme
@@ -20,7 +19,7 @@ fun SectionHeader(text: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier
             .padding(start = 32.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
-            .semantics { heading() },
+            .screenHeading(),
     )
 }
 

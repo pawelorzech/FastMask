@@ -1,4 +1,4 @@
-package com.fastmask.ui.settings
+package com.fastmask.ui.components.expressive
 
 import androidx.compose.material3.toPath
 import androidx.compose.ui.Modifier
