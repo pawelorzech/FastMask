@@ -33,6 +33,18 @@ if (hasFirebaseConfig) {
     )
 }
 
+// Play licence key and release keystore are looked up ONCE and reused by
+// defaultConfig, signingConfigs, buildTypes and the release guard below, so a
+// renamed property cannot leave one of them reading something different.
+// Both come from the environment first, then from a Gradle property
+// (e.g. ~/.gradle/gradle.properties), and are never in the repository.
+val playLicenseKey: String? = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
+    ?: (project.findProperty("fastmask.playLicenseKey") as String?)
+val releaseKeystorePath: String? = System.getenv("FASTMASK_KEYSTORE")
+    ?: (project.findProperty("fastmask.keystore") as String?)
+val hasReleaseKeystore: Boolean = System.getenv("FASTMASK_KEYSTORE") != null
+    || project.hasProperty("fastmask.keystore")
+
 android {
     namespace = "com.fastmask"
     compileSdk = 37
@@ -62,18 +74,13 @@ android {
         // property (e.g. ~/.gradle/gradle.properties) or FASTMASK_PLAY_LICENSE_KEY
         // env. Empty by default so dev/CI builds work; a release build MUST set
         // it, otherwise purchase signatures are not verified.
-        val playLicenseKey = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
-            ?: (project.findProperty("fastmask.playLicenseKey") as String?)
-            ?: ""
-        buildConfigField("String", "PLAY_LICENSE_KEY", "\"$playLicenseKey\"")
+        buildConfigField("String", "PLAY_LICENSE_KEY", "\"${playLicenseKey.orEmpty()}\"")
     }
 
     signingConfigs {
         create("release") {
-            val keystorePath = System.getenv("FASTMASK_KEYSTORE")
-                ?: (project.findProperty("fastmask.keystore") as String?)
-            if (keystorePath != null) {
-                storeFile = file(keystorePath)
+            if (releaseKeystorePath != null) {
+                storeFile = file(releaseKeystorePath)
                 storePassword = System.getenv("FASTMASK_STORE_PWD")
                     ?: project.property("fastmask.storePassword") as String
                 keyAlias = System.getenv("FASTMASK_KEY_ALIAS")
@@ -103,8 +110,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            val hasReleaseKeystore = System.getenv("FASTMASK_KEYSTORE") != null
-                || project.hasProperty("fastmask.keystore")
             if (hasReleaseKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -148,12 +153,7 @@ gradle.taskGraph.whenReady {
     }
     if (!releasing) return@whenReady
 
-    val signed = System.getenv("FASTMASK_KEYSTORE") != null
-        || project.hasProperty("fastmask.keystore")
-    val key = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
-        ?: (project.findProperty("fastmask.playLicenseKey") as String?)
-
-    if (signed && key.isNullOrBlank()) {
+    if (hasReleaseKeystore && playLicenseKey.isNullOrBlank()) {
         throw GradleException(
             "Refusing to build a signed release without a Play licence key: purchase " +
                 "signatures would not be verified, so any forged purchase would unlock " +

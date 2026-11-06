@@ -8,10 +8,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.fastmask.core.sha256Hex
 import com.fastmask.domain.model.ProStatus
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -73,15 +73,10 @@ class ProEntitlementStore @Inject constructor(
         context.proDataStore.edit { preferences ->
             preferences[statusKey] = status.name
             if (status == ProStatus.PRO && purchaseToken != null) {
-                preferences[proofKey] = purchaseToken.sha256()
+                preferences[proofKey] = purchaseToken.sha256Hex()
             } else {
                 preferences.remove(proofKey)
             }
         }
     }
-
-    private fun String.sha256(): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(toByteArray())
-            .joinToString("") { "%02x".format(it) }
 }

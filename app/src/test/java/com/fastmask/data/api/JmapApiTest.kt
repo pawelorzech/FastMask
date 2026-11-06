@@ -10,6 +10,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -20,7 +21,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -41,11 +41,14 @@ class JmapApiTest {
     ) : JmapService {
         var lastMethodUrl: String? = null
         var executeCount = 0
+        var sessionFetches = 0
         var lastRequest: JmapRequest? = null
         var lastAuthHeader: String? = null
 
-        override suspend fun getSession(url: String, authHeader: String): JmapSession =
-            sessionFailure?.let { throw it } ?: session ?: error("no session configured")
+        override suspend fun getSession(url: String, authHeader: String): JmapSession {
+            sessionFetches++
+            return sessionFailure?.let { throw it } ?: session ?: error("no session configured")
+        }
 
         override suspend fun executeMethod(
             url: String,
@@ -146,27 +149,41 @@ class JmapApiTest {
 
     @Test
     fun `valid fastmail apiUrl is accepted and cached`() = runTest {
-        val service = FakeJmapService(session = session("https://api.fastmail.com/jmap/api/"))
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
+        )
         val api = JmapApi(service, json)
 
         val result = api.getSession("tok")
+        api.getMaskedEmails("tok").getOrThrow()
 
         assertTrue(result.isSuccess)
-        assertEquals("acc-1", api.getAccountId())
-        assertEquals("https://api.fastmail.com/jmap/api/", api.getApiUrl())
+        assertEquals("the call reuses the cached session", 1, service.sessionFetches)
+        assertEquals("acc-1", accountIdOfLastCall(service))
+        assertEquals("https://api.fastmail.com/jmap/api/", service.lastMethodUrl)
     }
 
     @Test
     fun `attacker apiUrl is rejected and nothing is cached`() = runTest {
-        val service = FakeJmapService(session = session("https://attacker.example/jmap/"))
+        val service = FakeJmapService(
+            session = session("https://attacker.example/jmap/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
+        )
         val api = JmapApi(service, json)
 
         val result = api.getSession("tok")
+        val call = api.getMaskedEmails("tok")
 
         assertTrue(result.isFailure)
-        assertNull(api.getAccountId())
-        // Fallback stays on the hardcoded Fastmail URL.
-        assertEquals(FastmailEndpoints.API_URL, api.getApiUrl())
+        assertTrue("a rejected session must not be used for requests", call.isFailure)
+        assertEquals("nothing was cached, so the call fetched again", 2, service.sessionFetches)
+        assertEquals("no request was sent to the untrusted host", 0, service.executeCount)
+    }
+
+    private fun accountIdOfLastCall(service: FakeJmapService): String? {
+        val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
+        return (arguments["accountId"] as? JsonPrimitive)?.content
     }
 
     @Test
@@ -364,6 +381,41 @@ class JmapApiTest {
     }
 
     @Test
+    fun `create merges request values over absent or null response fields and keeps server values`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            putJsonObject("created") {
+                putJsonObject("new1") {
+                    put("id", "m9")
+                    put("email", "calm.bridge500@fastmail.com")
+                    put("state", JsonNull)
+                    put("description", JsonNull)
+                    put("createdBy", "Server")
+                    put("url", "https://server.example/")
+                }
+            }
+        }
+        val api = JmapApi(
+            FakeJmapService(
+                session = session("https://api.fastmail.com/jmap/api/"),
+                response = methodResponse("MaskedEmail/set", payload),
+            ),
+            json,
+        )
+
+        val dto = api.createMaskedEmail(
+            "tok",
+            CreateMaskedEmailParams(state = EmailState.PENDING, forDomain = "example.com", url = "https://request.example/"),
+        ).getOrThrow()
+
+        assertEquals(EmailState.PENDING, dto.state)
+        assertEquals("example.com", dto.forDomain)
+        assertEquals("", dto.description)
+        assertEquals("Server", dto.createdBy)
+        assertEquals("the server's own value wins", "https://server.example/", dto.url)
+    }
+
+    @Test
     fun `create sends empty description instead of repurposing another metadata field`() = runTest {
         val payload = buildJsonObject {
             put("accountId", "acc-1")
@@ -543,16 +595,20 @@ class JmapApiTest {
     // --- session lifecycle -------------------------------------------------
 
     @Test
-    fun `clearSession drops cached account and url`() = runTest {
-        val service = FakeJmapService(session = session("https://api.fastmail.com/jmap/api/"))
+    fun `clearSession drops the cached session`() = runTest {
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
+        )
         val api = JmapApi(service, json)
         api.getSession("tok")
-        assertNotNull(api.getAccountId())
+        api.getMaskedEmails("tok").getOrThrow()
+        assertEquals("cached after the first fetch", 1, service.sessionFetches)
 
         api.clearSession()
+        api.getMaskedEmails("tok").getOrThrow()
 
-        assertNull(api.getAccountId())
-        assertEquals(FastmailEndpoints.API_URL, api.getApiUrl())
+        assertEquals("the next call had to fetch the session again", 2, service.sessionFetches)
     }
 
     @Test
@@ -566,7 +622,7 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
         api.getMaskedEmails("token-1").getOrThrow()
-        assertEquals("acc-first", api.getAccountId())
+        assertEquals("acc-first", accountIdOfLastCall(service))
 
         service.session = session(
             apiUrl = "https://api.fastmail.com/jmap/api/",
@@ -574,7 +630,7 @@ class JmapApiTest {
         )
         api.getMaskedEmails("token-2").getOrThrow()
 
-        assertEquals("acc-second", api.getAccountId())
+        assertEquals("acc-second", accountIdOfLastCall(service))
         val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
         assertEquals(JsonPrimitive("acc-second"), arguments["accountId"])
     }
@@ -619,8 +675,11 @@ class JmapApiTest {
         val api = JmapApi(service, json)
 
         api.getSession("tok")
+        val call = api.getMaskedEmails("tok")
 
-        assertNull(api.getAccountId())
+        assertTrue(call.exceptionOrNull() is MaskedEmailScopeMissingException)
+        assertEquals("nothing was cached, so the call fetched again", 2, service.sessionFetches)
+        assertEquals(0, service.executeCount)
     }
 
     /**
@@ -649,13 +708,17 @@ class JmapApiTest {
 
     @Test
     fun `a session that grants the scope still logs in`() = runTest {
-        val service = FakeJmapService(session = session("https://api.fastmail.com/jmap/api/"))
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
+        )
         val api = JmapApi(service, json)
 
         val result = api.getSession("tok")
+        api.getMaskedEmails("tok").getOrThrow()
 
         assertTrue(result.isSuccess)
-        assertEquals("acc-1", api.getAccountId())
+        assertEquals("acc-1", accountIdOfLastCall(service))
     }
 
     @Test

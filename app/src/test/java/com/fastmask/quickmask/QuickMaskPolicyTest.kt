@@ -123,8 +123,13 @@ class QuickMaskPolicyTest {
 
     @Test
     fun `no two slots share a notification id or a request code`() {
-        val ids = QuickMaskSlot.values().map { it.notificationId }
-        val codes = QuickMaskSlot.values().flatMap { listOfNotNull(it.openRequestCode, it.undoRequestCode) }
+        val ids = QuickMaskSlot.all.map { it.notificationId }
+        val codes = QuickMaskSlot.all.flatMap {
+            listOfNotNull(
+                (it as? QuickMaskSlot.OpensApp)?.openRequestCode,
+                (it as? QuickMaskSlot.HasUndo)?.undoRequestCode,
+            )
+        }
 
         assertEquals("notification ids collide: $ids", ids.size, ids.toSet().size)
         assertEquals("request codes collide: $codes", codes.size, codes.toSet().size)

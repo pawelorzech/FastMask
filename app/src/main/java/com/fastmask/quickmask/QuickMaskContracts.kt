@@ -38,25 +38,48 @@ internal const val QUICK_MASK_CHANNEL_ID: String = "quick_mask"
  * Request codes are separate because FLAG_UPDATE_CURRENT rewrites the
  * PendingIntent registered under a (requestCode, intent) pair; two live
  * notifications sharing a code would overwrite each other's target.
+ *
+ * A slot that has an intent has its request code as a plain `Int`: the slots
+ * that carry an "open the app" intent are [OpensApp], the one with an Undo is
+ * [HasUndo], so asking a slot for an intent it does not have does not compile.
  */
-internal enum class QuickMaskSlot(
-    val notificationId: Int,
-    /** "Open the app" intent of this slot's notification, or null when it has none. */
-    val openRequestCode: Int? = null,
-    /** "Undo" action of this slot's notification, or null when it has none. */
-    val undoRequestCode: Int? = null,
-) {
-    /** The only slot carrying an Undo; cancelled the moment Undo is tapped. */
-    CREATED(notificationId = 7_301, openRequestCode = 7_302, undoRequestCode = 7_303),
+internal sealed interface QuickMaskSlot {
+    val notificationId: Int
 
-    FAILURE(notificationId = 7_304),
+    /** A slot whose notification opens the app when tapped. */
+    sealed interface OpensApp : QuickMaskSlot {
+        val openRequestCode: Int
+    }
+
+    /** A slot whose notification carries an "Undo" action. */
+    sealed interface HasUndo : QuickMaskSlot {
+        val undoRequestCode: Int
+    }
+
+    /** The only slot carrying an Undo; cancelled the moment Undo is tapped. */
+    data object CREATED : OpensApp, HasUndo {
+        override val notificationId = 7_301
+        override val openRequestCode = 7_302
+        override val undoRequestCode = 7_303
+    }
+
+    data object FAILURE : QuickMaskSlot {
+        override val notificationId = 7_304
+    }
 
     /**
      * Result of "Undo". Its own id, because reusing [CREATED] would resurrect a
      * notification the user just dismissed, and [FAILURE] may carry an error
      * they have not read yet.
      */
-    UNDO_RESULT(notificationId = 7_305, openRequestCode = 7_306),
+    data object UNDO_RESULT : OpensApp {
+        override val notificationId = 7_305
+        override val openRequestCode = 7_306
+    }
+
+    companion object {
+        val all: List<QuickMaskSlot> = listOf(CREATED, FAILURE, UNDO_RESULT)
+    }
 }
 
 /** Flags for every PendingIntent here: immutable, so the system cannot rewrite where it goes. */
@@ -72,19 +95,19 @@ internal fun createAppLaunchIntent(context: Context): Intent {
 }
 
 /** The "open FastMask" PendingIntent of [slot]'s notification (the tile reuses [QuickMaskSlot.CREATED]'s). */
-internal fun createAppPendingIntent(context: Context, slot: QuickMaskSlot): PendingIntent =
+internal fun createAppPendingIntent(context: Context, slot: QuickMaskSlot.OpensApp): PendingIntent =
     PendingIntent.getActivity(
         context,
-        checkNotNull(slot.openRequestCode) { "$slot has no open intent" },
+        slot.openRequestCode,
         createAppLaunchIntent(context),
         QUICK_MASK_PENDING_FLAGS,
     )
 
 /** The "Undo" action's broadcast PendingIntent for the mask [maskId]. */
-internal fun createUndoPendingIntent(context: Context, slot: QuickMaskSlot, maskId: String): PendingIntent =
+internal fun createUndoPendingIntent(context: Context, slot: QuickMaskSlot.HasUndo, maskId: String): PendingIntent =
     PendingIntent.getBroadcast(
         context,
-        checkNotNull(slot.undoRequestCode) { "$slot has no undo action" },
+        slot.undoRequestCode,
         Intent(context, QuickMaskUndoReceiver::class.java).putExtra(EXTRA_QUICK_MASK_ID, maskId),
         QUICK_MASK_PENDING_FLAGS,
     )

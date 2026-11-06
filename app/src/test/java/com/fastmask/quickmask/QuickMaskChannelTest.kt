@@ -2,7 +2,6 @@ package com.fastmask.quickmask
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -82,33 +81,23 @@ class QuickMaskChannelTest {
 
     @Test
     fun `the id in use is the id of the current version`() {
-        assertEquals(QuickMaskChannel.idFor(QuickMaskChannel.VERSION), QuickMaskChannel.id)
+        assertEquals("${QUICK_MASK_CHANNEL_ID}_v${QuickMaskChannel.VERSION}", QuickMaskChannel.id)
     }
 
     @Test
-    fun `every version gets its own id`() {
-        // The whole mechanism: a bumped version has to be a channel the system
-        // has never seen, otherwise the new fields are ignored exactly as
-        // before.
-        val ids = (1..5).map { QuickMaskChannel.idFor(it) }
-        assertEquals("versions share an id: $ids", ids.size, ids.toSet().size)
-        assertNotEquals(QuickMaskChannel.idFor(1), QuickMaskChannel.idFor(2))
-    }
-
-    @Test
-    fun `the id is stable for a given version`() {
+    fun `the ids are byte-for-byte what already shipped`() {
         // Ids are persisted by the system and carried by every posted
-        // notification; a value derived from anything mutable would orphan them.
-        repeat(3) {
-            assertEquals(QuickMaskChannel.idFor(3), QuickMaskChannel.idFor(3))
-        }
+        // notification; a changed spelling orphans the channel on every device
+        // that already created it.
+        assertEquals("quick_mask_v2", QuickMaskChannel.id)
+        assertEquals(listOf("quick_mask", "quick_mask_v1"), QuickMaskChannel.staleIds)
     }
 
     @Test
     fun `the current channel is never in the stale list`() {
         // staleIds feeds deleteNotificationChannel. Deleting the channel we
         // just created removes the user's own importance/sound choices with it.
-        val stale = QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+        val stale = QuickMaskChannel.staleIds
         assertFalse(
             "staleIds would delete the channel in use (${QuickMaskChannel.id}): $stale",
             QuickMaskChannel.id in stale,
@@ -117,15 +106,13 @@ class QuickMaskChannelTest {
 
     @Test
     fun `every superseded version is deleted`() {
-        val version = 4
-        val stale = QuickMaskChannel.staleIds(version)
-        (1 until version).forEach { old ->
+        val stale = QuickMaskChannel.staleIds
+        (1 until QuickMaskChannel.VERSION).forEach { old ->
             assertTrue(
-                "v$old channel (${QuickMaskChannel.idFor(old)}) survives a bump to v$version: $stale",
-                QuickMaskChannel.idFor(old) in stale,
+                "v$old channel survives the bump to v${QuickMaskChannel.VERSION}: $stale",
+                "${QUICK_MASK_CHANNEL_ID}_v$old" in stale,
             )
         }
-        assertFalse(QuickMaskChannel.idFor(version) in stale)
     }
 
     @Test
@@ -134,7 +121,7 @@ class QuickMaskChannelTest {
         // any n, so nothing else in the scheme would ever clean it up, and a
         // user who ran a build carrying it would keep an orphan channel in
         // system settings forever.
-        val stale = QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+        val stale = QuickMaskChannel.staleIds
         if (QuickMaskChannel.id != QUICK_MASK_CHANNEL_ID) {
             assertTrue(
                 "the legacy channel id \"$QUICK_MASK_CHANNEL_ID\" is never deleted: $stale",
@@ -145,19 +132,7 @@ class QuickMaskChannelTest {
 
     @Test
     fun `the stale list has no duplicates`() {
-        val stale = QuickMaskChannel.staleIds(7)
+        val stale = QuickMaskChannel.staleIds
         assertEquals("duplicate ids in $stale", stale.size, stale.toSet().size)
-    }
-
-    @Test
-    fun `version one has nothing to clean up beyond the legacy id`() {
-        // A fresh scheme must not invent ids to delete; deleting an id the
-        // system does not know is harmless but noisy, and it hides real
-        // deletions in a log.
-        val stale = QuickMaskChannel.staleIds(1)
-        assertTrue(
-            "v1 wants to delete channels that never existed: $stale",
-            stale.all { it == QUICK_MASK_CHANNEL_ID },
-        )
     }
 }

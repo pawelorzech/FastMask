@@ -53,11 +53,6 @@ class QuickMaskChannelImportanceTest {
     }
 
     @Test
-    fun `the constant matches the platform value it stands for`() {
-        assertEquals(importanceHigh, QuickMaskChannel.IMPORTANCE_HIGH)
-    }
-
-    @Test
     fun `the notifier builds the channel from the constant`() {
         // A literal IMPORTANCE_DEFAULT left in the builder makes every test above
         // decorative.
@@ -88,7 +83,7 @@ class QuickMaskChannelImportanceTest {
 
     @Test
     fun `a user already on quick_mask_v1 is moved to the new channel`() {
-        val stale = QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+        val stale = QuickMaskChannel.staleIds
 
         assertNotEquals(
             "the live id is still quick_mask_v1 — the raised importance would be ignored",
@@ -118,7 +113,7 @@ class QuickMaskChannelImportanceTest {
 
     @Test
     fun `the legacy unversioned channel is still cleaned up`() {
-        val stale = QuickMaskChannel.staleIds(QuickMaskChannel.VERSION)
+        val stale = QuickMaskChannel.staleIds
 
         assertTrue(
             "the pre-versioning id \"$QUICK_MASK_CHANNEL_ID\" is no longer deleted: $stale",
@@ -126,7 +121,7 @@ class QuickMaskChannelImportanceTest {
         )
         assertTrue(
             "every version before the current one must be deleted: $stale",
-            (1 until QuickMaskChannel.VERSION).all { QuickMaskChannel.idFor(it) in stale },
+            (1 until QuickMaskChannel.VERSION).all { "${QUICK_MASK_CHANNEL_ID}_v$it" in stale },
         )
         assertFalse("staleIds would delete the live channel: $stale", QuickMaskChannel.id in stale)
     }

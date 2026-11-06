@@ -78,8 +78,8 @@ internal object QuickMaskPolicy {
         permissionGranted: Boolean,
         alreadyAsked: Boolean,
         signedIn: Boolean,
-        locked: Boolean = false,
-        demoMode: Boolean = false,
+        locked: Boolean,
+        demoMode: Boolean,
     ): Boolean {
         if (sdkInt < NOTIFICATION_PERMISSION_SDK) return false
         if (permissionGranted || alreadyAsked) return false

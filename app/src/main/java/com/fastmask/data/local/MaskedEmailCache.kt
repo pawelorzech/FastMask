@@ -60,7 +60,7 @@ class MaskedEmailCache @Inject constructor(
     private val lock = Any()
 
     /**
-     * Bumped by every [clear]. A writer captures it before starting its fetch
+     * Advanced by every [clear]. A writer captures it before starting its fetch
      * and hands it back to [write], which refuses a write stamped with a
      * generation that has since been superseded.
      *
@@ -76,10 +76,10 @@ class MaskedEmailCache @Inject constructor(
      * Cancellation could not close this: the write follows the network call
      * with no suspension point in between, so there is nothing to preempt.
      */
-    private val generation = java.util.concurrent.atomic.AtomicLong(0)
+    private val guard = GenerationGuard()
 
     /** Snapshot of the current generation, for a caller about to fetch. */
-    fun currentGeneration(): Long = generation.get()
+    fun currentGeneration(): Long = guard.current()
 
     /**
      * In-memory mirror of the last written/read snapshot, keyed by owner and
@@ -132,7 +132,7 @@ class MaskedEmailCache @Inject constructor(
         synchronized(lock) {
             // Inside the lock, so a clear() cannot land between the check and
             // the rename.
-            if (generation != this.generation.get()) return
+            if (!guard.isCurrent(generation)) return
             runCatching {
                 val payload = MaskedEmailSnapshotCodec.payload(masks, owner, now)
                 // Write to a temporary file and rename, so an interrupted write
@@ -222,7 +222,7 @@ class MaskedEmailCache @Inject constructor(
         synchronized(lock) {
             // Before the deletes, and inside the lock: any write already
             // waiting on the lock is invalidated by the time it gets in.
-            generation.incrementAndGet()
+            guard.advance()
             memoryCache = null
             runCatching {
                 file.delete()

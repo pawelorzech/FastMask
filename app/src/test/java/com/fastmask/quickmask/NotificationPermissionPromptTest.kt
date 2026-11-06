@@ -1,5 +1,9 @@
 package com.fastmask.quickmask
 
+import com.fastmask.domain.repository.NotificationPromptSetting
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -24,7 +28,7 @@ import org.junit.Test
  * The fix is not a different predicate but a different NUMBER OF EVALUATIONS:
  * feed session state as it changes, and let something own the "at most once"
  * part. [QuickMaskPolicy.shouldRequestNotificationPermission] stays the
- * predicate (extended, not duplicated); [NotificationPermissionGate] adds the
+ * predicate (extended, not duplicated); [NotificationPrompt] adds the
  * latch that a single `onCreate` call used to stand in for.
  */
 class NotificationPermissionPromptTest {
@@ -137,17 +141,76 @@ class NotificationPermissionPromptTest {
         snapshots: List<Session>,
         alreadyAsked: Boolean = false,
         sdkInt: Int = 36,
+        setting: FakeNotificationPromptSetting = FakeNotificationPromptSetting(alreadyAsked),
+        loaded: Boolean = true,
     ): List<Boolean> {
-        val gate = NotificationPermissionGate(sdkInt)
+        val prompt = NotificationPrompt(sdkInt, setting, CoroutineScope(Dispatchers.Unconfined))
+        if (loaded) runBlocking { prompt.load() }
         return snapshots.map { snapshot ->
-            gate.shouldPrompt(
+            prompt.shouldAsk(
                 permissionGranted = snapshot.permissionGranted,
-                alreadyAsked = alreadyAsked,
                 signedIn = snapshot.signedIn,
                 locked = snapshot.locked,
                 demoMode = snapshot.demoMode,
             )
         }
+    }
+
+    private class FakeNotificationPromptSetting(var shown: Boolean = false) : NotificationPromptSetting {
+        val writes = mutableListOf<Boolean>()
+
+        override suspend fun notificationPromptShown(): Boolean = shown
+
+        override suspend fun setNotificationPromptShown(shown: Boolean) {
+            writes += shown
+            this.shown = shown
+        }
+    }
+
+    @Test
+    fun `nothing is asked until the persisted flag has been loaded`() {
+        // A startup race must never spend the one system prompt: before the flag
+        // is read the safe answer is "already asked".
+        val setting = FakeNotificationPromptSetting(shown = false)
+        val answers = replay(listOf(Session(signedIn = true)), setting = setting, loaded = false)
+
+        assertEquals(listOf(false), answers)
+        assertTrue("nothing may be persisted for a prompt that never happened", setting.writes.isEmpty())
+    }
+
+    @Test
+    fun `the ask is persisted exactly once`() {
+        val setting = FakeNotificationPromptSetting(shown = false)
+
+        replay(
+            listOf(Session(signedIn = false), Session(signedIn = true), Session(signedIn = true)),
+            setting = setting,
+        )
+
+        assertEquals(listOf(true), setting.writes)
+        assertTrue(setting.shown)
+    }
+
+    @Test
+    fun `a deferred prompt does not consume the persisted ask`() {
+        val setting = FakeNotificationPromptSetting(shown = false)
+
+        replay(listOf(Session(signedIn = true, locked = true), Session(signedIn = true, demoMode = true)), setting = setting)
+
+        assertTrue("locked or demo snapshots wrote the flag: ${setting.writes}", setting.writes.isEmpty())
+    }
+
+    @Test
+    fun `a failing write does not break the ask or leak out`() {
+        val setting = object : NotificationPromptSetting {
+            override suspend fun notificationPromptShown() = false
+            override suspend fun setNotificationPromptShown(shown: Boolean) = throw java.io.IOException("disk full")
+        }
+        val prompt = NotificationPrompt(36, setting, CoroutineScope(Dispatchers.Unconfined))
+        runBlocking { prompt.load() }
+
+        assertTrue(prompt.shouldAsk(permissionGranted = false, signedIn = true, locked = false, demoMode = false))
+        assertFalse("still latched in memory for this process", prompt.shouldAsk(false, true, false, false))
     }
 
     /**
@@ -249,7 +312,7 @@ class NotificationPermissionPromptTest {
     }
 
     @Test
-    fun `the gate agrees with the policy on the first snapshot`() {
+    fun `the prompt agrees with the policy on the first snapshot`() {
         // The latch is the ONLY thing the gate adds; the rules stay in
         // QuickMaskPolicy so there is one place to get them wrong.
         val cases = listOf(

@@ -13,36 +13,32 @@ internal object QuickMaskChannel {
     const val VERSION: Int = 2
 
     /**
-     * `NotificationManager.IMPORTANCE_HIGH`, spelled out so this file stays
-     * Android-free. The value is public platform API and cannot change.
+     * Importance the channel is created with: `NotificationManager.IMPORTANCE_HIGH`,
+     * spelled out so this file stays Android-free. The value is public platform
+     * API and cannot change.
      *
      * Importance and lock-screen visibility are INDEPENDENT fields: a heads-up
      * banner is what the user sees while looking at their unlocked phone, and
      * `VISIBILITY_SECRET` is what keeps the same notification off the lock
      * screen. Raising one does not weaken the other.
      */
-    const val IMPORTANCE_HIGH: Int = 4
-
-    /** Importance the channel is created with. */
-    const val IMPORTANCE: Int = IMPORTANCE_HIGH
+    const val IMPORTANCE: Int = 4
 
     /** The id the notifier posts under today. */
     val id: String = idFor(VERSION)
 
-    fun idFor(version: Int): String = "${QUICK_MASK_CHANNEL_ID}_v$version"
-
     /**
-     * Ids of superseded channels that should be removed from system settings.
+     * Ids of superseded channels that should be removed from system settings:
+     * the id that shipped before versioning existed (it is `idFor(n)` for no n,
+     * so nothing else in the scheme would ever clean it up), then every earlier
+     * version.
      *
      * This list never contains the current id: deleting the live channel would
      * also delete the user's own importance and sound choices. Bumping
      * [VERSION] is the deliberate action that ships a channel FIELD change,
      * because the system only re-reads those fields for an id it has not seen.
      */
-    fun staleIds(currentVersion: Int): List<String> = buildList {
-        // The id that shipped before versioning existed; it is idFor(n) for no
-        // n, so nothing else in the scheme would ever clean it up.
-        if (QUICK_MASK_CHANNEL_ID != idFor(currentVersion)) add(QUICK_MASK_CHANNEL_ID)
-        for (version in 1 until currentVersion) add(idFor(version))
-    }
+    val staleIds: List<String> = listOf(QUICK_MASK_CHANNEL_ID) + (1 until VERSION).map(::idFor)
+
+    private fun idFor(version: Int): String = "${QUICK_MASK_CHANNEL_ID}_v$version"
 }

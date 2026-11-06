@@ -79,4 +79,10 @@ data class UpdateMaskedEmailParams(
     val forDomain: String? = null,
     val description: String? = null,
     val url: String? = null
-)
+) {
+    /** An empty [url] means "remove it"; a null one means "leave it alone". */
+    val clearsUrl: Boolean get() = url != null && url.isEmpty()
+
+    /** The URL to set, or null when there is nothing to set (absent or [clearsUrl]). */
+    val urlToSet: String? get() = url?.takeIf { it.isNotEmpty() }
+}

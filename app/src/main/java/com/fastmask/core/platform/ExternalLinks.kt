@@ -1,4 +1,4 @@
-package com.fastmask.ui.common
+package com.fastmask.core.platform
 
 import android.content.ActivityNotFoundException
 import android.content.Context
