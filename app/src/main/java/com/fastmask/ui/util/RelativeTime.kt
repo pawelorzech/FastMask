@@ -19,12 +19,9 @@ object RelativeTime {
      * "N units ago" comes from the platform's ICU [RelativeDateTimeFormatter] (short
      * style) in the app's current locale, not from string resources.
      *
-     * Hand-written abbreviations did not survive translation: most locales shipped
-     * English unit letters ("vor 5mo", "hace 5mo", "il y a 5mo", Turkish "5y önce"),
-     * and Italian/Portuguese used "m" for both minutes and months. ICU carries CLDR's
-     * reviewed short forms and plural rules for every locale the app supports
-     * ("vor 5 Mon.", "il y a 5 mois", "5 мес. назад", "5 か月前"). Only "never" and
-     * "just now" stay as resources.
+     * ICU carries CLDR's reviewed short forms and plural rules for every locale the
+     * app supports ("vor 5 Mon.", "il y a 5 mois", "5 мес. назад", "5 か月前"). Only
+     * "just now" and "never" stay as resources.
      */
     fun format(context: Context, instant: Instant?, nowSec: Long = Instant.now().epochSecond): String {
         val bucket = RelativeTimeBuckets.of(

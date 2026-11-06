@@ -90,7 +90,6 @@ fun MaskField(
     )
 }
 
-/** The note field; IME "Next" calls [onNext]. */
 @Composable
 fun MaskDescriptionField(
     value: String,
@@ -110,7 +109,6 @@ fun MaskDescriptionField(
     modifier = modifier,
 )
 
-/** The domain field; IME "Next" calls [onNext]. */
 @Composable
 fun MaskDomainField(
     value: String,

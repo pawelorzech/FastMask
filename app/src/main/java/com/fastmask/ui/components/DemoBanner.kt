@@ -44,9 +44,6 @@ import javax.inject.Inject
  * Banner shown on screens that benefit from a hint that the user is in
  * demo mode. It hides itself outside the demo, and its action ends the demo
  * before handing control to [onSignInClick].
- *
- * Lives in [com.fastmask.ui.components] so all feature screens can drop it
- * in without owning demo-mode state themselves.
  */
 @Composable
 fun DemoBanner(

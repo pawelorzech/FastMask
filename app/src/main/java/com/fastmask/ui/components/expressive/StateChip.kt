@@ -31,7 +31,7 @@ fun StateChip(state: EmailState, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             // A floor, not a fixed height: at 200% font the label is taller than 24dp and a
-            // fixed height clipped it.
+            // fixed height would clip it.
             .defaultMinSize(minWidth = 24.dp, minHeight = 24.dp)
             .clip(CircleShape)
             .background(pair.container)

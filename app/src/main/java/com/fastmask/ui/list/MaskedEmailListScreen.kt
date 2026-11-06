@@ -110,9 +110,7 @@ fun MaskedEmailListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Names the address that was copied. With several similar masks the old
-    // "Copied to clipboard" left the user pasting somewhere just to check
-    // which one they got — on the most frequent action in the app.
+    // Names the address that was copied, so similar masks can be told apart.
     val copiedFormat = stringResource(R.string.list_copied_value)
     val archivedMessage = stringResource(R.string.list_archived_snackbar)
     val undoLabel = stringResource(R.string.list_undo)
@@ -157,7 +155,7 @@ fun MaskedEmailListScreen(
     }
 
     // A mask was just created; confirm it here, where it now appears, with the
-    // same Copy action the create screen used to offer. Latched before
+    // Copy action. Latched before
     // consuming for the same reason as the undo snackbar above: consuming
     // writes null, which would otherwise cancel this effect mid-snackbar.
     val copyAction = stringResource(R.string.create_email_copy_action)
@@ -268,8 +266,6 @@ fun MaskedEmailListScreen(
         }
     }
 
-    // Tutorial coach-mark bounds, filled in via Modifier.onGloballyPositioned on
-    // each target as it enters composition.
     val tutorialBounds = remember { mutableStateMapOf<TutorialTarget, Rect>() }
     var showTutorial by remember { mutableStateOf(false) }
 
@@ -378,8 +374,6 @@ internal fun MaskedEmailListContent(
     var menuExpanded by rememberSaveable { mutableStateOf(initialMenuExpanded) }
     BackHandler(enabled = menuExpanded) { menuExpanded = false }
 
-    // The FAB shows its label at the top of the list and while the user scrolls
-    // up; it collapses to the icon while they scroll down.
     val fabScroll = remember { FabScrollState() }
     val atTop by remember { derivedStateOf { !listState.canScrollBackward } }
     val fabExtended = atTop || fabScroll.scrollingUp
@@ -496,8 +490,6 @@ internal fun MaskedEmailListContent(
                     )
                 }
 
-                // Search + filters stay pinned under the (collapsing) app bar
-                // while the list scrolls beneath them.
                 // No horizontal padding on the Column itself: the filter row owns
                 // its 16dp gutters so it can scroll edge to edge.
                 // Once the app bar collapses, this block takes the bar's scrolled

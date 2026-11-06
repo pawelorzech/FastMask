@@ -200,7 +200,6 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onArchived = { id, previousState ->
-                    // Hand the archived id + pre-archive state back to the list, then pop.
                     navController.previousBackStackEntry?.savedStateHandle
                         ?.postListResult(ListResult.Archived(id, previousState))
                     navController.popBackStack()

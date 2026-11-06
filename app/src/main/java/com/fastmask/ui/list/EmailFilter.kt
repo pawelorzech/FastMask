@@ -22,7 +22,6 @@ enum class EmailFilter(
     fun matches(email: MaskedEmail): Boolean = admits(email)
 
     companion object {
-        /** How many of [emails] each filter admits. */
         fun countsOf(emails: List<MaskedEmail>): Map<EmailFilter, Int> =
             entries.associateWith { filter -> emails.count(filter::matches) }
     }

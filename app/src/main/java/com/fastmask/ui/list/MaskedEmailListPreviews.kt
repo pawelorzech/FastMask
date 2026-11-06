@@ -16,9 +16,6 @@ import com.fastmask.ui.components.DemoBannerContent
 import com.fastmask.ui.theme.FastMaskTheme
 import java.time.Instant
 
-// ---------------------------------------------------------------------------
-// Previews (stateless content, fake data, no Hilt)
-// ---------------------------------------------------------------------------
 
 private fun previewMask(
     id: String,

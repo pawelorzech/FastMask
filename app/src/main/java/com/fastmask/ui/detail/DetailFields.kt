@@ -43,9 +43,6 @@ internal fun ReadFields(email: MaskedEmail) {
         SegmentedRow(
             index = index,
             count = rows.size,
-            // Small label on top (headline slot), the wrapping, selectable value
-            // beneath it (supporting slot). Neither is truncated: long values
-            // wrap instead of ellipsizing.
             supporting = {
                 SelectionContainer {
                     Text(

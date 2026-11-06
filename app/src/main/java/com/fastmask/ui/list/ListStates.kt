@@ -135,9 +135,9 @@ internal fun NoMatchesBlock(hasQuery: Boolean, onClearSearch: () -> Unit) {
 }
 
 /**
- * Initial-load state: one centered expressive loading indicator. (The name is a
- * leftover from the skeleton-card version; `AccessibilitySemanticsWiringTest`
- * pins the live-region wiring to this function.)
+ * Initial-load state: one centered expressive loading indicator.
+ * `AccessibilitySemanticsWiringTest` pins the live-region wiring to this
+ * function.
  */
 @Composable
 internal fun LoadingShimmer(loadingDescription: String) {

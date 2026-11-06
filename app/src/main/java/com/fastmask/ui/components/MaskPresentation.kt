@@ -21,7 +21,6 @@ internal val EmailState.labelRes: Int
         EmailState.DELETED -> R.string.state_deleted
     }
 
-/** Container/content pair for this state, derived from the active color scheme. */
 @Composable
 internal fun EmailState.statusColors(): StatusColorPair = with(MaterialTheme.colorScheme) {
     when (this@statusColors) {

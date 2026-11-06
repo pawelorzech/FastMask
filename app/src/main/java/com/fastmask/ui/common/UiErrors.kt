@@ -28,8 +28,6 @@ data class UiError(@StringRes val message: Int, val action: UiErrorAction)
  * are English-only and technical. [of] is the single table; [messageRes] and
  * [isRetryable] read it.
  *
- * Pure function → unit-testable without Android.
- *
  * Note: JMAP method-level errors (a `JmapException` from an HTTP-200 body,
  * e.g. `unknownAccountId`) intentionally fall through to the caller's
  * fallback — Fastmail rejects an invalid/revoked Bearer token at the
