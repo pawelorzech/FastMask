@@ -8,8 +8,8 @@ import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.usecase.QuickMaskCreator
 import com.fastmask.domain.usecase.QuickMaskResult
 import com.fastmask.ui.common.UiErrors
-import com.fastmask.ui.common.copyToClipboard
-import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.core.platform.copyToClipboard
+import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.core.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.atomic.AtomicBoolean

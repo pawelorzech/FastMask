@@ -87,7 +87,7 @@ import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.FastmailLinks
-import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.LoadingButtonContent
 import com.fastmask.ui.theme.FastMaskTheme
 

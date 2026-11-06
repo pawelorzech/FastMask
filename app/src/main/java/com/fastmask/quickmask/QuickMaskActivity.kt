@@ -2,7 +2,7 @@ package com.fastmask.quickmask
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.core.platform.openExternalIntent
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

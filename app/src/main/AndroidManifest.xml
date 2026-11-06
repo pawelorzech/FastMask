@@ -21,7 +21,7 @@
       PackageManager.resolveActivity() returns null for the intents below even
       when a handler is installed, so the "Contact" row and the Play-required
       Privacy / Terms links on the paywall would silently do nothing.
-      See com.fastmask.ui.common.openExternalIntent.
+      See com.fastmask.core.platform.openExternalIntent.
     -->
     <queries>
         <intent>

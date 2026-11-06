@@ -67,7 +67,7 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.ContentWidth
-import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner

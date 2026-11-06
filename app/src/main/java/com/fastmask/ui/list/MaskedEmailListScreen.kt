@@ -83,7 +83,7 @@ import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
-import com.fastmask.ui.common.copyToClipboard
+import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.DemoBanner

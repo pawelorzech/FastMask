@@ -103,7 +103,7 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.radioButtonGroup
-import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.expressive.SegmentInnerCorner
 import com.fastmask.ui.components.expressive.SegmentOuterCorner

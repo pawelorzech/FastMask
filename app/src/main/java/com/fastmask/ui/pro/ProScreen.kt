@@ -82,7 +82,7 @@ import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProProduct
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.common.openExternalIntent
+import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.theme.FastMaskTheme
