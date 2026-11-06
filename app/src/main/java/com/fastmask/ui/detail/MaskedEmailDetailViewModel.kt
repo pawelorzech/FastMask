@@ -9,11 +9,9 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
-import com.fastmask.core.ApplicationScope
+import com.fastmask.core.SingleFlight
 import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,7 +26,6 @@ import javax.inject.Inject
 class MaskedEmailDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val maskedEmailRepository: MaskedEmailRepository,
-    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     /** From the route, so it is known from the first frame, before the mask has loaded. */
@@ -45,26 +41,40 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private val _events = Channel<MaskedEmailDetailEvent>(Channel.BUFFERED)
     val events: Flow<MaskedEmailDetailEvent> = _events.receiveAsFlow()
 
+    /**
+     * Initial load / retry / post-save reload share one flight, so a retry
+     * double-tap cannot stack two fetches whose results would race. A reload
+     * asked for mid-fetch (the post-save / post-toggle one) re-runs once the
+     * fetch ends; the queued run keeps drafts unless every request asked for a
+     * reset.
+     */
+    private val loadFlight = SingleFlight<Boolean>(
+        scope = viewModelScope,
+        merge = { queued, new -> queued && new },
+        start = { resetEdits ->
+            // Stale-while-revalidate, two legs:
+            //
+            // 1. The encrypted last-known-good snapshot usually already holds this
+            //    mask — the user just saw it on the list. Seeding from it renders
+            //    the screen instantly instead of holding a spinner for a network
+            //    round trip.
+            // 2. A single-mask JMAP get (`ids: [id]`) then confirms or corrects it.
+            //
+            // When the refresh fails but a mask is already on screen (cache seed
+            // or an earlier success), the failure degrades to the inline error
+            // text above Save; replacing usable content with the full-screen
+            // error state would throw away what the user is looking at.
+            val hadEmail = _uiState.value.email != null
+            if (!hadEmail) {
+                _uiState.update { it.copy(isLoading = true, errorRes = null) }
+            }
+            suspend { loadOnce(resetEdits, hadEmail) }
+        },
+    )
+
     init {
         loadEmail()
     }
-
-    /**
-     * True from the moment a load starts until its network leg settles. Set
-     * synchronously so a retry double-tap cannot stack two fetches whose
-     * results would race.
-     */
-    private var loadInFlight = false
-
-    /**
-     * A reload asked for while one was running — the post-save / post-toggle
-     * reload. It used to be dropped, so nothing refreshed after the write and the
-     * screen kept whatever the older in-flight fetch returned. It re-runs once
-     * the fetch ends; the queued run keeps drafts unless every request asked for
-     * a reset.
-     */
-    private var reloadQueued = false
-    private var queuedResetEdits = true
 
     /**
      * @param resetEdits when true (initial load / retry) untouched editable fields
@@ -72,77 +82,40 @@ class MaskedEmailDetailViewModel @Inject constructor(
      *   The reload triggered AFTER a save or a state toggle passes false: overwriting `edited*` there would drop any
      *   keystrokes the user typed while the network call was in flight.
      */
-    fun loadEmail(resetEdits: Boolean = true) {
-        if (loadInFlight) {
-            queuedResetEdits = if (reloadQueued) queuedResetEdits && resetEdits else resetEdits
-            reloadQueued = true
-            return
-        }
-        loadInFlight = true
+    fun loadEmail(resetEdits: Boolean = true) = loadFlight.request(resetEdits)
 
-        // Stale-while-revalidate, two legs:
-        //
-        // 1. The encrypted last-known-good snapshot usually already holds this
-        //    mask — the user just saw it on the list. Seeding from it renders
-        //    the screen instantly instead of holding a spinner for a network
-        //    round trip.
-        // 2. A single-mask JMAP get (`ids: [id]`) then confirms or corrects it.
-        //    This replaced the old full-account fetch that ran on every open
-        //    and every post-edit reload — on large accounts the most expensive
-        //    read in the app for the least data.
-        //
-        // When the refresh fails but a mask is already on screen (cache seed
-        // or an earlier success), the failure degrades to the inline error
-        // text above Save; replacing usable content with the full-screen
-        // error state would throw away what the user is looking at.
-        val hadEmail = _uiState.value.email != null
-        if (!hadEmail) {
-            _uiState.update { it.copy(isLoading = true, errorRes = null) }
+    private suspend fun loadOnce(resetEdits: Boolean, hadEmail: Boolean) {
+        if (!hadEmail && _uiState.value.email == null) {
+            seedFromCache(resetEdits)
         }
 
-        viewModelScope.launch {
-            try {
-                if (!hadEmail && _uiState.value.email == null) {
-                    seedFromCache(resetEdits)
-                }
-
-                maskedEmailRepository.getMaskedEmail(emailId).fold(
-                    onSuccess = { email ->
-                        if (email != null) {
-                            applyLoadedEmail(email, resetEdits)
-                        } else {
-                            // Server does not know this id: deleted elsewhere,
-                            // or a stale deep link. Same surface as before —
-                            // full-screen only when nothing is on screen yet.
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    updateOperation = null,
-                                    errorRes = R.string.email_detail_error_load
-                                )
-                            }
-                        }
-                    },
-                    onFailure = { error ->
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                updateOperation = null,
-                                errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
-                            )
-                        }
+        maskedEmailRepository.getMaskedEmail(emailId).fold(
+            onSuccess = { email ->
+                if (email != null) {
+                    applyLoadedEmail(email, resetEdits)
+                } else {
+                    // Server does not know this id: deleted elsewhere,
+                    // or a stale deep link. Full-screen only when nothing
+                    // is on screen yet.
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            updateOperation = null,
+                            errorRes = R.string.email_detail_error_load
+                        )
                     }
-                )
-            } finally {
-                loadInFlight = false
-                if (reloadQueued) {
-                    val reset = queuedResetEdits
-                    reloadQueued = false
-                    queuedResetEdits = true
-                    if (isActive) loadEmail(reset)
+                }
+            },
+            onFailure = { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        updateOperation = null,
+                        errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
+                    )
                 }
             }
-        }
+        )
     }
 
     private suspend fun seedFromCache(resetEdits: Boolean) {
@@ -191,13 +164,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE) }
         viewModelScope.launch {
-
-            // Application scope: see the note in create(). Leaving the screen
-            // mid-request must not cancel a change the server may already have
-            // applied, leaving the UI and the account disagreeing.
-            appScope.async {
-                maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState))
-            }.await().fold(
+            maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState)).fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
@@ -222,8 +189,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
         viewModelScope.launch {
-
-            appScope.async { maskedEmailRepository.updateMaskedEmail(emailId, params) }.await().fold(
+            maskedEmailRepository.updateMaskedEmail(emailId, params).fold(
                 onSuccess = {
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
@@ -245,11 +211,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
         // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(isDeleting = true) }
         viewModelScope.launch {
-
-            // The archive in particular: cancelling it after the server acted
-            // meant the mask was archived but the Deleted event never fired, so
-            // the list showed no Undo snackbar for a change that had happened.
-            appScope.async { maskedEmailRepository.archiveMaskedEmail(emailId) }.await().fold(
+            maskedEmailRepository.archiveMaskedEmail(emailId).fold(
                 onSuccess = {
                     // Carry the pre-archive state so the list's Undo can put
                     // the mask back EXACTLY as it was — a DISABLED mask must

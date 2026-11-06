@@ -14,7 +14,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
-import kotlinx.coroutines.CoroutineScope
 import org.junit.Test
 
 class CreateMaskedEmailViewModelTest {
@@ -22,12 +21,8 @@ class CreateMaskedEmailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    // Shares the rule's scheduler, so the mutation the ViewModel hands to the
-    // application scope still advances under runTest's virtual time.
-    private fun appScope() = CoroutineScope(mainDispatcherRule.dispatcher)
-
     private fun vm(repo: FakeMaskedEmailRepository) =
-        CreateMaskedEmailViewModel(repo, appScope())
+        CreateMaskedEmailViewModel(repo)
 
     // --- double-tap guard (regression: duplicate masks created) ------------
 

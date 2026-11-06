@@ -11,14 +11,12 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
-import com.fastmask.core.ApplicationScope
+import com.fastmask.core.SingleFlight
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,7 +33,6 @@ import javax.inject.Inject
 class MaskedEmailListViewModel @Inject constructor(
     private val maskedEmailRepository: MaskedEmailRepository,
     private val sessionRepository: SessionRepository,
-    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
 
     // One-shot results of the FAB menu's "Random mask". Channel-backed so an
@@ -46,23 +42,20 @@ class MaskedEmailListViewModel @Inject constructor(
 
     /**
      * Creates a mask with no prefix, domain or note — Fastmail picks the
-     * address — through the same use case, and in the same application scope,
-     * as the create screen (so demo mode behaves identically and leaving the
-     * screen cannot cancel a POST that may already have reached Fastmail).
+     * address — through the same repository call as the create screen, so demo
+     * mode behaves identically.
      */
     fun createRandomMask() {
         // Set synchronously so a double tap cannot start two creations.
         if (_uiState.value.isCreatingRandom) return
         _uiState.update { it.copy(isCreatingRandom = true) }
         viewModelScope.launch {
-            appScope.async {
-                maskedEmailRepository.createMaskedEmail(CreateMaskedEmailParams())
-            }.await().fold(
+            maskedEmailRepository.createMaskedEmail(CreateMaskedEmailParams()).fold(
                 onSuccess = { created ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
                     _events.send(MaskedEmailListEvent.RandomCreated(created.email))
-                    // The new mask is not written into the list by the use
-                    // case; pull it in without flashing the spinner.
+                    // The repository does not write the new mask into the list;
+                    // pull it in without flashing the spinner.
                     refreshMaskedEmails()
                 },
                 onFailure = { error ->
@@ -103,18 +96,7 @@ class MaskedEmailListViewModel @Inject constructor(
      */
     fun restoreMask(id: String, restoreTo: EmailState = EmailState.ENABLED) {
         viewModelScope.launch {
-            // The REQUEST runs in the application scope; only the wait for it
-            // belongs to this ViewModel — the same split create and detail
-            // already use. Undo was the last mutation still issued straight
-            // from viewModelScope, and it is the one whose entire promise is
-            // reversal: leaving the app while the restore was in flight
-            // cancelled the PUT, so the mask stayed archived and the .onFailure
-            // branch below — living in the same cancelled coroutine — never ran
-            // to say so. If the request had already reached Fastmail, the mask
-            // came back on the account while the list never reloaded.
-            appScope.async {
-                maskedEmailRepository.updateMaskedEmail(id, UpdateMaskedEmailParams(state = restoreTo))
-            }.await()
+            maskedEmailRepository.updateMaskedEmail(id, UpdateMaskedEmailParams(state = restoreTo))
                 .onSuccess { loadMaskedEmails() }
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived
@@ -129,40 +111,36 @@ class MaskedEmailListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MaskedEmailListUiState())
     val uiState: StateFlow<MaskedEmailListUiState> = _uiState.asStateFlow()
 
+    /**
+     * One flag for BOTH entry points on purpose: a silent refresh does not
+     * raise `isLoading` when the list already has data, so separate guards let
+     * a pull-to-refresh landing mid-refresh run a second concurrent fetch whose
+     * result raced the first. A request that arrives mid-fetch is coalesced
+     * into one re-run, which is user-initiated if any of the requests was, so
+     * its spinner and error reporting are honoured.
+     */
+    private val fetchFlight = SingleFlight<Boolean>(
+        scope = viewModelScope,
+        merge = { queued, new -> queued || new },
+        start = { userInitiated ->
+            val hadData = _uiState.value.emails.isNotEmpty()
+            if (userInitiated || !hadData) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
+            suspend { fetchOnce(userInitiated) }
+        },
+    )
+
     init {
         loadMaskedEmails()
     }
-
-    /**
-     * True from the moment either entry point is called until its fetch
-     * settles. Set synchronously, before the coroutine is dispatched, so two
-     * calls in the same frame cannot both start a request.
-     *
-     * One flag for BOTH entry points on purpose: they used to guard
-     * separately, and a silent refresh does not raise `isLoading` when the
-     * list already has data — so a pull-to-refresh landing mid-refresh saw
-     * `isLoading == false`, passed its own guard, and ran a second concurrent
-     * fetch whose result raced the first (last writer wins).
-     */
-    private var fetchInFlight = false
-
-    /**
-     * A refresh asked for while another fetch was running. Dropping it lost
-     * masks: a mask created while the initial / resume fetch was in flight was
-     * missing from that fetch's answer, and the refresh that should have
-     * picked it up was thrown away, so it never showed. One re-run is enough
-     * however many requests piled up; if any of them was user-initiated the
-     * re-run is too, so its spinner and error reporting are honoured.
-     */
-    private var refetchQueued = false
-    private var refetchUserInitiated = false
 
     /**
      * Explicit, user-visible load: pull-to-refresh, the error-state retry, and
      * the reload after a successful undo. Always shows the spinner, and always
      * surfaces a failure — the user asked for this and is waiting on it.
      */
-    fun loadMaskedEmails() = fetch(userInitiated = true)
+    fun loadMaskedEmails() = fetchFlight.request(true)
 
     /**
      * Silent on-resume refresh. Shows the spinner only when there is nothing on
@@ -170,90 +148,64 @@ class MaskedEmailListViewModel @Inject constructor(
      * with an error banner because a background refresh failed is worse than
      * showing slightly stale masks.
      */
-    fun refreshMaskedEmails() = fetch(userInitiated = false)
+    fun refreshMaskedEmails() = fetchFlight.request(false)
 
-    private fun fetch(userInitiated: Boolean) {
-        if (fetchInFlight) {
-            refetchQueued = true
-            refetchUserInitiated = refetchUserInitiated || userInitiated
-            return
-        }
-        fetchInFlight = true
-
-        val hadData = _uiState.value.emails.isNotEmpty()
-        if (userInitiated || !hadData) {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-        }
-
-        viewModelScope.launch {
-            try {
-                maskedEmailRepository.getMaskedEmails().fold(
-                    onSuccess = { emails ->
-                        val sortedEmails = emails.sortedByDescending { it.lastActivityAt }
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                emails = sortedEmails,
-                                filteredEmails = filterEmails(
-                                    sortedEmails,
-                                    it.searchQuery,
-                                    it.selectedFilter,
-                                ),
-                                // A successful fetch is by definition current.
-                                cachedAt = null,
-                                // A previous pull-to-refresh or Undo failure is
-                                // no longer true once the server answers again.
-                                error = null,
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        // Nothing on screen and no network: fall back to the
-                        // last good snapshot rather than an empty error state.
-                        // The most common thing a user opens this app to do is
-                        // read back an address they already created, and that
-                        // should not require a connection.
-                        val cached = if (_uiState.value.emails.isEmpty()) {
-                            maskedEmailRepository.cachedMaskedEmails()
-                        } else {
-                            null
-                        }
-                        val sortedCached = cached?.masks?.sortedByDescending { it.lastActivityAt }
-                        _uiState.update {
-                            when {
-                                cached != null && cached.masks.isNotEmpty() -> it.copy(
-                                    isLoading = false,
-                                    emails = sortedCached.orEmpty(),
-                                    filteredEmails = filterEmails(
-                                        sortedCached.orEmpty(), it.searchQuery, it.selectedFilter,
-                                    ),
-                                    // Shown, never hidden: presenting stale
-                                    // masks as current would be a quiet lie
-                                    // about which addresses still exist.
-                                    cachedAt = cached.cachedAt,
-                                    error = null,
-                                )
-                                userInitiated || it.emails.isEmpty() -> it.copy(
-                                    isLoading = false,
-                                    error = UiErrors.of(error, R.string.error_load_emails, UiErrorAction.RETRY),
-                                )
-                                else -> it.copy(isLoading = false)
-                            }
-                        }
-                    },
-                )
-            } finally {
-                fetchInFlight = false
-                if (refetchQueued) {
-                    val queuedUserInitiated = refetchUserInitiated
-                    refetchQueued = false
-                    refetchUserInitiated = false
-                    // Not when this ViewModel is going away: the new coroutine
-                    // would be cancelled anyway.
-                    if (isActive) fetch(queuedUserInitiated)
+    private suspend fun fetchOnce(userInitiated: Boolean) {
+        maskedEmailRepository.getMaskedEmails().fold(
+            onSuccess = { emails ->
+                val sortedEmails = emails.sortedByDescending { it.lastActivityAt }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        emails = sortedEmails,
+                        filteredEmails = filterEmails(
+                            sortedEmails,
+                            it.searchQuery,
+                            it.selectedFilter,
+                        ),
+                        // A successful fetch is by definition current.
+                        cachedAt = null,
+                        // A previous pull-to-refresh or Undo failure is
+                        // no longer true once the server answers again.
+                        error = null,
+                    )
                 }
-            }
-        }
+            },
+            onFailure = { error ->
+                // Nothing on screen and no network: fall back to the
+                // last good snapshot rather than an empty error state.
+                // The most common thing a user opens this app to do is
+                // read back an address they already created, and that
+                // should not require a connection.
+                val cached = if (_uiState.value.emails.isEmpty()) {
+                    maskedEmailRepository.cachedMaskedEmails()
+                } else {
+                    null
+                }
+                val sortedCached = cached?.masks?.sortedByDescending { it.lastActivityAt }
+                _uiState.update {
+                    when {
+                        cached != null && cached.masks.isNotEmpty() -> it.copy(
+                            isLoading = false,
+                            emails = sortedCached.orEmpty(),
+                            filteredEmails = filterEmails(
+                                sortedCached.orEmpty(), it.searchQuery, it.selectedFilter,
+                            ),
+                            // Shown, never hidden: presenting stale
+                            // masks as current would be a quiet lie
+                            // about which addresses still exist.
+                            cachedAt = cached.cachedAt,
+                            error = null,
+                        )
+                        userInitiated || it.emails.isEmpty() -> it.copy(
+                            isLoading = false,
+                            error = UiErrors.of(error, R.string.error_load_emails, UiErrorAction.RETRY),
+                        )
+                        else -> it.copy(isLoading = false)
+                    }
+                }
+            },
+        )
     }
 
     fun onSearchQueryChange(query: String) {

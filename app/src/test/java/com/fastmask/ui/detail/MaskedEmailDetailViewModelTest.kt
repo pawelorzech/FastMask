@@ -4,7 +4,6 @@ package com.fastmask.ui.detail
 
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.R
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CompletableDeferred
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
@@ -30,9 +29,6 @@ class MaskedEmailDetailViewModelTest {
         MaskedEmailDetailViewModel(
             savedStateHandle = SavedStateHandle(mapOf("emailId" to emailId)),
             maskedEmailRepository = repo,
-            // Shares the rule's scheduler so application-scoped mutations still
-            // advance under runTest's virtual time.
-            appScope = CoroutineScope(mainDispatcherRule.dispatcher),
         )
 
     // --- clearing fields (regression: cleared fields silently reverted) ----

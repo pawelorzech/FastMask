@@ -12,9 +12,6 @@ import com.fastmask.testutil.MainDispatcherRule
 import com.fastmask.testutil.mask
 import java.io.IOException
 import java.time.Instant
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -28,15 +25,8 @@ class MaskedEmailListViewModelTest {
 
     private val session = FakeSessionRepository(initial = Session.ACCOUNT)
 
-    private fun vm(
-        repo: FakeMaskedEmailRepository,
-        appScope: CoroutineScope = CoroutineScope(mainDispatcherRule.dispatcher),
-    ) =
-        MaskedEmailListViewModel(
-            repo,
-            session,
-            appScope,
-        )
+    private fun vm(repo: FakeMaskedEmailRepository) =
+        MaskedEmailListViewModel(repo, session)
 
     private val t1: Instant = Instant.parse("2026-01-01T10:00:00Z")
     private val t2: Instant = Instant.parse("2026-02-01T10:00:00Z")
@@ -243,39 +233,6 @@ class MaskedEmailListViewModelTest {
         assertEquals(EmailState.ENABLED, repo.lastUpdateParams?.state)
         // reload fired after the successful restore
         assertEquals(2, repo.getCalls)
-    }
-
-    // Undo is the one mutation whose entire promise is reversal, and it was the
-    // last one still issued straight from viewModelScope: backing out of the app
-    // while the restore was in flight cancelled the request, leaving the mask
-    // archived with nothing shown to say so.
-    //
-    // The two scopes run on SEPARATE schedulers, so the assertion is about which
-    // scope owns the request rather than about timing: draining the ViewModel's
-    // scheduler alone must not be enough to reach the repository.
-    @Test
-    fun `restoreMask issues the request on the application scope, not viewModelScope`() {
-        val appScheduler = TestCoroutineScheduler()
-        val appScope = CoroutineScope(StandardTestDispatcher(appScheduler))
-        val repo = FakeMaskedEmailRepository(
-            emails = listOf(mask("m1", state = EmailState.DELETED))
-        )
-        val viewModel = vm(repo, appScope)
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-
-        viewModel.restoreMask("m1")
-        // Everything viewModelScope can do on its own: the coroutine starts and
-        // parks on await(). If the request lived here, it would have run.
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-        assertEquals(0, repo.updateCalls)
-
-        // Only advancing the application scope's scheduler performs the update.
-        appScheduler.advanceUntilIdle()
-        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(1, repo.updateCalls)
-        assertEquals("m1", repo.lastUpdateId)
-        assertEquals(EmailState.ENABLED, repo.lastUpdateParams?.state)
     }
 
     @Test

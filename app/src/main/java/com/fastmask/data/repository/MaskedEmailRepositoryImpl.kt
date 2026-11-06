@@ -4,6 +4,7 @@ import com.fastmask.data.api.JmapApi
 import com.fastmask.data.api.MaskedEmailDto
 import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
+import com.fastmask.core.ApplicationScope
 import com.fastmask.core.IoDispatcher
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.CachedMasks
@@ -14,6 +15,8 @@ import com.fastmask.domain.model.MaskedEmailMetadata
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.time.Instant
@@ -29,6 +32,13 @@ import javax.inject.Singleton
  * token initialises Tink and touches the KeyStore, and the write-through below
  * AES-encrypts the entire mask list and writes it to disk — on the UI thread,
  * once per refresh, growing with the size of the account.
+ *
+ * Mutations (create / update / archive / destroy) additionally run in the
+ * application scope. A request that may already have reached Fastmail must not
+ * be cancelled because the caller went away: backing out of the create screen
+ * would leave a mask on the account that nobody ever sees, and cancelling an
+ * archive or Undo leaves the UI and the account disagreeing. The caller may stop
+ * waiting; the request still completes.
  */
 @Singleton
 class MaskedEmailRepositoryImpl @Inject constructor(
@@ -36,7 +46,12 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     private val tokenStorage: TokenStorage,
     private val cache: MaskedEmailCache,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : MaskedEmailRepository {
+
+    /** Runs a mutation on [appScope]; cancelling the caller only abandons the wait. */
+    private suspend fun <T> mutation(block: suspend () -> Result<T>): Result<T> =
+        appScope.async(ioDispatcher) { block() }.await()
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
         val token = tokenStorage.getToken()
@@ -90,12 +105,12 @@ class MaskedEmailRepositoryImpl @Inject constructor(
             .digest(token.toByteArray())
             .joinToString("") { "%02x".format(it) }
 
-    override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = withContext(ioDispatcher) {
+    override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = mutation {
         val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
         val forDomain = params.forDomain?.let { raw ->
             MaskedEmailMetadata.normalizeForDomain(raw)
-                ?: return@withContext Result.failure(IllegalArgumentException("Invalid web origin"))
+                ?: return@mutation Result.failure(IllegalArgumentException("Invalid web origin"))
         }
 
         val create = CreateMaskedEmailParams(
@@ -109,12 +124,12 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         jmapApi.createMaskedEmail(token, create).map { it.toDomain() }
     }
 
-    override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = withContext(ioDispatcher) {
+    override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = mutation {
         val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
         val forDomain = params.forDomain?.let { raw ->
             MaskedEmailMetadata.normalizeForDomain(raw)
-                ?: return@withContext Result.failure(IllegalArgumentException("Invalid web origin"))
+                ?: return@mutation Result.failure(IllegalArgumentException("Invalid web origin"))
         }
 
         val update = MaskedEmailUpdate(
@@ -136,9 +151,9 @@ class MaskedEmailRepositoryImpl @Inject constructor(
      * promise. `destroy` removes the record outright and leaves Undo updating
      * an id the server no longer knows.
      */
-    override suspend fun archiveMaskedEmail(id: String): Result<Unit> = withContext(ioDispatcher) {
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> = mutation {
         val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
 
         jmapApi.updateMaskedEmail(
             token = token,
@@ -147,9 +162,9 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun destroyMaskedEmail(id: String): Result<Unit> = withContext(ioDispatcher) {
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> = mutation {
         val token = tokenStorage.getToken()
-            ?: return@withContext Result.failure(IllegalStateException("Not authenticated"))
+            ?: return@mutation Result.failure(IllegalStateException("Not authenticated"))
 
         jmapApi.deleteMaskedEmail(token, id)
     }

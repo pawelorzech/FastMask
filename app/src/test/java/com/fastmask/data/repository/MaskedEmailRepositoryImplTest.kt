@@ -15,7 +15,12 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import java.time.Instant
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -29,7 +34,8 @@ class MaskedEmailRepositoryImplTest {
     private val jmapApi = mockk<JmapApi>()
     private val tokenStorage = mockk<TokenStorage>()
     private val cache = mockk<MaskedEmailCache>(relaxed = true)
-    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache, UnconfinedTestDispatcher())
+    private val appScope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
+    private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache, UnconfinedTestDispatcher(), appScope)
 
     private fun dto(
         createdAt: String? = null,
@@ -272,5 +278,28 @@ class MaskedEmailRepositoryImplTest {
         repo.getMaskedEmails()
 
         assertEquals(7L, stamped.captured)
+    }
+
+    // A request that may already have reached Fastmail must complete even when
+    // the caller (a ViewModel that was cleared) stops waiting for it.
+    @Test
+    fun `a mutation completes after its caller is cancelled`() = runTest {
+        every { tokenStorage.getToken() } returns "tok"
+        val gate = CompletableDeferred<Unit>()
+        var completed = false
+        coEvery { jmapApi.updateMaskedEmail("tok", "m1", any()) } coAnswers {
+            gate.await()
+            completed = true
+            Result.success(Unit)
+        }
+
+        val caller = launch { repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(state = EmailState.ENABLED)) }
+        runCurrent() // the request is now parked inside the API call
+        caller.cancel()
+        caller.join()
+        assertFalse(completed)
+
+        gate.complete(Unit)
+        assertTrue(completed)
     }
 }
