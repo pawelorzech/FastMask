@@ -81,7 +81,6 @@ internal fun MaskList(
                 },
         ) {
             item(key = "demo-banner") {
-                // Scrolls away with the list instead of costing permanent height.
                 Box(Modifier.animateItem().padding(horizontal = 16.dp)) { demoBanner() }
             }
             sections.forEachIndexed { sectionIndex, section ->

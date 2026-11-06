@@ -46,7 +46,6 @@ class MaskedEmailListViewModel @Inject constructor(
      * mode behaves identically.
      */
     fun createRandomMask() {
-        // Set synchronously so a double tap cannot start two creations.
         if (_uiState.value.isCreatingRandom) return
         _uiState.update { it.copy(isCreatingRandom = true) }
         viewModelScope.launch {
@@ -71,7 +70,6 @@ class MaskedEmailListViewModel @Inject constructor(
 
     val session: StateFlow<Session> = sessionRepository.session
 
-    /** Whether the user has already seen the demo tutorial. */
     val tutorialCompleted: StateFlow<Boolean> = sessionRepository.tutorialCompleted.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -178,7 +176,6 @@ class MaskedEmailListViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         emails = emails.sortedByDescending { mask -> mask.lastActivityAt },
-                        // A successful fetch is by definition current.
                         cachedAt = null,
                         // A previous pull-to-refresh or Undo failure is
                         // no longer true once the server answers again.

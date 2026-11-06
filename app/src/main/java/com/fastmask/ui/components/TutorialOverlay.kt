@@ -102,10 +102,8 @@ fun TutorialOverlay(
 
     var currentStep by remember { mutableIntStateOf(0) }
 
-    // The composable stays in composition across show/hide cycles (the caller
-    // only flips `visible`), so `currentStep` outlived a completed tutorial.
-    // A second demo session re-opened the overlay on its LAST card instead of
-    // the first. Restart from step 1 every time it becomes visible again.
+    // The composable stays in composition across show/hide cycles, so restart from
+    // step 1 every time it becomes visible again.
     LaunchedEffect(visible) {
         if (visible) {
             currentStep = 0
@@ -123,18 +121,13 @@ fun TutorialOverlay(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                // Consume taps so the underlying screen is inert while the
-                // tutorial is up; users must use the explicit buttons.
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) { /* swallow */ }
-                // The scrim swallowed touches but not semantics, so a screen
-                // reader kept walking the mask list, the FAB and the settings
-                // button behind a 70% black overlay while the tutorial bubble
-                // itself was never focused. Claiming traversal for this subtree
-                // and sorting it first makes the overlay modal for the reader
-                // the way it already is for the finger.
+                // The scrim swallowed touches but not semantics: claim traversal for this
+                // subtree and sort it first, so the overlay is modal for a screen reader
+                // as it already is for the finger.
                 .semantics {
                     isTraversalGroup = true
                     traversalIndex = -1f
@@ -164,17 +157,10 @@ fun TutorialOverlay(
                 modifier = Modifier.fillMaxSize(),
             ) { idx ->
                 val active = steps[idx]
-                // AnimatedContent keeps both the outgoing and incoming
-                // TooltipBubble mounted for the full crossfade. A live region
-                // on the shared ancestor (the AnimatedContent container
-                // itself) merged both instances' text, so TalkBack announced
-                // the old step and the new step concatenated, then repeated
-                // the new step again once the old one left composition.
-                //
-                // Scoping the live region to just the entering instance's
-                // subtree, and stripping the exiting instance out of the
-                // accessibility tree entirely, means only the new step's
-                // title/body can ever be part of the announcement.
+                // AnimatedContent keeps the outgoing and incoming TooltipBubble mounted for
+                // the whole crossfade; a live region on the shared container would merge
+                // both texts. Scope it to the entering instance and strip the exiting one
+                // out of the accessibility tree, so only the new step is announced.
                 val isEntering = transition.targetState == EnterExitState.Visible
                 TooltipBubble(
                     step = active,
@@ -211,7 +197,6 @@ private fun ScrimWithCutout(targetBounds: Rect?) {
     val radiusPx = with(density) { CutoutCornerRadius.toPx() }
     val scrim = MaterialTheme.colorScheme.scrim.copy(alpha = 0.72f)
 
-    // The spotlight glides from one target to the next on the spatial spring.
     // A step without a target draws no cutout at all (see below).
     val padded = targetBounds?.let {
         Rect(it.left - padPx, it.top - padPx, it.right + padPx, it.bottom + padPx)
@@ -263,8 +248,7 @@ private fun TooltipBubble(
         // FAB): put the card above, otherwise it would sit on top of the
         // spotlight. A target that is most of the screen (the whole list) or
         // sits in the upper half keeps the card at the bottom, where the
-        // thumb is. Targets are never chased around the screen: that is what
-        // pushed the card off-screen in earlier revisions.
+        // thumb is. Targets are never chased around the screen.
         val atTop = bounds != null && bounds.height < screenHeight * 0.4f && bounds.center.y > screenHeight * 0.55f
 
         Surface(

@@ -95,8 +95,6 @@ class CreateMaskedEmailViewModel @Inject constructor(
         // here and create two real masks on the Fastmail account.
         if (state.isLoading) return
 
-        // Set synchronously (before the coroutine is dispatched) so the
-        // double-tap guard above cannot race the launch.
         _uiState.update { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
             // Trimmed like the detail editor (see TextPolicy). Unlike there, an

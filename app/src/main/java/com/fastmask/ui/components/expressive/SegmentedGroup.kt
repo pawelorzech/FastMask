@@ -32,13 +32,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.fastmask.ui.theme.FastMaskTheme
 
-/** Gap between rows of a segmented group. */
 val SegmentedGap: Dp = 2.dp
 
 /** Corner radius at the outer edge of a segmented group (and of a pressed row). */
 internal val SegmentOuterCorner: Dp = 20.dp
 
-/** Corner radius where a segmented row meets its neighbour. */
 internal val SegmentInnerCorner: Dp = 4.dp
 
 /**

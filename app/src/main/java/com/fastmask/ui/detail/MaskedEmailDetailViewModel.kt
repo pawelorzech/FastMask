@@ -195,7 +195,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     private fun updateState(newState: EmailState) {
         if (_uiState.value.isUpdating || _uiState.value.isDeleting) return
-        // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE) }
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState)).fold(
@@ -220,7 +219,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
         if (state.isUpdating || state.isDeleting) return
         val params = state.pendingChanges ?: return
 
-        // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(emailId, params).fold(
@@ -242,7 +240,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     fun delete() {
         if (_uiState.value.isDeleting || _uiState.value.isUpdating) return
-        // Set synchronously so the guard above cannot race the launch.
         _uiState.update { it.copy(isDeleting = true) }
         viewModelScope.launch {
             maskedEmailRepository.archiveMaskedEmail(emailId).fold(

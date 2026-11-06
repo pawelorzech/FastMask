@@ -100,7 +100,6 @@ internal fun MaskRow(
         timeLabel.takeIf { compact },
     ).joinToString(" · ")
 
-    // The freshly created mask flashes a primaryContainer wash that fades out.
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 0.55f else 0f,
         animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
@@ -162,8 +161,6 @@ internal fun MaskRow(
                     // sighted user's non-colour cue only.
                     Box(Modifier.clearAndSetSemantics { }) { StateChip(email.state) }
                 }
-                // Quick-copy: the most common action, without opening the
-                // detail screen. Stock IconButton: 48dp target, press morph.
                 IconButton(onClick = { onCopy(email) }) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,

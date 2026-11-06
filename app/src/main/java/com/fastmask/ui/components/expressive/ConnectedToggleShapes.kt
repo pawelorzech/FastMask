@@ -7,7 +7,6 @@ import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/** Space between the buttons of a connected group. */
 val ConnectedGap = 2.dp
 
 /**

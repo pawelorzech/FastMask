@@ -67,8 +67,6 @@ internal fun DetailErrorState(message: String, onRetry: () -> Unit) {
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.size(24.dp))
-        // loadEmail() is fully re-runnable, so the error state offers a retry
-        // instead of a dead end.
         FilledTonalButton(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.error_retry))
         }

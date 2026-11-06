@@ -33,8 +33,6 @@ import androidx.compose.ui.unit.dp
 
 /**
  * How [ButtonLoadingLabel] looks while it swaps the label for the indicator.
- * The two looks predate the merge of two components, and screens keep the one
- * they always had.
  */
 enum class ButtonLoadingStyle {
     /**

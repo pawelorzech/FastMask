@@ -36,10 +36,8 @@ internal fun OfflineBanner(text: String, modifier: Modifier = Modifier) {
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(horizontal = 16.dp, vertical = 12.dp)
-            // The one thing on this screen that changes what the data MEANS —
-            // these masks may no longer exist. Drawn only, it never reached a
-            // screen reader; the row now announces itself when it appears and
-            // reads as one phrase instead of an unlabelled icon plus text.
+            // The one banner that changes what the data MEANS (these masks may no
+            // longer exist), so it announces itself as one phrase when it appears.
             .semantics(mergeDescendants = true) {
                 liveRegion = LiveRegionMode.Polite
                 contentDescription = text
@@ -72,9 +70,8 @@ internal fun InlineErrorBanner(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            // Keep the recovery button as a separate semantics node. Merging
-            // descendants here used to make the banner readable as one phrase,
-            // but would hide the newly actionable control from TalkBack.
+            // Keep the recovery button a separate semantics node: merging
+            // descendants would hide it from TalkBack.
             .politeLiveRegion(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.errorContainer,

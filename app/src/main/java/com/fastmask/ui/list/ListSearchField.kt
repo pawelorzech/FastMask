@@ -119,7 +119,6 @@ internal fun SearchField(
             exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
                 scaleOut(MaterialTheme.motionScheme.fastSpatialSpec(), targetScale = 0.6f),
         ) {
-            // IconButton is the full 48dp platform touch target.
             IconButton(
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.Confirm)

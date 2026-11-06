@@ -283,7 +283,6 @@ private fun DetailBody(
     val editing = uiState.isEditing
     val saving = uiState.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES
 
-    // Copy confirmation: icon + label flip to check / "Copied" and back.
     var copyNonce by remember { mutableIntStateOf(0) }
     var copied by remember { mutableStateOf(false) }
     LaunchedEffect(copyNonce) {
@@ -327,7 +326,6 @@ private fun DetailBody(
             )
         }
 
-        // Details header with the edit toggle.
         Row(
             modifier = Modifier
                 .fillMaxWidth()

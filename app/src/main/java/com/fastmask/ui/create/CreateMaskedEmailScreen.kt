@@ -96,7 +96,6 @@ fun CreateMaskedEmailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Guard against losing typed-but-uncreated input on back / swipe.
     val onClose = rememberDiscardChangesGuard(uiState.isDirty, onLeave = onNavigateBack)
 
     LaunchedEffect(Unit) {
@@ -106,12 +105,9 @@ fun CreateMaskedEmailScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                // Leave immediately. This used to await the confirmation
-                // snackbar before navigating, and showSnackbar suspends for its
-                // full Long duration (~10 s) unless the action is tapped — so
-                // the form sat there looking frozen after a successful create.
-                // The list shows the confirmation instead, with the same Copy
-                // action, which is also where the new mask now is.
+                // Leave immediately: the list shows the confirmation, with the same Copy
+                // action, where the new mask now is. Awaiting showSnackbar here would block
+                // navigation for its full Long duration (~10 s).
                 is CreateMaskedEmailEvent.Created -> onCreated(event.email)
             }
         }
@@ -314,7 +310,6 @@ private fun PreviewCard(prefix: String) {
     val randomText = stringResource(R.string.create_email_preview_random)
     val suffix = stringResource(R.string.create_email_preview_suffix)
 
-    // Subtle spring "pop" whenever the address changes.
     val pop = remember { Animatable(1f) }
     val popSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
     var firstComposition by remember { mutableStateOf(true) }
