@@ -26,15 +26,20 @@ class SessionStore @Inject constructor(
     val tutorialCompleted: Flow<Boolean> =
         context.settingsDataStore.data.map { it[TUTORIAL_COMPLETED] ?: false }
 
-    /** Mode before the tutorial flag, so anything observing the flag already sees the demo. */
-    suspend fun startDemo() {
-        context.settingsDataStore.edit { it[APP_MODE] = DEMO }
-        context.settingsDataStore.edit { it[TUTORIAL_COMPLETED] = false }
-    }
+    /**
+     * Mode and tutorial flag change together, in one edit: two edits could be
+     * split by a process death, leaving the demo with its tutorial marked done
+     * (or the reverse), and an observer of the flag could see it before the mode.
+     */
+    suspend fun startDemo() = setMode(DEMO)
 
-    suspend fun endDemo() {
-        context.settingsDataStore.edit { it[APP_MODE] = REAL }
-        context.settingsDataStore.edit { it[TUTORIAL_COMPLETED] = false }
+    suspend fun endDemo() = setMode(REAL)
+
+    private suspend fun setMode(mode: String) {
+        context.settingsDataStore.edit {
+            it[APP_MODE] = mode
+            it[TUTORIAL_COMPLETED] = false
+        }
     }
 
     suspend fun completeTutorial() {
