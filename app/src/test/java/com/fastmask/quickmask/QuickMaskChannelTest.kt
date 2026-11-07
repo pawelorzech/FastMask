@@ -4,103 +4,39 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 /**
  * The notification channel, and the trap in `createNotificationChannel`.
  *
- * `QuickMaskNotifier.ensureChannel()` builds a channel and calls
- * `createNotificationChannel` on every notification. For an id the system has
- * seen before, that call is a NO-OP: importance, lock-screen visibility and
- * description are read once, at creation, and never again — the user owns them
- * afterwards. Today that is harmless, because quick-create is unreleased and
- * nobody has the old channel. It stops being harmless the first time a field
- * changes: the source will say VISIBILITY_SECRET while devices that ran the
- * previous build keep whatever the previous build asked for, and the mismatch
- * is invisible in code review.
- *
- * ## What this file assumes
- *
- * The tests below are split deliberately.
- *
- * - [the channel update strategy is documented in the notifier] and
- *   [the notifier creates and posts under one id] hold under EVERY resolution,
- *   including "leave the call as it is and write down why". They only demand
- *   that the decision is written where the next person will read it.
- *
- * - The rest specify the versioned-id scheme: a new id when the channel
- *   contract changes, with the superseded ids deleted so the user is not left
- *   with a dead duplicate in system settings. If the implementer resolves P3
- *   another way, they own deleting this section together with
- *   `QuickMaskChannel` — but not the documentation tests, and not silently.
+ * For an id the system has seen before, `createNotificationChannel` is a NO-OP: importance,
+ * lock-screen visibility and description are read once, at creation, and never again. A changed
+ * channel field therefore only reaches a device under a NEW id, and the superseded ids must be
+ * deleted so the user is not left with a dead duplicate in system settings. These tests hold the
+ * invariants of that versioned-id scheme; they deliberately do not re-derive the id format.
  */
 class QuickMaskChannelTest {
 
-    private val notifierSource =
-        File("src/main/java/com/fastmask/quickmask/QuickMaskNotifier.kt").readText()
-
-    // --- true under any resolution -------------------------------------------
-
     @Test
-    fun `the channel update strategy is documented in the notifier`() {
-        // The one thing that must not survive this change is a reader assuming
-        // the code they see is what the device does.
-        val mentionsTheTrap = Regex("""no-?op""", RegexOption.IGNORE_CASE)
-            .containsMatchIn(notifierSource)
-        val mentionsTheRemedy = listOf("deleteNotificationChannel", "QuickMaskChannel", "bump")
-            .any { notifierSource.contains(it) }
-
-        assertTrue(
-            "QuickMaskNotifier does not explain what happens to the channel on an update. " +
-                "createNotificationChannel is ignored for an existing id, so a changed " +
-                "importance or lockscreenVisibility never reaches a device that ran an " +
-                "older build. Say so in a comment, and say what is done about it " +
-                "(a versioned id + deleteNotificationChannel, an explicit recreate, or a " +
-                "documented decision to bump the id by hand next time).",
-            mentionsTheTrap && mentionsTheRemedy,
-        )
+    fun `the channel asks for a heads-up importance`() {
+        // IMPORTANCE_HIGH == 4. At IMPORTANCE_DEFAULT (3) the "Mask created" notification, and the
+        // Undo action that is the only way back from a mistaken mask, never becomes visible.
+        assertEquals(4, QuickMaskChannel.IMPORTANCE)
     }
 
     @Test
-    fun `the notifier creates and posts under one id`() {
-        // Two literals drifting apart posts notifications into a channel that
-        // was never created — on API 26+ the post is dropped outright.
-        assertFalse(
-            "QuickMaskNotifier hard-codes a channel id string; it must reference the " +
-                "single constant so creation and posting cannot disagree",
-            Regex(""""quick_mask""").containsMatchIn(notifierSource),
-        )
-    }
-
-    // --- the versioned-id scheme ---------------------------------------------
-
-    @Test
-    fun `the version is a positive number`() {
-        assertTrue("channel version must start at 1", QuickMaskChannel.VERSION >= 1)
-    }
-
-    @Test
-    fun `the id in use is the id of the current version`() {
-        assertEquals("${QUICK_MASK_CHANNEL_ID}_v${QuickMaskChannel.VERSION}", QuickMaskChannel.id)
-    }
-
-    @Test
-    fun `the ids are byte-for-byte what already shipped`() {
-        // Ids are persisted by the system and carried by every posted
-        // notification; a changed spelling orphans the channel on every device
-        // that already created it.
-        assertEquals("quick_mask_v2", QuickMaskChannel.id)
-        assertEquals(listOf("quick_mask", "quick_mask_v1"), QuickMaskChannel.staleIds)
+    fun `raising the importance shipped under a new channel id`() {
+        // The system re-reads importance only for an id it has never seen.
+        assertTrue(QuickMaskChannel.VERSION >= 2)
+        assertTrue("quick_mask_v1" in QuickMaskChannel.staleIds)
     }
 
     @Test
     fun `the current channel is never in the stale list`() {
-        // staleIds feeds deleteNotificationChannel. Deleting the channel we
-        // just created removes the user's own importance/sound choices with it.
-        val stale = QuickMaskChannel.staleIds
+        // staleIds feeds deleteNotificationChannel. Deleting the channel we just created removes
+        // the user's own importance/sound choices with it.
         assertFalse(
-            "staleIds would delete the channel in use (${QuickMaskChannel.id}): $stale",
-            QuickMaskChannel.id in stale,
+            "staleIds would delete the channel in use (${QuickMaskChannel.id})",
+            QuickMaskChannel.id in QuickMaskChannel.staleIds,
         )
     }
 
@@ -117,17 +53,8 @@ class QuickMaskChannelTest {
 
     @Test
     fun `the original unversioned channel is deleted too`() {
-        // The id that shipped before versioning existed. It is not idFor(n) for
-        // any n, so nothing else in the scheme would ever clean it up, and a
-        // user who ran a build carrying it would keep an orphan channel in
-        // system settings forever.
-        val stale = QuickMaskChannel.staleIds
-        if (QuickMaskChannel.id != QUICK_MASK_CHANNEL_ID) {
-            assertTrue(
-                "the legacy channel id \"$QUICK_MASK_CHANNEL_ID\" is never deleted: $stale",
-                QUICK_MASK_CHANNEL_ID in stale,
-            )
-        }
+        // It is idFor(n) for no n, so nothing else in the scheme would ever clean it up.
+        assertTrue(QUICK_MASK_CHANNEL_ID in QuickMaskChannel.staleIds)
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.fastmask.domain.error.RateLimitedException
 import com.fastmask.domain.error.ServerErrorException
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.testutil.rawHttpException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -17,8 +18,6 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -121,17 +120,10 @@ class JmapApiTest {
         }
     }
 
-    private fun rawHttp(code: Int) = retrofit2.HttpException(
-        retrofit2.Response.error<Unit>(
-            code,
-            "".toResponseBody("application/json".toMediaType()),
-        ),
-    )
-
     private suspend fun failureOf(code: Int): Throwable? = JmapApi(
         FakeJmapService(
             session = session("https://api.fastmail.com/jmap/api/"),
-            executeFailure = rawHttp(code),
+            executeFailure = rawHttpException(code),
         ),
         json,
     ).getMaskedEmails("tok").exceptionOrNull()
