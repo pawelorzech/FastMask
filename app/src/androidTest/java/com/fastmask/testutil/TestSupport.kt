@@ -5,9 +5,12 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -40,6 +43,15 @@ fun WithFontScale(scale: Float, content: @Composable () -> Unit) {
         FastMaskTheme { content() }
     }
 }
+
+/** Semantics matchers for the accessibility properties the screens promise. */
+val isHeadingNode: SemanticsMatcher = SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading)
+
+val isPoliteLiveRegion: SemanticsMatcher =
+    SemanticsMatcher.expectValue(SemanticsProperties.LiveRegion, LiveRegionMode.Polite)
+
+val isSelectableGroup: SemanticsMatcher =
+    SemanticsMatcher.keyIsDefined(SemanticsProperties.SelectableGroup)
 
 /** A mask with fixed, uninteresting fields around the ones a test cares about. */
 fun mask(email: String, note: String? = null, state: EmailState = EmailState.ENABLED): MaskedEmail {

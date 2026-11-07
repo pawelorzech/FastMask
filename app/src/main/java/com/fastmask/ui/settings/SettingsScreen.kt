@@ -123,6 +123,7 @@ internal data class SettingsViewState(
     val crashReportingEnabled: Boolean = true,
     val selectedLanguage: Language? = null,
     val exportInFlight: Boolean = false,
+    val showExportConfirmation: Boolean = false,
     val monetizationEnabled: Boolean = true,
     val versionName: String = "1.0.0",
 )
@@ -138,6 +139,8 @@ internal class SettingsCallbacks(
     val onAppLockToggled: (Boolean) -> Unit = {},
     val onCrashReportingToggled: (Boolean) -> Unit = {},
     val onExportClick: () -> Unit = {},
+    val onExportConfirmed: () -> Unit = {},
+    val onExportDismissed: () -> Unit = {},
     val onLanguageSelected: (Language?) -> Unit = {},
 )
 
@@ -190,13 +193,6 @@ fun SettingsScreen(
         }
     }
 
-    if (uiState.showExportConfirmation) {
-        ExportConfirmationDialog(
-            onConfirm = viewModel::onExportConfirmed,
-            onDismiss = viewModel::onExportConfirmationDismissed,
-        )
-    }
-
     SettingsContent(
         state = SettingsViewState(
             isDemo = session.isDemo,
@@ -206,6 +202,7 @@ fun SettingsScreen(
             crashReportingEnabled = crashReportingEnabled,
             selectedLanguage = uiState.selectedLanguage,
             exportInFlight = uiState.exportInFlight,
+            showExportConfirmation = uiState.showExportConfirmation,
             monetizationEnabled = BuildConfig.MONETIZATION_ENABLED,
             versionName = BuildConfig.VERSION_NAME,
         ),
@@ -220,6 +217,8 @@ fun SettingsScreen(
             onAppLockToggled = viewModel::onAppLockToggled,
             onCrashReportingToggled = viewModel::onCrashReportingToggled,
             onExportClick = viewModel::onExportClick,
+            onExportConfirmed = viewModel::onExportConfirmed,
+            onExportDismissed = viewModel::onExportConfirmationDismissed,
             onLanguageSelected = viewModel::onLanguageSelected,
         ),
     )
@@ -255,6 +254,13 @@ internal fun SettingsContent(
                 showLanguageDialog = false
             },
             onDismiss = { showLanguageDialog = false },
+        )
+    }
+
+    if (state.showExportConfirmation) {
+        ExportConfirmationDialog(
+            onConfirm = callbacks.onExportConfirmed,
+            onDismiss = callbacks.onExportDismissed,
         )
     }
 
