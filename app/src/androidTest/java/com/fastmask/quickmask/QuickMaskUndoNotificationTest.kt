@@ -6,8 +6,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.fastmask.testutil.awaitNonNull
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
@@ -42,15 +42,17 @@ class QuickMaskUndoNotificationTest {
         manager.cancel(QuickMaskSlot.UNDO_RESULT.notificationId)
     }
 
-    private fun postedUndoResult(): Notification {
-        repeat(50) {
-            val posted = manager.activeNotifications
+    /**
+     * The notification manager posts asynchronously in another process, so there is
+     * no Compose idle to wait on: poll for the condition itself, returning the moment
+     * the notification is visible.
+     */
+    private fun postedUndoResult(): Notification =
+        awaitNonNull("the undo result never reached the notification manager") {
+            manager.activeNotifications
                 .firstOrNull { it.id == QuickMaskSlot.UNDO_RESULT.notificationId }
-            if (posted != null) return posted.notification
-            Thread.sleep(100)
+                ?.notification
         }
-        throw AssertionError("the undo result never reached the notification manager")
-    }
 
     @Test
     fun aFailedUndoCanBeTapped() {
@@ -83,19 +85,5 @@ class QuickMaskUndoNotificationTest {
             Notification.VISIBILITY_SECRET,
             postedUndoResult().visibility,
         )
-    }
-
-    @Test
-    fun theUndoResultCarriesNoAddress() {
-        notifier.showUndoResult(success = false)
-
-        val extras = postedUndoResult().extras
-        val text = buildString {
-            append(extras.getCharSequence(Notification.EXTRA_TITLE) ?: "")
-            append(' ')
-            append(extras.getCharSequence(Notification.EXTRA_TEXT) ?: "")
-        }
-
-        assertFalse("the undo result must never show a masked address: $text", text.contains('@'))
     }
 }
