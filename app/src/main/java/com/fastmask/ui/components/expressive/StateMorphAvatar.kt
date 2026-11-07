@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.domain.model.EmailState
-import com.fastmask.ui.components.statusColors
 import com.fastmask.ui.theme.FastMaskTheme
 
 /** Shape for a state: ENABLED Sunny, PENDING SoftBurst, DISABLED Circle, DELETED Square. */

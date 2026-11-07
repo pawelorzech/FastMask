@@ -43,7 +43,7 @@ import com.fastmask.ui.components.expressive.MaskAvatar
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.StateChip
 import com.fastmask.ui.components.expressive.segmentedShape
-import com.fastmask.ui.components.labelRes
+import com.fastmask.ui.components.expressive.labelRes
 import com.fastmask.ui.components.expressive.maskContainer
 import com.fastmask.ui.util.RelativeTime
 import com.fastmask.ui.util.RelativeTimeBuckets
