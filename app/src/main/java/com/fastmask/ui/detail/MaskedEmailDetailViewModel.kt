@@ -13,12 +13,15 @@ import com.fastmask.ui.common.trimmedIfChangedFrom
 import com.fastmask.core.SingleFlight
 import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +41,16 @@ class MaskedEmailDetailViewModel @Inject constructor(
         MaskedEmailDetailUiState(isEditing = savedStateHandle[KEY_EDITING] ?: false),
     )
     val uiState: StateFlow<MaskedEmailDetailUiState> = _uiState.asStateFlow()
+
+    init {
+        // The one place edit mode is persisted, so no path that flips isEditing (a
+        // landed save closes it implicitly) has to remember to. Unconfined: the
+        // handle is written inside the state update that changed it, so a ViewModel
+        // recreated straight afterwards already sees it.
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            _uiState.map { it.isEditing }.distinctUntilChanged().collect { savedStateHandle[KEY_EDITING] = it }
+        }
+    }
 
     // Channel-backed one-time events: buffered delivery survives windows with
     // no active collector (e.g. mid-rotation) and each event is handled once.
@@ -153,7 +166,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 loaded
             }
         }
-        savedStateHandle[KEY_EDITING] = _uiState.value.isEditing
     }
 
     fun onDescriptionChange(description: String) {
@@ -168,7 +180,9 @@ class MaskedEmailDetailViewModel @Inject constructor(
         _uiState.update { it.copy(editedUrl = url) }
     }
 
-    fun startEditing() = setEditing(true)
+    fun startEditing() {
+        _uiState.update { it.copy(isEditing = true) }
+    }
 
     /** Closes the editor and puts the server values back into the draft. */
     fun discardEdits() {
@@ -181,12 +195,6 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 editedUrl = email?.url.orEmpty(),
             )
         }
-        savedStateHandle[KEY_EDITING] = false
-    }
-
-    private fun setEditing(editing: Boolean) {
-        _uiState.update { it.copy(isEditing = editing) }
-        savedStateHandle[KEY_EDITING] = editing
     }
 
     fun enable() = updateState(EmailState.ENABLED)
