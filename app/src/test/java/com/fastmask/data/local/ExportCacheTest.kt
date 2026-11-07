@@ -3,6 +3,8 @@ package com.fastmask.data.local
 import android.content.Context
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -140,6 +142,52 @@ class ExportCacheTest {
         cache.write("email,state\n", generation = cache.currentGeneration())
 
         assertEquals(1, dir.listFiles()?.size)
+    }
+
+    @Test
+    fun `export writes the fetched masks and reports the file`() = runBlocking {
+        val (cache, dir) = cache()
+
+        val outcome = cache.export(Dispatchers.Unconfined) { Result.success(emptyList()) }
+
+        val file = (outcome as ExportOutcome.Written).file
+        assertEquals(dir, file.parentFile)
+        assertTrue(file.readText().startsWith("email"))
+    }
+
+    @Test
+    fun `export owns the guard - a sign-out during its fetch abandons the write`() = runBlocking {
+        val (cache, dir) = cache()
+
+        val outcome = cache.export(Dispatchers.Unconfined) {
+            cache.clear() // the sign-out lands while the fetch is still in flight
+            Result.success(emptyList())
+        }
+
+        assertEquals(ExportOutcome.WriteFailed, outcome)
+        assertEquals(0, dir.listFiles()?.size ?: 0)
+    }
+
+    @Test
+    fun `export reports a failed fetch without touching the disk`() = runBlocking {
+        val (cache, dir) = cache()
+        val boom = RuntimeException("boom")
+
+        val outcome = cache.export(Dispatchers.Unconfined) { Result.failure(boom) }
+
+        assertEquals(ExportOutcome.FetchFailed(boom), outcome)
+        assertEquals(0, dir.listFiles()?.size ?: 0)
+    }
+
+    // The authority string lives in two places that cannot share a constant: the
+    // manifest placeholder and ExportCache. This pins them together.
+    @Test
+    fun `the manifest FileProvider authority is the application id plus ExportCache's suffix`() {
+        val manifest = File("src/main/AndroidManifest.xml").readText()
+
+        assertTrue(
+            manifest.contains("android:authorities=\"\${applicationId}" + ExportCache.AUTHORITY_SUFFIX + "\""),
+        )
     }
 
     @Test
