@@ -43,7 +43,7 @@ class QuickMaskNotifierChannelTest {
     }
 
     @Test
-    fun theLiveChannelIsHeadsUpAndStaysOffTheLockScreen() {
+    fun theLiveChannelIsHeadsUp() {
         QuickMaskNotifier(context).showCreated(id = "mask-1", copied = true)
 
         val channel = manager.getNotificationChannel(QuickMaskChannel.id)
@@ -53,11 +53,9 @@ class QuickMaskNotifierChannelTest {
             NotificationManager.IMPORTANCE_HIGH,
             channel.importance,
         )
-        assertEquals(
-            "a heads-up channel must not put quick-create notifications on the lock screen",
-            Notification.VISIBILITY_SECRET,
-            channel.lockscreenVisibility,
-        )
+        // Not asserting channel.lockscreenVisibility: the platform ignores an app-set
+        // value and reports VISIBILITY_NO_OVERRIDE. The notification's own
+        // VISIBILITY_SECRET keeps it off the lock screen; see the Created-notification test.
     }
 
     @Test

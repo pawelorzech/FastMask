@@ -79,8 +79,15 @@ class ShareIntoAppTest {
 
     @After
     fun tearDown() {
-        if (::scenario.isInitialized) scenario.close()
+        if (!::scenario.isInitialized) return
+        // ActivityScenario finds its activity by intent, and onNewIntent replaced it with
+        // the share (as it must in production); hand the launch intent back so close()
+        // can still see the activity finish.
+        launchIntent?.let { original -> scenario.onActivity { it.intent = original } }
+        scenario.close()
     }
+
+    private var launchIntent: android.content.Intent? = null
 
     // --- tests ------------------------------------------------------------
 
@@ -174,6 +181,7 @@ class ShareIntoAppTest {
     private fun deliverShare(text: String) {
         val intent = shareIntent(text)
         scenario.onActivity { activity ->
+            if (launchIntent == null) launchIntent = activity.intent
             InstrumentationRegistry.getInstrumentation().callActivityOnNewIntent(activity, intent)
         }
     }
