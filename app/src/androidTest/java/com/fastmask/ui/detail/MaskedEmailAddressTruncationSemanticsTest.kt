@@ -1,6 +1,5 @@
 package com.fastmask.ui.detail
 
-import android.content.Context
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -17,11 +16,12 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.MainActivity
 import com.fastmask.R
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
@@ -79,10 +79,6 @@ class MaskedEmailAddressTruncationSemanticsTest {
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
-    private val context = ApplicationProvider.getApplicationContext<Context>()
-
-    private fun string(id: Int) = context.getString(id)
-
     @Before
     fun launchOnAFreshInstall() {
         hiltRule.inject()
@@ -99,24 +95,6 @@ class MaskedEmailAddressTruncationSemanticsTest {
     @After
     fun tearDown() {
         if (::scenario.isInitialized) scenario.close()
-    }
-
-    /** Mirrors MainFlowsTest.enterDemoAndDismissTutorial. */
-    private fun enterDemoAndDismissTutorial() {
-        composeRule.onNodeWithText(string(R.string.welcome_demo_cta)).performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-                .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                    .fetchSemanticsNodes().isNotEmpty()
-        }
-        val skip = composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-        if (skip.fetchSemanticsNodes().isNotEmpty()) skip.onFirst().performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-        composeRule.waitForIdle()
     }
 
     /**
@@ -142,7 +120,7 @@ class MaskedEmailAddressTruncationSemanticsTest {
      * merged ancestor's other children.
      */
     private fun openFirstMaskDetail(): String {
-        enterDemoAndDismissTutorial()
+        composeRule.enterDemoAndDismissTutorial()
 
         val addressNode = composeRule
             .onAllNodesWithText("@", substring = true, useUnmergedTree = true)

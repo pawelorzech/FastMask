@@ -9,7 +9,6 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -17,11 +16,12 @@ import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.text.input.ImeAction
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.MainActivity
 import com.fastmask.R
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import javax.inject.Inject
@@ -72,8 +72,6 @@ class CreateMaskedEmailImeActionTest {
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
-    private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-
     /**
      * The list's create button: the extended FAB is named by its visible "New mask" label,
      * the icon-only toggle FAB (while scrolling down) by the create description.
@@ -83,8 +81,6 @@ class CreateMaskedEmailImeActionTest {
             hasContentDescription(string(R.string.email_list_create_description)) or
                 hasContentDescription(string(R.string.email_list_create_fab))
             )
-
-    private fun string(id: Int) = context.getString(id)
 
     @Before
     fun launchOnAFreshInstallAndOpenTheCreateScreen() {
@@ -98,19 +94,7 @@ class CreateMaskedEmailImeActionTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        composeRule.onNodeWithText(string(R.string.welcome_demo_cta)).performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-                .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                    .fetchSemanticsNodes().isNotEmpty()
-        }
-        val skip = composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-        if (skip.fetchSemanticsNodes().isNotEmpty()) skip.onFirst().performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.enterDemoAndDismissTutorial()
 
         composeRule.onNode(createFab()).performClick()
         // The FAB opens a menu; its "New mask" entry is the only match for the

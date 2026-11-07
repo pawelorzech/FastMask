@@ -24,6 +24,8 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.After
@@ -76,8 +78,6 @@ class MainFlowsTest {
                 hasContentDescription(string(R.string.email_list_create_fab))
             )
 
-    private fun string(id: Int) = context.getString(id)
-
     @Before
     fun launchOnAFreshInstall() {
         hiltRule.inject()
@@ -107,32 +107,8 @@ class MainFlowsTest {
         sessionRepository.signOut()
     }
 
-    /**
-     * Demo mode opens with coach marks over the whole list; get past them.
-     *
-     * Waits for the tutorial FIRST, then for the list. It used to wait for the
-     * list title and dismiss the tutorial afterwards, which stopped working the
-     * moment the overlay became modal for accessibility (audit 2026-07-27): the
-     * content beneath is dropped from the semantics tree while the coach marks
-     * are up, so the title genuinely is not there to find — which is the point
-     * of the change, and what a screen-reader user now experiences.
-     */
-    private fun enterDemoAndDismissTutorial() {
-        composeRule.onNodeWithText(string(R.string.welcome_demo_cta)).performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-                .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                    .fetchSemanticsNodes().isNotEmpty()
-        }
-        val skip = composeRule.onAllNodesWithText(string(R.string.tutorial_skip))
-        if (skip.fetchSemanticsNodes().isNotEmpty()) skip.onFirst().performClick()
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.email_list_title))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-        composeRule.waitForIdle()
-    }
+    /** Demo mode opens with coach marks over the whole list; see the shared helper for why order matters. */
+    private fun enterDemoAndDismissTutorial() = composeRule.enterDemoAndDismissTutorial()
 
     private fun awaitContentDescription(value: String, timeoutMillis: Long = 10_000) {
         composeRule.waitUntil(timeoutMillis) {
@@ -268,6 +244,21 @@ class MainFlowsTest {
 
         // Let SnackbarDuration.Long produce Dismissed naturally. This covers
         // the non-action result separately from the Undo path above.
+        //
+        // The timeout is a delay() inside the snackbar's coroutine. When the Compose
+        // test clock drives that coroutine, advancing it past the duration dismisses
+        // the snackbar without waiting out the real 10 s. If this activity's
+        // recomposer is not on the test clock (an ActivityScenario launch, unlike
+        // setContent through the rule), the advance is a no-op and the unchanged
+        // real-time wait below still decides the test: it can only get faster,
+        // never weaker. autoAdvance goes back on before waiting so the exit
+        // animation and the recomposition that removes the node can run.
+        composeRule.mainClock.autoAdvance = false
+        try {
+            composeRule.mainClock.advanceTimeBy(SNACKBAR_LONG_PLUS_MARGIN_MS)
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+        }
         composeRule.waitUntil(timeoutMillis = 35_000) {
             composeRule.onAllNodesWithText(string(R.string.list_archived_snackbar))
                 .fetchSemanticsNodes().isEmpty()
@@ -280,6 +271,11 @@ class MainFlowsTest {
             composeRule.onAllNodesWithText(string(R.string.list_archived_snackbar))
                 .fetchSemanticsNodes().isEmpty(),
         )
+    }
+
+    private companion object {
+        /** SnackbarDuration.Long is 10 s; the margin covers the dismiss animation start. */
+        const val SNACKBAR_LONG_PLUS_MARGIN_MS = 11_000L
     }
 
     /** Reads the number a filter chip shows, e.g. "Active" -> 8. */
