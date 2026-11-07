@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -29,6 +30,21 @@ import com.fastmask.ui.list.postListResult
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
+
+/**
+ * Hands [result] to the list entry, wherever it sits in the back stack. The screen
+ * below the caller is not always the list (a share can open Create on top of
+ * Settings, Pro or Detail), so `previousBackStackEntry` would drop the result in
+ * an entry nobody reads. No list entry on the stack means nothing is shown.
+ */
+private fun NavController.postToList(result: ListResult) {
+    val list = try {
+        getBackStackEntry(NavRoutes.EMAIL_LIST)
+    } catch (_: IllegalArgumentException) {
+        return
+    }
+    list.savedStateHandle.postListResult(result)
+}
 
 @Composable
 fun FastMaskNavHost(
@@ -176,8 +192,7 @@ fun FastMaskNavHost(
                 onCreated = { email ->
                     // Hand the address to the list entry, then leave at
                     // once — the confirmation belongs where the new mask is.
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle?.postListResult(ListResult.Created(email))
+                    navController.postToList(ListResult.Created(email))
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
@@ -200,8 +215,7 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onArchived = { id, previousState ->
-                    navController.previousBackStackEntry?.savedStateHandle
-                        ?.postListResult(ListResult.Archived(id, previousState))
+                    navController.postToList(ListResult.Archived(id, previousState))
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
