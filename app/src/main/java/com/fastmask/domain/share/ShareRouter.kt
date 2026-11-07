@@ -75,8 +75,8 @@ object ShareRouter {
     /**
      * @param request the pending delivery, or null when there is none.
      * @param signedIn LIVE session state — whether a create form could be
-     *   submitted right now. Demo mode counts as signed in: `isLoggedIn()`
-     *   reports true there and the create screen is reachable and usable.
+     *   submitted right now. Demo mode counts as signed in: `Session.isSignedIn`
+     *   is true there and the create screen is reachable and usable.
      *   Never pass a launch-time snapshot.
      * @param locked whether the biometric app-lock gate is currently covering
      *   the content.

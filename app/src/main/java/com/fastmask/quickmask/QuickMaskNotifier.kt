@@ -178,7 +178,7 @@ class QuickMaskNotifier @Inject constructor(
         // QuickMaskChannel is deliberately free of Android types, so the
         // importance arrives here as a plain Int and lint's @IntDef cannot see
         // that it is one of the platform constants. The check the annotation
-        // would have given us lives in QuickMaskChannelImportanceTest, which
+        // would have given us lives in QuickMaskChannelTest, which
         // asserts QuickMaskChannel.IMPORTANCE == IMPORTANCE_HIGH == 4 and fails
         // the build the moment the two drift apart.
         @Suppress("WrongConstant")
