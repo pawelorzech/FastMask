@@ -6,6 +6,7 @@ import com.fastmask.domain.error.AuthRejectedException
 import com.fastmask.domain.error.RateLimitedException
 import com.fastmask.domain.error.ServerErrorException
 import com.fastmask.domain.model.CreateMaskedEmailParams
+import com.fastmask.domain.model.UpdateMaskedEmailParams
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -142,15 +143,16 @@ class JmapApi @Inject constructor(
     suspend fun updateMaskedEmail(
         token: String,
         id: String,
-        update: MaskedEmailUpdate
+        params: UpdateMaskedEmailParams
     ): Result<Unit> = remote {
         val updateObject = buildJsonObject {
-            update.state?.let { put("state", JsonPrimitive(it.wire)) }
-            update.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
-            update.description?.let { put("description", JsonPrimitive(it)) }
-            when {
-                update.clearUrl -> put("url", JsonNull)
-                update.url != null -> put("url", JsonPrimitive(update.url))
+            params.state?.let { put("state", JsonPrimitive(it.wire)) }
+            params.forDomain?.let { put("forDomain", JsonPrimitive(it)) }
+            params.description?.let { put("description", JsonPrimitive(it)) }
+            if (params.clearsUrl) {
+                put("url", JsonNull)
+            } else {
+                params.urlToSet?.let { put("url", JsonPrimitive(it)) }
             }
         }
 

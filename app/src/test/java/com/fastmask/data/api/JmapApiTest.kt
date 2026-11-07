@@ -6,6 +6,7 @@ import com.fastmask.domain.error.RateLimitedException
 import com.fastmask.domain.error.ServerErrorException
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.testutil.rawHttpException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
@@ -490,7 +491,7 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        val result = api.updateMaskedEmail("tok", "m1", MaskedEmailUpdate(description = "x"))
+        val result = api.updateMaskedEmail("tok", "m1", UpdateMaskedEmailParams(description = "x"))
 
         assertTrue(result.isFailure)
     }
@@ -507,7 +508,7 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        assertTrue(api.updateMaskedEmail("tok", "m1", MaskedEmailUpdate(description = "x")).isSuccess)
+        assertTrue(api.updateMaskedEmail("tok", "m1", UpdateMaskedEmailParams(description = "x")).isSuccess)
     }
 
     @Test
@@ -522,12 +523,50 @@ class JmapApiTest {
         )
         val api = JmapApi(service, json)
 
-        api.updateMaskedEmail("tok", "m1", MaskedEmailUpdate(clearUrl = true)).getOrThrow()
+        api.updateMaskedEmail("tok", "m1", UpdateMaskedEmailParams(url = "")).getOrThrow()
 
         val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
         val update = arguments["update"] as JsonObject
         val patch = update["m1"] as JsonObject
         assertEquals(kotlinx.serialization.json.JsonNull, patch["url"])
+    }
+
+    @Test
+    fun `update patch carries exactly the supplied fields and omits the rest`() = runTest {
+        val payload = buildJsonObject {
+            put("accountId", "acc-1")
+            putJsonObject("updated") { put("m1", JsonPrimitive(null as String?)) }
+        }
+        val service = FakeJmapService(
+            session = session("https://api.fastmail.com/jmap/api/"),
+            response = methodResponse("MaskedEmail/set", payload),
+        )
+        val api = JmapApi(service, json)
+
+        api.updateMaskedEmail(
+            "tok",
+            "m1",
+            UpdateMaskedEmailParams(
+                state = EmailState.DELETED,
+                forDomain = "example.com",
+                description = "d",
+                url = "https://example.com",
+            ),
+        ).getOrThrow()
+        val full = (service.lastRequest!!.methodCalls.single()[1] as JsonObject)["update"] as JsonObject
+        assertEquals(
+            buildJsonObject {
+                put("state", "deleted")
+                put("forDomain", "example.com")
+                put("description", "d")
+                put("url", "https://example.com")
+            },
+            full["m1"],
+        )
+
+        api.updateMaskedEmail("tok", "m1", UpdateMaskedEmailParams(description = "x")).getOrThrow()
+        val partial = (service.lastRequest!!.methodCalls.single()[1] as JsonObject)["update"] as JsonObject
+        assertEquals(buildJsonObject { put("description", "x") }, partial["m1"])
     }
 
     // --- set parsing: destroy (regression for silent no-op delete) ---------
