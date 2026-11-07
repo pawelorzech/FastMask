@@ -550,8 +550,7 @@ private fun LoginWarningPreview() = LoginPreviewHost(
 private fun LoginScopeErrorPreview() = LoginPreviewHost(
     LoginUiState(
         token = "fmu1-0000",
-        errorRes = R.string.login_error_missing_masked_email_scope,
-        missingScope = true,
+        error = LoginError.MissingScope,
     ),
 )
 
