@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
+import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.crash.CrashReporter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -122,23 +123,13 @@ class CrashReporting(
      * ran). An unreadable preference leaves the SDK untouched.
      */
     suspend fun applyAtStartup() {
-        val current = try {
-            stored.first()
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            onFailure(error)
-            Stored.Unreadable
+        val current = runSuspendCatching { stored.first() }.getOrElse {
+            onFailure(it)
+            return
         }
         if (current == Stored.Unreadable) return
 
-        try {
-            applyToSdk(current.enabledOrDefault)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            onFailure(error)
-        }
+        runSuspendCatching { applyToSdk(current.enabledOrDefault) }.onFailure(onFailure)
     }
 
     /**
@@ -150,13 +141,7 @@ class CrashReporting(
      * A failed write propagates for the caller to handle.
      */
     suspend fun setEnabled(enabled: Boolean) {
-        try {
-            applyToSdk(enabled)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (error: Throwable) {
-            onFailure(error)
-        }
+        runSuspendCatching { applyToSdk(enabled) }.onFailure(onFailure)
         dataStore.edit { preferences -> preferences[KEY] = enabled }
         lastKnown = Stored.Value(enabled)
     }
