@@ -16,7 +16,7 @@ import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.fastmask.core.QuietWriteFailure
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,12 +76,8 @@ class MaskedEmailListViewModel @Inject constructor(
         initialValue = false,
     )
 
-    // A DataStore write failure (disk full / corruption) must degrade quietly,
-    // not crash: viewModelScope rethrows uncaught exceptions on the main thread.
-    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
-
     fun markTutorialCompleted() {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             sessionRepository.completeTutorial()
         }
     }

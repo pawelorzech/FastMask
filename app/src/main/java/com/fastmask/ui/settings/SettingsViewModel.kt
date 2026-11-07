@@ -21,9 +21,9 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.core.IoDispatcher
+import com.fastmask.core.QuietWriteFailure
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -61,14 +61,6 @@ class SettingsViewModel @Inject constructor(
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
     val events: Flow<SettingsEvent> = _events.receiveAsFlow()
 
-    // A DataStore/token write can throw (disk full, KeyStore corruption).
-    // viewModelScope rethrows uncaught exceptions on the main thread → crash;
-    // this swallows them so a failed write degrades quietly. When it aborts the
-    // coroutine before a post-write navigation event (logout, exitDemoMode), the
-    // event is simply not sent — the user stays put rather than navigating on a
-    // half-completed state change.
-    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
-
     val session: StateFlow<Session> = sessionRepository.session
 
     val proStatus: StateFlow<ProStatus> = proRepository.proStatus
@@ -102,10 +94,10 @@ class SettingsViewModel @Inject constructor(
     /**
      * [CrashReporting.setEnabled] applies the SDK before persisting (so a failed
      * write still stops collection for this session) and survives an SDK that
-     * cannot start; `writeErrorHandler` keeps a failed write from crashing.
+     * cannot start; `QuietWriteFailure` keeps a failed write from crashing.
      */
     fun onCrashReportingToggled(enabled: Boolean) {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             crashReporting.setEnabled(enabled)
         }
     }
@@ -123,21 +115,21 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onLanguageSelected(language: Language?) {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             languageSettings.set(language)
             _uiState.update { it.copy(selectedLanguage = language) }
         }
     }
 
     fun logout() {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             sessionRepository.signOut()
             _events.send(SettingsEvent.LoggedOut)
         }
     }
 
     fun exitDemoMode() {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             sessionRepository.signOut()
             _events.send(SettingsEvent.GoToSignIn)
         }
@@ -164,7 +156,7 @@ class SettingsViewModel @Inject constructor(
     fun onAccentSelected(accent: Accent) {
         // The picker locks Pro seeds, so a tap on one never reaches here without Pro.
         if (accent.isLockedFor(proStatus.value.isPro)) return
-        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
+        viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAccent(accent) }
     }
 
     /**
@@ -174,7 +166,7 @@ class SettingsViewModel @Inject constructor(
      */
     fun onAppLockToggled(enabled: Boolean) {
         if (enabled && !hasPro(ProFeature.APP_LOCK)) return
-        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAppLockEnabled(enabled) }
+        viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAppLockEnabled(enabled) }
     }
 
     fun onExportClick() {
