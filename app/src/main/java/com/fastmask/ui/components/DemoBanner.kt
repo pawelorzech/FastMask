@@ -35,7 +35,7 @@ import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.model.Session
 import com.fastmask.ui.theme.FastMaskTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.fastmask.core.QuietWriteFailure
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -157,14 +157,11 @@ class DemoBannerViewModel @Inject constructor(
         // two taps in that window would each fire [onDone] — double navigation.
         if (exitInFlight) return
         exitInFlight = true
-        // Swallow a DataStore write failure instead of crashing on the main
-        // thread (viewModelScope rethrows uncaught exceptions); [onDone] only
-        // runs after sign-out succeeds, so navigation never fires on a
-        // half-applied state change. The guard releases on every terminal
-        // outcome so a failed write can still be retried with the next tap.
-        viewModelScope.launch(CoroutineExceptionHandler { _, _ ->
-            exitInFlight = false
-        }) {
+        // QuietWriteFailure swallows a failed write; [onDone] only runs after
+        // sign-out succeeds, so navigation never fires on a half-applied state
+        // change. The guard releases on every terminal outcome (the finally) so a
+        // failed write can still be retried with the next tap.
+        viewModelScope.launch(QuietWriteFailure) {
             try {
                 sessionRepository.signOut()
                 onDone()

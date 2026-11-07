@@ -1,4 +1,4 @@
-package com.fastmask.ui.components
+package com.fastmask.ui.components.expressive
 
 import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme

@@ -1,18 +1,19 @@
 package com.fastmask.ui.settings
 
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.data.crash.CrashReporting
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.ExportOutcome
 import com.fastmask.data.local.LanguageSettings
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.analytics.MonetizationAnalytics
 import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
-import com.fastmask.domain.model.MaskCsv
 import com.fastmask.domain.model.ProFeature
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.Session
@@ -20,11 +21,10 @@ import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.core.IoDispatcher
+import com.fastmask.core.QuietWriteFailure
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,14 +61,6 @@ class SettingsViewModel @Inject constructor(
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
     val events: Flow<SettingsEvent> = _events.receiveAsFlow()
 
-    // A DataStore/token write can throw (disk full, KeyStore corruption).
-    // viewModelScope rethrows uncaught exceptions on the main thread → crash;
-    // this swallows them so a failed write degrades quietly. When it aborts the
-    // coroutine before a post-write navigation event (logout, exitDemoMode), the
-    // event is simply not sent — the user stays put rather than navigating on a
-    // half-completed state change.
-    private val writeErrorHandler = CoroutineExceptionHandler { _, _ -> }
-
     val session: StateFlow<Session> = sessionRepository.session
 
     val proStatus: StateFlow<ProStatus> = proRepository.proStatus
@@ -102,10 +94,10 @@ class SettingsViewModel @Inject constructor(
     /**
      * [CrashReporting.setEnabled] applies the SDK before persisting (so a failed
      * write still stops collection for this session) and survives an SDK that
-     * cannot start; `writeErrorHandler` keeps a failed write from crashing.
+     * cannot start; `QuietWriteFailure` keeps a failed write from crashing.
      */
     fun onCrashReportingToggled(enabled: Boolean) {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             crashReporting.setEnabled(enabled)
         }
     }
@@ -123,21 +115,21 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onLanguageSelected(language: Language?) {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             languageSettings.set(language)
             _uiState.update { it.copy(selectedLanguage = language) }
         }
     }
 
     fun logout() {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             sessionRepository.signOut()
             _events.send(SettingsEvent.LoggedOut)
         }
     }
 
     fun exitDemoMode() {
-        viewModelScope.launch(writeErrorHandler) {
+        viewModelScope.launch(QuietWriteFailure) {
             sessionRepository.signOut()
             _events.send(SettingsEvent.GoToSignIn)
         }
@@ -164,7 +156,7 @@ class SettingsViewModel @Inject constructor(
     fun onAccentSelected(accent: Accent) {
         // The picker locks Pro seeds, so a tap on one never reaches here without Pro.
         if (accent.isLockedFor(proStatus.value.isPro)) return
-        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAccent(accent) }
+        viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAccent(accent) }
     }
 
     /**
@@ -174,7 +166,7 @@ class SettingsViewModel @Inject constructor(
      */
     fun onAppLockToggled(enabled: Boolean) {
         if (enabled && !hasPro(ProFeature.APP_LOCK)) return
-        viewModelScope.launch(writeErrorHandler) { settingsDataStore.setAppLockEnabled(enabled) }
+        viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAppLockEnabled(enabled) }
     }
 
     fun onExportClick() {
@@ -198,32 +190,26 @@ class SettingsViewModel @Inject constructor(
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
-            // Captured before the fetch. The CSV holds every mask in plaintext, so
-            // an export whose fetch outlived a sign-out must not reach the disk.
-            val generation = exportCache.currentGeneration()
-            maskedEmailRepository.getMaskedEmails()
-                .map { masks -> MaskCsv.build(masks) }
-                .onSuccess { csv ->
-                    withContext(ioDispatcher) {
-                        runCatching { exportCache.write(csv, generation = generation) }
-                    }
-                        .onSuccess { file -> _events.send(SettingsEvent.ShareCsv(file)) }
-                        .onFailure {
-                            _events.send(
-                                SettingsEvent.ExportFailed(R.string.settings_export_failed_write)
-                            )
-                        }
-                }
-                .onFailure { error ->
-                    _events.send(
-                        SettingsEvent.ExportFailed(
-                            UiErrors.messageRes(error, R.string.settings_export_failed)
-                        )
+            // The cache owns the order (generation, fetch, write) that keeps an export
+            // whose fetch outlived a sign-out off the disk.
+            val outcome = exportCache.export(ioDispatcher) { maskedEmailRepository.getMaskedEmails() }
+            when (outcome) {
+                is ExportOutcome.Written -> _events.send(SettingsEvent.ShareCsv(outcome.file))
+                ExportOutcome.WriteFailed -> _events.send(
+                    SettingsEvent.ExportFailed(R.string.settings_export_failed_write)
+                )
+                is ExportOutcome.FetchFailed -> _events.send(
+                    SettingsEvent.ExportFailed(
+                        UiErrors.messageRes(outcome.error, R.string.settings_export_failed)
                     )
-                }
+                )
+            }
             _uiState.update { it.copy(exportInFlight = false) }
         }
     }
+
+    /** The share intent for an exported file (see [ExportCache.shareIntent]). */
+    fun shareIntent(file: File): Intent = exportCache.shareIntent(file)
 }
 
 data class SettingsUiState(

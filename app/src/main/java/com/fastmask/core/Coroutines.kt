@@ -1,6 +1,20 @@
 package com.fastmask.core
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.coroutines.cancellation.CancellationException
+
+/**
+ * Launch context for a write to DataStore or the token store (completeTutorial,
+ * setAccent, setAppLockEnabled, signOut, crash-reporting opt-out, language).
+ *
+ * Such a write can throw (disk full, KeyStore corruption), and `viewModelScope`
+ * rethrows an uncaught exception on the main thread, which crashes the app. This
+ * swallows it so a failed write degrades quietly. When it aborts the coroutine
+ * before a post-write step (a navigation event, an `onDone` callback), that step
+ * simply does not run: the user stays put rather than moving on a half-applied
+ * change. Pass it to every `launch` that persists a user setting.
+ */
+val QuietWriteFailure: CoroutineExceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
 /**
  * [runCatching] for suspend code that keeps structured cancellation intact.

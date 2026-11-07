@@ -1,8 +1,16 @@
 package com.fastmask.data.local
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.annotation.VisibleForTesting
+import androidx.core.content.FileProvider
+import com.fastmask.domain.model.MaskCsv
+import com.fastmask.domain.model.MaskedEmail
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -10,7 +18,10 @@ import javax.inject.Singleton
 
 /**
  * Owns `cacheDir/exports`, where the CSV export (Pro) is written before being
- * handed to the share sheet through a FileProvider URI.
+ * handed to the share sheet through a FileProvider URI. It owns the whole
+ * export: the fetch-then-write order that the sign-out guard depends on
+ * ([export]), the directory, and the FileProvider authority and share intent
+ * that point at it ([shareIntent]).
  *
  * The directory holds every mask in plaintext — the single place in the app
  * where that is true — so its lifetime matters. Two rules:
@@ -40,8 +51,44 @@ class ExportCache @Inject constructor(
      */
     private val guard = GenerationGuard()
 
+    /**
+     * Runs one export: captures the sign-out generation, then fetches (via
+     * [fetch], supplied by the caller), builds the CSV and writes it on
+     * [ioDispatcher]. That order is the sign-out guarantee: an export whose fetch
+     * outlived a [clear] never reaches the disk. Callers cannot get it wrong
+     * because they never see the generation.
+     */
+    suspend fun export(
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+        fetch: suspend () -> Result<List<MaskedEmail>>,
+    ): ExportOutcome {
+        val generation = guard.current()
+        val csv = fetch().mapCatching { masks -> MaskCsv.build(masks) }
+            .getOrElse { return ExportOutcome.FetchFailed(it) }
+        return withContext(ioDispatcher) { runCatching { write(csv, generation = generation) } }
+            .fold(
+                onSuccess = { ExportOutcome.Written(it) },
+                onFailure = { ExportOutcome.WriteFailed },
+            )
+    }
+
+    /**
+     * The ACTION_SEND intent for an exported [file]: a read grant on its
+     * FileProvider URI, so the share target needs no storage permission. The
+     * authority is [AUTHORITY_SUFFIX] on the app's id, as the manifest declares it.
+     */
+    fun shareIntent(file: File): Intent {
+        val uri: Uri = FileProvider.getUriForFile(context, context.packageName + AUTHORITY_SUFFIX, file)
+        return Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
+
     /** Snapshot of the current generation, for a caller about to fetch. */
-    fun currentGeneration(): Long = guard.current()
+    @VisibleForTesting
+    internal fun currentGeneration(): Long = guard.current()
 
     /**
      * Writes [csv] to a fresh timestamped file and returns it, after ageing out
@@ -54,7 +101,8 @@ class ExportCache @Inject constructor(
      * @throws IllegalStateException when the session that asked for this export
      *   has ended.
      */
-    fun write(
+    @VisibleForTesting
+    internal fun write(
         csv: String,
         now: Long = System.currentTimeMillis(),
         generation: Long,
@@ -83,8 +131,23 @@ class ExportCache @Inject constructor(
         dir.listFiles()?.forEach { it.delete() }
     }
 
-    private companion object {
-        val MAX_AGE_MS = TimeUnit.HOURS.toMillis(1)
-        const val EXPORTS_DIR = "exports"
+    companion object {
+        private val MAX_AGE_MS = TimeUnit.HOURS.toMillis(1)
+
+        /** Also the `cache-path` in `res/xml/file_paths.xml`. */
+        private const val EXPORTS_DIR = "exports"
+
+        /**
+         * Appended to the application id to form the FileProvider authority; the
+         * manifest's `${applicationId}.fileprovider` must stay equal to it.
+         */
+        const val AUTHORITY_SUFFIX = ".fileprovider"
     }
+}
+
+/** How [ExportCache.export] ended; the caller only maps these to messages. */
+sealed interface ExportOutcome {
+    data class Written(val file: File) : ExportOutcome
+    data class FetchFailed(val error: Throwable) : ExportOutcome
+    data object WriteFailed : ExportOutcome
 }

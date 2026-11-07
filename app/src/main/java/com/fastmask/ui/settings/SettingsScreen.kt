@@ -93,7 +93,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
 import com.fastmask.R
@@ -174,16 +173,7 @@ fun SettingsScreen(
                     snackbarHostState.showSnackbar(resources.getString(event.messageRes))
                 is SettingsEvent.ShareCsv -> {
                     runCatching {
-                        val uri = FileProvider.getUriForFile(
-                            context,
-                            "${BuildConfig.APPLICATION_ID}.fileprovider",
-                            event.file,
-                        )
-                        val send = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/csv"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
+                        val send = viewModel.shareIntent(event.file)
                         context.startActivity(Intent.createChooser(send, exportChooserTitle))
                     }.onFailure {
                         snackbarHostState.showSnackbar(exportWriteFailedMessage)

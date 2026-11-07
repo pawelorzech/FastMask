@@ -18,8 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskTheme
-import com.fastmask.ui.components.labelRes
-import com.fastmask.ui.components.statusColors
 
 /**
  * Small 24dp pill labelling a mask's state ("Active", "Off", "Archived",

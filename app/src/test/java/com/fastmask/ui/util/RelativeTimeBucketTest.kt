@@ -5,26 +5,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The "3 lat temu" bug, split in two.
+ * The bucketing half of relative times, pinned as a pure function.
  *
- * `RelativeTime.format` did the bucketing and the wording in one expression:
- * `getString(R.string.time_year_ago, diff / YEAR)`. That works for English,
- * whose translations are abbreviations ("%dy ago") and therefore invariant, and
- * it is wrong the moment a locale spells the unit out — Polish shipped
- * "%d lat temu", which is the genitive plural, correct only for 5 and above.
- * A mask created three years ago read "Utworzono 3 lat temu".
+ * A wording baked into one `getString(..., diff / YEAR)` expression read "3 lat
+ * temu" in Polish, because only the language's plural rules know that count
+ * takes a different form. So [RelativeTimeBuckets.of] returns the COUNT and the
+ * unit as values, and `RelativeTime.format` (the Context-facing entry point,
+ * built on it) turns them into words.
  *
- * `getString` cannot fix that: only `getQuantityString(id, count, count)`
- * consults the language's plural rules, and it needs the COUNT as a value
- * rather than baked into a pre-formatted string. So the bucketing moves here,
- * to a pure function, and the wording moves to the resource layer.
- *
- * These tests pin the thresholds, which must not shift while the wording is
- * reworked: every boundary below already governs what a user sees today.
- *
- * `RelativeTime.format` is expected to be rewritten on top of
- * [RelativeTimeBuckets.of] — it stays the Context-facing entry point, this is
- * the part that can be tested.
+ * These tests pin the thresholds: every boundary below governs what a user sees.
  */
 class RelativeTimeBucketTest {
 
