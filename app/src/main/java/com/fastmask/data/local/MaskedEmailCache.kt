@@ -78,11 +78,7 @@ class MaskedEmailCache @Inject constructor(
 
     private var memoryCache: MemoryEntry? = null
 
-    private val masterKey: MasterKey by lazy {
-        MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-    }
+    private val masterKey: MasterKey by lazy { appMasterKey(context) }
 
     private fun encryptedFile(target: File): EncryptedFile {
         return EncryptedFile.Builder(

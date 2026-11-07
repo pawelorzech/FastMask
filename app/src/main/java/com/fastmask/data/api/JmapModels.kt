@@ -71,12 +71,3 @@ data class MaskedEmailDto(
     val createdAt: String? = null,
     val lastMessageAt: String? = null
 )
-
-data class MaskedEmailUpdate(
-    val state: EmailState? = null,
-    val forDomain: String? = null,
-    val description: String? = null,
-    val url: String? = null,
-    /** True means send JSON null; a null [url] alone means omit the patch. */
-    val clearUrl: Boolean = false,
-)

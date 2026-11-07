@@ -2,7 +2,6 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.api.MaskedEmailDto
-import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.EmailState
@@ -132,7 +131,7 @@ class MaskedEmailRepositoryImplTest {
     @Test
     fun `update keeps empty forDomain as an explicit clear`() = runTest {
         every { tokenStorage.getToken() } returns "tok"
-        val update = slot<MaskedEmailUpdate>()
+        val update = slot<UpdateMaskedEmailParams>()
         coEvery { jmapApi.updateMaskedEmail("tok", "m1", capture(update)) } returns Result.success(Unit)
 
         val result = repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(forDomain = ""))
@@ -145,13 +144,13 @@ class MaskedEmailRepositoryImplTest {
     @Test
     fun `clearing url is represented as json null intent rather than an empty url`() = runTest {
         every { tokenStorage.getToken() } returns "tok"
-        val update = slot<MaskedEmailUpdate>()
+        val update = slot<UpdateMaskedEmailParams>()
         coEvery { jmapApi.updateMaskedEmail("tok", "m1", capture(update)) } returns Result.success(Unit)
 
         repo.updateMaskedEmail("m1", UpdateMaskedEmailParams(url = "")).getOrThrow()
 
-        assertNull(update.captured.url)
-        assertTrue(update.captured.clearUrl)
+        assertNull(update.captured.urlToSet)
+        assertTrue(update.captured.clearsUrl)
     }
 
     // --- offline cache write-through (B1) ----------------------------------
@@ -231,7 +230,7 @@ class MaskedEmailRepositoryImplTest {
     @Test
     fun `archive flips state to deleted and never destroys`() = runTest {
         every { tokenStorage.getToken() } returns "tok"
-        val update = slot<MaskedEmailUpdate>()
+        val update = slot<UpdateMaskedEmailParams>()
         coEvery { jmapApi.updateMaskedEmail("tok", "m1", capture(update)) } returns Result.success(Unit)
 
         assertTrue(repo.archiveMaskedEmail("m1").isSuccess)

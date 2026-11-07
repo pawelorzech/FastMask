@@ -2,7 +2,6 @@ package com.fastmask.data.repository
 
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.api.MaskedEmailDto
-import com.fastmask.data.api.MaskedEmailUpdate
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.core.ApplicationScope
 import com.fastmask.core.IoDispatcher
@@ -127,14 +126,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> = mutation {
         withToken { token ->
             val normalized = params.normalized().getOrElse { return@withToken Result.failure(it) }
-            val update = MaskedEmailUpdate(
-                state = normalized.state,
-                forDomain = normalized.forDomain,
-                description = normalized.description,
-                url = normalized.urlToSet,
-                clearUrl = normalized.clearsUrl,
-            )
-            jmapApi.updateMaskedEmail(token, id, update)
+            jmapApi.updateMaskedEmail(token, id, normalized)
         }
     }
 
@@ -151,7 +143,7 @@ class MaskedEmailRepositoryImpl @Inject constructor(
             jmapApi.updateMaskedEmail(
                 token = token,
                 id = id,
-                update = MaskedEmailUpdate(state = EmailState.DELETED),
+                params = UpdateMaskedEmailParams(state = EmailState.DELETED),
             )
         }
     }

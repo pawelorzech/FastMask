@@ -66,60 +66,36 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
 
     override suspend fun updateMaskedEmail(id: String, params: UpdateMaskedEmailParams): Result<Unit> {
         val normalized = params.normalized().getOrElse { return Result.failure(it) }
-        var found = false
-        state.update { current ->
-            found = false
-            current.map { mask ->
-                if (mask.id == id) {
-                    found = true
-                    mask.copy(
-                        state = normalized.state ?: mask.state,
-                        forDomain = normalized.forDomain ?: mask.forDomain,
-                        description = normalized.description ?: mask.description,
-                        url = if (normalized.clearsUrl) null else normalized.urlToSet ?: mask.url,
-                    )
-                } else {
-                    mask
-                }
-            }
-        }
-        return if (found) {
-            _changes.tryEmit(Unit)
-            Result.success(Unit)
-        } else {
-            Result.failure(NoSuchElementException("Demo mask not found: $id"))
+        return change(id) { mask ->
+            mask.copy(
+                state = normalized.state ?: mask.state,
+                forDomain = normalized.forDomain ?: mask.forDomain,
+                description = normalized.description ?: mask.description,
+                url = if (normalized.clearsUrl) null else normalized.urlToSet ?: mask.url,
+            )
         }
     }
 
-    override suspend fun archiveMaskedEmail(id: String): Result<Unit> {
+    override suspend fun archiveMaskedEmail(id: String): Result<Unit> =
+        change(id) { mask -> mask.copy(state = EmailState.DELETED) }
+
+    override suspend fun destroyMaskedEmail(id: String): Result<Unit> = change(id) { null }
+
+    /**
+     * The one mutation path: applies [transform] to the mask with [id] (null
+     * removes it) and emits a change, or fails when no such mask exists.
+     */
+    private fun change(id: String, transform: (MaskedEmail) -> MaskedEmail?): Result<Unit> {
         var found = false
         state.update { current ->
             found = false
-            current.map { mask ->
+            current.mapNotNull { mask ->
                 if (mask.id == id) {
                     found = true
-                    mask.copy(state = EmailState.DELETED)
+                    transform(mask)
                 } else {
                     mask
                 }
-            }
-        }
-        return if (found) {
-            _changes.tryEmit(Unit)
-            Result.success(Unit)
-        } else {
-            Result.failure(NoSuchElementException("Demo mask not found: $id"))
-        }
-    }
-
-    override suspend fun destroyMaskedEmail(id: String): Result<Unit> {
-        var found = false
-        state.update { current ->
-            found = false
-            current.filterNot { mask ->
-                val matches = mask.id == id
-                if (matches) found = true
-                matches
             }
         }
         return if (found) {

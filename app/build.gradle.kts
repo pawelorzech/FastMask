@@ -33,8 +33,7 @@ val playLicenseKey: String? = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
     ?: (project.findProperty("fastmask.playLicenseKey") as String?)
 val releaseKeystorePath: String? = System.getenv("FASTMASK_KEYSTORE")
     ?: (project.findProperty("fastmask.keystore") as String?)
-val hasReleaseKeystore: Boolean = System.getenv("FASTMASK_KEYSTORE") != null
-    || project.hasProperty("fastmask.keystore")
+val hasReleaseKeystore: Boolean = releaseKeystorePath != null
 
 android {
     namespace = "com.fastmask"
