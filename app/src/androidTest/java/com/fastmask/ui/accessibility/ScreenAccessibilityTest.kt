@@ -19,6 +19,7 @@ import com.fastmask.testutil.isSelectableGroup
 import com.fastmask.testutil.mask
 import com.fastmask.testutil.string
 import com.fastmask.ui.auth.LoginContent
+import com.fastmask.ui.auth.LoginError
 import com.fastmask.ui.auth.LoginUiState
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
@@ -136,7 +137,7 @@ class ScreenAccessibilityTest {
     fun loginFieldErrorIsAnnouncedPolitely() {
         val error = string(R.string.error_auth)
         compose.setContent {
-            FastMaskTheme { loginContent(LoginUiState(token = "x", errorRes = R.string.error_auth)) }
+            FastMaskTheme { loginContent(LoginUiState(token = "x", error = LoginError.Message(R.string.error_auth))) }
         }
 
         compose.onAllNodes(hasText(error) and isPoliteLiveRegion, useUnmergedTree = true)
