@@ -6,6 +6,26 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.0] — 2026-11-07
+
+### Fixed
+- The crash-reporting opt-out moved to its own DataStore (`crash_reporting`), migrated once from `settings`; a corrupt file now reads as opted out instead of silently re-enabling collection.
+- The mask list refreshes on a repository change signal after every create, edit, toggle and archive, so in-app changes show up even inside the 30-second resume throttle; a cold start fetches once instead of twice.
+- A mask created from a share opened on top of Settings, Pro or Detail now posts its confirmation to the list entry instead of the screen underneath.
+- The detail avatar uses the same initial as the list row.
+- The demo repository normalises `forDomain`, clears `url` on `""` and rejects invalid origins like the real account.
+- Quick Mask only says the address was copied when the clipboard write succeeded.
+- The list never re-shows an archive undo it has just handled.
+
+### Changed
+- Internal restructure: one `SessionRepository` owns sign-in, demo and account data; pass-through use cases removed; `JmapApi.call()` and `FastmailEndpoints`; one crash-reporting class; one Pro gate and accent table; typed `UiError`; list and detail screens split by responsibility; shared form fields, toggles and motion primitives.
+- The create form trims description, domain and URL like the detail editor, and the prefix field drops characters Fastmail rejects as you type.
+- Losing Pro mid-session returns the accent to wallpaper colours immediately.
+- Tests: source-text "wiring" tests replaced by behavioural unit and instrumented tests (sharing, clipboard privacy, accessibility, export confirmation, notification channel).
+
+### Build
+- `versionCode` 29 → 30, `versionName` "1.13.3" → "1.14.0".
+
 ## [1.13.3] — 2026-11-03
 
 ### Fixed

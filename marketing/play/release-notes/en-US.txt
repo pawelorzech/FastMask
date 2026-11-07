@@ -1,6 +1,6 @@
-What's new in 1.13.3
+What's new in 1.14.0
 
-• Faster start and a smoother list, with less work on the main thread
-• Quick Mask Undo can no longer freeze on a slow connection
-• Opening a mask's details is quicker
-• Stability fixes for sign-in, sign-out, clipboard and CSV export
+• The list updates as soon as you create, edit or archive a mask
+• A mask made from a shared link is always confirmed on the list
+• If you turned crash reports off, they stay off, even if app settings get damaged
+• Rebuilt app internals for a steadier FastMask, plus smaller fixes

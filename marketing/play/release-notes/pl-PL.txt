@@ -1,6 +1,6 @@
-Nowości w 1.13.3
+Nowości w 1.14.0
 
-• Szybszy start i płynniejsza lista
-• Cofnięcie w Szybkiej masce nie zawiesza się przy wolnym połączeniu
-• Szczegóły maski otwierają się szybciej
-• Poprawki stabilności logowania, wylogowania, schowka i eksportu CSV
+• Lista odświeża się od razu po utworzeniu, edycji lub archiwizacji maski
+• Maska z udostępnionego linku zawsze pojawia się na liście z potwierdzeniem
+• Wyłączone raporty o awariach zostają wyłączone, nawet gdy ustawienia się uszkodzą
+• Przebudowane wnętrze aplikacji i drobne poprawki
