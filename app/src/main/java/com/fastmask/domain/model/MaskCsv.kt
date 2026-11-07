@@ -16,7 +16,7 @@ object MaskCsv {
             appendLine(
                 listOf(
                     mask.email,
-                    mask.state.name.lowercase(),
+                    mask.state.wire,
                     mask.forDomain.orEmpty(),
                     mask.description.orEmpty(),
                     mask.url.orEmpty(),
