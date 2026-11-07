@@ -77,7 +77,6 @@ import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.MaskField
 import com.fastmask.ui.components.expressive.MorphingShape
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
@@ -91,16 +90,11 @@ fun CreateMaskedEmailScreen(
     /** The mask exists; hand its address to the list, which reports it there. */
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
-    prefill: SharePrefill? = null,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     val onClose = rememberDiscardChangesGuard(uiState.isDirty, onLeave = onNavigateBack)
-
-    LaunchedEffect(Unit) {
-        viewModel.applyPrefill(prefill)
-    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->

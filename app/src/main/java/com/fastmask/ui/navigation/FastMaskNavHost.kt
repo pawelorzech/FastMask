@@ -18,7 +18,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
-import com.fastmask.domain.share.SharePrefill
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
@@ -181,10 +180,7 @@ fun FastMaskNavHost(
                     defaultValue = ""
                 },
             ),
-        ) { entry ->
-            val prefill: SharePrefill? = entry.arguments?.getString(NavRoutes.ARG_FOR_DOMAIN)
-                ?.takeIf { it.isNotBlank() }
-                ?.let(::SharePrefill)
+        ) {
             CreateMaskedEmailScreen(
                 onNavigateBack = {
                     navController.popBackStack()
@@ -198,7 +194,6 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
-                prefill = prefill,
             )
         }
 

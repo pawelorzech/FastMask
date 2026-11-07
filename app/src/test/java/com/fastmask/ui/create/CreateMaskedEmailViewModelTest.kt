@@ -3,9 +3,10 @@
 package com.fastmask.ui.create
 
 import com.fastmask.domain.model.EmailState
-import com.fastmask.domain.share.SharePrefill
+import androidx.lifecycle.SavedStateHandle
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
+import com.fastmask.ui.navigation.NavRoutes
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import com.fastmask.R
@@ -21,8 +22,13 @@ class CreateMaskedEmailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun vm(repo: FakeMaskedEmailRepository) =
-        CreateMaskedEmailViewModel(repo)
+    private fun vm(repo: FakeMaskedEmailRepository, forDomain: String? = null) =
+        CreateMaskedEmailViewModel(
+            SavedStateHandle(
+                if (forDomain == null) emptyMap() else mapOf(NavRoutes.ARG_FOR_DOMAIN to forDomain),
+            ),
+            repo,
+        )
 
     // --- double-tap guard (regression: duplicate masks created) ------------
 
@@ -61,17 +67,15 @@ class CreateMaskedEmailViewModelTest {
     }
 
     @Test
-    fun `unicode-letter prefix surfaces a localizable char error`() = runTest {
+    fun `non-ASCII letters are dropped like any other disallowed character`() = runTest {
         val viewModel = vm(FakeMaskedEmailRepository())
 
-        // 'é' passes isLetterOrDigit() (so it survives the filter) but fails the
-        // ASCII regex → the char-validation message must fire, as a string res.
+        // MaskPrefix is the one rule: 'é' is outside [a-z0-9_], so it is filtered
+        // as typed (no error, nothing to fix) and the create button stays usable.
         viewModel.onPrefixChange("café")
 
-        assertEquals(
-            R.string.create_email_error_prefix_chars,
-            viewModel.uiState.value.prefixErrorRes,
-        )
+        assertEquals("caf", viewModel.uiState.value.emailPrefix)
+        assertNull(viewModel.uiState.value.prefixErrorRes)
     }
 
     @Test
@@ -131,26 +135,22 @@ class CreateMaskedEmailViewModelTest {
 
     // --- share prefill ------------------------------------------------------
 
-    private val githubPrefill = SharePrefill(forDomain = "https://www.github.com")
+    private val github = "https://www.github.com"
 
     @Test
     fun `share prefill lands in the form state`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-
-        viewModel.applyPrefill(githubPrefill)
+        val viewModel = vm(FakeMaskedEmailRepository(), forDomain = github)
 
         val state = viewModel.uiState.value
         assertEquals("https://www.github.com", state.forDomain)
         assertEquals("", state.url)
         assertEquals("", state.description)
-        assertTrue(state.prefilled)
     }
 
     @Test
     fun `prefilled form still creates with the shared values`() = runTest {
         val repo = FakeMaskedEmailRepository()
-        val viewModel = vm(repo)
-        viewModel.applyPrefill(githubPrefill)
+        val viewModel = vm(repo, forDomain = github)
 
         viewModel.create()
         advanceUntilIdle()
@@ -164,29 +164,26 @@ class CreateMaskedEmailViewModelTest {
     }
 
     @Test
-    fun `a null prefill is a no-op`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
+    fun `a blank forDomain argument leaves the form empty`() = runTest {
+        // Shared text with no link at all: the route carries "" and the screen opens empty.
+        for (arg in listOf("", "   ")) {
+            val state = vm(FakeMaskedEmailRepository(), forDomain = arg).uiState.value
 
-        // Shared text with no link at all: the screen still opens, empty.
-        viewModel.applyPrefill(null)
-
-        val state = viewModel.uiState.value
-        assertEquals("", state.forDomain)
-        assertEquals("", state.url)
-        assertEquals("", state.description)
-        assertFalse(state.prefilled)
+            assertEquals("", state.forDomain)
+            assertEquals("", state.url)
+            assertEquals("", state.description)
+        }
     }
 
     @Test
-    fun `a second prefill never overwrites what the user typed`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-        viewModel.applyPrefill(githubPrefill)
+    fun `the prefill seeds the form once and never overwrites what the user typed`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository(), forDomain = github)
+        viewModel.onDomainChange("github.com/work")
         viewModel.onDescriptionChange("GitHub work account")
 
-        // The screen re-delivers the nav argument on every recomposition and
-        // after a rotation; re-applying it would silently discard the edit.
-        viewModel.applyPrefill(githubPrefill)
-
+        // Rotation keeps this ViewModel; nothing re-reads the argument, so the
+        // edit is all that is in the state.
+        assertEquals("github.com/work", viewModel.uiState.value.forDomain)
         assertEquals("GitHub work account", viewModel.uiState.value.description)
     }
 
@@ -201,7 +198,6 @@ class CreateMaskedEmailViewModelTest {
         assertEquals("", state.description)
         assertEquals("", state.url)
         assertEquals(EmailState.ENABLED, state.initialState)
-        assertFalse(state.prefilled)
     }
 
     // --- the discard guard reads the state, not the screen -----------------

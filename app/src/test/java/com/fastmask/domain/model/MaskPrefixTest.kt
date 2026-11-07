@@ -25,4 +25,15 @@ class MaskPrefixTest {
         assertEquals(MaskPrefix.Error.INVALID_CHARS, MaskPrefix.validate("café"))
         assertEquals(MaskPrefix.Error.INVALID_CHARS, MaskPrefix.validate("a-b"))
     }
+
+    @Test
+    fun `sanitize lowercases and keeps exactly what validate accepts`() {
+        assertEquals("myshopname", MaskPrefix.sanitize("My.Shop-Name!"))
+        assertEquals("shop_2026", MaskPrefix.sanitize("shop_2026"))
+        assertEquals("caf", MaskPrefix.sanitize("café"))
+        assertEquals("d", MaskPrefix.sanitize(" \u0141\u00f3d\u017a"))
+        for (input in listOf("Shop", "café", "a-b", "Zażółć gęślą", "٣٤", "ＡＢ", "a b\tc")) {
+            assertNull(MaskPrefix.validate(MaskPrefix.sanitize(input)))
+        }
+    }
 }

@@ -1,15 +1,16 @@
 package com.fastmask.ui.create
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskPrefix
-import com.fastmask.domain.share.SharePrefill
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.trimToNull
+import com.fastmask.ui.navigation.NavRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -23,10 +24,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateMaskedEmailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val maskedEmailRepository: MaskedEmailRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CreateMaskedEmailUiState())
+    // Text shared into the app arrives as the route's forDomain argument. It seeds
+    // the initial state once, when this ViewModel is created: rotation keeps the
+    // ViewModel, so it can never overwrite what the user has typed since.
+    private val _uiState = MutableStateFlow(
+        CreateMaskedEmailUiState(
+            forDomain = savedStateHandle.get<String>(NavRoutes.ARG_FOR_DOMAIN)
+                ?.takeIf { it.isNotBlank() }
+                .orEmpty(),
+        ),
+    )
     val uiState: StateFlow<CreateMaskedEmailUiState> = _uiState.asStateFlow()
 
     // Channel-backed one-time events: buffered delivery survives windows with
@@ -34,35 +45,12 @@ class CreateMaskedEmailViewModel @Inject constructor(
     private val _events = Channel<CreateMaskedEmailEvent>(Channel.BUFFERED)
     val events: Flow<CreateMaskedEmailEvent> = _events.receiveAsFlow()
 
-    /**
-     * Seeds the form from text shared into the app (ACTION_SEND).
-     *
-     * A null prefill is a no-op, and only the FIRST non-null prefill is
-     * applied: the screen re-delivers its nav argument on recomposition and
-     * rotation, and re-applying it would wipe what the user has typed since.
-     */
-    fun applyPrefill(prefill: SharePrefill?) {
-        if (prefill == null) {
-            return
-        }
-        _uiState.update { state ->
-            if (state.prefilled) {
-                state
-            } else {
-                state.copy(
-                    forDomain = prefill.forDomain,
-                    prefilled = true,
-                )
-            }
-        }
-    }
-
     fun onPrefixChange(prefix: String) {
-        val sanitized = prefix.lowercase().filter { it.isLetterOrDigit() || it == '_' }
+        val sanitized = MaskPrefix.sanitize(prefix)
         // Localizable string-res ids, not raw literals: these are shown to the
-        // user under a fully-translated form (isLetterOrDigit() lets through
-        // Unicode letters/digits the ASCII check below then rejects, so both
-        // branches are reachable).
+        // user under a fully-translated form. sanitize() leaves only allowed
+        // characters, so only the length rule can fire here; INVALID_CHARS is
+        // still mapped to keep the `when` exhaustive.
         val errorRes = when (MaskPrefix.validate(sanitized)) {
             MaskPrefix.Error.TOO_LONG -> R.string.create_email_error_prefix_length
             MaskPrefix.Error.INVALID_CHARS -> R.string.create_email_error_prefix_chars
@@ -134,8 +122,6 @@ data class CreateMaskedEmailUiState(
     val isLoading: Boolean = false,
     val errorRes: Int? = null,
     val prefixErrorRes: Int? = null,
-    /** True once a share prefill has been consumed; blocks a second apply. */
-    val prefilled: Boolean = false
 ) {
     /** Typed-but-uncreated input; guards back / swipe with the discard dialog. */
     val isDirty: Boolean
