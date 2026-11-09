@@ -1,6 +1,6 @@
 package com.fastmask.data.repository
 
-import com.fastmask.data.demo.INITIAL_DEMO_MASKS
+import com.fastmask.data.demo.demoMasks
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -22,13 +22,14 @@ import javax.inject.Singleton
 @Singleton
 class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository {
 
-    private val state = MutableStateFlow(INITIAL_DEMO_MASKS)
+    private val state = MutableStateFlow(demoMasks(Instant.now()))
 
     private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val changes: Flow<Unit> = _changes.asSharedFlow()
 
-    fun reset() {
-        state.value = INITIAL_DEMO_MASKS
+    /** Restores the seed masks, dated relative to [now] so they look as fresh as when demo mode was first entered. */
+    fun reset(now: Instant = Instant.now()) {
+        state.value = demoMasks(now)
     }
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {

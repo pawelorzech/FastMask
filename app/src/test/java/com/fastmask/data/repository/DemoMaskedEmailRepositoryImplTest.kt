@@ -1,12 +1,16 @@
 package com.fastmask.data.repository
 
+import com.fastmask.data.demo.demoMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
+import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Duration
+import java.time.Instant
 
 /**
  * Demo mode must treat parameters the way the real repository does, otherwise
@@ -80,5 +84,34 @@ class DemoMaskedEmailRepositoryImplTest {
 
         assertTrue(result.exceptionOrNull() is IllegalArgumentException)
         assertEquals("https://example.com", repository.getMaskedEmail(mask.id).getOrThrow()!!.forDomain)
+    }
+
+    @Test
+    fun `seed masks are dated relative to the moment they are built`() {
+        val now = Instant.parse("2031-02-03T04:05:06Z")
+        val stamps = timestamps(demoMasks(now))
+
+        assertTrue("no seed is dated in the future", stamps.all { it <= now })
+        assertTrue(
+            "the newest seed is within the last day",
+            Duration.between(stamps.max(), now) < Duration.ofDays(1),
+        )
+
+        val shifted = timestamps(demoMasks(now.plus(Duration.ofDays(100))))
+        assertEquals(stamps.map { it.plus(Duration.ofDays(100)) }, shifted)
+    }
+
+    private fun timestamps(masks: List<MaskedEmail>): List<Instant> =
+        masks.flatMap { listOfNotNull(it.createdAt, it.lastMessageAt) }
+
+    @Test
+    fun `reset dates the seeds from the given moment`() = runTest {
+        val now = Instant.parse("2031-02-03T04:05:06Z")
+
+        repository.reset(now)
+
+        val stamps = timestamps(repository.getMaskedEmails().getOrThrow())
+        assertTrue(stamps.all { it <= now })
+        assertTrue(Duration.between(stamps.max(), now) < Duration.ofDays(1))
     }
 }
