@@ -38,10 +38,9 @@ class CrashReportingTest {
     private fun crashReporting(
         store: FakePreferencesDataStore = FakePreferencesDataStore(),
         isDebugBuild: Boolean = false,
-        reporterProvider: () -> com.fastmask.domain.crash.CrashReporter = { reporter },
     ) = CrashReporting(
         dataStore = store,
-        reporter = reporterProvider,
+        reporter = reporter,
         isDebugBuild = isDebugBuild,
         onFailure = { failures += it },
     )
@@ -221,31 +220,18 @@ class CrashReportingTest {
         assertTrue(failures.single() is IllegalStateException)
     }
 
-    @Test
-    fun `a reporter that cannot be built does not propagate from startup`() = runTest {
-        val thrown = runCatching {
-            crashReporting(reporterProvider = { error("no FirebaseApp") }).applyAtStartup()
-        }.exceptionOrNull()
-
-        assertNull(thrown)
-        assertTrue(failures.single() is IllegalStateException)
-    }
-
     /**
-     * The SDK is not even resolved until it is needed: constructing the object
-     * and reading the preference touch no reporter. Resolving it eagerly used to
-     * happen during Hilt member injection, on the main thread, before
-     * `super.onCreate()`.
+     * `FirebaseCrashlytics.getInstance()` throws when no `FirebaseApp` exists
+     * (OEM ROMs without the init provider, app cloners, direct boot). The
+     * reporter is injected on the main thread before `super.onCreate()`, so
+     * building it must not reach the SDK; only a call may. A unit test has no
+     * `FirebaseApp`, which makes the second half the control for the first.
      */
     @Test
-    fun `the reporter is never resolved by construction or by an unreadable store`() = runTest {
-        var resolved = 0
-        val store = FakePreferencesDataStore().apply { readFailure = IOException("unreadable") }
-        val crash = crashReporting(store, reporterProvider = { resolved++; reporter })
+    fun `the firebase reporter reaches the sdk on a call, not on construction`() {
+        val firebase = FirebaseCrashlyticsReporter()
 
-        crash.applyAtStartup()
-
-        assertEquals(0, resolved)
+        assertTrue(runCatching { firebase.setCollectionEnabled(false) }.isFailure)
     }
 
     /** Swallowing everything must not extend to cancellation. */

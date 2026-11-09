@@ -42,7 +42,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * the whole of what the privacy docs mean by "switching it off stops the
  * startup traffic". Re-verify both branches when the Firebase BOM moves.
  *
- * The SDK handle is resolved lazily, per call, and never in the constructor.
+ * The SDK handle is resolved per call, and never in the constructor, so the
+ * object can be injected anywhere.
  * `FirebaseCrashlytics.getInstance()` throws `IllegalStateException` when the
  * default `FirebaseApp` was never initialised — which happens on OEM ROMs that
  * strip content providers, in app-cloning frameworks and during direct boot.

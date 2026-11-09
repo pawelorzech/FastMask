@@ -52,7 +52,7 @@ class CrashReportingStoreTest {
 
     private fun crashReporting(store: DataStore<Preferences>) = CrashReporting(
         dataStore = store,
-        reporter = { reporter },
+        reporter = reporter,
         isDebugBuild = false,
     )
 

@@ -90,7 +90,7 @@ class SettingsViewModelTest {
             analytics = analytics,
             crashReporting = CrashReporting(
                 dataStore = crashStore,
-                reporter = { crashReporter },
+                reporter = crashReporter,
                 isDebugBuild = false,
             ),
         )

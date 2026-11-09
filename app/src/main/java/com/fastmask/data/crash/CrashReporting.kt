@@ -29,9 +29,7 @@ import java.io.IOException
  * name is a contract with already-installed copies; renaming it silently
  * re-enables collection for everyone who opted out. A value written by the
  * older versions in the shared `settings` store is moved over once by
- * [CrashOptOutMigration]. The store is separate because "no key" means ENABLED:
- * the shared store resets to "no key" on corruption, which would have turned
- * collection back on; this one resets to an explicit opt-out instead.
+ * [CrashOptOutMigration].
  *
  * **Policy.** Debug builds never collect, whatever the user says, so a
  * development crash cannot reach the production console.
@@ -43,13 +41,13 @@ import java.io.IOException
  * would let a transient DataStore failure re-enable collection for someone who
  * had opted out.
  *
- * **Deferral.** [reporter] is a provider, never resolved in the constructor.
- * This object is injected into `FastMaskApplication` on the main thread, before
- * `super.onCreate()`; building it touches neither DataStore I/O nor Firebase.
+ * Construction does no I/O and touches no SDK: this object is injected into
+ * `FastMaskApplication` on the main thread, before `super.onCreate()`. The
+ * SDK-side half of that is `FirebaseCrashlyticsReporter`'s.
  */
 class CrashReporting(
     private val dataStore: DataStore<Preferences>,
-    private val reporter: () -> CrashReporter,
+    private val reporter: CrashReporter,
     private val isDebugBuild: Boolean,
     private val onFailure: (Throwable) -> Unit = {},
 ) {
@@ -156,7 +154,7 @@ class CrashReporting(
      * whatever an earlier release build left queued.
      */
     private fun applyToSdk(userEnabled: Boolean) {
-        val sdk = reporter()
+        val sdk = reporter
         sdk.setCollectionEnabled(!isDebugBuild && userEnabled)
         if (!userEnabled) sdk.deleteUnsentReports()
     }

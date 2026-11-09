@@ -26,9 +26,8 @@ import javax.inject.Singleton
  * where that is safe may live here: accent, app lock, language, demo mode and
  * its tutorial flag, and the notification-prompt flag — all re-settable.
  *
- * Nothing whose default is the permissive side belongs in this file. The crash
- * reporting opt-out (default: enabled) has its own store for that reason; see
- * `com.fastmask.data.crash.crashReportingDataStore`.
+ * Nothing whose default is the permissive side belongs in this file; the crash
+ * reporting opt-out is the example, see `crashReportingDataStore`.
  */
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
