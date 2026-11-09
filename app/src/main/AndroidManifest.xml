@@ -67,13 +67,15 @@
             it ahead of any remote configuration, so no session event is ever
             published and the SDK never listens to lifecycle events.
 
-            What the flag does NOT stop, verified in firebase-sessions 2.0.6
-            bytecode: FirebaseSessions' init coroutine calls
-            SessionsSettings.updateSettings() — a fetch from
-            firebase-settings.crashlytics.com carrying the installation ID,
-            device model and OS build — BEFORE it reads getSessionsEnabled().
-            That fetch is gated on data collection, so the crash-reports toggle
-            stops it; the flag alone does not. The privacy policy discloses the
+            What the flag does NOT stop, verified by reading firebase-sessions 3.0.7
+            bytecode with javap (static reading, not run on a device):
+            FirebaseSessions' init coroutine calls SessionsSettings.updateSettings()
+            — a fetch from firebase-settings.crashlytics.com carrying the
+            installation ID, device model and OS build — BEFORE it reads
+            getSessionsEnabled(). That call is skipped when no subscriber reports
+            data collection enabled, and Crashlytics' subscriber answers with
+            DataCollectionArbiter.isAutomaticDataCollectionEnabled(), so the
+            crash-reports toggle stops it; the flag alone does not. The privacy policy discloses the
             configuration download, so this is a note for the next reader, not
             an undisclosed request.
 

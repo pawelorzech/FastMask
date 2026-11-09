@@ -161,13 +161,14 @@ class SessionRepositoryImplTest {
     fun `every demo starts from the seed list`() = runTest {
         val repository = repository()
         repository.enterDemo()
-        val seed = demoRepository.getMaskedEmails().getOrThrow()
+        // Entering re-dates the seeds from "now", so compare which masks there are, not their ages.
+        val seed = demoRepository.getMaskedEmails().getOrThrow().map { it.id }
         demoRepository.createMaskedEmail(CreateMaskedEmailParams())
         repository.signOut()
 
         repository.enterDemo()
 
-        assertEquals(seed, demoRepository.getMaskedEmails().getOrThrow())
+        assertEquals(seed, demoRepository.getMaskedEmails().getOrThrow().map { it.id })
         assertEquals(Session.DEMO, repository.session.value)
     }
 }
