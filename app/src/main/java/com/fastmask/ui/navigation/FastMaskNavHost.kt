@@ -25,7 +25,9 @@ import com.fastmask.ui.components.expressive.LocalSharedTransitionScope
 import com.fastmask.ui.list.ListResult
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.list.consumeListResult
+import com.fastmask.ui.list.pendingListResult
 import com.fastmask.ui.list.postListResult
+import com.fastmask.ui.pro.PRO_SOURCE_SETTINGS
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
@@ -58,6 +60,14 @@ fun FastMaskNavHost(
     val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
     val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
     val isDetail: (androidx.navigation.NavBackStackEntry) -> Boolean = { it.destination.route == NavRoutes.EMAIL_DETAIL }
+
+    // The recovery for a refused token, from the list, create and detail alike.
+    // Keeps the current entry underneath Login so cancelling the flow returns to
+    // the user's filters, scroll position or draft. Login success still replaces
+    // the stack with a fresh list.
+    val onReauthenticate: () -> Unit = {
+        navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
+    }
 
     SharedTransitionLayout(modifier = modifier) {
     CompositionLocalProvider(LocalSharedTransitionScope provides this) {
@@ -108,9 +118,7 @@ fun FastMaskNavHost(
         ) { entry ->
             // What the detail screen (archived) or the create screen (created) handed
             // back: the list shows its Undo / "mask created" snackbar and consumes it.
-            val pendingResult by entry.savedStateHandle
-                .getStateFlow<ListResult?>(ListResult.KEY, null)
-                .collectAsState()
+            val pendingResult by entry.savedStateHandle.pendingListResult().collectAsState()
             MaskedEmailListScreen(
                 onNavigateToCreate = {
                     navController.navigate(NavRoutes.createEmail()) { launchSingleTop = true }
@@ -124,14 +132,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
-                onReauthenticate = {
-                    // Keep the list entry underneath Login so cancelling the
-                    // flow returns to the user's filters and scroll position.
-                    // Login success still replaces the stack with a fresh list.
-                    navController.navigate(NavRoutes.LOGIN) {
-                        launchSingleTop = true
-                    }
-                },
+                onReauthenticate = onReauthenticate,
                 pendingResult = pendingResult,
                 // Consuming only clears the result it was shown for, so a newer
                 // archive that arrived meanwhile is never erased.
@@ -161,7 +162,7 @@ fun FastMaskNavHost(
             arguments = listOf(
                 navArgument(NavRoutes.ARG_SOURCE) {
                     type = NavType.StringType
-                    defaultValue = "settings"
+                    defaultValue = PRO_SOURCE_SETTINGS
                 }
             ),
         ) {
@@ -194,6 +195,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
+                onReauthenticate = onReauthenticate,
             )
         }
 
@@ -216,6 +218,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
+                onReauthenticate = onReauthenticate,
             )
         }
     }

@@ -40,7 +40,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.fastmask.R
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.connectedToggleShapes
@@ -155,7 +155,7 @@ fun MaskUrlField(
  *   option represents is being applied (detail screen only).
  */
 @Composable
-fun MaskStateToggle(
+private fun MaskStateToggle(
     label: String,
     checked: Boolean,
     shapes: ToggleButtonShapes,
@@ -222,7 +222,7 @@ fun EnabledDisabledToggle(
 ) {
     val haptic = LocalHapticFeedback.current
     AdaptiveToggleGroup(
-        modifier = modifier.radioButtonGroup(),
+        modifier = modifier.selectableGroup(),
         first = { toggleModifier, stacked ->
             MaskStateToggle(
                 label = stringResource(R.string.state_enabled),

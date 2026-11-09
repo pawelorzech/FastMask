@@ -25,7 +25,7 @@ val LocalSharedTransitionScope = staticCompositionLocalOf<SharedTransitionScope?
 val LocalNavAnimatedScope = staticCompositionLocalOf<AnimatedVisibilityScope?> { null }
 
 /** Key shared by the list row and the detail screen's root container for mask [id]. */
-fun maskContainerKey(id: String) = "mask-container-$id"
+private fun maskContainerKey(id: String) = "mask-container-$id"
 
 /**
  * Marks this node as the container of mask [id]. Put it on the list row's outer

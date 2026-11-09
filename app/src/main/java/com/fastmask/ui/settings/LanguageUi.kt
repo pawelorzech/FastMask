@@ -34,7 +34,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.domain.model.Language
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.ui.components.DialogTextButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,7 +96,7 @@ internal fun LanguagePickerDialog(
             // heightIn, not height: at a 200% font scale a fixed box can
             // overflow the dialog on a short screen in landscape.
             Box(modifier = Modifier.heightIn(max = 360.dp)) {
-                LazyColumn(modifier = Modifier.radioButtonGroup()) {
+                LazyColumn(modifier = Modifier.selectableGroup()) {
                     item {
                         LanguageRow(
                             label = stringResource(R.string.settings_system_default),

@@ -8,6 +8,7 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskPrefix
 import com.fastmask.domain.repository.MaskedEmailRepository
+import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.trimToNull
 import com.fastmask.ui.navigation.NavRoutes
@@ -83,7 +84,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
         // here and create two real masks on the Fastmail account.
         if (state.isLoading) return
 
-        _uiState.update { it.copy(isLoading = true, errorRes = null) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             // Trimmed like the detail editor (see TextPolicy). Unlike there, an
             // empty field means "not set", not "clear".
@@ -104,7 +105,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorRes = UiErrors.messageRes(error, R.string.create_email_error_failed)
+                            error = UiErrors.of(error, R.string.create_email_error_failed)
                         )
                     }
                 }
@@ -120,7 +121,7 @@ data class CreateMaskedEmailUiState(
     val url: String = "",
     val initialState: EmailState = EmailState.ENABLED,
     val isLoading: Boolean = false,
-    val errorRes: Int? = null,
+    val error: UiError? = null,
     val prefixErrorRes: Int? = null,
 ) {
     /** Typed-but-uncreated input; guards back / swipe with the discard dialog. */

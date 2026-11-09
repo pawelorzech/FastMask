@@ -6,6 +6,10 @@ import com.fastmask.domain.model.EmailState
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
+import com.fastmask.testutil.failureForStatus
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
+import java.io.IOException
 import com.fastmask.ui.navigation.NavRoutes
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -131,6 +135,40 @@ class CreateMaskedEmailViewModelTest {
         advanceUntilIdle()
 
         assertEquals(EmailState.DISABLED, repo.lastCreateParams?.state)
+    }
+
+    // --- failure presentation ----------------------------------------------
+
+    @Test
+    fun `refused token asks to sign in again`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository(failure = failureForStatus(401)))
+
+        viewModel.create()
+        advanceUntilIdle()
+
+        assertEquals(
+            UiError(R.string.error_auth, UiErrorAction.REAUTHENTICATE),
+            viewModel.uiState.value.error,
+        )
+        assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `network failure offers a retry and an unknown one does not`() = runTest {
+        val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
+        val viewModel = vm(repo)
+
+        viewModel.create()
+        advanceUntilIdle()
+        assertEquals(UiErrorAction.RETRY, viewModel.uiState.value.error?.action)
+
+        repo.failure = RuntimeException("boom")
+        viewModel.create()
+        advanceUntilIdle()
+        assertEquals(
+            UiError(R.string.create_email_error_failed, UiErrorAction.NONE),
+            viewModel.uiState.value.error,
+        )
     }
 
     // --- share prefill ------------------------------------------------------

@@ -84,7 +84,6 @@ import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
-import com.fastmask.ui.common.FastmailLinks
 import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.ButtonLoadingStyle
@@ -131,7 +130,7 @@ fun LoginScreen(
                 // filter, and the destination is the page where the user is
                 // about to type their Fastmail password. openExternalIntent
                 // still reports a no-handler case, which the hint covers.
-                Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL))
+                Intent(Intent.ACTION_VIEW, Uri.parse(TOKEN_SETTINGS_URL))
                     .addCategory(Intent.CATEGORY_BROWSABLE),
             )
         },

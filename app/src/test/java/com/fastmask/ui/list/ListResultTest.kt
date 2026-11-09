@@ -11,7 +11,7 @@ class ListResultTest {
 
     private val handle = SavedStateHandle()
 
-    private fun pending(): ListResult? = handle.get<ListResult>(ListResult.KEY)
+    private fun pending(): ListResult? = handle.pendingListResult().value
 
     @Test
     fun `older snackbar result does not consume a newer archive`() {

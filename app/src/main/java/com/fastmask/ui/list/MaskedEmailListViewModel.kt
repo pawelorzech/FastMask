@@ -88,7 +88,7 @@ class MaskedEmailListViewModel @Inject constructor(
      * mask must not come back accepting mail.
      * The list reloads through the repository's `changes` signal.
      */
-    fun restoreMask(id: String, restoreTo: EmailState = EmailState.ENABLED) {
+    fun restoreMask(id: String, restoreTo: EmailState) {
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(id, UpdateMaskedEmailParams(state = restoreTo))
                 .onFailure { error ->
@@ -171,7 +171,7 @@ class MaskedEmailListViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        emails = emails.sortedByDescending { mask -> mask.lastActivityAt },
+                        emails = emails.mostRecentFirst(),
                         cachedAt = null,
                         // A previous pull-to-refresh or Undo failure is
                         // no longer true once the server answers again.
@@ -195,7 +195,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     when {
                         cached != null && cached.masks.isNotEmpty() -> it.copy(
                             isLoading = false,
-                            emails = cached.masks.sortedByDescending { mask -> mask.lastActivityAt },
+                            emails = cached.masks.mostRecentFirst(),
                             // Shown, never hidden: presenting stale
                             // masks as current would be a quiet lie
                             // about which addresses still exist.
@@ -256,6 +256,10 @@ data class MaskedEmailListUiState(
         filterMasks(emails, searchQuery, selectedFilter)
     }
 }
+
+/** The list's order: most recently active first. */
+private fun List<MaskedEmail>.mostRecentFirst(): List<MaskedEmail> =
+    sortedByDescending { mask -> mask.lastActivityAt }
 
 sealed interface MaskedEmailListEvent {
     data class RandomCreated(val email: String) : MaskedEmailListEvent

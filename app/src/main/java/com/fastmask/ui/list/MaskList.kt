@@ -81,14 +81,14 @@ internal fun MaskList(
                 },
         ) {
             item(key = "demo-banner") {
-                Box(Modifier.animateItem().padding(horizontal = 16.dp)) { demoBanner() }
+                Box(Modifier.animateItem().padding(horizontal = ListGutter)) { demoBanner() }
             }
             sections.forEachIndexed { sectionIndex, section ->
                 item(key = "section-${section.section.name}") {
                     SectionHeader(
                         text = stringResource(section.section.titleRes),
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = ListGutter)
                             .animateItem(
                                 fadeInSpec = effects,
                                 placementSpec = spatial,
@@ -100,7 +100,7 @@ internal fun MaskList(
                     items = section.items,
                     key = { _, e -> e.id },
                 ) { index, email ->
-                    var rowModifier = Modifier.padding(horizontal = 16.dp).animateItem(
+                    var rowModifier = Modifier.padding(horizontal = ListGutter).animateItem(
                         fadeInSpec = effects,
                         placementSpec = spatial,
                         fadeOutSpec = effects,

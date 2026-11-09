@@ -8,6 +8,8 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.trimmedIfChangedFrom
 import com.fastmask.core.SingleFlight
@@ -82,7 +84,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
             // error state would throw away what the user is looking at.
             val hadEmail = _uiState.value.email != null
             if (!hadEmail) {
-                _uiState.update { it.copy(isLoading = true, errorRes = null) }
+                _uiState.update { it.copy(isLoading = true, error = null) }
             }
             suspend { loadOnce(resetEdits, hadEmail) }
         },
@@ -117,7 +119,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             updateOperation = null,
-                            errorRes = R.string.email_detail_error_load
+                            error = UiError(R.string.email_detail_error_load, UiErrorAction.RETRY)
                         )
                     }
                 }
@@ -127,7 +129,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         updateOperation = null,
-                        errorRes = UiErrors.messageRes(error, R.string.email_detail_error_load)
+                        error = UiErrors.of(error, R.string.email_detail_error_load, UiErrorAction.RETRY)
                     )
                 }
             }
@@ -214,7 +216,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_update)
+                            error = UiErrors.of(error, R.string.email_detail_error_update)
                         )
                     }
                 }
@@ -238,7 +240,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_save)
+                            error = UiErrors.of(error, R.string.email_detail_error_save)
                         )
                     }
                 }
@@ -272,7 +274,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            errorRes = UiErrors.messageRes(error, R.string.email_detail_error_delete)
+                            error = UiErrors.of(error, R.string.email_detail_error_delete)
                         )
                     }
                 }
@@ -291,7 +293,7 @@ data class MaskedEmailDetailUiState(
     val editedDescription: String = "",
     val editedForDomain: String = "",
     val editedUrl: String = "",
-    val errorRes: Int? = null,
+    val error: UiError? = null,
 ) {
     val isUpdating: Boolean get() = updateOperation != null
 

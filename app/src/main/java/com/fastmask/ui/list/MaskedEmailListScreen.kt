@@ -79,12 +79,12 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.ContentWidth
-import com.fastmask.ui.common.UiError
-import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.ErrorState
+import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.delay
@@ -163,10 +163,14 @@ fun MaskedEmailListScreen(
     // The address that gets the brief "just created" highlight once it shows up
     // in the list (the list reloads on resume / after a random mask).
     var highlightEmail by remember { mutableStateOf<String?>(null) }
+    // One path for both ways a mask gets created: confirm it, and highlight it.
+    fun announceCreated(email: String) {
+        pendingCreated = email
+        highlightEmail = email
+    }
     LaunchedEffect(pendingResult) {
         if (pendingResult is ListResult.Created && pendingCreated == null) {
-            pendingCreated = pendingResult.email
-            highlightEmail = pendingResult.email
+            announceCreated(pendingResult.email)
             onResultConsumed(pendingResult)
         }
     }
@@ -175,10 +179,7 @@ fun MaskedEmailListScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is MaskedEmailListEvent.RandomCreated -> {
-                    pendingCreated = event.email
-                    highlightEmail = event.email
-                }
+                is MaskedEmailListEvent.RandomCreated -> announceCreated(event.email)
                 is MaskedEmailListEvent.RandomFailed -> {
                     snackbarHostState.showSnackbar(
                         message = resources.getString(event.messageRes),
@@ -213,7 +214,7 @@ fun MaskedEmailListScreen(
         val target = highlightEmail ?: return@LaunchedEffect
         if (uiState.emails.any { it.email == target }) {
             listState.animateScrollToItem(0)
-            delay(1_600L)
+            delay(HIGHLIGHT_HOLD_MS)
             highlightEmail = null
         }
     }
@@ -261,7 +262,7 @@ fun MaskedEmailListScreen(
     // fetch began less than 30 s ago, which also spares cold start a second fetch.
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            delay(250L)
+            delay(RESUME_REFRESH_DELAY_MS)
             viewModel.refreshIfStale()
         }
     }
@@ -295,7 +296,6 @@ fun MaskedEmailListScreen(
             },
             onRowOpen = onRowOpen,
             onRowCopy = onRowCopy,
-            onRetry = viewModel::loadMaskedEmails,
             onReauthenticate = onReauthenticate,
             onRefresh = viewModel::loadMaskedEmails,
             onNavigateToCreate = onNavigateToCreate,
@@ -339,7 +339,6 @@ internal fun MaskedEmailListContent(
     onFilterSelect: (EmailFilter) -> Unit,
     onRowOpen: (MaskedEmail) -> Unit,
     onRowCopy: (MaskedEmail) -> Unit,
-    onRetry: () -> Unit,
     onReauthenticate: () -> Unit,
     onRefresh: () -> Unit,
     onNavigateToCreate: () -> Unit,
@@ -483,10 +482,12 @@ internal fun MaskedEmailListContent(
                 // failed request into a silent no-op.
                 uiState.inlineError?.let { error ->
                     InlineErrorBanner(
-                        text = stringResource(error.message),
-                        actionLabel = error.recoveryLabel(),
-                        onAction = error.recovery(onRetry, onReauthenticate),
-                        modifier = Modifier.readableWidth(ContentWidth.List),
+                        error = error,
+                        onRetry = onRefresh,
+                        onReauthenticate = onReauthenticate,
+                        modifier = Modifier
+                            .readableWidth(ContentWidth.List)
+                            .padding(horizontal = ListGutter, vertical = 4.dp),
                     )
                 }
 
@@ -516,11 +517,11 @@ internal fun MaskedEmailListContent(
                         .readableWidth(ContentWidth.List),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    val gutterPx = with(LocalDensity.current) { FilterGutter.toPx() }
+                    val gutterPx = with(LocalDensity.current) { ListGutter.toPx() }
                     SearchField(
                         query = uiState.searchQuery,
                         onQueryChange = onSearchQueryChange,
-                        modifier = Modifier.padding(horizontal = FilterGutter).onGloballyPositioned { coords ->
+                        modifier = Modifier.padding(horizontal = ListGutter).onGloballyPositioned { coords ->
                             onTutorialBounds(TutorialTarget.SEARCH, coords.boundsInRoot())
                         },
                     )
@@ -546,7 +547,7 @@ internal fun MaskedEmailListContent(
                                 uiState.filteredEmails.size,
                                 uiState.emails.size,
                             ),
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = FilterGutter).politeLiveRegion(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = ListGutter).politeLiveRegion(),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.End,
@@ -567,10 +568,11 @@ internal fun MaskedEmailListContent(
                         val error = uiState.error
                         Column(Modifier.fillMaxSize()) {
                             demoBanner()
-                            ErrorBlock(
-                                message = stringResource(error.message),
-                                actionLabel = error.recoveryLabel(),
-                                onAction = error.recovery(onRetry, onReauthenticate),
+                            ErrorState(
+                                title = R.string.error_load_emails,
+                                error = error,
+                                onRetry = onRefresh,
+                                onReauthenticate = onReauthenticate,
                             )
                         }
                     }
@@ -624,17 +626,13 @@ internal fun MaskedEmailListContent(
     }
 }
 
+/**
+ * Waits before the on-resume refresh so a refetch does not start in the middle
+ * of the screen transition that brought the list back (added in v1.3 against the
+ * then 220 ms slide; navigation is spring-driven now, so this is a settle margin,
+ * not a measured duration).
+ */
+private const val RESUME_REFRESH_DELAY_MS = 250L
+
 /** How long a "just created" highlight waits for its row before giving up. */
 private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
-
-/**
- * The list can only offer to retry or to sign in again, so every action except
- * [UiErrorAction.REAUTHENTICATE] is a retry.
- */
-@Composable
-private fun UiError.recoveryLabel(): String = stringResource(
-    if (action == UiErrorAction.REAUTHENTICATE) R.string.settings_signin_with_fastmail else R.string.error_retry,
-)
-
-private fun UiError.recovery(onRetry: () -> Unit, onReauthenticate: () -> Unit): () -> Unit =
-    if (action == UiErrorAction.REAUTHENTICATE) onReauthenticate else onRetry

@@ -51,6 +51,13 @@ import com.fastmask.ui.util.RelativeTimeBuckets
 /** Font scale from which a mask row drops its trailing time label / state chip. */
 private const val CompactRowFontScale = 1.3f
 
+/**
+ * How long the list holds a "just created" row highlighted before clearing it;
+ * the row then fades the highlight out itself (`highlightAlpha` in [MaskRow]),
+ * so the hold and that fade are tuned together.
+ */
+internal const val HIGHLIGHT_HOLD_MS = 1_600L
+
 @Composable
 internal fun MaskRow(
     email: MaskedEmail,
@@ -77,15 +84,10 @@ internal fun MaskRow(
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
     // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.
     val headline = remember(email.email, mutedColor) {
-        val display = addressWrapText(email.email)
-        val at = addressWrapDomainStart(display)
+        val parts = addressWrapParts(email.email)
         buildAnnotatedString {
-            if (at < 0) {
-                append(display)
-            } else {
-                append(display.substring(0, at))
-                withStyle(SpanStyle(color = mutedColor)) { append(display.substring(at)) }
-            }
+            append(parts.local)
+            withStyle(SpanStyle(color = mutedColor)) { append(parts.domain) }
         }
     }
     val domain = email.siteDomain
@@ -100,6 +102,7 @@ internal fun MaskRow(
         timeLabel.takeIf { compact },
     ).joinToString(" · ")
 
+    // Fades in on `highlighted` and out when the list clears it after HIGHLIGHT_HOLD_MS.
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 0.55f else 0f,
         animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),

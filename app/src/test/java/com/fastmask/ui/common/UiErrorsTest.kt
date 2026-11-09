@@ -72,6 +72,7 @@ class UiErrorsTest {
 
     // Ported from ListErrorActionTest: the action now comes out of the same table as the message.
     
+    @Test
     fun `rejected token routes to reauthentication`() {
         assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(401), fallback).action)
         assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(403), fallback).action)

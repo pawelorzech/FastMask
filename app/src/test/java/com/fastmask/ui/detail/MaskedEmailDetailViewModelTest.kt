@@ -9,7 +9,10 @@ import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.EmailState
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
+import com.fastmask.testutil.failureForStatus
 import com.fastmask.testutil.mask
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -229,7 +232,7 @@ class MaskedEmailDetailViewModelTest {
         runCurrent() // cache seed has run; network fetch is parked
 
         assertEquals("cached copy", viewModel.uiState.value.email?.description)
-        assertNull(viewModel.uiState.value.errorRes)
+        assertNull(viewModel.uiState.value.error)
 
         releaseNetwork.complete(Unit)
         advanceUntilIdle()
@@ -309,7 +312,7 @@ class MaskedEmailDetailViewModelTest {
         // The user still has something to look at and edit…
         assertEquals("m1", viewModel.uiState.value.email?.id)
         // …and the failure is surfaced, not swallowed.
-        assertEquals(R.string.error_network, viewModel.uiState.value.errorRes)
+        assertEquals(UiError(R.string.error_network, UiErrorAction.RETRY), viewModel.uiState.value.error)
     }
 
     @Test
@@ -322,7 +325,37 @@ class MaskedEmailDetailViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.uiState.value.email)
-        assertEquals(R.string.email_detail_error_load, viewModel.uiState.value.errorRes)
+        assertEquals(UiError(R.string.email_detail_error_load, UiErrorAction.RETRY), viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `refused token on load asks to sign in again`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = emptyList(), failure = failureForStatus(401))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.email)
+        assertEquals(
+            UiError(R.string.error_auth, UiErrorAction.REAUTHENTICATE),
+            viewModel.uiState.value.error,
+        )
+    }
+
+    @Test
+    fun `refused token on save asks to sign in again`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = failureForStatus(401)
+        viewModel.onDescriptionChange("new")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+
+        assertEquals(
+            UiError(R.string.error_auth, UiErrorAction.REAUTHENTICATE),
+            viewModel.uiState.value.error,
+        )
     }
 
     // --- edit mode is owned by the ViewModel -------------------------------
