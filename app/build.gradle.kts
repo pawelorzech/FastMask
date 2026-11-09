@@ -1,9 +1,9 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 // `google-services.json` is deliberately NOT in the repository (see .gitignore),
@@ -16,8 +16,8 @@ plugins {
 // default `FirebaseApp` exists.
 val hasFirebaseConfig = file("google-services.json").exists()
 if (hasFirebaseConfig) {
-    apply(plugin = "com.google.gms.google-services")
-    apply(plugin = "com.google.firebase.crashlytics")
+    apply(plugin = libs.plugins.google.services.get().pluginId)
+    apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
 } else {
     logger.lifecycle(
         "FastMask: app/google-services.json not found — building without Firebase " +
@@ -28,11 +28,15 @@ if (hasFirebaseConfig) {
 
 // Play licence key and release keystore come from the environment first, then
 // from a Gradle property (e.g. ~/.gradle/gradle.properties), and are never in
-// the repository.
-val playLicenseKey: String? = System.getenv("FASTMASK_PLAY_LICENSE_KEY")
-    ?: (project.findProperty("fastmask.playLicenseKey") as String?)
-val releaseKeystorePath: String? = System.getenv("FASTMASK_KEYSTORE")
-    ?: (project.findProperty("fastmask.keystore") as String?)
+// the repository. Optional values may be absent (a debug build needs none of
+// them); `required = true` fails the build when neither source has the value.
+fun envOrProperty(env: String, property: String, required: Boolean = false): String? =
+    System.getenv(env)
+        ?: if (required) project.property(property) as String
+        else project.findProperty(property) as String?
+
+val playLicenseKey: String? = envOrProperty("FASTMASK_PLAY_LICENSE_KEY", "fastmask.playLicenseKey")
+val releaseKeystorePath: String? = envOrProperty("FASTMASK_KEYSTORE", "fastmask.keystore")
 val hasReleaseKeystore: Boolean = releaseKeystorePath != null
 
 android {
@@ -71,12 +75,9 @@ android {
         create("release") {
             if (releaseKeystorePath != null) {
                 storeFile = file(releaseKeystorePath)
-                storePassword = System.getenv("FASTMASK_STORE_PWD")
-                    ?: project.property("fastmask.storePassword") as String
-                keyAlias = System.getenv("FASTMASK_KEY_ALIAS")
-                    ?: project.property("fastmask.keyAlias") as String
-                keyPassword = System.getenv("FASTMASK_KEY_PWD")
-                    ?: project.property("fastmask.keyPassword") as String
+                storePassword = envOrProperty("FASTMASK_STORE_PWD", "fastmask.storePassword", required = true)
+                keyAlias = envOrProperty("FASTMASK_KEY_ALIAS", "fastmask.keyAlias", required = true)
+                keyPassword = envOrProperty("FASTMASK_KEY_PWD", "fastmask.keyPassword", required = true)
             }
         }
     }
@@ -160,99 +161,87 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
-    implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
 
-    // Compose
-    // BOM 2026.09.00 = Compose 1.12.1 stable. Material3 is pinned above the BOM
-    // (which still maps to 1.4.0) because the Expressive components the UI is
-    // built on (ButtonGroup, LoadingIndicator, MaterialShapes, FAB menu) are only
-    // public from 1.5.0. Beta = API-frozen; move to 1.5.0 stable when it lands.
-    implementation(platform("androidx.compose:compose-bom:2026.09.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.5.0-beta02")
-    implementation("androidx.graphics:graphics-shapes:1.0.1")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.animation:animation")
+    // Compose. Versions, including the material3 pin above the BOM, live in
+    // gradle/libs.versions.toml.
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.graphics.shapes)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.animation)
 
     // Large screen support
-    implementation("androidx.compose.material3.adaptive:adaptive:1.0.0")
+    implementation(libs.androidx.compose.material3.adaptive)
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.9.8")
-    implementation("androidx.hilt:hilt-navigation-compose:1.4.0")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.60.1")
-    ksp("com.google.dagger:hilt-compiler:2.60.1")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     // Networking
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation(libs.retrofit)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
 
-    // Google Play Billing — base (Java) artifact, NOT billing-ktx: its
-    // extensions only wrap listeners we replace with our own suspend wrappers anyway.
-    // 8.x satisfies Play's "Billing Library 8+" requirement (Aug 31, 2026).
-    implementation("com.android.billingclient:billing:8.3.0")
+    // Google Play Billing (base Java artifact, see the catalog entry)
+    implementation(libs.play.billing)
 
     // Biometric app lock (Pro feature)
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation(libs.androidx.biometric)
 
     // Google Play In-App Updates. Never gated on Pro, collects nothing: the
-    // dismissed version code lives on the device and goes nowhere. The base
-    // (Java) artifact rather than `app-update-ktx` — AppUpdateController
-    // hand-rolls its one suspending call, same as the Billing seam.
-    implementation("com.google.android.play:app-update:2.1.0")
+    // dismissed version code lives on the device and goes nowhere.
+    implementation(libs.play.app.update)
 
     // Security for encrypted storage
-    implementation("androidx.security:security-crypto:1.1.0")
+    implementation(libs.androidx.security.crypto)
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation(libs.androidx.datastore.preferences)
 
-    // Firebase Crashlytics — crash diagnostics only. Google Analytics is
+    // Firebase Crashlytics: crash diagnostics only. Google Analytics is
     // deliberately NOT on the graph: this app reports that it crashed, never
-    // what its user did. The BOM pins the SDK versions as a matched set.
-    implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
-    // Firebase stopped releasing separate KTX artifacts in July 2025. The
-    // Crashlytics API used here lives in the maintained main module.
-    implementation("com.google.firebase:firebase-crashlytics")
+    // what its user did.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
+    implementation(libs.kotlinx.coroutines.android)
 
-    // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
-    testImplementation("io.mockk:mockk:1.13.9")
-    // AndroidX Test 1.6.x / Espresso 3.6.x: the 3.5.1 line calls
-    // InputManager.getInstance(), removed in Android 16 (API 36) — every
-    // instrumented test died in Espresso.onIdle before reaching an assertion.
-    // Test-only dependencies, so nothing ships to users.
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
-    androidTestImplementation("androidx.test:runner:1.7.0")
-    androidTestImplementation("androidx.test:core-ktx:1.7.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    // Testing. Instrumented tests are test-only dependencies, so nothing ships
+    // to users; the AndroidX Test pins are explained in the catalog.
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.core.ktx)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     // Instrumented tests exercise the real Hilt graph, so they need the test
     // Application and the generated test components.
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.60.1")
-    kspAndroidTest("com.google.dagger:hilt-compiler:2.60.1")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 kotlin {
