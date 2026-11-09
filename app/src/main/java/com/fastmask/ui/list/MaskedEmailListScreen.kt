@@ -79,12 +79,12 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.common.ContentWidth
-import com.fastmask.ui.common.UiError
-import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.ErrorState
+import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.components.TutorialOverlay
 import com.fastmask.ui.util.RelativeTime
 import kotlinx.coroutines.delay
@@ -483,10 +483,12 @@ internal fun MaskedEmailListContent(
                 // failed request into a silent no-op.
                 uiState.inlineError?.let { error ->
                     InlineErrorBanner(
-                        text = stringResource(error.message),
-                        actionLabel = error.recoveryLabel(),
-                        onAction = error.recovery(onRetry, onReauthenticate),
-                        modifier = Modifier.readableWidth(ContentWidth.List),
+                        error = error,
+                        onRetry = onRetry,
+                        onReauthenticate = onReauthenticate,
+                        modifier = Modifier
+                            .readableWidth(ContentWidth.List)
+                            .padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
 
@@ -567,10 +569,11 @@ internal fun MaskedEmailListContent(
                         val error = uiState.error
                         Column(Modifier.fillMaxSize()) {
                             demoBanner()
-                            ErrorBlock(
-                                message = stringResource(error.message),
-                                actionLabel = error.recoveryLabel(),
-                                onAction = error.recovery(onRetry, onReauthenticate),
+                            ErrorState(
+                                title = R.string.error_load_emails,
+                                error = error,
+                                onRetry = onRetry,
+                                onReauthenticate = onReauthenticate,
                             )
                         }
                     }
@@ -626,15 +629,3 @@ internal fun MaskedEmailListContent(
 
 /** How long a "just created" highlight waits for its row before giving up. */
 private const val HIGHLIGHT_GIVE_UP_MS = 10_000L
-
-/**
- * The list can only offer to retry or to sign in again, so every action except
- * [UiErrorAction.REAUTHENTICATE] is a retry.
- */
-@Composable
-private fun UiError.recoveryLabel(): String = stringResource(
-    if (action == UiErrorAction.REAUTHENTICATE) R.string.settings_signin_with_fastmail else R.string.error_retry,
-)
-
-private fun UiError.recovery(onRetry: () -> Unit, onReauthenticate: () -> Unit): () -> Unit =
-    if (action == UiErrorAction.REAUTHENTICATE) onReauthenticate else onRetry

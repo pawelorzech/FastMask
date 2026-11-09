@@ -31,6 +31,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -64,12 +67,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
-import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.ErrorState
+import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.rememberDiscardChangesGuard
 import com.fastmask.ui.components.expressive.maskContainer
@@ -86,6 +90,7 @@ fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
     onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
+    onReauthenticate: () -> Unit,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -139,6 +144,7 @@ fun MaskedEmailDetailScreen(
         banner = { DemoBanner(onSignInClick = onSignInFromBanner) },
         onBack = onBack,
         onRetry = { viewModel.loadEmail() },
+        onReauthenticate = onReauthenticate,
         onDescriptionChange = viewModel::onDescriptionChange,
         onForDomainChange = viewModel::onForDomainChange,
         onUrlChange = viewModel::onUrlChange,
@@ -160,6 +166,7 @@ internal fun MaskedEmailDetailContent(
     banner: @Composable () -> Unit,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onReauthenticate: () -> Unit,
     onDescriptionChange: (String) -> Unit,
     onForDomainChange: (String) -> Unit,
     onUrlChange: (String) -> Unit,
@@ -237,9 +244,13 @@ internal fun MaskedEmailDetailContent(
                     contentAlignment = Alignment.Center,
                 ) { LoadingIndicator() }
 
-                uiState.errorRes != null && email == null -> DetailErrorState(
-                    message = stringResource(uiState.errorRes),
+                uiState.error != null && email == null -> ErrorState(
+                    title = R.string.email_detail_error_load,
+                    error = uiState.error,
                     onRetry = onRetry,
+                    onReauthenticate = onReauthenticate,
+                    heroShape = MaterialShapes.SoftBurst.toShape(),
+                    icon = Icons.Filled.ErrorOutline,
                 )
 
                 email != null -> DetailBody(
@@ -252,6 +263,7 @@ internal fun MaskedEmailDetailContent(
                     onEnable = onEnable,
                     onDisable = onDisable,
                     onSaveChanges = onSaveChanges,
+                    onReauthenticate = onReauthenticate,
                     onStartEditing = onStartEditing,
                     onDiscardEdits = onDiscardEdits,
                     onCopyEmail = onCopyEmail,
@@ -273,6 +285,7 @@ private fun DetailBody(
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onSaveChanges: () -> Unit,
+    onReauthenticate: () -> Unit,
     onStartEditing: () -> Unit,
     onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
@@ -387,14 +400,15 @@ private fun DetailBody(
             }
         }
 
-        if (uiState.errorRes != null) {
-            Text(
-                text = stringResource(uiState.errorRes),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
+        uiState.error?.let { error ->
+            // No retry: a failed save or toggle is fixed by editing or tapping
+            // again; only a refused token has a recovery here (sign in).
+            InlineErrorBanner(
+                error = error,
+                onRetry = null,
+                onReauthenticate = onReauthenticate,
                 modifier = Modifier
-                    .politeLiveRegion()
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(top = 12.dp),
             )
         }

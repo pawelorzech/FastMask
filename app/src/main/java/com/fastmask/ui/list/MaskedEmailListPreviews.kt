@@ -13,6 +13,7 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.components.DemoBannerContent
+import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.theme.FastMaskTheme
 import java.time.Instant
 
@@ -138,5 +139,9 @@ private fun ListOfflinePreview() = PreviewList(
 @Preview(name = "Inline error", showBackground = true)
 @Composable
 private fun InlineErrorPreview() = FastMaskTheme {
-    InlineErrorBanner(text = "Could not refresh", actionLabel = "Retry", onAction = {})
+    InlineErrorBanner(
+        error = UiError(R.string.error_network, UiErrorAction.RETRY),
+        onRetry = {},
+        onReauthenticate = {},
+    )
 }

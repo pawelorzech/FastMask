@@ -82,6 +82,9 @@ import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.EnabledDisabledToggle
+import com.fastmask.ui.components.InlineErrorBanner
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
@@ -90,6 +93,7 @@ fun CreateMaskedEmailScreen(
     /** The mask exists; hand its address to the list, which reports it there. */
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
+    onReauthenticate: () -> Unit,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -117,6 +121,7 @@ fun CreateMaskedEmailScreen(
         onUrlChange = viewModel::onUrlChange,
         onStateChange = viewModel::onStateChange,
         onCreate = viewModel::create,
+        onReauthenticate = onReauthenticate,
     )
 }
 
@@ -131,6 +136,7 @@ internal fun CreateMaskedEmailContent(
     onUrlChange: (String) -> Unit,
     onStateChange: (EmailState) -> Unit,
     onCreate: () -> Unit,
+    onReauthenticate: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val barColor by animateColorAsState(
@@ -244,21 +250,24 @@ internal fun CreateMaskedEmailContent(
             )
 
             AnimatedVisibility(
-                visible = uiState.errorRes != null,
+                visible = uiState.error != null,
                 enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
                     expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
                 exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
                     shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
             ) {
                 // Keep showing the last message while the exit animation runs.
-                val shownError = remember { mutableStateOf(uiState.errorRes) }
-                if (uiState.errorRes != null) shownError.value = uiState.errorRes
-                CreateError(
-                    messageRes = shownError.value,
-                    enabled = !uiState.isLoading,
-                    onRetry = onCreate,
-                    modifier = Modifier.padding(top = 18.dp),
-                )
+                val shownError = remember { mutableStateOf(uiState.error) }
+                if (uiState.error != null) shownError.value = uiState.error
+                shownError.value?.let { error ->
+                    InlineErrorBanner(
+                        error = error,
+                        onRetry = onCreate,
+                        onReauthenticate = onReauthenticate,
+                        actionEnabled = !uiState.isLoading,
+                        modifier = Modifier.padding(top = 18.dp),
+                    )
+                }
             }
 
             Spacer(Modifier.size(24.dp))
@@ -375,40 +384,6 @@ private fun PreviewCard(prefix: String) {
     }
 }
 
-// --- form -------------------------------------------------------------------
-
-@Composable
-private fun CreateError(
-    messageRes: Int?,
-    enabled: Boolean,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (messageRes == null) return
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = stringResource(messageRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier
-                .weight(1f)
-                .politeLiveRegion(),
-        )
-        TextButton(
-            onClick = onRetry,
-            enabled = enabled,
-        ) { Text(stringResource(R.string.error_retry)) }
-    }
-}
-
 // --- previews ---------------------------------------------------------------
 
 @Composable
@@ -424,6 +399,7 @@ private fun PreviewHost(uiState: CreateMaskedEmailUiState) {
             onUrlChange = {},
             onStateChange = {},
             onCreate = {},
+            onReauthenticate = {},
         )
     }
 }
@@ -471,5 +447,8 @@ private fun CreateLoadingPreview() = PreviewHost(
 @Preview(name = "Create failed", showBackground = true, heightDp = 900)
 @Composable
 private fun CreateErrorPreview() = PreviewHost(
-    CreateMaskedEmailUiState(emailPrefix = "mysite", errorRes = R.string.create_email_error_failed),
+    CreateMaskedEmailUiState(
+        emailPrefix = "mysite",
+        error = UiError(R.string.create_email_error_failed, UiErrorAction.NONE),
+    ),
 )

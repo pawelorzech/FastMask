@@ -59,6 +59,14 @@ fun FastMaskNavHost(
     val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
     val isDetail: (androidx.navigation.NavBackStackEntry) -> Boolean = { it.destination.route == NavRoutes.EMAIL_DETAIL }
 
+    // The recovery for a refused token, from the list, create and detail alike.
+    // Keeps the current entry underneath Login so cancelling the flow returns to
+    // the user's filters, scroll position or draft. Login success still replaces
+    // the stack with a fresh list.
+    val onReauthenticate: () -> Unit = {
+        navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
+    }
+
     SharedTransitionLayout(modifier = modifier) {
     CompositionLocalProvider(LocalSharedTransitionScope provides this) {
     NavHost(
@@ -124,14 +132,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
-                onReauthenticate = {
-                    // Keep the list entry underneath Login so cancelling the
-                    // flow returns to the user's filters and scroll position.
-                    // Login success still replaces the stack with a fresh list.
-                    navController.navigate(NavRoutes.LOGIN) {
-                        launchSingleTop = true
-                    }
-                },
+                onReauthenticate = onReauthenticate,
                 pendingResult = pendingResult,
                 // Consuming only clears the result it was shown for, so a newer
                 // archive that arrived meanwhile is never erased.
@@ -194,6 +195,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
+                onReauthenticate = onReauthenticate,
             )
         }
 
@@ -216,6 +218,7 @@ fun FastMaskNavHost(
                 onSignInFromBanner = {
                     navController.resetTo(NavRoutes.LOGIN)
                 },
+                onReauthenticate = onReauthenticate,
             )
         }
     }
