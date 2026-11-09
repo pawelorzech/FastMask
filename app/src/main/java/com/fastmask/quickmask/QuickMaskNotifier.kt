@@ -121,11 +121,8 @@ class QuickMaskNotifier @Inject constructor(
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
 
-    /**
-     * The one place that decides notification vs Toast: POST_NOTIFICATIONS may
-     * genuinely be missing on Android 13+, or notifications switched off for the
-     * app, and then the user still gets the message via Toast.
-     */
+    // POST_NOTIFICATIONS may genuinely be missing on Android 13+, or notifications
+    // switched off for the app; the user then gets the message via Toast.
     private fun canPost(manager: NotificationManagerCompat): Boolean {
         val postPermissionGranted = ContextCompat.checkSelfPermission(
             context,
@@ -138,11 +135,6 @@ class QuickMaskNotifier @Inject constructor(
         )
     }
 
-    /**
-     * The one place that calls `notify`. The notification itself is only built
-     * once we know it can be posted, so the fallback path allocates no
-     * PendingIntents.
-     */
     @android.annotation.SuppressLint("MissingPermission") // guarded by canPost()
     private fun postOrToast(
         slot: QuickMaskSlot,
@@ -160,17 +152,12 @@ class QuickMaskNotifier @Inject constructor(
     }
 
     // createNotificationChannel is a no-op for an id the system already knows:
-    // QuickMaskChannel exists because importance, lockscreenVisibility and
-    // description are read once at creation, then owned by the user. When one
-    // of those fields changes in source, bump QuickMaskChannel.VERSION so the
-    // app creates a fresh id, and let deleteNotificationChannel clear the
-    // superseded ones instead of leaving dead duplicates in settings.
+    // importance, lockscreenVisibility and description are read once at creation,
+    // then owned by the user.
     private fun ensureChannel() {
         val manager = context.getSystemService(NotificationManager::class.java)
         if (!channelReady) {
-            // Superseded channels would otherwise sit in system settings forever
-            // as dead duplicates. Deleting an id the system does not know does
-            // nothing, so this is safe on a fresh install.
+            // Deleting an id the system does not know does nothing.
             QuickMaskChannel.staleIds
                 .forEach { manager.deleteNotificationChannel(it) }
             channelReady = true

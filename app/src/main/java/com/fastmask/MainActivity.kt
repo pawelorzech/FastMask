@@ -67,16 +67,10 @@ class MainActivity : AppCompatActivity() {
 
     private var isReady = false
 
-    /**
-     * Registered as a field so it exists before the Activity is STARTED, which
-     * the Activity Result API requires. The result itself needs no handling:
-     * a grant makes the quick-create confirmation possible, a denial leaves the
-     * existing Toast fallback in place.
-     */
+    // Registered as a field: the Activity Result API requires it before STARTED.
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
-    // Owns the whole "ask once" rule; lazy because it needs the injected setting.
     private val notificationPrompt by lazy {
         NotificationPrompt(Build.VERSION.SDK_INT, settingsDataStore, lifecycleScope)
     }
@@ -84,11 +78,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var appUpdateController: AppUpdateController
 
-    /**
-     * Play's update flow hands its result back through the Activity Result API.
-     * Registered as a property initializer, like the permission launcher above,
-     * because `registerForActivityResult` must be called before STARTED.
-     */
     private val appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest> =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
             appUpdateController.onFlowResult(result.resultCode)
@@ -128,8 +117,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         // On every resume, not only on a cold start: re-enters an interrupted
-        // immediate update and notices a download that finished meanwhile. The
-        // controller owns every rule about whether that becomes a prompt.
+        // immediate update and notices a download that finished meanwhile.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 appUpdateController.checkAndStart(this@MainActivity, appUpdateLauncher)
@@ -164,8 +152,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (signedIn) NavRoutes.EMAIL_LIST else NavRoutes.WELCOME
             }.getOrElse {
-                // Storage double-fault (see TokenStorage recovery) — fall back to
-                // the welcome flow instead of stranding the splash or crashing.
                 NavRoutes.WELCOME
             }
             lockGate.restore(savedInstanceState, lockAtLaunch)
@@ -178,19 +164,8 @@ class MainActivity : AppCompatActivity() {
 
                 val appLockEnabled by settingsDataStore.appLockEnabled
                     .collectAsState(initial = lockAtLaunch)
-                // The DISPLAY gate must not wait for the async Play/store
-                // read: on a locked cold start, proStatus still holds its
-                // initial FREE for the first frames, and keying the gate on it
-                // would flash the mask list before the lock lands. The gate is
-                // seeded synchronously from the cache above.
                 val isLocked = lockGate.locked && appLockEnabled
 
-                // Re-engage the lock whenever the app leaves the foreground.
-                // Keyed on the DataStore flag alone (not proStatus): proStatus
-                // seeds asynchronously, and an observer waiting for it would
-                // miss a backgrounding in the first moments after a cold-start
-                // unlock. An enabled flag implies Pro at the time of enabling;
-                // the toggle itself stays usable without Pro (anti-lockout).
                 DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
                         if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
@@ -215,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                         val signedIn = session.isSignedIn
                         // Re-evaluated on every session change, not once at launch: a user
                         // who starts signed out and signs in without leaving must still be
-                        // asked. The gate owns the "at most once" part.
+                        // asked.
                         LaunchedEffect(session, isLocked) {
                             maybeRequestNotificationPermission(
                                 signedIn = signedIn,
@@ -225,7 +200,6 @@ class MainActivity : AppCompatActivity() {
                         }
 
                         if (isLocked) {
-                            // Content behind the gate is not composed at all.
                             LockScreen(
                                 onUnlockClick = ::requestUnlock,
                                 promptActive = lockGate.promptShowing,
@@ -278,13 +252,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestUnlock() = lockGate.requestUnlock(this, getString(R.string.app_lock_prompt_title))
 
-    /**
-     * Asks for POST_NOTIFICATIONS off a stream of session snapshots, not one
-     * startup guess: the gate sees every route/lock snapshot and decides when
-     * the one ask is warranted. The launcher call is wrapped in `runCatching`
-     * because an ActivityResultLauncher that is not registered for this
-     * lifecycle state throws; the Toast fallback still covers quick-create.
-     */
     private fun maybeRequestNotificationPermission(
         signedIn: Boolean,
         locked: Boolean,
@@ -294,8 +261,6 @@ class MainActivity : AppCompatActivity() {
             this,
             Manifest.permission.POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
-        // The rule, including "assume already asked until the flag is loaded" and
-        // recording the ask, lives in NotificationPrompt; this only launches.
         val shouldAsk = notificationPrompt.shouldAsk(
             permissionGranted = granted,
             signedIn = signedIn,
@@ -304,6 +269,7 @@ class MainActivity : AppCompatActivity() {
         )
         if (!shouldAsk) return
 
+        // A launcher not registered for this lifecycle state throws.
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 

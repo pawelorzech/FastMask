@@ -9,11 +9,7 @@ plugins {
 // `google-services.json` is deliberately NOT in the repository (see .gitignore),
 // and `processDebugGoogleServices` fails without it, so the Firebase plugins are
 // applied only when the config is present. A contributor without the file gets a
-// working app with crash reporting inert, which is safe by construction:
-// `FirebaseCrashlyticsReporter` resolves the SDK handle lazily per call, and
-// `CrashReporting.applyAtStartup` / `setEnabled` catch the
-// `IllegalStateException` that `FirebaseCrashlytics.getInstance()` throws when no
-// default `FirebaseApp` exists.
+// working app with crash reporting inert.
 val hasFirebaseConfig = file("google-services.json").exists()
 if (hasFirebaseConfig) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
@@ -26,10 +22,7 @@ if (hasFirebaseConfig) {
     )
 }
 
-// Play licence key and release keystore come from the environment first, then
-// from a Gradle property (e.g. ~/.gradle/gradle.properties), and are never in
-// the repository. Optional values may be absent (a debug build needs none of
-// them); `required = true` fails the build when neither source has the value.
+// Play licence key and release keystore are never in the repository.
 fun envOrProperty(env: String, property: String, required: Boolean = false): String? =
     System.getenv(env)
         ?: if (required) project.property(property) as String
@@ -50,8 +43,7 @@ android {
         versionCode = 31
         versionName = "1.14.1"
 
-        // Hilt needs its own Application in instrumented tests; HiltTestRunner
-        // swaps FastMaskApplication for HiltTestApplication.
+        // Hilt needs its own Application in instrumented tests.
         testInstrumentationRunner = "com.fastmask.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -59,15 +51,12 @@ android {
 
         // Monetization kill-switch. Set to "false" to ship a build with every
         // Pro entry point hidden (existing Pro owners keep their entitlement).
-        // See Plans/monetization.md § Rollback.
         buildConfigField("boolean", "MONETIZATION_ENABLED", "true")
 
         // Base64 RSA public key from Play Console (Monetization setup →
-        // Licensing), used to verify purchase signatures (see PurchaseSecurity).
-        // Provided out-of-source via the `fastmask.playLicenseKey` Gradle
-        // property (e.g. ~/.gradle/gradle.properties) or FASTMASK_PLAY_LICENSE_KEY
-        // env. Empty by default so dev/CI builds work; a release build MUST set
-        // it, otherwise purchase signatures are not verified.
+        // Licensing), used to verify purchase signatures. Provided out-of-source
+        // via the `fastmask.playLicenseKey` Gradle property or
+        // FASTMASK_PLAY_LICENSE_KEY env. Empty by default so dev/CI builds work.
         buildConfigField("String", "PLAY_LICENSE_KEY", "\"${playLicenseKey.orEmpty()}\"")
     }
 
@@ -85,13 +74,10 @@ android {
     buildTypes {
         debug {
             // Nothing to symbolicate without R8, and a debug build must not
-            // reach Crashlytics' upload endpoint on every assemble. Runtime
-            // collection is disabled separately and unconditionally by
-            // CrashReporting, whatever the user preference says.
+            // reach Crashlytics' upload endpoint on every assemble.
             //
-            // Guarded on the same flag as the plugin itself: `configure<T>` looks
-            // the extension up by type and throws UnknownDomainObjectException
-            // when the Crashlytics plugin was not applied.
+            // `configure<T>` looks the extension up by type and throws
+            // UnknownDomainObjectException when the Crashlytics plugin was not applied.
             if (hasFirebaseConfig) {
                 configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
                     mappingFileUploadEnabled = false
@@ -128,9 +114,6 @@ android {
     }
 }
 
-// A SIGNED release with no licence key silently ships with purchase signature
-// verification disabled (PlayBillingDataSource.isSignatureValid returns true
-// when the key is blank), so a hooked billing service unlocks Pro for free.
 // Unsigned/CI builds stay permissive, so `assembleRelease` without a keystore
 // keeps working as a smoke test.
 //
@@ -154,21 +137,18 @@ gradle.taskGraph.whenReady {
     }
 }
 
-// FontSubsetTest reads the bundled font by path; declare it so Gradle reruns the test when it changes.
+// Declared so Gradle reruns the tests when the bundled font changes.
 tasks.withType<Test>().configureEach {
     inputs.file("src/main/res/font/google_sans_flex.ttf")
 }
 
 dependencies {
-    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
 
-    // Compose. Versions, including the material3 pin above the BOM, live in
-    // gradle/libs.versions.toml.
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -178,38 +158,30 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.animation)
 
-    // Large screen support
     implementation(libs.androidx.compose.material3.adaptive)
 
-    // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    // Networking
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization.converter)
 
-    // Google Play Billing (base Java artifact, see the catalog entry)
     implementation(libs.play.billing)
 
-    // Biometric app lock (Pro feature)
     implementation(libs.androidx.biometric)
 
     // Google Play In-App Updates. Never gated on Pro, collects nothing: the
     // dismissed version code lives on the device and goes nowhere.
     implementation(libs.play.app.update)
 
-    // Security for encrypted storage
     implementation(libs.androidx.security.crypto)
 
-    // DataStore
     implementation(libs.androidx.datastore.preferences)
 
     // Firebase Crashlytics: crash diagnostics only. Google Analytics is
@@ -218,15 +190,11 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
 
-    // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
-    // Testing. Instrumented tests are test-only dependencies, so nothing ships
-    // to users; the AndroidX Test pins are explained in the catalog.
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)

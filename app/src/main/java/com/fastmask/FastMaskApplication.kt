@@ -59,17 +59,6 @@ class FastMaskApplication : Application() {
         }
     }
 
-    /**
-     * Crashlytics auto-initialises with collection on, so the stored opt-out has
-     * to be re-applied on every start — otherwise a user who turned it off keeps
-     * being reported on until they open Settings again. Debug builds are gated
-     * separately inside the controller.
-     *
-     * Everything that can fail — the DataStore read *and* the SDK call — lives
-     * inside [CrashReporting.applyAtStartup], which is contractually non-throwing and
-     * unit-tested as such; the handler on [startupScope] is the second line of
-     * defence.
-     */
     private fun applyCrashReportingPreference() {
         startupScope.launch {
             crashReporting.applyAtStartup()

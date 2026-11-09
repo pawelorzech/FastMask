@@ -1,9 +1,5 @@
 package com.fastmask.domain.model
 
-/**
- * Builds a CSV snapshot of masks (Pro feature). Pure string output — file
- * writing and the share sheet are UI-layer concerns.
- */
 object MaskCsv {
 
     private val HEADER = listOf(
