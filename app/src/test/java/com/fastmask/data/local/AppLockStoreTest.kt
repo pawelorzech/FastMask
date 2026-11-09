@@ -10,10 +10,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.fastmask.testutil.FakePreferencesDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -75,6 +80,22 @@ class AppLockStoreTest {
         assertTrue(store.appLockEnabled.first())
         assertTrue(store.isAppLockEnabled())
         assertTrue(store.lockAtLaunch())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `a collector that saw a read error still sees the lock turned off once reads recover`() = runTest {
+        val backing = FakePreferencesDataStore().apply { readFailure = IOException("disk") }
+        val seen = mutableListOf<Boolean>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            AppLockStore(backing).appLockEnabled.collect { seen += it }
+        }
+        assertEquals(listOf(true), seen)
+
+        backing.readFailure = null
+        advanceTimeBy(1_000)
+
+        assertEquals(false, seen.last())
     }
 
     @Test

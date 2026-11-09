@@ -13,15 +13,19 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.repository.AppLockSetting
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private val APP_LOCK_KEY = booleanPreferencesKey("app_lock_enabled")
+
+private const val RETRY_BASE_MS = 500L
+private const val RETRY_MAX_MS = 30_000L
 
 /** What a corrupt file becomes: an armed lock. An empty file would read as "never armed". */
 internal val LOCKED_ON_CORRUPTION: ReplaceFileCorruptionHandler<Preferences> =
@@ -46,12 +50,19 @@ class AppLockStore(
     @Inject
     constructor(@ApplicationContext context: Context) : this(context.appLockDataStore)
 
-    /** A missing key in a healthy file is disabled: a user who never armed the lock must not be locked. */
+    /**
+     * A missing key in a healthy file is disabled: a user who never armed the lock must
+     * not be locked. A read error reports locked and then reads again, so a collector
+     * that outlives the error still sees the user turn the lock off.
+     */
     val appLockEnabled: Flow<Boolean> = dataStore.data
-        .catch { throwable ->
-            if (throwable is IOException) emit(preferencesOf(APP_LOCK_KEY to true)) else throw throwable
-        }
         .map { preferences -> preferences[APP_LOCK_KEY] ?: false }
+        .retryWhen { cause, attempt ->
+            if (cause !is IOException) return@retryWhen false
+            emit(true)
+            delay((RETRY_BASE_MS shl attempt.coerceAtMost(6).toInt()).coerceAtMost(RETRY_MAX_MS))
+            true
+        }
 
     suspend fun setAppLockEnabled(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[APP_LOCK_KEY] = enabled }
