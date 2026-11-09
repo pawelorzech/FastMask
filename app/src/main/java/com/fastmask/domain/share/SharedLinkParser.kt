@@ -13,30 +13,19 @@ import com.fastmask.domain.model.MaskedEmailMetadata
  */
 data class SharePrefill(val forDomain: String)
 
-/**
- * Pure Kotlin, no Android dependencies, so it is unit-testable in `src/test`.
- *
- * The parser walks shared text left-to-right, returns the FIRST usable link,
- * reduces the original URL to the origin Fastmail expects in `forDomain`.
- */
 object SharedLinkParser {
     private val trailingPunctuation: Set<Char> = setOf('.', ',', ';', ':', '!', '?', ')', ']', '}', '"', '\'')
 
     /**
-     * Extracts the first usable link from [text].
-     *
      * Takes a [CharSequence], not a String: `Intent.EXTRA_TEXT` is declared as
      * a CharSequence and real senders (Gmail, Docs, several readers) put a
-     * `Spanned` in it, so the share path hands us whatever they wrote.
+     * `Spanned` in it.
      *
-     * Every branch of the loop below moves [index] strictly forward by at least
-     * the whole run it just examined, never by one character after a scan. That
-     * keeps the walk O(n): rescanning a host run per character is quadratic and
-     * turns a ~300k-char share (or a long CJK article, whose letters are all
-     * `isLetterOrDigit` with no ASCII dot to stop them) into an ANR on the main
-     * thread. See the timing tests in SharedLinkParserTest.
-     *
-     * @return null when [text] is null, blank, or carries no plausible link.
+     * Every branch of the loop moves [index] strictly forward by at least the
+     * whole run it just examined: rescanning a host run per character is
+     * quadratic and turns a ~300k-char share (or a long CJK article, whose letters
+     * are all `isLetterOrDigit` with no ASCII dot to stop them) into an ANR on the
+     * main thread.
      */
     fun parse(text: CharSequence?): SharePrefill? {
         val input: CharSequence = text?.takeIf { it.isNotBlank() } ?: return null
@@ -58,15 +47,12 @@ object SharedLinkParser {
 
             val runEnd: Int = hostRunEnd(input, index)
             if (runEnd == index) {
-                // Nothing here can start a host; advance one character.
                 index++
                 continue
             }
 
             val schemelessEnd: Int? = schemelessCandidateEnd(input, index, runEnd)
             if (schemelessEnd == null) {
-                // The whole run carries no dot, so no substring of it can be a
-                // host either — skip past it instead of re-scanning it.
                 index = runEnd
                 continue
             }
@@ -118,11 +104,6 @@ object SharedLinkParser {
         return end
     }
 
-    /**
-     * End of the host-shaped run starting at [start], or [start] itself when no
-     * host can start there. Separate from [schemelessCandidateEnd] so the caller
-     * can skip a rejected run wholesale.
-     */
     private fun hostRunEnd(text: CharSequence, start: Int): Int {
         if (!text[start].isLetterOrDigit()) {
             return start
@@ -134,11 +115,6 @@ object SharedLinkParser {
         return cursor
     }
 
-    /**
-     * @param runEnd end of the host run, from [hostRunEnd].
-     * @return end of the candidate (host + optional port + optional path), or
-     *   null when the run holds no dot and therefore cannot be a host.
-     */
     private fun schemelessCandidateEnd(text: CharSequence, start: Int, runEnd: Int): Int? {
         var sawDot: Boolean = false
         for (cursor in start until runEnd) {
@@ -172,9 +148,6 @@ object SharedLinkParser {
     }
 
     /**
-     * Whether a bare-host candidate at [start] is really a fragment of
-     * something else.
-     *
      * A ':' is deliberately not a reason to reject: "Sign up here: example.com"
      * is the commonest shape of shared text, and a colon in prose introduces a
      * link far more often than it hides one.
@@ -248,11 +221,6 @@ object SharedLinkParser {
     private fun isHostLabelChar(char: Char): Boolean =
         char.isLetterOrDigit() || char == '-'
 
-    /**
-     * Compared char-by-char rather than against a set literal: a `setOf(…)`
-     * here allocates once per character scanned, and the long-share test walks
-     * ~108k of them.
-     */
     private fun isUrlRunChar(char: Char): Boolean =
         !char.isWhitespace() && char != '<' && char != '>' && char != '"' && char != '\''
 

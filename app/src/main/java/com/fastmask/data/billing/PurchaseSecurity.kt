@@ -25,11 +25,6 @@ object PurchaseSecurity {
     @Volatile
     private var cachedPublicKey: Pair<String, PublicKey>? = null
 
-    /**
-     * @return true iff [signature] is a valid Play signature of [signedData]
-     *   under [base64PublicKey]. Any malformed input or crypto error returns
-     *   false (fail-closed) — never treat an unverifiable purchase as genuine.
-     */
     fun verify(base64PublicKey: String, signedData: String, signature: String): Boolean {
         if (base64PublicKey.isBlank() || signedData.isBlank() || signature.isBlank()) return false
         return try {
@@ -40,7 +35,7 @@ object PurchaseSecurity {
             }
             sig.verify(Base64.getDecoder().decode(signature))
         } catch (e: Exception) {
-            // IllegalArgument (bad base64), signature/key spec errors → not verified.
+            // Fail closed: an unverifiable purchase is never genuine.
             false
         }
     }

@@ -36,12 +36,6 @@ data class MaskedEmailGetResponse(
 
 @Serializable
 data class MaskedEmailSetResponse(
-    /**
-     * Raw, because a SetResponse only has to return server-set properties: the
-     * fields the request supplied may be absent and are merged back by JmapApi.
-     * Decoding into [MaskedEmailDto] directly would turn an absent `state` into
-     * the DTO's default (pending) and lose what the request asked for.
-     */
     val created: Map<String, JsonObject>? = null,
     val updated: Map<String, JsonElement?>? = null,
     val destroyed: List<String>? = null,

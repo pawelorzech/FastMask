@@ -6,9 +6,7 @@ package com.fastmask.domain.analytics
  * FastMask promises "no tracking" (Play listing, privacy policy), so there is
  * deliberately NO third-party analytics SDK behind this interface. The default
  * implementation logs locally in debug builds only; conversion and revenue are
- * measured through Play Console's built-in reports. The interface still exists
- * so every funnel point is instrumented at the call site — if an opt-in,
- * privacy-respecting sink is ever added, no feature code changes.
+ * measured through Play Console's built-in reports.
  */
 interface MonetizationAnalytics {
 

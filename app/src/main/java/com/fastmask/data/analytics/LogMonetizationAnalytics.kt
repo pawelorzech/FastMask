@@ -7,11 +7,6 @@ import com.fastmask.domain.analytics.MonetizationEvent
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Local-only funnel instrumentation. Logs in debug builds, no-op in release —
- * FastMask ships no telemetry ("no tracking" is a product promise). Conversion
- * and revenue metrics come from Play Console reports instead.
- */
 @Singleton
 class LogMonetizationAnalytics @Inject constructor() : MonetizationAnalytics {
 

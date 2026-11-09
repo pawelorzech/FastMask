@@ -15,14 +15,6 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * The single owner of the in-app language choice: the persisted `language_code`
- * (in the shared `settings` DataStore, so existing users keep their choice) and
- * the step that applies it to the process via [AppCompatDelegate].
- *
- * Both the Settings screen ([set]) and app start ([restore]) go through here,
- * so persisting and applying cannot drift apart.
- */
 @Singleton
 class LanguageSettings @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -33,7 +25,6 @@ class LanguageSettings @Inject constructor(
         Language.fromCode(preferences[languageKey])
     }
 
-    /** Persists [language] (null = follow the system) and applies it immediately. */
     suspend fun set(language: Language?) {
         val code = language?.code
         context.settingsDataStore.edit { preferences ->
@@ -48,11 +39,6 @@ class LanguageSettings @Inject constructor(
         )
     }
 
-    /**
-     * Re-applies the stored choice at app start; a no-op when none is stored or
-     * the process already has it. The store is read on the caller's dispatcher
-     * and the locale applied on the main thread.
-     */
     suspend fun restore() {
         val code = context.settingsDataStore.data.map { it[languageKey] }.first() ?: return
         val localeList = LocaleListCompat.forLanguageTags(code)

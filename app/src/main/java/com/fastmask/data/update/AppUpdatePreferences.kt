@@ -7,10 +7,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The one thing the update prompt has to remember between launches: which version the user said no
- * to. Plain SharedPreferences — a version code is neither a secret nor account data, so it has no
- * business in [com.fastmask.data.local.TokenStorage].
- *
  * Nothing here is ever read by anything that reports anywhere. This value exists so the app can
  * stop asking, and turning it into a signal that leaves the device would make the "crash
  * diagnostics only" promise untrue.
@@ -22,7 +18,6 @@ class AppUpdatePreferences @Inject constructor(@ApplicationContext context: Cont
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     /**
-     * The versionCode of the flexible update the user declined, or [AppUpdatePolicy.NO_VERSION].
      * A version rather than a flag, so one "not now" silences only that release.
      */
     var dismissedVersionCode: Int

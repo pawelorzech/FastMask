@@ -67,8 +67,6 @@ class SessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun enterDemo() = mutex.withLock {
-        // The demo repository lives for the whole process, so without the
-        // reset a second demo would reopen the first one's edits.
         demoRepository.reset()
         store.startDemo()
         publish(Session.DEMO)
@@ -85,10 +83,8 @@ class SessionRepositoryImpl @Inject constructor(
 
     override suspend fun completeTutorial() = store.completeTutorial()
 
-    /**
-     * Everything derived from one account. The offline snapshot and CSV exports
-     * hold every mask in plaintext and must not outlive the account they came from.
-     */
+    // The offline snapshot and CSV exports hold every mask and must not outlive
+    // the account they came from.
     private fun clearAccountData() {
         jmapApi.clearSession()
         exportCache.clear()

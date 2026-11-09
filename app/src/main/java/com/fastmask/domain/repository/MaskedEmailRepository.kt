@@ -8,19 +8,15 @@ import kotlinx.coroutines.flow.Flow
 
 interface MaskedEmailRepository {
     /**
-     * Emits once after every SUCCESSFUL mutation (create, update, archive,
-     * destroy), from whichever screen or service made it. Lets a list that is
-     * already on screen, or sitting in the back stack, refetch instead of
-     * waiting for a resume. Hot, no replay: a collector sees only changes made
-     * while it is collecting, and bursts may be conflated into one signal.
+     * Emits once after every SUCCESSFUL mutation. Hot, no replay: a collector sees
+     * only changes made while it is collecting, and bursts may be conflated into
+     * one signal.
      */
     val changes: Flow<Unit>
 
     suspend fun getMaskedEmails(): Result<List<MaskedEmail>>
 
     /**
-     * A single mask by id, straight from the server.
-     *
      * @return `Result.success(null)` when the server does not know the id —
      *   the mask was deleted elsewhere or the deep link is stale.
      *   `Result.failure` is a transport/server error; the caller may still
@@ -29,15 +25,9 @@ interface MaskedEmailRepository {
     suspend fun getMaskedEmail(id: String): Result<MaskedEmail?>
 
     /**
-     * Last known good snapshot, for showing the list without a network.
-     *
      * Deliberately NOT folded into [getMaskedEmails]: that call means "tell me
      * what the server says", and quietly answering it with old data would let
-     * a caller present stale masks as current. Callers ask for this only after
-     * a fetch failed, and must surface how old it is.
-     *
-     * @return null when nothing is cached (including demo mode, which is
-     *   already in memory and never persisted).
+     * a caller present stale masks as current. Callers must surface how old it is.
      */
     suspend fun cachedMaskedEmails(): CachedMasks?
 
@@ -47,18 +37,12 @@ interface MaskedEmailRepository {
     /**
      * REVERSIBLE archive: moves the mask to [com.fastmask.domain.model.EmailState.DELETED].
      * Mail bounces, the address stays on the account, and restoring it is a
-     * state flip back — which is exactly what the confirmation dialog ("Mail
-     * sent here will bounce. You can restore it later.") and the list's Undo
-     * snackbar promise, and what the "Archived" filter chip exists to show.
+     * state flip back.
      */
     suspend fun archiveMaskedEmail(id: String): Result<Unit>
 
     /**
      * IRREVERSIBLE removal (JMAP `destroy`). The mask stops existing.
-     *
-     * Exactly one caller: the quick-create notification's "Undo", where the
-     * user is disowning a mask created seconds ago by mistake. Never reachable
-     * from the Archive button.
      */
     suspend fun destroyMaskedEmail(id: String): Result<Unit>
 }

@@ -10,7 +10,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/** Supplies Play's [AppUpdateManager] to `AppUpdateController`, the only class that uses it. */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppUpdateModule {

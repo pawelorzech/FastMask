@@ -5,22 +5,6 @@ import com.fastmask.domain.repository.NotificationPromptSetting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-/**
- * The whole "ask for POST_NOTIFICATIONS once" rule in one place: load the
- * persisted flag, decide, mark the ask, persist it.
- *
- * [QuickMaskPolicy.shouldRequestNotificationPermission] is the pure predicate
- * ("does this snapshot warrant the prompt?"). It cannot answer "has this
- * process already asked?", because the persisted flag is written asynchronously
- * and a second snapshot can arrive before that write lands. So this is fed every
- * session-state change and decides each time (a user who signs in without
- * leaving the process must still be asked). It owes the caller exactly one
- * `true` per process, and none in later processes once the ask has been
- * persisted. The caller only launches the system request.
- *
- * @param scope where the flag is persisted; it only has to outlive the ask
- *   itself, so the Activity's lifecycle scope is enough.
- */
 internal class NotificationPrompt(
     private val sdkInt: Int,
     private val setting: NotificationPromptSetting,
@@ -32,17 +16,10 @@ internal class NotificationPrompt(
     @Volatile
     private var alreadyAsked = true
 
-    /** Reads the persisted flag. Until this returns, [shouldAsk] says no. */
     suspend fun load() {
         alreadyAsked = setting.notificationPromptShown()
     }
 
-    /**
-     * @return true at most once, for the first snapshot that warrants the
-     *   prompt. The ask is recorded before the dialog resolves: whatever the
-     *   user answers, the app has now had its one ask, so the caller should
-     *   launch the request right away.
-     */
     fun shouldAsk(
         permissionGranted: Boolean,
         signedIn: Boolean,
@@ -59,8 +36,6 @@ internal class NotificationPrompt(
         )
         if (!warranted) return false
 
-        // The in-memory latch is what stops a second snapshot; the write only
-        // has to survive to the NEXT process.
         alreadyAsked = true
         scope.launch { runSuspendCatching { setting.setNotificationPromptShown(true) } }
         return true

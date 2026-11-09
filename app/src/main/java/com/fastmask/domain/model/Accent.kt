@@ -1,12 +1,6 @@
 package com.fastmask.domain.model
 
-/**
- * Color source for the app. [DYNAMIC] takes colors from the wallpaper
- * (Material You) and is the free default; on devices below API 31 it falls back
- * to the Amber seed scheme. The remaining entries are fixed seed schemes and
- * are part of FastMask Pro. Color values live in the UI layer
- * ([com.fastmask.ui.theme]) — this enum is just the choice.
- */
+/** [DYNAMIC] is the free default; the remaining entries are part of FastMask Pro. */
 enum class Accent {
     DYNAMIC,
     AMBER,
@@ -15,10 +9,8 @@ enum class Accent {
     PLUM,
     COBALT;
 
-    /** Every accent but the wallpaper colours is part of Pro. */
     val isPro: Boolean get() = this != DYNAMIC
 
-    /** True when this accent is a Pro seed and the user does not have Pro. */
     fun isLockedFor(hasPro: Boolean): Boolean = isPro && !hasPro
 
     /** What is actually painted: without Pro a stored seed falls back to the wallpaper, and the stored choice is kept. */
