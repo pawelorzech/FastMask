@@ -73,7 +73,6 @@ import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
 import kotlinx.coroutines.launch
 
-/** Everything the settings content draws, so it can be previewed without Hilt. */
 internal data class SettingsViewState(
     val isDemo: Boolean = false,
     val isPro: Boolean = false,
@@ -93,7 +92,6 @@ internal class SettingsCallbacks(
     val onSignOut: () -> Unit = {},
     val onProRowClick: () -> Unit = {},
     val onAccentSelected: (Accent) -> Unit = {},
-    /** The user chose "Unlock" on the locked-colors snackbar. */
     val onUnlockColors: () -> Unit = {},
     val onAppLockToggled: (Boolean) -> Unit = {},
     val onCrashReportingToggled: (Boolean) -> Unit = {},
@@ -286,7 +284,6 @@ internal fun SettingsContent(
                 .readableWidth(ContentWidth.Form)
                 .padding(bottom = 32.dp),
         ) {
-            // --- Account ---
             SettingsSection(title = stringResource(R.string.settings_demo_section)) {
                 if (state.isDemo) {
                     add { index, count ->
@@ -333,7 +330,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- FastMask Pro ---
             if (state.monetizationEnabled) {
                 SettingsSection(title = stringResource(R.string.settings_pro_section)) {
                     add { index, count ->
@@ -354,7 +350,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Appearance ---
             SettingsSection(title = stringResource(R.string.settings_appearance_section)) {
                 if (state.monetizationEnabled) {
                     add { index, count ->
@@ -406,13 +401,10 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Privacy ---
             SettingsSection(title = stringResource(R.string.settings_privacy_section)) {
                 if (state.monetizationEnabled || state.appLockEnabled) {
                     add { index, count ->
-                        // An armed lock keeps its switch even without Pro so it can
-                        // always be turned off; the "Pro" placeholder is only for an
-                        // unarmed lock.
+                        // An armed lock keeps its switch even without Pro so it can always be turned off.
                         if (isPro || state.appLockEnabled) {
                             SettingsToggleRow(
                                 index = index,
@@ -420,9 +412,8 @@ internal fun SettingsContent(
                                 label = stringResource(R.string.settings_app_lock),
                                 supporting = stringResource(R.string.settings_app_lock_description),
                                 leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
-                                // The preference alone, matching MainActivity's
-                                // gate: the switch reports the lock that is
-                                // actually armed, not the entitlement behind it.
+                                // The preference alone: the switch reports the lock that is actually
+                                // armed, not the entitlement behind it.
                                 checked = state.appLockEnabled,
                                 onCheckedChange = { enabled ->
                                     if (enabled && isPro && !canUseAppLock(context)) {
@@ -459,7 +450,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Data ---
             if (state.monetizationEnabled) {
                 SettingsSection(title = stringResource(R.string.settings_data_section)) {
                     add { index, count ->
@@ -484,7 +474,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- About ---
             SettingsSection(title = stringResource(R.string.settings_about_section)) {
                 add { index, count ->
                     SettingsRow(
@@ -521,7 +510,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- More from the maker ---
             SettingsSection(title = stringResource(R.string.more_apps_title)) {
                 MoreApps.otherThan(context.packageName).forEach { app ->
                     add { index, count ->
@@ -533,7 +521,6 @@ internal fun SettingsContent(
                             leading = { Icon(Icons.Filled.Apps, contentDescription = null) },
                             trailing = { ChevronIcon() },
                             onClick = {
-                                // Same message as the Contact row: nothing could open the link.
                                 if (!MoreApps.open(context, app.packageId)) {
                                     scope.launch { snackbarHostState.showSnackbar(noAppForLinkMessage) }
                                 }
@@ -555,8 +542,6 @@ internal fun SettingsContent(
         }
     }
 }
-
-// --- Previews ---------------------------------------------------------------
 
 @Composable
 private fun SettingsPreviewHost(state: SettingsViewState, accent: Accent = Accent.DYNAMIC) {

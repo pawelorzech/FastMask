@@ -46,8 +46,6 @@ class SettingsViewModel @Inject constructor(
     private val settingsDataStore: SettingsDataStore,
     private val proRepository: ProRepository,
     private val maskedEmailRepository: MaskedEmailRepository,
-    // Must be the injected singleton: the sign-out guard is per-instance state,
-    // so a second instance would never see the clear.
     private val exportCache: ExportCache,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val analytics: MonetizationAnalytics,
@@ -57,8 +55,6 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    // Channel-backed one-time events: buffered delivery survives windows with
-    // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
     val events: Flow<SettingsEvent> = _events.receiveAsFlow()
 
@@ -78,13 +74,7 @@ class SettingsViewModel @Inject constructor(
         initialValue = false,
     )
 
-    // --- Crash reporting (opt-out) ---
-
-    /**
-     * Seeded from storage, not from the opt-out default, so a user who opted
-     * out never sees the switch ON for the first frames. A read failure falls
-     * back to the default.
-     */
+    /** Seeded from storage, not the opt-out default, so an opted-out user never sees the switch ON for the first frames. */
     val crashReportingEnabled: StateFlow<Boolean> =
         crashReporting.enabled.stateIn(
             scope = viewModelScope,
@@ -92,11 +82,6 @@ class SettingsViewModel @Inject constructor(
             initialValue = crashReporting.enabledBlocking(),
         )
 
-    /**
-     * [CrashReporting.setEnabled] applies the SDK before persisting (so a failed
-     * write still stops collection for this session) and survives an SDK that
-     * cannot start; `QuietWriteFailure` keeps a failed write from crashing.
-     */
     fun onCrashReportingToggled(enabled: Boolean) {
         viewModelScope.launch(QuietWriteFailure) {
             crashReporting.setEnabled(enabled)
@@ -136,13 +121,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    // --- FastMask Pro ---
-
     fun onProRowClick() {
         viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = PRO_SOURCE_SETTINGS)) }
     }
 
-    /** True with Pro; otherwise records the tap on [feature] and opens the paywall. */
     private fun hasPro(feature: ProFeature): Boolean {
         if (proStatus.value.isPro) return true
         analytics.track(MonetizationEvent.PREMIUM_FEATURE_TAPPED, source = feature.source)
@@ -160,11 +142,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAccent(accent) }
     }
 
-    /**
-     * Turning the lock ON requires Pro (and a securable device — the screen
-     * checks that first); turning it OFF is always allowed so a user who loses
-     * Pro is never locked out.
-     */
     fun onAppLockToggled(enabled: Boolean) {
         if (enabled && !hasPro(ProFeature.APP_LOCK)) return
         viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAppLockEnabled(enabled) }
@@ -191,8 +168,6 @@ class SettingsViewModel @Inject constructor(
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
-            // The cache owns the order (generation, fetch, write) that keeps an export
-            // whose fetch outlived a sign-out off the disk.
             val outcome = exportCache.export(ioDispatcher) { maskedEmailRepository.getMaskedEmails() }
             when (outcome) {
                 is ExportOutcome.Written -> _events.send(SettingsEvent.ShareCsv(outcome.file))
@@ -209,7 +184,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    /** The share intent for an exported file (see [ExportCache.shareIntent]). */
     fun shareIntent(file: File): Intent = exportCache.shareIntent(file)
 }
 
@@ -225,6 +199,5 @@ sealed class SettingsEvent {
     data class OpenPro(val source: String) : SettingsEvent()
     data class ShareCsv(val file: File) : SettingsEvent()
 
-    /** @param messageRes the localized reason, already resolved by [UiErrors]. */
     data class ExportFailed(@StringRes val messageRes: Int) : SettingsEvent()
 }

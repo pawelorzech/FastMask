@@ -49,20 +49,8 @@ import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.theme.FastMaskTheme
 import kotlinx.coroutines.delay
 
-/** How long the success burst stays on screen before the content behind the gate is composed. */
 internal const val UnlockSuccessMillis = 550L
 
-/**
- * Full-screen gate shown while the biometric app lock is engaged. Content
- * behind it is never composed, so nothing sensitive can flash through.
- *
- * The cookie shape breathes (Cookie9Sided to Cookie6Sided) while idle and
- * speeds up while the system [promptActive]. On success ([unlocked]) it
- * turns into a primary burst with a check; after [UnlockSuccessMillis] it
- * calls [onUnlockedAnimationFinished], which is when the caller opens the gate.
- * The gate itself is untouched by any of this: the caller still decides when
- * content may compose.
- */
 @Composable
 fun LockScreen(
     onUnlockClick: () -> Unit,
@@ -170,7 +158,6 @@ internal fun LockContent(
         Spacer(Modifier.height(32.dp))
         val height = ButtonDefaults.MediumContainerHeight
         Button(
-            // Stays enabled during the success animation (no grey flash); the tap is ignored.
             onClick = { if (!unlocked) onUnlockClick() },
             shapes = ButtonDefaults.shapesFor(height),
             contentPadding = ButtonDefaults.contentPaddingFor(height, hasStartIcon = true),

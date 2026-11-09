@@ -168,12 +168,7 @@ internal fun WelcomeContent(
     }
 }
 
-/**
- * Three shapes that keep changing into other shapes: a big primaryContainer
- * one carrying the @ glyph, a tertiaryContainer one tucked top-right and a small
- * primary one bottom-left. Each cycles through its own sequence, staggered and
- * turning slightly. Purely decorative, so it exposes nothing to accessibility.
- */
+/** Purely decorative: exposes nothing to accessibility. */
 @Composable
 private fun WelcomeHero(modifier: Modifier = Modifier) {
     val big = remember {
@@ -249,7 +244,6 @@ private fun WelcomeHero(modifier: Modifier = Modifier) {
     }
 }
 
-/** Springs the element in from 60% size and transparent. Shown at rest in previews or with animations off. */
 @Composable
 private fun Modifier.popIn(delayMillis: Int): Modifier {
     val settled = LocalInspectionMode.current || rememberMotionReduced()

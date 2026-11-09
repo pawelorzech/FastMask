@@ -125,11 +125,9 @@ fun LoginScreen(
         onOpenTokenSettings = {
             settingsOpenFailed = !openExternalIntent(
                 context,
-                // BROWSABLE narrows the candidates to real browsers. A bare
-                // ACTION_VIEW https intent matches any component declaring that
-                // filter, and the destination is the page where the user is
-                // about to type their Fastmail password. openExternalIntent
-                // still reports a no-handler case, which the hint covers.
+                // BROWSABLE narrows the candidates to real browsers: a bare ACTION_VIEW https
+                // intent matches any component declaring that filter, and the destination is
+                // the page where the user is about to type their Fastmail password.
                 Intent(Intent.ACTION_VIEW, Uri.parse(TOKEN_SETTINGS_URL))
                     .addCategory(Intent.CATEGORY_BROWSABLE),
             )
@@ -262,7 +260,6 @@ internal fun LoginContent(
 
             val liveWarning = uiState.warningRes
             SpringVisibility(visible = liveWarning != null) {
-                // Keeps the last text on screen while the card collapses.
                 val warningRes = rememberLast(liveWarning)
                 Surface(
                     shape = MaterialTheme.shapes.medium,
@@ -370,7 +367,6 @@ private fun LoginHero() {
     )
 }
 
-/** The "How to get your API token" card. */
 @Composable
 private fun HowToCard(
     onOpenTokenSettings: () -> Unit,
@@ -477,7 +473,6 @@ private fun HowToCard(
     }
 }
 
-/** Expands/collapses [content] with the theme's spatial spring and cross-fades it with the effects spring. */
 @Composable
 private fun SpringVisibility(visible: Boolean, content: @Composable () -> Unit) {
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
@@ -491,7 +486,6 @@ private fun SpringVisibility(visible: Boolean, content: @Composable () -> Unit) 
     }
 }
 
-/** The most recent non-null [value], so an exit animation can keep drawing what just left. */
 @Composable
 private fun <T : Any> rememberLast(value: T?): T? {
     var last by remember { mutableStateOf(value) }
