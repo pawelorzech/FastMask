@@ -102,7 +102,7 @@ import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
 import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.expressive.SegmentedSurface
@@ -813,7 +813,7 @@ private fun LanguagePickerDialog(
             // heightIn, not height: at a 200% font scale a fixed box can
             // overflow the dialog on a short screen in landscape.
             Box(modifier = Modifier.heightIn(max = 360.dp)) {
-                LazyColumn(modifier = Modifier.radioButtonGroup()) {
+                LazyColumn(modifier = Modifier.selectableGroup()) {
                     item {
                         LanguageRow(
                             label = stringResource(R.string.settings_system_default),

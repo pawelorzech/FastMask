@@ -46,7 +46,7 @@ import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.domain.model.Accent
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
 import com.fastmask.ui.theme.swatchColor
@@ -68,7 +68,7 @@ internal fun ColorSwatchRow(
 ) {
     val haptic = LocalHapticFeedback.current
     FlowRow(
-        modifier = modifier.radioButtonGroup(),
+        modifier = modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

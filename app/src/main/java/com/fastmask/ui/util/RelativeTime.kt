@@ -68,6 +68,6 @@ object RelativeTime {
         .ofLocalizedDateTime(FormatStyle.MEDIUM)
         .withZone(ZoneId.systemDefault())
 
-    fun full(instant: Instant?): String =
-        instant?.let { fullFormatter.withLocale(Locale.getDefault()).format(it) } ?: "—"
+    fun full(instant: Instant): String =
+        fullFormatter.withLocale(Locale.getDefault()).format(instant)
 }
