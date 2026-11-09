@@ -1,7 +1,6 @@
 package com.fastmask.ui.create
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -38,8 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,6 +80,7 @@ import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.EnabledDisabledToggle
 import com.fastmask.ui.components.InlineErrorBanner
+import com.fastmask.ui.components.ScrollRaisedTopBar
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.theme.FastMaskTheme
@@ -139,39 +137,26 @@ internal fun CreateMaskedEmailContent(
     onReauthenticate: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val barColor by animateColorAsState(
-        targetValue = if (scrollState.value > 0) {
-            MaterialTheme.colorScheme.surfaceContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        label = "barColor",
-    )
     val closeDesc = stringResource(R.string.create_email_close)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.create_email_title),
-                            modifier = Modifier.screenHeading(),
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
-                            Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
-                )
-                // Demo mode banner (auto-hides in REAL mode). Below the app bar, which already
-                // consumed the status-bar inset, so there is no gap above the back arrow.
-                banner()
-            }
+            ScrollRaisedTopBar(
+                raised = scrollState.value > 0,
+                title = {
+                    Text(
+                        text = stringResource(R.string.create_email_title),
+                        modifier = Modifier.screenHeading(),
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
+                    }
+                },
+                banner = banner,
+            )
         },
     ) { paddingValues ->
         Column(
