@@ -9,16 +9,18 @@ class AddressWrapTest {
 
     private fun visible(s: String) = s.replace(WORD_JOINER.toString(), "").replace(ZERO_WIDTH_SPACE.toString(), "")
 
+    private fun wrapped(address: String) = addressWrapParts(address).let { it.local + it.domain }
+
     @Test
     fun `display text reads exactly like the address`() {
         listOf("sharp.flame138@fastmask.com", "my_site-x.y@fastmail.com", "nodomain").forEach {
-            assertEquals(it, visible(addressWrapText(it)))
+            assertEquals(it, visible(wrapped(it)))
         }
     }
 
     @Test
     fun `the only break opportunity is right before the at sign`() {
-        val display = addressWrapText("sharp.flame138@fastmask.com")
+        val display = wrapped("sharp.flame138@fastmask.com")
         assertEquals(1, display.count { it == ZERO_WIDTH_SPACE })
         assertEquals(ZERO_WIDTH_SPACE, display[display.indexOf('@') - 1])
         // Every punctuation mark in the local part is glued to both neighbours.
@@ -35,6 +37,6 @@ class AddressWrapTest {
         assertEquals("@x.com", parts.domain)
         assertEquals(ZERO_WIDTH_SPACE, parts.local.last())
         assertEquals("", addressWrapParts("plain").domain)
-        assertFalse(addressWrapText("plain").contains(ZERO_WIDTH_SPACE))
+        assertFalse(wrapped("plain").contains(ZERO_WIDTH_SPACE))
     }
 }

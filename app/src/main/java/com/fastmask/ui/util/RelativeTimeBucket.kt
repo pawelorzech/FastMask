@@ -1,9 +1,5 @@
 package com.fastmask.ui.util
 
-/**
- * Split out so the caller can hand the COUNT to the resource layer: a language with more
- * than one plural form needs `getQuantityString(id, count, count)`, not `getString(id, count)`.
- */
 enum class RelativeTimeUnit {
     NEVER,
     JUST_NOW,

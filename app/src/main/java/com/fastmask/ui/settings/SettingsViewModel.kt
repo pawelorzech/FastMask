@@ -21,11 +21,9 @@ import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.domain.repository.SessionRepository
-import com.fastmask.core.IoDispatcher
 import com.fastmask.core.QuietWriteFailure
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +45,6 @@ class SettingsViewModel @Inject constructor(
     private val proRepository: ProRepository,
     private val maskedEmailRepository: MaskedEmailRepository,
     private val exportCache: ExportCache,
-    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     private val analytics: MonetizationAnalytics,
     private val crashReporting: CrashReporting,
 ) : ViewModel() {
@@ -168,7 +165,7 @@ class SettingsViewModel @Inject constructor(
         if (_uiState.value.exportInFlight) return
         _uiState.update { it.copy(exportInFlight = true) }
         viewModelScope.launch {
-            val outcome = exportCache.export(ioDispatcher) { maskedEmailRepository.getMaskedEmails() }
+            val outcome = exportCache.export { maskedEmailRepository.getMaskedEmails() }
             when (outcome) {
                 is ExportOutcome.Written -> _events.send(SettingsEvent.ShareCsv(outcome.file))
                 ExportOutcome.WriteFailed -> _events.send(

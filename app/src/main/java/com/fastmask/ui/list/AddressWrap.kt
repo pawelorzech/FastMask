@@ -8,9 +8,6 @@ package com.fastmask.ui.list
  * Only for display: keep the plain address as the semantics text so TalkBack and
  * copy/search read the real address.
  */
-internal fun addressWrapText(address: String): String =
-    addressWrapParts(address).let { it.local + it.domain }
-
 internal class AddressWrapParts(val local: String, val domain: String)
 
 internal fun addressWrapParts(address: String): AddressWrapParts {

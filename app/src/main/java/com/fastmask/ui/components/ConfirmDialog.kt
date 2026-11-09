@@ -19,6 +19,7 @@ fun ConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     destructive: Boolean = true,
+    confirmHaptic: Boolean = destructive,
     icon: ImageVector? = null,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -31,7 +32,7 @@ fun ConfirmDialog(
             DialogTextButton(
                 text = confirmText,
                 onClick = {
-                    if (destructive) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    if (confirmHaptic) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     onConfirm()
                 },
                 color = if (destructive) MaterialTheme.colorScheme.error else Color.Unspecified,

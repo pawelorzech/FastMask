@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.FileProvider
+import com.fastmask.core.IoDispatcher
 import com.fastmask.domain.model.MaskCsv
 import com.fastmask.domain.model.MaskedEmail
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +30,7 @@ import javax.inject.Singleton
 @Singleton
 class ExportCache @Inject constructor(
     @ApplicationContext private val context: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     private val dir: File get() = File(context.cacheDir, EXPORTS_DIR)
@@ -39,10 +41,7 @@ class ExportCache @Inject constructor(
 
     private val guard = GenerationGuard()
 
-    suspend fun export(
-        ioDispatcher: CoroutineDispatcher,
-        fetch: suspend () -> Result<List<MaskedEmail>>,
-    ): ExportOutcome {
+    suspend fun export(fetch: suspend () -> Result<List<MaskedEmail>>): ExportOutcome {
         val generation = guard.current()
         val csv = fetch().mapCatching { masks -> MaskCsv.build(masks) }
             .getOrElse { return ExportOutcome.FetchFailed(it) }

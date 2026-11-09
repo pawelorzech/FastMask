@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.preferencesOf
 import com.fastmask.core.runSuspendCatching
 import com.fastmask.domain.crash.CrashReporter
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -84,7 +83,7 @@ class CrashReporting(
 
     /**
      * Crashlytics auto-initialises with collection on, so the stored opt-out has
-     * to be re-applied on every start. Never throws except [CancellationException]:
+     * to be re-applied on every start. Never throws except `CancellationException`:
      * the SDK throws `IllegalStateException` where `FirebaseInitProvider` never ran.
      */
     suspend fun applyAtStartup() {
@@ -118,9 +117,8 @@ class CrashReporting(
      * whatever an earlier release build left queued.
      */
     private fun applyToSdk(userEnabled: Boolean) {
-        val sdk = reporter
-        sdk.setCollectionEnabled(!isDebugBuild && userEnabled)
-        if (!userEnabled) sdk.deleteUnsentReports()
+        reporter.setCollectionEnabled(!isDebugBuild && userEnabled)
+        if (!userEnabled) reporter.deleteUnsentReports()
     }
 
     companion object {

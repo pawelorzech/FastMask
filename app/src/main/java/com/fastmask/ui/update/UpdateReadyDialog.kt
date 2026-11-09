@@ -2,16 +2,11 @@ package com.fastmask.ui.update
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.fastmask.R
-import com.fastmask.ui.components.DialogTextButton
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.theme.FastMaskTheme
 
 /**
@@ -25,24 +20,16 @@ fun UpdateReadyDialog(
     onInstall: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val haptic = LocalHapticFeedback.current
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(imageVector = Icons.Filled.SystemUpdate, contentDescription = null) },
-        title = { Text(stringResource(R.string.update_ready_title)) },
-        text = { Text(stringResource(R.string.update_ready_message)) },
-        confirmButton = {
-            DialogTextButton(
-                text = stringResource(R.string.update_ready_install),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onInstall()
-                },
-            )
-        },
-        dismissButton = {
-            DialogTextButton(text = stringResource(R.string.update_ready_later), onClick = onDismiss)
-        },
+    ConfirmDialog(
+        title = stringResource(R.string.update_ready_title),
+        message = stringResource(R.string.update_ready_message),
+        confirmText = stringResource(R.string.update_ready_install),
+        dismissText = stringResource(R.string.update_ready_later),
+        onConfirm = onInstall,
+        onDismiss = onDismiss,
+        destructive = false,
+        confirmHaptic = true,
+        icon = Icons.Filled.SystemUpdate,
     )
 }
 

@@ -60,7 +60,10 @@ class SettingsViewModelTest {
     val temp = TemporaryFolder()
 
     private val exportCache: ExportCache by lazy {
-        ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") })
+        ExportCache(
+            mockk<Context> { every { cacheDir } returns temp.newFolder("cache") },
+            mainDispatcherRule.dispatcher,
+        )
     }
 
     private val crashKey = booleanPreferencesKey("crash_reporting_enabled")
@@ -86,7 +89,6 @@ class SettingsViewModelTest {
             proRepository = proRepository,
             maskedEmailRepository = maskRepository,
             exportCache = exportCache,
-            ioDispatcher = mainDispatcherRule.dispatcher,
             analytics = analytics,
             crashReporting = CrashReporting(
                 dataStore = crashStore,

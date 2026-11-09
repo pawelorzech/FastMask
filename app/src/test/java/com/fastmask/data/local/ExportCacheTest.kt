@@ -32,11 +32,11 @@ class ExportCacheTest {
         val cacheDir = temp.newFolder("cache")
         val context = mockk<Context>()
         every { context.cacheDir } returns cacheDir
-        return ExportCache(context) to File(cacheDir, "exports")
+        return ExportCache(context, Dispatchers.Unconfined) to File(cacheDir, "exports")
     }
 
     private suspend fun ExportCache.exportMasks(vararg ids: String): ExportOutcome =
-        export(Dispatchers.Unconfined) { Result.success(ids.map { mask(it) }) }
+        export { Result.success(ids.map { mask(it) }) }
 
     @Test
     fun `export writes a timestamped csv with the fetched masks`() = runBlocking {
@@ -133,7 +133,7 @@ class ExportCacheTest {
     fun `a sign-out during the fetch abandons the write`() = runBlocking {
         val (cache, dir) = cache()
 
-        val outcome = cache.export(Dispatchers.Unconfined) {
+        val outcome = cache.export {
             cache.clear() // the sign-out lands while the fetch is still in flight
             Result.success(listOf(mask("a")))
         }
@@ -159,7 +159,7 @@ class ExportCacheTest {
         val (cache, dir) = cache()
         val boom = RuntimeException("boom")
 
-        val outcome = cache.export(Dispatchers.Unconfined) { Result.failure(boom) }
+        val outcome = cache.export { Result.failure(boom) }
 
         assertEquals(ExportOutcome.FetchFailed(boom), outcome)
         assertEquals(0, dir.listFiles()?.size ?: 0)

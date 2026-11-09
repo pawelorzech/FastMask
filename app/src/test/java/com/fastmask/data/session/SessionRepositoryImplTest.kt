@@ -55,12 +55,12 @@ class SessionRepositoryImplTest {
     private val demoRepository = DemoMaskedEmailRepositoryImpl()
 
     private val exportCache: ExportCache by lazy {
-        ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") })
+        ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") }, Dispatchers.Unconfined)
     }
 
     /** An export of the previous account's masks, written the way the app writes one. */
     private suspend fun writeExport(): File =
-        (exportCache.export(Dispatchers.Unconfined) { Result.success(emptyList()) } as ExportOutcome.Written).file
+        (exportCache.export { Result.success(emptyList()) } as ExportOutcome.Written).file
 
     private fun repository() = SessionRepositoryImpl(
         tokenStorage = tokenStorage,
