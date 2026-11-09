@@ -137,7 +137,7 @@ internal fun CreateMaskedEmailContent(
     onReauthenticate: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val closeDesc = stringResource(R.string.create_email_close)
+    val closeDesc = stringResource(R.string.action_close)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -434,6 +434,6 @@ private fun CreateLoadingPreview() = PreviewHost(
 private fun CreateErrorPreview() = PreviewHost(
     CreateMaskedEmailUiState(
         emailPrefix = "mysite",
-        error = UiError(R.string.create_email_error_failed, UiErrorAction.NONE),
+        error = UiError(R.string.error_create_mask, UiErrorAction.NONE),
     ),
 )

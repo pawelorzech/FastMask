@@ -46,9 +46,10 @@ import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 
 /*
- * The pieces the create form and the detail editor share. Labels stay
- * parameters: each screen has its own string resources, and the screens differ
- * in field order, so the focus chain is wired at the call site via `onNext`.
+ * The pieces the create form and the detail editor share. Placeholders are
+ * shared strings (`mask_field_*_placeholder`); labels stay parameters because
+ * each screen has its own, and the screens differ in field order, so the focus
+ * chain is wired at the call site via `onNext`.
  */
 
 /**
@@ -102,7 +103,7 @@ fun MaskDescriptionField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_description_placeholder),
+    placeholder = stringResource(R.string.mask_field_description_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
     keyboardActions = KeyboardActions(onNext = { onNext() }),
@@ -121,7 +122,7 @@ fun MaskDomainField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_domain_placeholder),
+    placeholder = stringResource(R.string.mask_field_domain_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
     keyboardActions = KeyboardActions(onNext = { onNext() }),
@@ -140,7 +141,7 @@ fun MaskUrlField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_url_placeholder),
+    placeholder = stringResource(R.string.mask_field_url_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
     modifier = modifier,

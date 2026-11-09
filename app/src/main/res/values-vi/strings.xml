@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Quản lý Email ẩn danh Fastmail</string>
     <string name="login_api_token_label">Mã API</string>
     <string name="login_api_token_placeholder">Nhập mã API Fastmail của bạn</string>
     <string name="login_paste_button">Dán</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. Nhấp vào Tích hợp > Mã API</string>
     <string name="login_instructions_step4">4. Tạo mã mới với phạm vi \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Sao chép mã và dán ở trên</string>
-    <string name="login_instructions_full">1. Đăng nhập vào ứng dụng web Fastmail\n2. Vào Cài đặt > Quyền riêng tư &amp; Bảo mật\n3. Nhấp vào Tích hợp > Mã API\n4. Tạo mã mới với phạm vi \"Masked Email\"\n5. Sao chép mã và dán ở trên</string>
     <string name="login_open_token_settings">Mở cài đặt mã API Fastmail</string>
     <string name="login_error_missing_scope_action">Mở cài đặt mã Fastmail</string>
     <string name="login_paste_empty">Không có gì để dán — hãy sao chép mã của bạn trong Fastmail trước.</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">Email ẩn danh</string>
     <string name="email_list_search_placeholder">Tìm kiếm email…</string>
     <string name="email_list_clear_search">Xóa tìm kiếm</string>
-    <string name="email_list_filter_emails">Lọc email</string>
     <string name="email_list_create_fab">Tạo mới</string>
     <string name="email_list_create_description">Tạo email ẩn danh mới</string>
     <string name="email_list_empty">Không tìm thấy email ẩn danh</string>
-    <string name="email_list_logout">Đăng xuất</string>
     <string name="email_list_settings">Cài đặt</string>
     <string name="filter_all">Tất cả</string>
     <string name="filter_enabled">Đang hoạt động</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">vd: trangweb_muasam</string>
     <string name="create_email_prefix_hint">Tối đa 64 ký tự: chữ thường, số, gạch dưới</string>
     <string name="create_email_domain_label">Tên miền liên kết (tùy chọn)</string>
-    <string name="create_email_domain_placeholder">vd: example.com</string>
+    <string name="mask_field_domain_placeholder">vd: example.com</string>
     <string name="create_email_description_label">Mô tả (tùy chọn)</string>
-    <string name="create_email_description_placeholder">vd: Tài khoản mua sắm</string>
+    <string name="mask_field_description_placeholder">vd: Tài khoản mua sắm</string>
     <string name="create_email_url_label">URL (tùy chọn)</string>
-    <string name="create_email_url_placeholder">vd: https://example.com</string>
+    <string name="mask_field_url_placeholder">vd: https://example.com</string>
     <string name="create_email_initial_state">Trạng thái ban đầu</string>
     <string name="create_email_button">Tạo email ẩn danh</string>
     <string name="create_email_created">Đã tạo: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">Quay lại</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">Chi tiết email</string>
     <string name="email_detail_copy_email">Sao chép địa chỉ email</string>
     <string name="email_detail_delete">Lưu trữ mặt nạ</string>
     <string name="email_detail_status">Trạng thái:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">Ngày tạo</string>
     <string name="email_detail_last_message">Tin nhắn cuối</string>
     <string name="email_detail_enable">Bật</string>
-    <string name="email_detail_disable">Tắt</string>
     <string name="email_detail_edit_title">Chỉnh sửa chi tiết</string>
     <string name="email_detail_description_label">Mô tả</string>
     <string name="email_detail_domain_label">Tên miền liên kết</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Lưu thay đổi</string>
     <string name="email_detail_updated">Cập nhật thành công</string>
-    <string name="email_detail_deleted">Đã lưu trữ</string>
     <string name="email_detail_copied">Đã sao chép vào clipboard</string>
     <string name="email_detail_delete_dialog_title">Lưu trữ mặt nạ này?</string>
     <string name="email_detail_delete_dialog_message">Thư gửi tới địa chỉ này sẽ bị trả lại. Bạn có thể khôi phục mặt nạ sau.</string>
     <string name="email_detail_delete_confirm">Lưu trữ</string>
-    <string name="email_detail_delete_cancel">Hủy</string>
 
     <!-- Email States -->
     <string name="state_enabled">Đang hoạt động</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">Cài đặt</string>
     <string name="settings_language">Ngôn ngữ</string>
-    <string name="settings_language_description">Chọn ngôn ngữ ứng dụng</string>
     <string name="settings_system_default">Mặc định hệ thống</string>
     <string name="settings_contact">Liên hệ &amp; Phản hồi</string>
     <string name="settings_contact_description">Gửi phản hồi cho chúng tôi</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Login and Welcome Screens -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">Một nơi yên tĩnh cho thư điện tử ẩn danh</string>
     <string name="login_hero_accent">thư điện tử ẩn danh</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">Không thể đăng nhập</string>
     <string name="email_list_empty_sub">Tạo một email ẩn danh để định tuyến thư mà không chia sẻ địa chỉ thực của bạn.</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">Không thể tải email ẩn danh</string>
-    <string name="create_email_subtitle">Cấu hình địa chỉ email ẩn danh mới</string>
     <string name="create_email_preview_label">Xem trước</string>
     <string name="create_email_preview_random">ngẫu nhiên</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">Không thể tạo email ẩn danh</string>
+    <string name="error_create_mask">Không thể tạo email ẩn danh</string>
     <string name="email_detail_error_load">Không thể tải email ẩn danh này</string>
-    <string name="email_detail_error_update">Không thể cập nhật</string>
+    <string name="error_update_mask">Không thể cập nhật</string>
     <string name="email_detail_error_save">Không thể lưu thay đổi</string>
     <string name="email_detail_error_delete">Không thể lưu trữ</string>
     <string name="time_never">không bao giờ</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">Hoàn tác</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">Hỗ trợ mã nguồn mở</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Một lần mua nhỏ hỗ trợ một ứng dụng độc lập và mã nguồn mở — và mở khóa các tính năng bổ sung.</string>
     <string name="pro_feature_accents_title">Chủ đề màu</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro đã mở khóa. Cảm ơn!</string>
     <string name="pro_purchase_pending">Thanh toán đang chờ xử lý — Pro sẽ mở khóa khi hoàn tất. Thường mất vài phút, một số phương thức thanh toán có thể mất tới một ngày.</string>
     <string name="action_ok">OK</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="action_close">Đóng</string>
     <string name="pro_purchase_cancelled">Hủy mua hàng.</string>
     <string name="pro_purchase_failed">Có điều gì đó không đúng. Bạn chưa bị tính phí.</string>
     <string name="pro_billing_unavailable">Thanh toán Google Play không khả dụng trên thiết bị này.</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">Mở khóa màu sắc, khóa ứng dụng và xuất</string>
     <string name="settings_pro_value_active">Đang hoạt động — cảm ơn!</string>
     <string name="settings_accent">Màu sắc</string>
-    <string name="settings_accent_locked">Một tính năng FastMask Pro</string>
+    <string name="pro_feature_locked">Một tính năng FastMask Pro</string>
     <string name="accent_amber">Vàng hổ phách</string>
     <string name="accent_ink">Mực đen</string>
     <string name="accent_sage">Xanh lá cây</string>

@@ -219,7 +219,7 @@ class QuickMaskRunner @Inject constructor(
 
     /** The one place a quick-create throwable becomes a localized message. */
     private fun notifyFailure(throwable: Throwable?) {
-        notifier.showFailure(UiErrors.messageRes(throwable, R.string.create_email_error_failed))
+        notifier.showFailure(UiErrors.messageRes(throwable, R.string.error_create_mask))
     }
 
     private companion object {

@@ -187,7 +187,7 @@ internal fun SettingsContent(
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
 
-    val colorsLockedMessage = stringResource(R.string.settings_accent_locked)
+    val colorsLockedMessage = stringResource(R.string.pro_feature_locked)
     val unlockLabel = stringResource(R.string.settings_colors_unlock)
     val noAppForLinkMessage = stringResource(R.string.error_no_app_for_link)
     val feedbackSubject = stringResource(R.string.settings_feedback_subject)
@@ -211,7 +211,7 @@ internal fun SettingsContent(
             title = stringResource(R.string.settings_export_title),
             message = stringResource(R.string.settings_export_confirm_message),
             confirmText = stringResource(R.string.settings_export_title),
-            dismissText = stringResource(R.string.email_detail_delete_cancel),
+            dismissText = stringResource(R.string.action_cancel),
             onConfirm = callbacks.onExportConfirmed,
             onDismiss = callbacks.onExportDismissed,
             destructive = false,
@@ -228,7 +228,7 @@ internal fun SettingsContent(
             title = stringResource(R.string.logout_confirm_title),
             message = stringResource(R.string.logout_confirm_message),
             confirmText = stringResource(R.string.settings_logout),
-            dismissText = stringResource(R.string.email_detail_delete_cancel),
+            dismissText = stringResource(R.string.action_cancel),
             onConfirm = {
                 showLogoutDialog = false
                 callbacks.onSignOut()
@@ -437,7 +437,7 @@ internal fun SettingsContent(
                                 index = index,
                                 count = count,
                                 label = stringResource(R.string.settings_app_lock),
-                                supporting = stringResource(R.string.settings_accent_locked),
+                                supporting = stringResource(R.string.pro_feature_locked),
                                 leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
                                 trailing = { Icon(Icons.Filled.Lock, contentDescription = null) },
                                 onClick = { callbacks.onAppLockToggled(true) },
@@ -470,7 +470,7 @@ internal fun SettingsContent(
                             supporting = if (isPro) {
                                 stringResource(R.string.settings_export_description)
                             } else {
-                                stringResource(R.string.settings_accent_locked)
+                                stringResource(R.string.pro_feature_locked)
                             },
                             leading = { Icon(ProFeature.EXPORT.style.icon, contentDescription = null) },
                             trailing = {

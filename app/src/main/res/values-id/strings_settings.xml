@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_colors_unlock">Buka</string>
-    <string name="pro_close">Tutup</string>
     <string name="pro_done">Selesai</string>
     <string name="settings_appearance_section">Tampilan</string>
     <string name="settings_privacy_section">Privasi</string>

@@ -90,7 +90,7 @@ internal fun LicensesDialog(onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            DialogTextButton(text = stringResource(R.string.pro_close), onClick = onDismiss)
+            DialogTextButton(text = stringResource(R.string.action_close), onClick = onDismiss)
         },
     )
 }

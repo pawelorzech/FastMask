@@ -60,7 +60,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     _uiState.update { it.copy(isCreatingRandom = false) }
                     _events.send(
                         MaskedEmailListEvent.RandomFailed(
-                            UiErrors.messageRes(error, R.string.create_email_error_failed),
+                            UiErrors.messageRes(error, R.string.error_create_mask),
                         ),
                     )
                 },
@@ -95,7 +95,7 @@ class MaskedEmailListViewModel @Inject constructor(
                     // Undo silently "succeeding" while the mask stays archived
                     // is worse than an error banner — surface it.
                     _uiState.update {
-                        it.copy(error = UiErrors.of(error, R.string.email_detail_error_update, UiErrorAction.RETRY))
+                        it.copy(error = UiErrors.of(error, R.string.error_update_mask, UiErrorAction.RETRY))
                     }
                 }
         }

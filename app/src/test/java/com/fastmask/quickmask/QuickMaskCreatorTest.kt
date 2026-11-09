@@ -103,7 +103,7 @@ class QuickMaskCreatorTest {
     }
 
     private fun messageFor(result: QuickMaskResult): Int =
-        UiErrors.messageRes(failureCause(result), R.string.create_email_error_failed)
+        UiErrors.messageRes(failureCause(result), R.string.error_create_mask)
 
     @Test
     fun `network failure reports the network message and no address`() = runTest {
@@ -142,7 +142,7 @@ class QuickMaskCreatorTest {
     fun `an unrecognized failure falls back to the create error message`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = IllegalStateException("boom"))
 
-        assertEquals(R.string.create_email_error_failed, messageFor(creator(repo = repo).create()))
+        assertEquals(R.string.error_create_mask, messageFor(creator(repo = repo).create()))
     }
 
     // --- undo ---------------------------------------------------------------

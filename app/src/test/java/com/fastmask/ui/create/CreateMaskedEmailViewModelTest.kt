@@ -166,7 +166,7 @@ class CreateMaskedEmailViewModelTest {
         viewModel.create()
         advanceUntilIdle()
         assertEquals(
-            UiError(R.string.create_email_error_failed, UiErrorAction.NONE),
+            UiError(R.string.error_create_mask, UiErrorAction.NONE),
             viewModel.uiState.value.error,
         )
     }

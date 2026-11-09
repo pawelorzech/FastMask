@@ -216,7 +216,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            error = UiErrors.of(error, R.string.email_detail_error_update)
+                            error = UiErrors.of(error, R.string.error_update_mask)
                         )
                     }
                 }

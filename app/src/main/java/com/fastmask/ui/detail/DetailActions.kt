@@ -127,7 +127,7 @@ internal fun EditActions(
     modifier: Modifier = Modifier,
 ) {
     val height = ButtonDefaults.MediumContainerHeight
-    val cancelText = stringResource(R.string.email_detail_delete_cancel)
+    val cancelText = stringResource(R.string.action_cancel)
     val saveText = stringResource(R.string.email_detail_save)
     val workingDesc = stringResource(R.string.state_working)
     ButtonGroup(

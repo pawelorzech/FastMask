@@ -105,7 +105,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = UiErrors.of(error, R.string.create_email_error_failed)
+                            error = UiErrors.of(error, R.string.error_create_mask)
                         )
                     }
                 }

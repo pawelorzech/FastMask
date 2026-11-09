@@ -85,7 +85,7 @@ class ListErrorRecoverySemanticsTest {
         compose.setContent {
             FastMaskTheme {
                 InlineErrorBanner(
-                    error = UiError(R.string.create_email_error_failed, UiErrorAction.NONE),
+                    error = UiError(R.string.error_create_mask, UiErrorAction.NONE),
                     onRetry = null,
                     onReauthenticate = {},
                 )

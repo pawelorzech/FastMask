@@ -148,7 +148,7 @@ internal fun ProContent(
     val motion = MaterialTheme.motionScheme
     val owned = state.status == ProStatus.PRO
     val scroll = rememberScrollState()
-    val closeDesc = stringResource(R.string.pro_close)
+    val closeDesc = stringResource(R.string.action_close)
     val area = state.purchaseArea
 
     val showBarTitle = scroll.value > 220

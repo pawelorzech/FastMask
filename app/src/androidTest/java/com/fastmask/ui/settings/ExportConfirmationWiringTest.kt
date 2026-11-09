@@ -103,7 +103,7 @@ class ExportConfirmationWiringTest {
     fun cancellingTheDialogCallsDismissOnly() {
         show(showConfirmation = true)
 
-        compose.onNodeWithText(string(R.string.email_detail_delete_cancel)).performClick()
+        compose.onNodeWithText(string(R.string.action_cancel)).performClick()
 
         assertEquals(1, dismissed)
         assertEquals(0, confirmed)

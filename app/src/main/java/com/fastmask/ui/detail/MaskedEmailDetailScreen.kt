@@ -122,7 +122,7 @@ fun MaskedEmailDetailScreen(
             title = stringResource(R.string.email_detail_delete_dialog_title),
             message = stringResource(R.string.email_detail_delete_dialog_message),
             confirmText = stringResource(R.string.email_detail_delete_confirm),
-            dismissText = stringResource(R.string.email_detail_delete_cancel),
+            dismissText = stringResource(R.string.action_cancel),
             onConfirm = {
                 showArchiveDialog = false
                 viewModel.delete()

@@ -116,7 +116,7 @@ internal fun LanguagePickerDialog(
         },
         confirmButton = {
             DialogTextButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
+                text = stringResource(R.string.action_cancel),
                 onClick = onDismiss,
             )
         },

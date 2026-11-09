@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Fastmail मास्क्ड ईमेल प्रबंधक</string>
     <string name="login_api_token_label">API टोकन</string>
     <string name="login_api_token_placeholder">अपना Fastmail API टोकन दर्ज करें</string>
     <string name="login_paste_button">पेस्ट करें</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. इंटीग्रेशन > API टोकन पर क्लिक करें</string>
     <string name="login_instructions_step4">4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं</string>
     <string name="login_instructions_step5">5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
-    <string name="login_instructions_full">1. Fastmail वेब ऐप में लॉग इन करें\n2. सेटिंग्स > गोपनीयता और सुरक्षा पर जाएं\n3. इंटीग्रेशन > API टोकन पर क्लिक करें\n4. \"Masked Email\" स्कोप के साथ एक नया टोकन बनाएं\n5. टोकन कॉपी करें और ऊपर पेस्ट करें</string>
     <string name="login_open_token_settings">Fastmail टोकन सेटिंग्स खोलें</string>
     <string name="login_error_missing_scope_action">Fastmail टोकन सेटिंग्स खोलें</string>
     <string name="login_paste_empty">पेस्ट करने के लिए कुछ नहीं है — पहले Fastmail में अपना टोकन कॉपी करें।</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">मास्क्ड ईमेल</string>
     <string name="email_list_search_placeholder">ईमेल खोजें…</string>
     <string name="email_list_clear_search">खोज साफ़ करें</string>
-    <string name="email_list_filter_emails">ईमेल फ़िल्टर करें</string>
     <string name="email_list_create_fab">बनाएं</string>
     <string name="email_list_create_description">नया मास्क्ड ईमेल बनाएं</string>
     <string name="email_list_empty">कोई मास्क्ड ईमेल नहीं मिला</string>
-    <string name="email_list_logout">लॉग आउट</string>
     <string name="email_list_settings">सेटिंग्स</string>
     <string name="filter_all">सभी</string>
     <string name="filter_enabled">सक्षम</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">जैसे, mysite_shopping</string>
     <string name="create_email_prefix_hint">अधिकतम 64 अक्षर: छोटे अक्षर, संख्याएं, अंडरस्कोर</string>
     <string name="create_email_domain_label">संबंधित डोमेन (वैकल्पिक)</string>
-    <string name="create_email_domain_placeholder">जैसे, example.com</string>
+    <string name="mask_field_domain_placeholder">जैसे, example.com</string>
     <string name="create_email_description_label">विवरण (वैकल्पिक)</string>
-    <string name="create_email_description_placeholder">जैसे, शॉपिंग अकाउंट</string>
+    <string name="mask_field_description_placeholder">जैसे, शॉपिंग अकाउंट</string>
     <string name="create_email_url_label">URL (वैकल्पिक)</string>
-    <string name="create_email_url_placeholder">जैसे, https://example.com</string>
+    <string name="mask_field_url_placeholder">जैसे, https://example.com</string>
     <string name="create_email_initial_state">प्रारंभिक स्थिति</string>
     <string name="create_email_button">मास्क्ड ईमेल बनाएं</string>
     <string name="create_email_created">बनाया गया: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">वापस जाएं</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">ईमेल विवरण</string>
     <string name="email_detail_copy_email">ईमेल पता कॉपी करें</string>
     <string name="email_detail_delete">मास्क संग्रहीत करें</string>
     <string name="email_detail_status">स्थिति:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">बनाया गया</string>
     <string name="email_detail_last_message">अंतिम संदेश</string>
     <string name="email_detail_enable">सक्षम करें</string>
-    <string name="email_detail_disable">अक्षम करें</string>
     <string name="email_detail_edit_title">विवरण संपादित करें</string>
     <string name="email_detail_description_label">विवरण</string>
     <string name="email_detail_domain_label">संबंधित डोमेन</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">परिवर्तन सहेजें</string>
     <string name="email_detail_updated">सफलतापूर्वक अपडेट किया गया</string>
-    <string name="email_detail_deleted">संग्रहीत किया गया</string>
     <string name="email_detail_copied">क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="email_detail_delete_dialog_title">इस मास्क को संग्रहीत करें?</string>
     <string name="email_detail_delete_dialog_message">इस पते पर भेजे गए ईमेल वापस लौट जाएंगे। आप मास्क को बाद में पुनर्स्थापित कर सकते हैं।</string>
     <string name="email_detail_delete_confirm">संग्रहीत करें</string>
-    <string name="email_detail_delete_cancel">रद्द करें</string>
 
     <!-- Email States -->
     <string name="state_enabled">सक्षम</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">सेटिंग्स</string>
     <string name="settings_language">भाषा</string>
-    <string name="settings_language_description">ऐप की भाषा चुनें</string>
     <string name="settings_system_default">सिस्टम डिफ़ॉल्ट</string>
     <string name="settings_contact">संपर्क और फ़ीडबैक</string>
     <string name="settings_contact_description">हमें अपना फ़ीडबैक भेजें</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- Login Screen - Additional -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">एक शांत जगह मास्क्ड ईमेल के लिए</string>
     <string name="login_hero_accent">मास्क्ड ईमेल के लिए</string>
     <string name="login_hero_suffix">।</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">लॉगिन विफल</string>
     <string name="email_list_empty_sub">अपना वास्तविक पता साझा किए बिना मेल रूट करने के लिए एक मास्क बनाएं।</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">मास्क लोड नहीं किए जा सके</string>
-    <string name="create_email_subtitle">नया मास्क्ड पता कॉन्फ़िगर करें</string>
     <string name="create_email_preview_label">पूर्वावलोकन</string>
     <string name="create_email_preview_random">यादृच्छिक</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">मास्क नहीं बनाया जा सका</string>
+    <string name="error_create_mask">मास्क नहीं बनाया जा सका</string>
     <string name="email_detail_error_load">यह मास्क लोड नहीं किया जा सका</string>
-    <string name="email_detail_error_update">अपडेट नहीं किया जा सका</string>
+    <string name="error_update_mask">अपडेट नहीं किया जा सका</string>
     <string name="email_detail_error_save">परिवर्तन सहेजे नहीं जा सके</string>
     <string name="email_detail_error_delete">आर्काइव नहीं किया जा सका</string>
     <string name="time_never">कभी नहीं</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">पूर्ववत् करें</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">ओपन सोर्स का समर्थन करें</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">एक छोटी खरीदारी एक स्वतंत्र, ओपन-सोर्स ऐप का समर्थन करती है — और अतिरिक्त सुविधाओं को अनलॉक करती है।</string>
     <string name="pro_feature_accents_title">रंग थीम</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro अनलॉक किया गया। धन्यवाद!</string>
     <string name="pro_purchase_pending">भुगतान लंबित है — पूरा होते ही Pro अनलॉक हो जाएगा। आमतौर पर इसमें कुछ मिनट लगते हैं, कुछ भुगतान विधियों में एक दिन तक लग सकता है।</string>
     <string name="action_ok">ठीक है</string>
+    <string name="action_cancel">रद्द करें</string>
+    <string name="action_close">बंद करें</string>
     <string name="pro_purchase_cancelled">खरीद रद्द किया गया।</string>
     <string name="pro_purchase_failed">कुछ गलत हुआ। आप पर कोई शुल्क नहीं लगाया गया।</string>
     <string name="pro_billing_unavailable">इस डिवाइस पर Google Play बिलिंग उपलब्ध नहीं है।</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">रंग, ऐप लॉक और निर्यात अनलॉक करें</string>
     <string name="settings_pro_value_active">सक्रिय — धन्यवाद!</string>
     <string name="settings_accent">रंग</string>
-    <string name="settings_accent_locked">एक FastMask Pro सुविधा</string>
+    <string name="pro_feature_locked">एक FastMask Pro सुविधा</string>
     <string name="accent_amber">सुनहरा</string>
     <string name="accent_ink">स्याही</string>
     <string name="accent_sage">ऋषि</string>

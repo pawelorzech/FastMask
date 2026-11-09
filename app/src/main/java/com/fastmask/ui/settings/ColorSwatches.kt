@@ -128,7 +128,7 @@ private fun ColorSwatch(
     val morph = remember(accent) { Morph(accent.style.shape, MaterialShapes.Sunny) }
 
     val name = stringResource(accent.style.nameRes)
-    val lockedText = stringResource(R.string.settings_accent_locked)
+    val lockedText = stringResource(R.string.pro_feature_locked)
     val scheme = MaterialTheme.colorScheme
     val dark = isSystemInDarkTheme()
 

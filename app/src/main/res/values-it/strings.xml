@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Gestore email mascherate di Fastmail</string>
     <string name="login_api_token_label">Token API</string>
     <string name="login_api_token_placeholder">Inserisci il tuo token API Fastmail</string>
     <string name="login_paste_button">Incolla</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. Clicca su Integrazioni > Token API</string>
     <string name="login_instructions_step4">4. Crea un nuovo token con ambito \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Copia il token e incollalo sopra</string>
-    <string name="login_instructions_full">1. Accedi all\'app web di Fastmail\n2. Vai su Impostazioni > Privacy e Sicurezza\n3. Clicca su Integrazioni > Token API\n4. Crea un nuovo token con ambito \"Masked Email\"\n5. Copia il token e incollalo sopra</string>
     <string name="login_open_token_settings">Apri le impostazioni dei token Fastmail</string>
     <string name="login_error_missing_scope_action">Apri impostazioni token Fastmail</string>
     <string name="login_paste_empty">Non c\'è nulla da incollare: copia prima il tuo token in Fastmail.</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">Email mascherate</string>
     <string name="email_list_search_placeholder">Cerca email…</string>
     <string name="email_list_clear_search">Cancella ricerca</string>
-    <string name="email_list_filter_emails">Filtra email</string>
     <string name="email_list_create_fab">Crea</string>
     <string name="email_list_create_description">Crea nuova email mascherata</string>
     <string name="email_list_empty">Nessuna email mascherata trovata</string>
-    <string name="email_list_logout">Esci</string>
     <string name="email_list_settings">Impostazioni</string>
     <string name="filter_all">Tutte</string>
     <string name="filter_enabled">Attive</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">es. miosito_acquisti</string>
     <string name="create_email_prefix_hint">Max 64 caratteri: lettere minuscole, numeri, trattini bassi</string>
     <string name="create_email_domain_label">Dominio associato (opzionale)</string>
-    <string name="create_email_domain_placeholder">es. esempio.it</string>
+    <string name="mask_field_domain_placeholder">es. esempio.it</string>
     <string name="create_email_description_label">Descrizione (opzionale)</string>
-    <string name="create_email_description_placeholder">es. Account acquisti</string>
+    <string name="mask_field_description_placeholder">es. Account acquisti</string>
     <string name="create_email_url_label">URL (opzionale)</string>
-    <string name="create_email_url_placeholder">es. https://esempio.it</string>
+    <string name="mask_field_url_placeholder">es. https://esempio.it</string>
     <string name="create_email_initial_state">Stato iniziale</string>
     <string name="create_email_button">Crea email mascherata</string>
     <string name="create_email_created">Creata: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">Indietro</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">Dettagli email</string>
     <string name="email_detail_copy_email">Copia indirizzo email</string>
     <string name="email_detail_delete">Archivia maschera</string>
     <string name="email_detail_status">Stato:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">Creata</string>
     <string name="email_detail_last_message">Ultimo messaggio</string>
     <string name="email_detail_enable">Attiva</string>
-    <string name="email_detail_disable">Disattiva</string>
     <string name="email_detail_edit_title">Modifica dettagli</string>
     <string name="email_detail_description_label">Descrizione</string>
     <string name="email_detail_domain_label">Dominio associato</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Salva modifiche</string>
     <string name="email_detail_updated">Aggiornato con successo</string>
-    <string name="email_detail_deleted">Archiviata</string>
     <string name="email_detail_copied">Copiato negli appunti</string>
     <string name="email_detail_delete_dialog_title">Archiviare questa maschera?</string>
     <string name="email_detail_delete_dialog_message">La posta inviata a questo indirizzo verrà respinta. Potrai ripristinarla in seguito.</string>
     <string name="email_detail_delete_confirm">Archivia</string>
-    <string name="email_detail_delete_cancel">Annulla</string>
 
     <!-- Email States -->
     <string name="state_enabled">Attiva</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">Impostazioni</string>
     <string name="settings_language">Lingua</string>
-    <string name="settings_language_description">Seleziona la lingua dell\'app</string>
     <string name="settings_system_default">Predefinito di sistema</string>
     <string name="settings_contact">Contatto e feedback</string>
     <string name="settings_contact_description">Inviaci il tuo feedback</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Keys (Login/Welcome/Intro) -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">Un posto tranquillo per email mascherate</string>
     <string name="login_hero_accent">email mascherate</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">Accesso non riuscito</string>
     <string name="email_list_empty_sub">Crea una maschera per instradare la posta senza condividere il tuo indirizzo reale.</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">Impossibile caricare le maschere</string>
-    <string name="create_email_subtitle">Configura un nuovo indirizzo mascherato</string>
     <string name="create_email_preview_label">Anteprima</string>
     <string name="create_email_preview_random">casuale</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">Impossibile creare la maschera</string>
+    <string name="error_create_mask">Impossibile creare la maschera</string>
     <string name="email_detail_error_load">Impossibile caricare questa maschera</string>
-    <string name="email_detail_error_update">Impossibile aggiornare</string>
+    <string name="error_update_mask">Impossibile aggiornare</string>
     <string name="email_detail_error_save">Impossibile salvare le modifiche</string>
     <string name="email_detail_error_delete">Impossibile archiviare</string>
     <string name="time_never">mai</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">Annulla</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">Sostieni l\'open source</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Un piccolo acquisto sostiene un\'app indipendente e open source — e sblocca i contenuti extra.</string>
     <string name="pro_feature_accents_title">Temi di colore</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro sbloccato. Grazie!</string>
     <string name="pro_purchase_pending">Pagamento in sospeso: Pro si sbloccherà al completamento. Di solito richiede pochi minuti, con alcuni metodi di pagamento fino a un giorno.</string>
     <string name="action_ok">OK</string>
+    <string name="action_cancel">Annulla</string>
+    <string name="action_close">Chiudi</string>
     <string name="pro_purchase_cancelled">Acquisto annullato.</string>
     <string name="pro_purchase_failed">Qualcosa è andato storto. Non ti è stato addebitato nulla.</string>
     <string name="pro_billing_unavailable">La fatturazione di Google Play non è disponibile su questo dispositivo.</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">Sblocca colori, blocco app ed esportazione</string>
     <string name="settings_pro_value_active">Attivo — grazie!</string>
     <string name="settings_accent">Colori</string>
-    <string name="settings_accent_locked">Una funzione di FastMask Pro</string>
+    <string name="pro_feature_locked">Una funzione di FastMask Pro</string>
     <string name="accent_amber">Ambra</string>
     <string name="accent_ink">Inchiostro</string>
     <string name="accent_sage">Salvia</string>
