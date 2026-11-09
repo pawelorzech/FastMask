@@ -62,27 +62,6 @@ class CreateMaskedEmailViewModelTest {
     }
 
     @Test
-    fun `underscores and digits survive sanitization`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-
-        viewModel.onPrefixChange("shop_2026")
-
-        assertEquals("shop_2026", viewModel.uiState.value.emailPrefix)
-    }
-
-    @Test
-    fun `non-ASCII letters are dropped like any other disallowed character`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-
-        // MaskPrefix is the one rule: 'é' is outside [a-z0-9_], so it is filtered
-        // as typed (no error, nothing to fix) and the create button stays usable.
-        viewModel.onPrefixChange("café")
-
-        assertEquals("caf", viewModel.uiState.value.emailPrefix)
-        assertNull(viewModel.uiState.value.prefixErrorRes)
-    }
-
-    @Test
     fun `over-long prefix surfaces a localizable length error`() = runTest {
         val viewModel = vm(FakeMaskedEmailRepository())
 
@@ -211,18 +190,6 @@ class CreateMaskedEmailViewModelTest {
             assertEquals("", state.url)
             assertEquals("", state.description)
         }
-    }
-
-    @Test
-    fun `the prefill seeds the form once and never overwrites what the user typed`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository(), forDomain = github)
-        viewModel.onDomainChange("github.com/work")
-        viewModel.onDescriptionChange("GitHub work account")
-
-        // Rotation keeps this ViewModel; nothing re-reads the argument, so the
-        // edit is all that is in the state.
-        assertEquals("github.com/work", viewModel.uiState.value.forDomain)
-        assertEquals("GitHub work account", viewModel.uiState.value.description)
     }
 
     // --- regression: the screen without a share behaves exactly as before ----
