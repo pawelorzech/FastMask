@@ -62,11 +62,6 @@ import com.fastmask.ui.theme.FastMaskTheme
 data class TutorialStep(
     val title: String,
     val description: String,
-    /**
-     * Target rectangle in root coordinates. If `null`, the step shows the
-     * scrim with no cutout (a plain modal) — used for steps that don't have
-     * a single UI element to highlight.
-     */
     val targetBounds: Rect?,
 )
 
@@ -77,19 +72,7 @@ private val TooltipEdgeMargin = 24.dp
 private val CutoutCornerRadius = 20.dp
 private val CutoutPadding = 8.dp
 
-/**
- * Full-screen scrim overlay with a punched-out spotlight around a target UI
- * element plus a stepped tooltip. The implementation is deliberately
- * library-free: a [Canvas] draws the scrim and clears the cutout using
- * [BlendMode.Clear], wrapped in [CompositingStrategy.Offscreen] so the
- * blend works without bleeding through. The spotlight glides between targets
- * on the theme's spatial spring, and the card is an M3 rich-tooltip: a
- * `surfaceContainerHigh` card with a title, supporting text and text actions.
- *
- * The caller owns whether the overlay is visible and what happens on
- * complete/skip — typical usage is to flip a `tutorialCompleted` flag in
- * persistent state.
- */
+/** `BlendMode.Clear` needs `CompositingStrategy.Offscreen` to punch the cutout without bleeding through. */
 @Composable
 fun TutorialOverlay(
     steps: List<TutorialStep>,
@@ -176,12 +159,8 @@ fun TutorialOverlay(
                     modifier = if (isEntering) {
                         Modifier.politeLiveRegion()
                     } else {
-                        // Not @ExperimentalComposeUiApi (unlike
-                        // Modifier.semantics { invisibleToUser() }), and the
-                        // repo doesn't opt into experimental Compose APIs
-                        // elsewhere — this mirrors the same pattern already
-                        // used to hide the background screen while the
-                        // tutorial is up (MaskedEmailListScreen.kt).
+                        // `Modifier.semantics { invisibleToUser() }` is @ExperimentalComposeUiApi;
+                        // `clearAndSetSemantics` is not.
                         Modifier.clearAndSetSemantics { }
                     },
                 )
@@ -197,7 +176,6 @@ private fun ScrimWithCutout(targetBounds: Rect?) {
     val radiusPx = with(density) { CutoutCornerRadius.toPx() }
     val scrim = MaterialTheme.colorScheme.scrim.copy(alpha = 0.72f)
 
-    // A step without a target draws no cutout at all (see below).
     val padded = targetBounds?.let {
         Rect(it.left - padPx, it.top - padPx, it.right + padPx, it.bottom + padPx)
     }
@@ -287,7 +265,6 @@ private fun TooltipBubble(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Stock text buttons: Button role, 48dp target, press morph.
                     TextButton(onClick = onSkip) {
                         Text(
                             text = stringResource(R.string.tutorial_skip),

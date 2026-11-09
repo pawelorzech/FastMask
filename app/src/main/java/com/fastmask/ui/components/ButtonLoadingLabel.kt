@@ -31,30 +31,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-/**
- * How [ButtonLoadingLabel] looks while it swaps the label for the indicator.
- */
 enum class ButtonLoadingStyle {
-    /**
-     * Fast springs, the label vanishes at once and stays announced to screen
-     * readers, a 28 dp indicator in the theme's indicator color. Create and Detail.
-     */
+    /** The label vanishes at once but stays announced to screen readers. */
     Steady,
 
-    /**
-     * Default springs, the label fades and shrinks away and leaves the
-     * accessibility tree while loading, the indicator takes the content color of
-     * the button (and, from the icon + label overload, `iconSize + 8.dp`).
-     * Login and Welcome.
-     */
+    /** The label leaves the accessibility tree while loading. */
     Crossfade,
 }
 
-/**
- * Button content that swaps its label for a small [LoadingIndicator] while
- * [loading], without changing the button's size: the label stays in layout
- * (invisible) and the indicator is centred on top of it.
- */
 @Composable
 fun ButtonLoadingLabel(
     loading: Boolean,
@@ -102,11 +86,6 @@ fun ButtonLoadingLabel(
     }
 }
 
-/**
- * [ButtonLoadingLabel] for the usual button content: an optional leading
- * [icon] and a text [label]. Screens that size their icon from the button
- * height pass [iconSize] / [iconSpacing] from `ButtonDefaults`.
- */
 @Composable
 fun ButtonLoadingLabel(
     loading: Boolean,

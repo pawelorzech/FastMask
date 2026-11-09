@@ -37,10 +37,8 @@ internal fun Hero(email: MaskedEmail) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val domainStyle = MaterialTheme.typography.titleMedium
 
-    // One Text whose string is exactly the address (selection, copy and the
-    // semantics tests all read it), laid out as two paragraphs: the local part
-    // in the headline style, "@domain" lighter underneath. A paragraph style
-    // starts a new line without adding a character.
+    // One Text whose string is exactly the address, laid out as two paragraphs
+    // (a paragraph style starts a new line without adding a character).
     val address = remember(email.email, onSurface, onSurfaceVariant, domainStyle) {
         buildAnnotatedString {
             withStyle(ParagraphStyle(lineBreak = LineBreak.Simple)) {

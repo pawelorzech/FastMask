@@ -7,11 +7,6 @@ import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.StatusColorPair
 
-/**
- * How a mask's state looks and reads, in one place: the label ("Active", "Pending",
- * "Off", "Archived") that chips, avatars' TalkBack text and row subtitles all
- * share, and the colour roles that carry the same state visually.
- */
 @get:StringRes
 internal val EmailState.labelRes: Int
     get() = when (this) {

@@ -88,7 +88,6 @@ import com.fastmask.ui.theme.FastMaskTheme
 @Composable
 fun CreateMaskedEmailScreen(
     onNavigateBack: () -> Unit,
-    /** The mask exists; hand its address to the list, which reports it there. */
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
@@ -101,9 +100,8 @@ fun CreateMaskedEmailScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                // Leave immediately: the list shows the confirmation, with the same Copy
-                // action, where the new mask now is. Awaiting showSnackbar here would block
-                // navigation for its full Long duration (~10 s).
+                // Leave immediately: awaiting showSnackbar here would block navigation
+                // for its full Long duration (~10 s).
                 is CreateMaskedEmailEvent.Created -> onCreated(event.email)
             }
         }
@@ -281,9 +279,6 @@ internal fun CreateMaskedEmailContent(
     }
 }
 
-// --- preview card -----------------------------------------------------------
-
-/** Shapes the decorative blob cycles through. */
 private val blobShapes = listOf(
     MaterialShapes.Cookie9Sided,
     MaterialShapes.Flower,
@@ -368,8 +363,6 @@ private fun PreviewCard(prefix: String) {
         }
     }
 }
-
-// --- previews ---------------------------------------------------------------
 
 @Composable
 private fun PreviewHost(uiState: CreateMaskedEmailUiState) {

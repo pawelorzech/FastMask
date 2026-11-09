@@ -27,13 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-/**
- * The one text field style of the app: a filled `surfaceContainerHigh` container with 16dp corners
- * all round (tightening to 12dp on focus with the fast spatial spring), no indicator line, a 2dp
- * primary outline while focused and a 2dp error outline when invalid. It matches the list's search
- * pill. Label, placeholder, supporting/error text and trailing content are the stock [TextField]
- * slots, so accessibility behaves exactly like the platform component.
- */
 @Composable
 fun ExpressiveTextField(
     value: String,
@@ -98,7 +91,6 @@ fun ExpressiveTextField(
                 errorIndicatorColor = Color.Transparent,
             ),
         )
-        // Outside the outlined container, so the focus/error outline hugs the field only.
         if (supportingText != null) {
             Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)) {
                 ProvideTextStyle(MaterialTheme.typography.bodySmall) {

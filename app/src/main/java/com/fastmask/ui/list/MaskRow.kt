@@ -48,14 +48,8 @@ import com.fastmask.ui.components.expressive.maskContainer
 import com.fastmask.ui.util.RelativeTime
 import com.fastmask.ui.util.RelativeTimeBuckets
 
-/** Font scale from which a mask row drops its trailing time label / state chip. */
 private const val CompactRowFontScale = 1.3f
 
-/**
- * How long the list holds a "just created" row highlighted before clearing it;
- * the row then fades the highlight out itself (`highlightAlpha` in [MaskRow]),
- * so the hold and that fade are tuned together.
- */
 internal const val HIGHLIGHT_HOLD_MS = 1_600L
 
 @Composable
@@ -72,9 +66,7 @@ internal fun MaskRow(
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
     val stateLabel = stringResource(email.state.labelRes)
-    // Key the formatted string on the coarse relative bucket rather than raw
-    // `nowSec` so a refresh that advances `nowSec` by a few seconds does not
-    // re-run ICU formatting for every row whose bucket ("3d ago") did not change.
+    // Key on the coarse bucket, not raw nowSec: a refresh must not re-run ICU formatting for rows whose bucket did not change.
     val timeBucket = remember(email.lastActivityAt, nowSec) {
         RelativeTimeBuckets.of(email.lastActivityAt?.epochSecond, nowSec)
     }
@@ -82,7 +74,6 @@ internal fun MaskRow(
         RelativeTime.format(context, timeBucket)
     }
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
-    // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.
     val headline = remember(email.email, mutedColor) {
         val parts = addressWrapParts(email.email)
         buildAnnotatedString {
@@ -102,7 +93,6 @@ internal fun MaskRow(
         timeLabel.takeIf { compact },
     ).joinToString(" · ")
 
-    // Fades in on `highlighted` and out when the list clears it after HIGHLIGHT_HOLD_MS.
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 0.55f else 0f,
         animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
@@ -152,7 +142,6 @@ internal fun MaskRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                // Compact rows carry both in the supporting line instead.
                 if (!compact && email.state == EmailState.ENABLED) {
                     Text(
                         text = timeLabel,

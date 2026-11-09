@@ -6,11 +6,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-/**
- * The text button every dialog action uses, so the expressive press shape lives
- * in one place. [color] overrides the content colour (e.g. the error role for a
- * destructive confirm); unspecified keeps the default text-button colours.
- */
 @Composable
 fun DialogTextButton(
     text: String,

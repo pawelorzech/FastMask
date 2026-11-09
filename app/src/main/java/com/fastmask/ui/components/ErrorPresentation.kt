@@ -34,20 +34,9 @@ import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 
-/*
- * The one error presentation: an inline banner and a full-screen state, both
- * driven by a UiError. What the recovery button says and does comes from
- * UiError.recovery below and nowhere else, so a screen cannot offer "Retry" for a
- * refused token by forgetting a case.
- */
 
 private class Recovery(@StringRes val label: Int, val onClick: () -> Unit)
 
-/**
- * @param onRetry the screen's own re-run of what failed, or null when it has
- *   none (an in-form failure the user fixes by editing); then only a
- *   [UiErrorAction.REAUTHENTICATE] error gets a button.
- */
 private fun UiError.recovery(onRetry: (() -> Unit)?, onReauthenticate: () -> Unit): Recovery? =
     when (action) {
         UiErrorAction.REAUTHENTICATE -> Recovery(R.string.settings_signin_with_fastmail, onReauthenticate)
@@ -103,10 +92,6 @@ internal fun InlineErrorBanner(
     }
 }
 
-/**
- * Full-screen failure. [heroShape] and [icon] are each screen's identity;
- * everything else is shared.
- */
 @Composable
 internal fun ErrorState(
     @StringRes title: Int,

@@ -5,10 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.IntSize
 
-/**
- * Motion-scheme specs resolved in composition. `transitionSpec` lambdas are not
- * composable, so they capture these instead of reading `MaterialTheme` directly.
- */
+/** `transitionSpec` lambdas are not composable, so they capture these specs instead of reading `MaterialTheme`. */
 internal class Motion(
     val fastEffects: FiniteAnimationSpec<Float>,
     val defaultEffects: FiniteAnimationSpec<Float>,

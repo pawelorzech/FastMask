@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
 
-/** A decorative [icon] centred on a [shape] filled with `primaryContainer`. */
 @Composable
 fun ShapeBadge(
     shape: RoundedPolygon,

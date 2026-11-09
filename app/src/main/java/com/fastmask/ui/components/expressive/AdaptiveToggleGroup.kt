@@ -8,16 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 
-/** Font scale from which two side-by-side toggle labels no longer fit on one line. */
 private const val StackFontScale = 1.3f
 
-/**
- * Two connected toggle buttons. Side by side normally; stacked once the user's font scale
- * makes the half-width buttons break labels mid-word ("Aktywn|a" at 200%).
- *
- * Each slot receives the [Modifier] to apply (weight or full width) and whether the group is
- * [stacked], so it can pass `vertical = stacked` to [connectedToggleShapes].
- */
+/** Stacked once the user's font scale makes half-width buttons break labels mid-word ("Aktywn|a" at 200%). */
 @Composable
 fun AdaptiveToggleGroup(
     first: @Composable (modifier: Modifier, stacked: Boolean) -> Unit,

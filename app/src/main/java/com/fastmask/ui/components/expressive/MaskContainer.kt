@@ -11,27 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Shape
 
-/**
- * Shared-element plumbing for the M3 Expressive container transform: a mask row
- * on the list grows into the detail screen and shrinks back into its row on back
- * (including the predictive back gesture).
- *
- * `FastMaskNavHost` wraps the graph in a `SharedTransitionLayout` and provides
- * [LocalSharedTransitionScope]; every destination registered with its `screen`
- * helper provides its own [LocalNavAnimatedScope]. Screens only ever call
- * [maskContainer] — both locals are null in previews and tests, where it is a no-op.
- */
 val LocalSharedTransitionScope = staticCompositionLocalOf<SharedTransitionScope?> { null }
 val LocalNavAnimatedScope = staticCompositionLocalOf<AnimatedVisibilityScope?> { null }
 
-/** Key shared by the list row and the detail screen's root container for mask [id]. */
 private fun maskContainerKey(id: String) = "mask-container-$id"
 
-/**
- * Marks this node as the container of mask [id]. Put it on the list row's outer
- * container and on the detail screen's root surface; pass the row's resting
- * [shape] so the transform clips with the right corners while it flies.
- */
 @Composable
 fun Modifier.maskContainer(id: String, shape: Shape = RoundedCornerShape(SegmentOuterCorner)): Modifier {
     val sharedScope = LocalSharedTransitionScope.current ?: return this

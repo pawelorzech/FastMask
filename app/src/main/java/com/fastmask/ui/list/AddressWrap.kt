@@ -1,26 +1,16 @@
 package com.fastmask.ui.list
 
 /**
- * Display form of a masked address that may only wrap before the `@`.
+ * Display form of a masked address that may only wrap before the `@`. The platform
+ * line breaker would split the local part at `.`, `_` and `-`; word joiners (U+2060)
+ * keep it in one piece and a zero-width space (U+200B) before `@` is the one wrap point.
  *
- * The platform line breaker treats `.`, `_` and `-` as break opportunities, so a
- * two-line row rendered "sharp" / ".flame138@fastmask…": the local part — the
- * part people recognise — was split in half. Word joiners (U+2060) around every
- * non-alphanumeric character keep the local part in one piece, and a zero-width
- * space (U+200B) before `@` gives the breaker exactly one place to wrap:
- * "sharp.flame138" / "@fastmask.com".
- *
- * Only for display. Callers must keep the plain address as the semantics text so
- * TalkBack and copy/search read the real address.
+ * Only for display: keep the plain address as the semantics text so TalkBack and
+ * copy/search read the real address.
  */
 internal fun addressWrapText(address: String): String =
     addressWrapParts(address).let { it.local + it.domain }
 
-/**
- * [addressWrapText] split where the domain starts, so a caller can style the
- * domain separately without finding the `@` again. [local] carries the
- * zero-width space; [domain] starts with `@` and is empty when there is none.
- */
 internal class AddressWrapParts(val local: String, val domain: String)
 
 internal fun addressWrapParts(address: String): AddressWrapParts {
