@@ -36,10 +36,7 @@ object MaskedEmailMetadata {
  * [IllegalArgumentException] when `forDomain` is not a valid web origin.
  */
 fun CreateMaskedEmailParams.normalized(): Result<CreateMaskedEmailParams> {
-    val origin = forDomain?.let { raw ->
-        MaskedEmailMetadata.normalizeForDomain(raw)
-            ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
-    }
+    val origin = normalizedOrigin(forDomain).getOrElse { return Result.failure(it) }
     return Result.success(
         CreateMaskedEmailParams(
             state = state,
@@ -57,9 +54,14 @@ fun CreateMaskedEmailParams.normalized(): Result<CreateMaskedEmailParams> {
  * Fails with [IllegalArgumentException] when `forDomain` is not a valid web origin.
  */
 fun UpdateMaskedEmailParams.normalized(): Result<UpdateMaskedEmailParams> {
-    val origin = forDomain?.let { raw ->
-        MaskedEmailMetadata.normalizeForDomain(raw)
-            ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
-    }
+    val origin = normalizedOrigin(forDomain).getOrElse { return Result.failure(it) }
     return Result.success(copy(forDomain = origin))
+}
+
+/** An absent `forDomain` stays absent; a present one must normalise to a web origin. */
+private fun normalizedOrigin(forDomain: String?): Result<String?> {
+    if (forDomain == null) return Result.success(null)
+    val origin = MaskedEmailMetadata.normalizeForDomain(forDomain)
+        ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
+    return Result.success(origin)
 }
