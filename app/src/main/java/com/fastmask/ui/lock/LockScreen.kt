@@ -66,9 +66,9 @@ internal const val UnlockSuccessMillis = 550L
 @Composable
 fun LockScreen(
     onUnlockClick: () -> Unit,
-    promptActive: Boolean = false,
-    unlocked: Boolean = false,
-    onUnlockedAnimationFinished: () -> Unit = {},
+    promptActive: Boolean,
+    unlocked: Boolean,
+    onUnlockedAnimationFinished: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
 

@@ -24,9 +24,9 @@ import org.junit.runner.RunWith
  * confirmation dialog appears when the state says so, and its two buttons go to
  * different callbacks (confirm exports, cancel only closes).
  *
- * Replaces the source-grep `ExportConfirmationWiringTest` (unit). The dialog on its
- * own is covered by [ExportConfirmationDialogTest]; this renders the real
- * [SettingsContent] so the row -> dialog connection is exercised.
+ * Replaces the source-grep `ExportConfirmationWiringTest` (unit). This renders the
+ * real [SettingsContent], so the row -> dialog connection and the dialog itself are
+ * exercised together.
  */
 @RunWith(AndroidJUnit4::class)
 class ExportConfirmationWiringTest {

@@ -1,12 +1,11 @@
 package com.fastmask.ui.components
 
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,20 +37,17 @@ fun ConfirmDialog(
         title = { Text(text = title) },
         text = { Text(text = message) },
         confirmButton = {
-            TextButton(
+            DialogTextButton(
+                text = confirmText,
                 onClick = {
                     if (destructive) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                     onConfirm()
                 },
-                colors = if (destructive) {
-                    ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                } else {
-                    ButtonDefaults.textButtonColors()
-                },
-            ) { Text(confirmText) }
+                color = if (destructive) MaterialTheme.colorScheme.error else Color.Unspecified,
+            )
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(dismissText) }
+            DialogTextButton(text = dismissText, onClick = onDismiss)
         },
     )
 }

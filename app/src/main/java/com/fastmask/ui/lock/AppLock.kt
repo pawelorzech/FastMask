@@ -30,7 +30,7 @@ fun showUnlockPrompt(
     title: String,
     onSuccess: () -> Unit,
     onUnavailable: () -> Unit,
-    onFinished: () -> Unit = {},
+    onFinished: () -> Unit,
 ) {
     if (!canUseAppLock(activity)) {
         onFinished()

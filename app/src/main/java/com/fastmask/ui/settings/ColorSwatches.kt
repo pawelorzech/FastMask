@@ -43,13 +43,12 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.domain.model.Accent
 import com.fastmask.ui.accessibility.radioButtonGroup
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
-import com.fastmask.ui.theme.swatchColor
+import com.fastmask.ui.theme.seedScheme
 
 /**
  * Row of round color swatches: Wallpaper first (a four-quadrant mini of the
@@ -154,12 +153,13 @@ private fun ColorSwatch(
             },
         contentAlignment = Alignment.Center,
     ) {
-        val seedColor = if (accent == Accent.DYNAMIC) Color.Unspecified else accent.swatchColor(dark)
+        // Null for [Accent.DYNAMIC], which draws the wallpaper scheme instead of a seed.
+        val seedColor = accent.seedScheme(dark)?.primary
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .drawMorph(morph = { morph }, progress = { morphProgress }) { path ->
-                    if (accent == Accent.DYNAMIC) {
+                    if (seedColor == null) {
                         clipPath(path) {
                             val half = Size(size.width / 2f, size.height / 2f)
                             drawRect(scheme.primary, Offset.Zero, half)
@@ -175,7 +175,7 @@ private fun ColorSwatch(
         ) {
             val checkTint: Color
             val checkBackdrop: Boolean
-            if (accent == Accent.DYNAMIC) {
+            if (seedColor == null) {
                 checkTint = scheme.primary
                 checkBackdrop = true
             } else {

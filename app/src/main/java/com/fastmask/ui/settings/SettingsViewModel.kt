@@ -15,6 +15,7 @@ import com.fastmask.domain.analytics.MonetizationEvent
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProFeature
+import com.fastmask.ui.pro.PRO_SOURCE_SETTINGS
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.ProRepository
@@ -138,7 +139,7 @@ class SettingsViewModel @Inject constructor(
     // --- FastMask Pro ---
 
     fun onProRowClick() {
-        viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = "settings")) }
+        viewModelScope.launch { _events.send(SettingsEvent.OpenPro(source = PRO_SOURCE_SETTINGS)) }
     }
 
     /** True with Pro; otherwise records the tap on [feature] and opens the paywall. */
