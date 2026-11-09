@@ -6,6 +6,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.fastmask.R
+import com.fastmask.testutil.string
 import com.fastmask.ui.theme.FastMaskTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -22,7 +24,7 @@ class LicensesDialogTest {
     fun namesBothComponentsAndShowsTheirLicenseText() {
         compose.setContent { FastMaskTheme { LicensesDialog(onDismiss = {}) } }
 
-        compose.onNodeWithText("Open-source licenses").assertIsDisplayed()
+        compose.onNodeWithText(string(R.string.settings_licenses_title)).assertIsDisplayed()
         compose.onNodeWithText("Google Sans Flex (font)").assertIsDisplayed()
         compose.onNodeWithText("SIL OPEN FONT LICENSE Version 1.1", substring = true)
             .performScrollTo().assertIsDisplayed()
@@ -35,7 +37,7 @@ class LicensesDialogTest {
         var dismissed = 0
         compose.setContent { FastMaskTheme { LicensesDialog(onDismiss = { dismissed++ }) } }
 
-        compose.onNodeWithText("Close").performClick()
+        compose.onNodeWithText(string(R.string.pro_close)).performClick()
 
         assertEquals(1, dismissed)
     }

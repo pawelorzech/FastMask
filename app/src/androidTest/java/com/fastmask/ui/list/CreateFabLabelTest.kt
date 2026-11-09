@@ -5,6 +5,8 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.fastmask.R
+import com.fastmask.testutil.string
 import com.fastmask.ui.theme.FastMaskTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -38,6 +40,6 @@ class CreateFabLabelTest {
         val names = compose.onAllNodes(hasClickAction()).fetchSemanticsNodes().flatMap { node ->
             node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
         }
-        assertTrue("accessible names $names must include the visible label", "New mask" in names)
+        assertTrue("accessible names $names must include the visible label", string(R.string.email_list_create_fab) in names)
     }
 }

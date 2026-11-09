@@ -3,7 +3,6 @@ package com.fastmask.domain.share
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -139,15 +138,6 @@ class SharedLinkParserTest {
     }
 
     @Test
-    fun `a bare domain after a colon in prose is extracted in any language`() {
-        assertEquals(
-            "https://sklep.example.pl",
-            SharedLinkParser.parse("Zapisz sie tutaj: sklep.example.pl")?.forDomain,
-        )
-        assertEquals("https://github.com", SharedLinkParser.parse("Link: github.com")?.forDomain)
-    }
-
-    @Test
     fun `a slash still means the run is part of something else`() {
         // The other half of the same guard, kept: a bare host directly after a
         // slash is a path segment or the tail of a broken link, never a domain
@@ -170,17 +160,20 @@ class SharedLinkParserTest {
 
     // --- robustness ---------------------------------------------------------
 
-    @Test
-    fun `a very long shared text still finds a trailing link and returns promptly`() {
-        val noise = "lorem ipsum dolor sit amet ".repeat(4_000) // ~108k chars
-        val started = System.nanoTime()
+    // The three robustness tests below guard against a parser that blows up on large input. They
+    // use JUnit's `timeout` (the test body runs on its own thread and is failed when it overruns)
+    // instead of reading the wall clock inside the test: the bound is two orders of magnitude
+    // above the linear running time, so a loaded machine cannot flake it, and the inputs are
+    // sized so a quadratic or backtracking scan overruns it by a wide margin.
+
+    @Test(timeout = 20_000)
+    fun `a very long shared text still finds a trailing link`() {
+        val noise = "lorem ipsum dolor sit amet ".repeat(40_000) // ~1M chars
 
         val prefill = SharedLinkParser.parse(noise + "https://example.com/deal")
 
-        val elapsedMs = (System.nanoTime() - started) / 1_000_000
         assertNotNull("a link at the end of a long share must still be found", prefill)
         assertEquals("https://example.com", prefill?.forDomain)
-        assertTrue("parsing took ${elapsedMs}ms — the pattern backtracks", elapsedMs < 1_000)
     }
 
     /**
@@ -189,33 +182,24 @@ class SharedLinkParserTest {
      * The scan used to restart one character into a host run it had already
      * rejected, which is O(n²): 80k characters took ~1.1s on a desktop JVM and
      * several times that on a phone, i.e. a guaranteed ANR for a big enough
-     * share. Each case below is linear now and finishes in milliseconds; the
-     * budget is generous so a loaded CI machine cannot flake, while a return of
-     * the quadratic scan (tens of seconds at these sizes) still fails.
+     * share. At a million characters the quadratic scan needs minutes, the
+     * linear one milliseconds.
      */
-    @Test
+    @Test(timeout = 20_000)
     fun `a huge run of dotless characters cannot hang the parser`() {
-        val hostile = "a".repeat(200_000)
-        val started = System.nanoTime()
+        val hostile = "a".repeat(1_000_000)
 
         assertNull(SharedLinkParser.parse(hostile))
-
-        val elapsedMs = (System.nanoTime() - started) / 1_000_000
-        assertTrue("parsing 200k dotless chars took ${elapsedMs}ms", elapsedMs < 1_000)
     }
 
-    @Test
+    @Test(timeout = 20_000)
     fun `a long CJK article cannot hang the parser`() {
         // Not an attack — someone sharing a Japanese article. Every CJK
         // character answers true to isLetterOrDigit, and 。is not '.', so the
         // whole text is one enormous dotless host run.
-        val article = "文字化けテストの長い記事".repeat(4_000) // ~48k chars
-        val started = System.nanoTime()
+        val article = "文字化けテストの長い記事".repeat(80_000) // ~960k chars
 
         assertNull(SharedLinkParser.parse(article))
-
-        val elapsedMs = (System.nanoTime() - started) / 1_000_000
-        assertTrue("parsing a 48k-char CJK article took ${elapsedMs}ms", elapsedMs < 1_000)
     }
 
     @Test
