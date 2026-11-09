@@ -2,15 +2,12 @@ package com.fastmask.ui.settings
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,8 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Science
@@ -42,7 +37,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,9 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -70,10 +62,13 @@ import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
+import com.fastmask.domain.model.ProFeature
 import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DialogTextButton
+import com.fastmask.ui.components.expressive.ShapeBadge
 import com.fastmask.ui.lock.canUseAppLock
+import com.fastmask.ui.pro.style
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
 import kotlinx.coroutines.launch
@@ -194,7 +189,7 @@ internal fun SettingsContent(
 
     val colorsLockedMessage = stringResource(R.string.settings_accent_locked)
     val unlockLabel = stringResource(R.string.settings_colors_unlock)
-    val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
+    val noAppForLinkMessage = stringResource(R.string.error_no_app_for_link)
     val feedbackSubject = stringResource(R.string.settings_feedback_subject)
     val supportEmail = stringResource(R.string.support_email)
     val backDesc = stringResource(R.string.navigate_back)
@@ -220,7 +215,7 @@ internal fun SettingsContent(
             onConfirm = callbacks.onExportConfirmed,
             onDismiss = callbacks.onExportDismissed,
             destructive = false,
-            icon = Icons.Filled.FileDownload,
+            icon = ProFeature.EXPORT.style.icon,
         )
     }
 
@@ -246,7 +241,7 @@ internal fun SettingsContent(
     if (showLockUnavailableDialog) {
         AlertDialog(
             onDismissRequest = { showLockUnavailableDialog = false },
-            icon = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
+            icon = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
             title = { Text(stringResource(R.string.settings_app_lock)) },
             text = { Text(stringResource(R.string.settings_app_lock_unavailable)) },
             confirmButton = {
@@ -351,7 +346,7 @@ internal fun SettingsContent(
                             } else {
                                 stringResource(R.string.settings_pro_value_free)
                             },
-                            leading = { ProBadge() },
+                            leading = { ShapeBadge(MaterialShapes.Sunny, Icons.Filled.WorkspacePremium, size = 40.dp) },
                             trailing = { ChevronIcon() },
                             onClick = callbacks.onProRowClick,
                         )
@@ -413,7 +408,7 @@ internal fun SettingsContent(
 
             // --- Privacy ---
             SettingsSection(title = stringResource(R.string.settings_privacy_section)) {
-                if (state.monetizationEnabled) {
+                if (state.monetizationEnabled || state.appLockEnabled) {
                     add { index, count ->
                         // An armed lock keeps its switch even without Pro so it can
                         // always be turned off; the "Pro" placeholder is only for an
@@ -424,7 +419,7 @@ internal fun SettingsContent(
                                 count = count,
                                 label = stringResource(R.string.settings_app_lock),
                                 supporting = stringResource(R.string.settings_app_lock_description),
-                                leading = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
+                                leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
                                 // The preference alone, matching MainActivity's
                                 // gate: the switch reports the lock that is
                                 // actually armed, not the entitlement behind it.
@@ -443,7 +438,7 @@ internal fun SettingsContent(
                                 count = count,
                                 label = stringResource(R.string.settings_app_lock),
                                 supporting = stringResource(R.string.settings_accent_locked),
-                                leading = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
+                                leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
                                 trailing = { Icon(Icons.Filled.Lock, contentDescription = null) },
                                 onClick = { callbacks.onAppLockToggled(true) },
                             )
@@ -477,7 +472,7 @@ internal fun SettingsContent(
                             } else {
                                 stringResource(R.string.settings_accent_locked)
                             },
-                            leading = { Icon(Icons.Filled.FileDownload, contentDescription = null) },
+                            leading = { Icon(ProFeature.EXPORT.style.icon, contentDescription = null) },
                             trailing = {
                                 if (isPro) ChevronIcon() else Icon(Icons.Filled.Lock, contentDescription = null)
                             },
@@ -519,7 +514,7 @@ internal fun SettingsContent(
                             // package-visibility filtered and can report no handler for
                             // mailto: even with a mail app installed.
                             if (!openExternalIntent(context, emailIntent)) {
-                                scope.launch { snackbarHostState.showSnackbar(noMailAppMessage) }
+                                scope.launch { snackbarHostState.showSnackbar(noAppForLinkMessage) }
                             }
                         },
                     )
@@ -537,7 +532,12 @@ internal fun SettingsContent(
                             supporting = stringResource(app.taglineRes),
                             leading = { Icon(Icons.Filled.Apps, contentDescription = null) },
                             trailing = { ChevronIcon() },
-                            onClick = { MoreApps.open(context, app.packageId) },
+                            onClick = {
+                                // Same message as the Contact row: nothing could open the link.
+                                if (!MoreApps.open(context, app.packageId)) {
+                                    scope.launch { snackbarHostState.showSnackbar(noAppForLinkMessage) }
+                                }
+                            },
                         )
                     }
                 }
@@ -553,24 +553,6 @@ internal fun SettingsContent(
                     .padding(horizontal = 16.dp, vertical = 28.dp),
             )
         }
-    }
-}
-
-@Composable
-private fun ProBadge() {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(MaterialShapes.Sunny.toShape())
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Filled.WorkspacePremium,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.size(22.dp),
-        )
     }
 }
 

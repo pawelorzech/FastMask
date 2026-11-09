@@ -35,7 +35,7 @@ class ProViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val source: String = savedStateHandle[NavRoutes.ARG_SOURCE] ?: "unknown"
+    private val source: String = savedStateHandle[NavRoutes.ARG_SOURCE] ?: PRO_SOURCE_UNKNOWN
 
     private val _uiState = MutableStateFlow(ProUiState())
     val uiState: StateFlow<ProUiState> = _uiState.asStateFlow()
@@ -147,7 +147,19 @@ data class ProUiState(
     val restoreInFlight: Boolean = false,
     /** True only for a purchase completed while this screen was open. */
     val celebrate: Boolean = false,
-)
+) {
+    /** What the area under the feature list shows; the first matching state wins. */
+    val purchaseArea: PurchaseArea
+        get() = when {
+            status == ProStatus.PRO -> PurchaseArea.OWNED
+            status == ProStatus.PENDING -> PurchaseArea.PENDING
+            productState == ProductState.LOADING -> PurchaseArea.LOADING
+            productState == ProductState.UNAVAILABLE -> PurchaseArea.UNAVAILABLE
+            else -> PurchaseArea.READY
+        }
+}
+
+enum class PurchaseArea { OWNED, PENDING, LOADING, UNAVAILABLE, READY }
 
 enum class ProductState { LOADING, READY, UNAVAILABLE }
 

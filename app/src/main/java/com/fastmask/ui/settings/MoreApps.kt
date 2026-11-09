@@ -36,10 +36,13 @@ object MoreApps {
     fun webUrl(packageId: String): String =
         "https://play.google.com/store/apps/details?id=$packageId"
 
-    /** Opens the Play Store app, falling back to the web listing when no store app handles market://. */
-    fun open(context: Context, packageId: String) {
+    /**
+     * Opens the Play Store app, falling back to the web listing when no store app handles market://.
+     * Returns false when neither a store app nor a browser could open it.
+     */
+    fun open(context: Context, packageId: String): Boolean {
         val market = Intent(Intent.ACTION_VIEW, Uri.parse(marketUrl(packageId)))
-        if (openExternalIntent(context, market)) return
-        openExternalIntent(context, Intent(Intent.ACTION_VIEW, Uri.parse(webUrl(packageId))))
+        if (openExternalIntent(context, market)) return true
+        return openExternalIntent(context, Intent(Intent.ACTION_VIEW, Uri.parse(webUrl(packageId))))
     }
 }
