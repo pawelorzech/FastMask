@@ -3,6 +3,7 @@ package com.fastmask.data.session
 import android.content.Context
 import com.fastmask.data.api.JmapApi
 import com.fastmask.data.local.ExportCache
+import com.fastmask.data.local.ExportOutcome
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
@@ -14,6 +15,7 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -23,6 +25,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 
 class SessionRepositoryImplTest {
 
@@ -54,6 +57,10 @@ class SessionRepositoryImplTest {
     private val exportCache: ExportCache by lazy {
         ExportCache(mockk<Context> { every { cacheDir } returns temp.newFolder("cache") })
     }
+
+    /** An export of the previous account's masks, written the way the app writes one. */
+    private suspend fun writeExport(): File =
+        (exportCache.export(Dispatchers.Unconfined) { Result.success(emptyList()) } as ExportOutcome.Written).file
 
     private fun repository() = SessionRepositoryImpl(
         tokenStorage = tokenStorage,
@@ -116,7 +123,7 @@ class SessionRepositoryImplTest {
 
     @Test
     fun `sign in drops the previous account's exports and snapshot`() = runTest {
-        val export = exportCache.write("email\nold@fastmail.com\n", generation = exportCache.currentGeneration())
+        val export = writeExport()
 
         repository().signIn("fmu1-token")
 
@@ -128,7 +135,7 @@ class SessionRepositoryImplTest {
     fun `sign out drops the token, exports and snapshot`() = runTest {
         hasToken = true
         val repository = repository()
-        val export = exportCache.write("email\na@fastmail.com\n", generation = exportCache.currentGeneration())
+        val export = writeExport()
 
         repository.signOut()
 

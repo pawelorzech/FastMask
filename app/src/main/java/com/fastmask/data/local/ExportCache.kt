@@ -64,7 +64,7 @@ class ExportCache @Inject constructor(
         val generation = guard.current()
         val csv = fetch().mapCatching { masks -> MaskCsv.build(masks) }
             .getOrElse { return ExportOutcome.FetchFailed(it) }
-        return withContext(ioDispatcher) { runCatching { write(csv, generation = generation) } }
+        return withContext(ioDispatcher) { runCatching { write(csv, generation) } }
             .fold(
                 onSuccess = { ExportOutcome.Written(it) },
                 onFailure = { ExportOutcome.WriteFailed },
@@ -85,30 +85,21 @@ class ExportCache @Inject constructor(
         }
     }
 
-    /** Snapshot of the current generation, for a caller about to fetch. */
-    @VisibleForTesting
-    internal fun currentGeneration(): Long = guard.current()
-
     /**
      * Writes [csv] to a fresh timestamped file and returns it, after ageing out
      * exports old enough that no share can still be reading them.
      *
-     * @param now injected so the ageing rule is testable without a clock.
-     * @param generation what [currentGeneration] returned when the export's
-     *   fetch began; a [clear] since then aborts the write. Deliberately has no
-     *   default: it would be read at write time and the check would always pass.
+     * @param generation what the guard reported when the export's fetch began; a
+     *   [clear] since then aborts the write. Deliberately has no default: it
+     *   would be read at write time and the check would always pass.
      * @throws IllegalStateException when the session that asked for this export
      *   has ended.
      */
-    @VisibleForTesting
-    internal fun write(
-        csv: String,
-        now: Long = System.currentTimeMillis(),
-        generation: Long,
-    ): File = synchronized(lock) {
+    private fun write(csv: String, generation: Long): File = synchronized(lock) {
         check(guard.isCurrent(generation)) {
             "Export abandoned: the session ended before the file was written"
         }
+        val now = System.currentTimeMillis()
         val dir = dir.apply { mkdirs() }
         pruneExpired(now)
         File(dir, "fastmask-masks-$now.csv").also { fileWriter(it, csv) }
@@ -140,7 +131,7 @@ class ExportCache @Inject constructor(
          * Appended to the application id to form the FileProvider authority; the
          * manifest's `${applicationId}.fileprovider` must stay equal to it.
          */
-        const val AUTHORITY_SUFFIX = ".fileprovider"
+        private const val AUTHORITY_SUFFIX = ".fileprovider"
     }
 }
 

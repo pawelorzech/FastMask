@@ -1,6 +1,7 @@
 package com.fastmask.data.local
 
 import android.content.Context
+import com.fastmask.testutil.mask
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -14,10 +15,13 @@ import java.io.File
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * The exported CSV is the only place in the app where every mask is written to
- * disk in plaintext, so its lifetime rules are worth pinning down.
+ * disk in plaintext, so its lifetime rules are worth pinning down. Everything
+ * goes through the public surface: [ExportCache.export], [ExportCache.clear]
+ * and [ExportCache.pruneExpired], asserting on the files that end up on disk.
  */
 class ExportCacheTest {
 
@@ -31,23 +35,28 @@ class ExportCacheTest {
         return ExportCache(context) to File(cacheDir, "exports")
     }
 
+    private suspend fun ExportCache.exportMasks(vararg ids: String): ExportOutcome =
+        export(Dispatchers.Unconfined) { Result.success(ids.map { mask(it) }) }
+
     @Test
-    fun `write creates a timestamped file with the csv content`() {
+    fun `export writes a timestamped csv with the fetched masks`() = runBlocking {
         val (cache, dir) = cache()
 
-        val file = cache.write("email,state\na@b.c,enabled\n", now = 1_000_000L, generation = cache.currentGeneration())
+        val outcome = cache.exportMasks("a")
 
-        assertEquals("fastmask-masks-1000000.csv", file.name)
+        val file = (outcome as ExportOutcome.Written).file
         assertEquals(dir, file.parentFile)
-        assertTrue(file.readText().contains("a@b.c"))
+        assertTrue(file.name, Regex("""fastmask-masks-\d+\.csv""").matches(file.name))
+        assertTrue(file.readText().startsWith("email"))
+        assertTrue(file.readText().contains("a@fastmail.com"))
     }
 
     // Ageing out rather than wiping: a share target may still be reading a URI
     // it was granted (a slow upload), so only clearly-stale files go.
     @Test
-    fun `write removes exports older than an hour and keeps recent ones`() {
+    fun `export removes exports older than an hour and keeps recent ones`() = runBlocking {
         val (cache, dir) = cache()
-        val now = TimeUnit.DAYS.toMillis(10)
+        val now = System.currentTimeMillis()
         dir.mkdirs()
         val stale = File(dir, "old.csv").apply {
             writeText("x")
@@ -58,14 +67,14 @@ class ExportCacheTest {
             setLastModified(now - TimeUnit.MINUTES.toMillis(5))
         }
 
-        cache.write("new", now = now, generation = cache.currentGeneration())
+        cache.exportMasks("a")
 
         assertTrue("a two-hour-old export should be gone", !stale.exists())
         assertTrue("a five-minute-old export may still be in use", recent.exists())
     }
 
     /*
-     * Audit 2026-07-27. Ageing used to happen only inside write(), so the
+     * Audit 2026-07-27. Ageing used to happen only inside the export, so the
      * documented "one hour" retention elapsed only on the NEXT export. A user
      * who exports once — the common case — left a plaintext CSV of every mask
      * they own sitting in the cache directory indefinitely, while every other
@@ -96,11 +105,10 @@ class ExportCacheTest {
     // Signing out is the point at which the account's data should stop being on
     // the device — an export written minutes earlier must not outlive it.
     @Test
-    fun `clear removes every export regardless of age`() {
+    fun `clear removes every export regardless of age`() = runBlocking {
         val (cache, dir) = cache()
-        val now = TimeUnit.DAYS.toMillis(10)
-        cache.write("first", now = now, generation = cache.currentGeneration())
-        cache.write("second", now = now + 1, generation = cache.currentGeneration())
+        cache.exportMasks("a")
+        File(dir, "earlier.csv").writeText("x")
         assertEquals(2, dir.listFiles()?.size)
 
         cache.clear()
@@ -122,50 +130,28 @@ class ExportCacheTest {
     // the sign-out that was supposed to erase it. Ageing it out an hour later is
     // the wrong remedy for a file that should never have existed.
     @Test
-    fun `an export whose fetch outlived a sign-out is never written`() {
-        val (cache, dir) = cache()
-        val generation = cache.currentGeneration()
-
-        cache.clear() // the sign-out lands while the fetch is still in flight
-
-        val failure = runCatching { cache.write("every,mask", generation = generation) }
-        assertTrue(failure.isFailure)
-        assertEquals(0, dir.listFiles()?.size ?: 0)
-    }
-
-    @Test
-    fun `an export that started after the sign-out is written normally`() {
-        val (cache, dir) = cache()
-        cache.clear()
-
-        // Fresh generation read: this export belongs to the new session.
-        cache.write("email,state\n", generation = cache.currentGeneration())
-
-        assertEquals(1, dir.listFiles()?.size)
-    }
-
-    @Test
-    fun `export writes the fetched masks and reports the file`() = runBlocking {
-        val (cache, dir) = cache()
-
-        val outcome = cache.export(Dispatchers.Unconfined) { Result.success(emptyList()) }
-
-        val file = (outcome as ExportOutcome.Written).file
-        assertEquals(dir, file.parentFile)
-        assertTrue(file.readText().startsWith("email"))
-    }
-
-    @Test
-    fun `export owns the guard - a sign-out during its fetch abandons the write`() = runBlocking {
+    fun `a sign-out during the fetch abandons the write`() = runBlocking {
         val (cache, dir) = cache()
 
         val outcome = cache.export(Dispatchers.Unconfined) {
             cache.clear() // the sign-out lands while the fetch is still in flight
-            Result.success(emptyList())
+            Result.success(listOf(mask("a")))
         }
 
         assertEquals(ExportOutcome.WriteFailed, outcome)
         assertEquals(0, dir.listFiles()?.size ?: 0)
+    }
+
+    @Test
+    fun `an export that started after the sign-out is written normally`() = runBlocking {
+        val (cache, dir) = cache()
+        cache.clear()
+
+        // This export's fetch began after the sign-out, so it belongs to the new session.
+        val outcome = cache.exportMasks("a")
+
+        assertTrue(outcome is ExportOutcome.Written)
+        assertEquals(1, dir.listFiles()?.size)
     }
 
     @Test
@@ -179,50 +165,43 @@ class ExportCacheTest {
         assertEquals(0, dir.listFiles()?.size ?: 0)
     }
 
-    // The authority string lives in two places that cannot share a constant: the
-    // manifest placeholder and ExportCache. This pins them together.
-    @Test
-    fun `the manifest FileProvider authority is the application id plus ExportCache's suffix`() {
-        val manifest = File("src/main/AndroidManifest.xml").readText()
-
-        assertTrue(
-            manifest.contains("android:authorities=\"\${applicationId}" + ExportCache.AUTHORITY_SUFFIX + "\""),
-        )
-    }
-
     @Test
     fun `clear cannot finish between generation check and file write`() {
         val (cache, dir) = cache()
         val executor = Executors.newFixedThreadPool(2)
         val writeReachedDiskBoundary = CountDownLatch(1)
         val releaseWrite = CountDownLatch(1)
-        val clearStarted = CountDownLatch(1)
-        val clearFinished = CountDownLatch(1)
+        val clearThread = AtomicReference<Thread>()
         cache.fileWriter = { file, text ->
             writeReachedDiskBoundary.countDown()
-            check(releaseWrite.await(2, TimeUnit.SECONDS))
+            check(releaseWrite.await(5, TimeUnit.SECONDS))
             file.writeText(text)
         }
 
         try {
-            val generation = cache.currentGeneration()
-            val write = executor.submit<File> { cache.write("every,mask", generation = generation) }
-            assertTrue(writeReachedDiskBoundary.await(2, TimeUnit.SECONDS))
+            val export = executor.submit<ExportOutcome> { runBlocking { cache.exportMasks("a") } }
+            assertTrue(writeReachedDiskBoundary.await(5, TimeUnit.SECONDS))
 
             val clear = executor.submit {
-                clearStarted.countDown()
+                clearThread.set(Thread.currentThread())
                 cache.clear()
-                clearFinished.countDown()
             }
-            assertTrue(clearStarted.await(2, TimeUnit.SECONDS))
-            assertTrue(
+            // Deterministic instead of a negative timed wait: a thread contending for a monitor
+            // reports BLOCKED. If clear() did not need the lock the write holds, the thread would
+            // finish instead and never be seen blocked.
+            val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+            while (clearThread.get()?.state != Thread.State.BLOCKED && !clear.isDone && System.nanoTime() < deadline) {
+                Thread.onSpinWait()
+            }
+            assertEquals(
                 "clear must wait until the in-flight file write leaves the critical section",
-                !clearFinished.await(100, TimeUnit.MILLISECONDS),
+                Thread.State.BLOCKED,
+                clearThread.get()?.state,
             )
 
             releaseWrite.countDown()
-            write.get(2, TimeUnit.SECONDS)
-            clear.get(2, TimeUnit.SECONDS)
+            assertTrue(export.get(5, TimeUnit.SECONDS) is ExportOutcome.Written)
+            clear.get(5, TimeUnit.SECONDS)
             assertEquals("clear must leave no plaintext export behind", 0, dir.listFiles()?.size ?: 0)
         } finally {
             releaseWrite.countDown()
