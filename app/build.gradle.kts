@@ -18,7 +18,7 @@ if (hasFirebaseConfig) {
     logger.lifecycle(
         "FastMask: app/google-services.json not found — building without Firebase " +
             "Crashlytics. The app runs normally; crash reporting is inert. See README " +
-            "§ Build from Source."
+            "§ Building the project."
     )
 }
 
@@ -130,9 +130,10 @@ gradle.taskGraph.whenReady {
     if (hasReleaseKeystore && playLicenseKey.isNullOrBlank()) {
         throw GradleException(
             "Refusing to build a signed release without a Play licence key: purchase " +
-                "signatures would not be verified, so any forged purchase would unlock " +
-                "Pro. Set FASTMASK_PLAY_LICENSE_KEY or the fastmask.playLicenseKey Gradle " +
-                "property (Play Console → Monetization setup → Licensing)."
+                "signatures cannot be verified, so a release build would reject every " +
+                "purchase and Pro could never be unlocked. Set FASTMASK_PLAY_LICENSE_KEY or " +
+                "the fastmask.playLicenseKey Gradle property (Play Console → Monetization " +
+                "setup → Licensing)."
         )
     }
 }

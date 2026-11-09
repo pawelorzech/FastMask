@@ -25,10 +25,14 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * `SettingsController.loadSettingsData`, which fetches Crashlytics' own remote
  * config (carrying the installation ID, device model and OS build), and
  * `IdManager` registers the Firebase installation. Both are gated on
- * `DataCollectionArbiter`, verified in 19.2.1 bytecode:
+ * `DataCollectionArbiter`, verified by reading firebase-crashlytics 20.1.0
+ * bytecode with `javap` (static reading, not run on a device):
  *
- *  - the config fetch waits on `waitForDataCollectionPermission()`, which never
- *    resolves once collection is off;
+ *  - the config fetch waits on `waitForDataCollectionPermission()`, a task that
+ *    only `grantDataCollectionPermission(true)` completes, and the SDK's
+ *    unsent-report handling is its only caller; this app never calls
+ *    `sendUnsentReports`. The chain from there to "collection off means the
+ *    grant never happens" was not traced end to end;
  *  - `IdManager.getInstallIds()` branches on
  *    `isAutomaticDataCollectionEnabled()` and returns
  *    `InstallIds.createWithoutFid(...)` — a locally generated value — without

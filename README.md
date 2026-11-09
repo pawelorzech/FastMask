@@ -111,11 +111,11 @@ See the full [privacy policy](https://pawelorzech.github.io/FastMask/privacy.htm
 
 ### Prerequisites
 
-- Android Studio with Android SDK 36;
+- Android Studio with Android SDK 37 (`compileSdk`);
 - JDK 17–21. Android Studio's bundled JBR is suitable;
 - no Firebase project for a normal local or CI build.
 
-The project supports JDK 17–21; in particular, the Gradle 8.11.1 wrapper does not run on Java 26. If your system Java is 22 or newer, point `JAVA_HOME` at a supported JDK or put `org.gradle.java.home` in your personal `~/.gradle/gradle.properties`. Never commit a machine-specific JDK path.
+The project supports JDK 17–21; in particular, the Gradle wrapper (version in `gradle/wrapper/gradle-wrapper.properties`) does not run on Java 26. If your system Java is 22 or newer, point `JAVA_HOME` at a supported JDK or put `org.gradle.java.home` in your personal `~/.gradle/gradle.properties`. Never commit a machine-specific JDK path.
 
 ```bash
 git clone https://github.com/pawelorzech/FastMask.git
@@ -175,7 +175,7 @@ FastMask is a single-module Android application using layered Clean Architecture
 app/src/main/java/com/fastmask/
 ├── data/       JMAP/Retrofit API, encrypted storage, billing, crash reporting,
 │               demo data, and repository implementations
-├── domain/     models, repository contracts, use cases, share/crash policies
+├── domain/     models, repository contracts, share/crash policies
 ├── ui/         Compose screens, navigation, ViewModels, theme, accessibility
 ├── quickmask/  Quick Settings tile, launcher shortcut, notifications, Undo
 └── di/         Hilt dependency graph and dispatcher bindings
@@ -183,10 +183,10 @@ app/src/main/java/com/fastmask/
 
 | Area | Implementation |
 |---|---|
-| Language/toolchain | Kotlin 2.2.20, Java 17 bytecode, Gradle 8.11.1, AGP 8.10.1 |
+| Language/toolchain | Kotlin, Java 17 bytecode, Gradle and the Android Gradle Plugin (versions in `gradle/libs.versions.toml` and `gradle/wrapper/gradle-wrapper.properties`) |
 | UI | Jetpack Compose, Material 3 primitives, adaptive layouts, custom design system |
 | State/navigation | ViewModels, Kotlin Coroutines and Flow, Navigation Compose |
-| Dependency injection | Hilt 2.58 |
+| Dependency injection | Hilt (version in `gradle/libs.versions.toml`) |
 | Networking | Retrofit 3, OkHttp 4, Kotlinx Serialization, Fastmail JMAP |
 | Persistence | AndroidX Security Crypto, DataStore Preferences |
 | Monetization | Google Play Billing 8.3.0 with RSA purchase verification |

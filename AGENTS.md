@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Last verified: 60b798c | 2026-10-26
+Last verified: b93e97c | 2026-11-10
 
 ## Build & Test
 
