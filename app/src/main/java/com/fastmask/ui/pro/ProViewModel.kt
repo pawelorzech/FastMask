@@ -45,8 +45,6 @@ class ProViewModel @Inject constructor(
 
     init {
         analytics.track(MonetizationEvent.PAYWALL_VIEWED, source = source)
-        // Events buffered while no paywall was open (e.g. a purchase resolved
-        // after the user backed out) are stale by now — state is in proStatus.
         proRepository.drainPendingEvents()
         viewModelScope.launch {
             proRepository.proStatus.collect { status ->
@@ -55,8 +53,7 @@ class ProViewModel @Inject constructor(
         }
         viewModelScope.launch {
             proRepository.events.collect { event ->
-                // Only a purchase that completes while this screen is open is a
-                // celebration; an owner whose entitlement merely loads is not.
+                // Only a purchase that completes while this screen is open is a celebration.
                 _uiState.update {
                     it.copy(
                         purchaseInFlight = false,
@@ -98,7 +95,7 @@ class ProViewModel @Inject constructor(
         _uiState.update { it.copy(purchaseInFlight = true) }
         viewModelScope.launch {
             when (proRepository.purchase(activity)) {
-                PurchaseLaunch.LAUNCHED -> Unit // outcome arrives via events
+                PurchaseLaunch.LAUNCHED -> Unit
                 PurchaseLaunch.ALREADY_OWNED -> {
                     _uiState.update { it.copy(purchaseInFlight = false) }
                     _events.send(ProUiEvent.PurchaseCompleted)
@@ -132,7 +129,7 @@ class ProViewModel @Inject constructor(
         }
     }
 
-    // onCleared, not the back button: gesture/system back never touches it.
+    // onCleared, so gesture/system back counts too, not just the close button.
     override fun onCleared() {
         analytics.track(MonetizationEvent.PAYWALL_CLOSED, source = source)
         super.onCleared()
@@ -145,10 +142,8 @@ data class ProUiState(
     val productState: ProductState = ProductState.LOADING,
     val purchaseInFlight: Boolean = false,
     val restoreInFlight: Boolean = false,
-    /** True only for a purchase completed while this screen was open. */
     val celebrate: Boolean = false,
 ) {
-    /** What the area under the feature list shows; the first matching state wins. */
     val purchaseArea: PurchaseArea
         get() = when {
             status == ProStatus.PRO -> PurchaseArea.OWNED
@@ -165,7 +160,6 @@ enum class ProductState { LOADING, READY, UNAVAILABLE }
 
 enum class ProHaptic { NONE, CONFIRM, REJECT }
 
-/** One-shot paywall outcome: the snackbar [message] and the [haptic] that goes with it. */
 sealed class ProUiEvent(@StringRes val message: Int, val haptic: ProHaptic = ProHaptic.NONE) {
     data object PurchaseCompleted : ProUiEvent(R.string.pro_purchase_success, ProHaptic.CONFIRM)
     data object PurchasePending : ProUiEvent(R.string.pro_purchase_pending)

@@ -104,9 +104,6 @@ internal fun NoMatchesBlock(hasQuery: Boolean, onClearSearch: () -> Unit) {
     }
 }
 
-/**
- * Initial-load state: one centered expressive loading indicator.
- */
 @Composable
 internal fun LoadingShimmer(loadingDescription: String) {
     Box(

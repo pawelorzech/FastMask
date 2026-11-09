@@ -72,7 +72,6 @@ internal fun LanguagePickerDialog(
     onSelect: (Language?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    // The radio animates to the chosen row first, then the dialog closes.
     var pending by remember { mutableStateOf(selected) }
     var committed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()

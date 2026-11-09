@@ -28,8 +28,6 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    // Channel-backed one-time events: buffered delivery survives windows with
-    // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<LoginEvent>(Channel.BUFFERED)
     val events: Flow<LoginEvent> = _events.receiveAsFlow()
 
@@ -47,11 +45,8 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
-     * Explicit "Paste" action, never automatic: reading the clipboard is a
-     * privacy signal (Android 12+ surfaces a system toast).
-     *
-     * [raw] may be empty (empty clipboard, or an image) or whitespace-only;
-     * both answer with a hint rather than a silent no-op.
+     * Explicit "Paste" action, never automatic: reading the clipboard is a privacy signal
+     * (Android 12+ surfaces a system toast). An empty clip or an image answers with a hint.
      */
     fun onTokenPasted(raw: String) {
         val pasted = TokenFormat.sanitizePasted(raw)
@@ -72,9 +67,6 @@ class LoginViewModel @Inject constructor(
 
     fun enterDemoMode() {
         if (_uiState.value.isLoading) return
-        // Set synchronously, like login(): both buttons are disabled while
-        // isLoading, so a same-frame Unlock tap cannot persist a real token
-        // into a demo session.
         _uiState.update {
             it.copy(operation = LoginOperation.ENTER_DEMO, error = null)
         }
@@ -119,8 +111,6 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             sessionRepository.signIn(token).fold(
                 onSuccess = {
-                    // Drop the secret from UI state only once it is safely in
-                    // encrypted storage.
                     _uiState.update { it.copy(token = "", operation = null) }
                     _events.send(LoginEvent.LoginSuccess)
                 },
@@ -131,22 +121,18 @@ class LoginViewModel @Inject constructor(
                                 token = "",
                                 operation = null,
                                 error = LoginError.MissingScope,
-                                // The shape hint describes content that is now gone.
                                 warningRes = null,
                             )
                         }
                     } else {
-                        // Keep the token on a retryable failure (no-network / 429 /
-                        // 5xx): the message tells the user to try again, so wiping
-                        // it would force a full re-paste.
+                        // Keep the token on a retryable failure: the message says to try again,
+                        // so wiping it would force a full re-paste.
                         val retryable = UiErrors.isRetryable(error)
                         _uiState.update {
                             it.copy(
                                 token = if (retryable) it.token else "",
                                 operation = null,
                                 error = LoginError.Message(UiErrors.messageRes(error, R.string.login_error_failed)),
-                                // Tied to the token: stays while the content it describes
-                                // is still in the field.
                                 warningRes = if (retryable) it.warningRes else null,
                             )
                         }
@@ -160,13 +146,8 @@ class LoginViewModel @Inject constructor(
 data class LoginUiState(
     val token: String = "",
     val operation: LoginOperation? = null,
-    /** The one error on show; a single field, so a new error can never leave a stale shortcut behind. */
     val error: LoginError? = null,
-    /**
-     * Soft, non-blocking hint that the field does not hold something shaped
-     * like a Fastmail token. Distinct from [errorRes]: it never prevents a
-     * login attempt, because the token format is Fastmail's to change.
-     */
+    /** Never prevents a login attempt: the token format is Fastmail's to change. */
     val warningRes: Int? = null,
 ) {
     val isLoading: Boolean get() = operation != null
@@ -178,7 +159,6 @@ data class LoginUiState(
             LoginError.MissingScope -> R.string.login_error_missing_masked_email_scope
         }
 
-    /** The token lacks the Masked Email scope; the screen offers a shortcut to token settings. */
     val missingScope: Boolean get() = error == LoginError.MissingScope
 }
 

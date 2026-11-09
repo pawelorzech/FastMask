@@ -33,10 +33,9 @@ import com.fastmask.ui.settings.SettingsScreen
 import com.fastmask.ui.welcome.WelcomeScreen
 
 /**
- * Hands [result] to the list entry, wherever it sits in the back stack. The screen
- * below the caller is not always the list (a share can open Create on top of
- * Settings, Pro or Detail), so `previousBackStackEntry` would drop the result in
- * an entry nobody reads. No list entry on the stack means nothing is shown.
+ * Hands [result] to the list entry wherever it sits in the back stack: a share can
+ * open Create on top of Settings, Pro or Detail, so `previousBackStackEntry` is not
+ * always the list. No list entry on the stack means nothing is shown.
  */
 private fun NavController.postToList(result: ListResult) {
     val list = try {
@@ -61,10 +60,8 @@ fun FastMaskNavHost(
     val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
     val isDetail: (androidx.navigation.NavBackStackEntry) -> Boolean = { it.destination.route == NavRoutes.EMAIL_DETAIL }
 
-    // The recovery for a refused token, from the list, create and detail alike.
-    // Keeps the current entry underneath Login so cancelling the flow returns to
-    // the user's filters, scroll position or draft. Login success still replaces
-    // the stack with a fresh list.
+    // Keep the current entry under Login so cancelling returns to the user's filters,
+    // scroll position or draft; login success still replaces the stack with a fresh list.
     val onReauthenticate: () -> Unit = {
         navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
     }
@@ -116,8 +113,6 @@ fun FastMaskNavHost(
             exitTransition = { if (isDetail(targetState)) fadeOut(fadeOutSpec) else slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
             popEnterTransition = { if (isDetail(initialState)) fadeIn(fadeInSpec) else slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
         ) { entry ->
-            // What the detail screen (archived) or the create screen (created) handed
-            // back: the list shows its Undo / "mask created" snackbar and consumes it.
             val pendingResult by entry.savedStateHandle.pendingListResult().collectAsState()
             MaskedEmailListScreen(
                 onNavigateToCreate = {
@@ -134,8 +129,6 @@ fun FastMaskNavHost(
                 },
                 onReauthenticate = onReauthenticate,
                 pendingResult = pendingResult,
-                // Consuming only clears the result it was shown for, so a newer
-                // archive that arrived meanwhile is never erased.
                 onResultConsumed = { entry.savedStateHandle.consumeListResult(it) },
             )
         }
@@ -187,8 +180,6 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onCreated = { email ->
-                    // Hand the address to the list entry, then leave at
-                    // once — the confirmation belongs where the new mask is.
                     navController.postToList(ListResult.Created(email))
                     navController.popBackStack()
                 },

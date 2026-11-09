@@ -19,10 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskTheme
 
-/**
- * Small 24dp pill labelling a mask's state ("Active", "Off", "Archived",
- * "Pending"). The label is the non-colour channel; text is read by TalkBack.
- */
+/** The label is the non-colour channel for the state. */
 @Composable
 fun StateChip(state: EmailState, modifier: Modifier = Modifier) {
     val pair = state.statusColors()

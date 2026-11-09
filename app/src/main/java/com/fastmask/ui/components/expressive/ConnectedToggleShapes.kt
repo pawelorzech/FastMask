@@ -10,12 +10,9 @@ import androidx.compose.ui.unit.dp
 val ConnectedGap = 2.dp
 
 /**
- * Shapes for toggle button [index] of [count] in a connected single-select group. Every button keeps
- * full outer corners and small inner corners so the group reads as one segmented unit; the checked
- * button rounds its inner corners further (but never to a full pill, which would make two buttons
- * look like two separate pills) and presses to the smallest radius. [vertical] is the stacked
- * layout used at large font scales. Use the same helper for every
- * connected group (filters, status, initial state) so they are identical.
+ * Every button keeps full outer corners and small inner corners so the group reads as
+ * one segmented unit; the checked button rounds its inner corners further, but never to
+ * a full pill, which would make two buttons look like two separate pills.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun connectedToggleShapes(index: Int, count: Int, vertical: Boolean = false): ToggleButtonShapes {
@@ -24,7 +21,6 @@ fun connectedToggleShapes(index: Int, count: Int, vertical: Boolean = false): To
     val last = index == count - 1
     fun shape(inner: Dp): RoundedCornerShape {
         val i = CornerSize(inner)
-        // Stacked (vertical) groups round the top of the first and the bottom of the last.
         return if (vertical) {
             RoundedCornerShape(
                 topStart = if (first) full else i,

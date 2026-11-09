@@ -47,11 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 
-/**
- * Docked search field: a pill on `surfaceContainerHigh` whose corner radius
- * tightens (spring) while it has focus. The clear button exists only when
- * there is something to clear.
- */
 @Composable
 internal fun SearchField(
     query: String,

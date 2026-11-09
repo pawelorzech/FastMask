@@ -5,7 +5,6 @@ import androidx.navigation.NavController
 import com.fastmask.domain.share.SharePrefill
 
 object NavRoutes {
-    /** Argument names, shared by the route templates and the ViewModels that read them. */
     const val ARG_EMAIL_ID = "emailId"
     const val ARG_FOR_DOMAIN = "forDomain"
     const val ARG_SOURCE = "source"

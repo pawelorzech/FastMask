@@ -29,9 +29,6 @@ class CreateMaskedEmailViewModel @Inject constructor(
     private val maskedEmailRepository: MaskedEmailRepository,
 ) : ViewModel() {
 
-    // Text shared into the app arrives as the route's forDomain argument. It seeds
-    // the initial state once, when this ViewModel is created: rotation keeps the
-    // ViewModel, so it can never overwrite what the user has typed since.
     private val _uiState = MutableStateFlow(
         CreateMaskedEmailUiState(
             forDomain = savedStateHandle.get<String>(NavRoutes.ARG_FOR_DOMAIN)
@@ -41,17 +38,11 @@ class CreateMaskedEmailViewModel @Inject constructor(
     )
     val uiState: StateFlow<CreateMaskedEmailUiState> = _uiState.asStateFlow()
 
-    // Channel-backed one-time events: buffered delivery survives windows with
-    // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<CreateMaskedEmailEvent>(Channel.BUFFERED)
     val events: Flow<CreateMaskedEmailEvent> = _events.receiveAsFlow()
 
     fun onPrefixChange(prefix: String) {
         val sanitized = MaskPrefix.sanitize(prefix)
-        // Localizable string-res ids, not raw literals: these are shown to the
-        // user under a fully-translated form. sanitize() leaves only allowed
-        // characters, so only the length rule can fire here; INVALID_CHARS is
-        // still mapped to keep the `when` exhaustive.
         val errorRes = when (MaskPrefix.validate(sanitized)) {
             MaskPrefix.Error.TOO_LONG -> R.string.create_email_error_prefix_length
             MaskPrefix.Error.INVALID_CHARS -> R.string.create_email_error_prefix_chars
@@ -79,15 +70,13 @@ class CreateMaskedEmailViewModel @Inject constructor(
     fun create() {
         val state = _uiState.value
         if (state.prefixErrorRes != null) return
-        // Guard against rapid double-tap: the button's `enabled` flips only on the
-        // next recomposition, so two taps in one frame would otherwise both land
-        // here and create two real masks on the Fastmail account.
+        // The button's `enabled` flips only on the next recomposition, so two taps in
+        // one frame would otherwise create two real masks.
         if (state.isLoading) return
 
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            // Trimmed like the detail editor (see TextPolicy). Unlike there, an
-            // empty field means "not set", not "clear".
+            // An empty field means "not set", not "clear".
             val params = CreateMaskedEmailParams(
                 state = state.initialState,
                 forDomain = state.forDomain.trimToNull(),
@@ -124,7 +113,6 @@ data class CreateMaskedEmailUiState(
     val error: UiError? = null,
     val prefixErrorRes: Int? = null,
 ) {
-    /** Typed-but-uncreated input; guards back / swipe with the discard dialog. */
     val isDirty: Boolean
         get() = emailPrefix.isNotEmpty() || forDomain.isNotEmpty() ||
             description.isNotEmpty() || url.isNotEmpty()

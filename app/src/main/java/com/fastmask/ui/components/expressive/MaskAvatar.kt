@@ -33,21 +33,13 @@ private val MaskAvatarPolygons: List<RoundedPolygon> = listOf(
     MaterialShapes.Triangle,
 )
 
-/** Deterministic index into [MaskAvatarPolygons] for [seedText]. */
 internal fun maskAvatarShapeIndex(seedText: String, shapeCount: Int): Int =
     Math.floorMod(seedText.hashCode(), shapeCount)
 
-/** First letter of [seedText] (uppercase), or "?" when blank. */
 internal fun maskAvatarInitial(seedText: String): String =
     seedText.trim().firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "?"
 
-/**
- * Avatar for a mask: the first letter of [seedText] (a domain or e-mail) on a
- * Material Expressive shape chosen deterministically from a hash of
- * [seedText], so the same site always gets the same shape. Colors come from
- * the state's status pair. Decorative: it has no semantics of its own, pair
- * it with a [StateChip] or text for the state.
- */
+/** Decorative, no semantics of its own: pair it with a [StateChip] or text for the state. */
 @Composable
 fun MaskAvatar(
     seedText: String,

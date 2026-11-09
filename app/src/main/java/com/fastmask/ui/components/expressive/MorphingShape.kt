@@ -26,28 +26,16 @@ import androidx.graphics.shapes.RoundedPolygon
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-/** The shape currently drawn: `from` -> `to`, interpolated by an [Animatable] outside this holder. */
 private class MorphHolder(first: RoundedPolygon) {
     var to: RoundedPolygon = first
     var morph by mutableStateOf(Morph(first, first))
 }
 
 /**
- * A filled Material shape that morphs through [polygons] forever (while the
- * screen is resumed), turning a little on every step. Decorative: callers
- * clear semantics around it.
- *
- * - Several polygons: it waits [holdMillis] (after an initial [startDelayMillis]),
- *   morphs to the next one and repeats. Pausing is lifecycle-bound: nothing
- *   animates while the host is not RESUMED, and an interrupted morph is finished
- *   when it comes back.
- * - One polygon: it simply morphs to it (also when [polygons] changes later, which
- *   is how the lock screen turns the cookie into a burst on success).
- * - System animations off: it snaps to the first polygon and holds still.
- *
- * Morphs ride the theme's `slowSpatialSpec()` or, when [fast] is set,
- * `fastSpatialSpec()`; the spring overshoot is the "expressive" part.
- * [polygons] must be a remembered/stable list or the loop restarts every recomposition.
+ * Decorative. Pausing is lifecycle-bound: nothing animates while the host is not RESUMED,
+ * and an interrupted morph is finished when it comes back. With system animations off it
+ * snaps to the first polygon. [polygons] must be a remembered/stable list or the loop
+ * restarts every recomposition.
  */
 @Composable
 internal fun MorphingShape(

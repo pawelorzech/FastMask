@@ -8,12 +8,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 
-/**
- * The top bar of the create and detail screens: flat on the surface, then it
- * takes the `surfaceContainer` tone once the content has scrolled under it
- * ([raised]). [banner] sits below the bar, which already consumed the
- * status-bar inset, so the demo banner leaves no gap above the back arrow.
- */
+/** [banner] sits below the bar, which already consumed the status-bar inset, so the demo banner leaves no gap above the back arrow. */
 @Composable
 internal fun ScrollRaisedTopBar(
     raised: Boolean,
@@ -32,7 +27,6 @@ internal fun ScrollRaisedTopBar(
             navigationIcon = navigationIcon,
             colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
         )
-        // Demo mode banner (auto-hides in REAL mode).
         banner()
     }
 }

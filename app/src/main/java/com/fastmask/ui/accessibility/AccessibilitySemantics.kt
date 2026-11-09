@@ -6,7 +6,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 
-/** Marks the visual title of a screen for heading navigation. */
 fun Modifier.screenHeading(): Modifier = semantics { heading() }
 
 /** Announces text changes without interrupting the current screen-reader utterance. */

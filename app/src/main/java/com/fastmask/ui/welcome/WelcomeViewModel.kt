@@ -23,8 +23,6 @@ class WelcomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WelcomeUiState())
     val uiState: StateFlow<WelcomeUiState> = _uiState.asStateFlow()
 
-    // Channel-backed one-time events: buffered delivery survives windows with
-    // no active collector (e.g. mid-rotation) and each event is handled once.
     private val _events = Channel<WelcomeEvent>(Channel.BUFFERED)
     val events: Flow<WelcomeEvent> = _events.receiveAsFlow()
 

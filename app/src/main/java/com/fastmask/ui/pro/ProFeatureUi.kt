@@ -11,7 +11,6 @@ import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.domain.model.ProFeature
 
-/** Everything the UI draws for one [ProFeature]: its icon, badge shape and paywall copy. */
 internal class ProFeatureStyle(
     val icon: ImageVector,
     val shape: RoundedPolygon,
@@ -41,8 +40,6 @@ internal val ProFeature.style: ProFeatureStyle
         )
     }
 
-/** Analytics source for a paywall opened from the Pro row in Settings (a locked feature uses [ProFeature.source]). */
 internal const val PRO_SOURCE_SETTINGS = "settings"
 
-/** Analytics source when the paywall route carries none. */
 internal const val PRO_SOURCE_UNKNOWN = "unknown"

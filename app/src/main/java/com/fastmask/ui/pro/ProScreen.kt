@@ -109,8 +109,7 @@ fun ProScreen(
         }
     }
 
-    // Play requires these legal links to work; tell the user when no
-    // browser can take the intent.
+    // Play requires these legal links to work; tell the user when no browser can take the intent.
     val noAppMessage = stringResource(R.string.error_no_app_for_link)
     val scope = rememberCoroutineScope()
     val openLink: (String) -> Unit = { url ->
@@ -124,8 +123,6 @@ fun ProScreen(
         state = uiState,
         snackbarHostState = snackbarHostState,
         celebrate = uiState.celebrate,
-        // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
-        // gesture/system back counts too, not just this button.
         onClose = onNavigateBack,
         onBuy = { activity?.let(viewModel::buy) },
         onRetry = viewModel::loadProduct,
@@ -351,12 +348,6 @@ internal fun ProContent(
     }
 }
 
-/**
- * A button whose label swaps for a [busy] indicator while [inFlight]. The button
- * stays enabled (no disabled colours under the indicator) and ignores taps while
- * busy; the ViewModel guards re-entry too. [button] draws the actual button around
- * the swapped content.
- */
 @Composable
 private fun InFlightButton(
     inFlight: Boolean,
@@ -448,7 +439,6 @@ private fun RestoreButton(inFlight: Boolean, onClick: () -> Unit) {
     )
 }
 
-/** Inline status card for states the purchase button cannot express. */
 @Composable
 private fun InlineNotice(
     text: String,
@@ -482,8 +472,6 @@ private fun InlineNotice(
         )
     }
 }
-
-// --- Previews ---------------------------------------------------------------
 
 private val PreviewProduct = ProProduct(
     formattedPrice = "14,99 zł",

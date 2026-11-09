@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 
-/** Big shape + icon used by the empty, no-match and error states. */
 @Composable
 internal fun StateIllustration(
     icon: ImageVector,

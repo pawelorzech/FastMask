@@ -11,12 +11,9 @@ import com.fastmask.R
 import androidx.compose.ui.unit.sp
 
 /**
- * Google Sans Flex, bundled (SIL OFL 1.1, see licenses/GoogleSansFlex-OFL.txt).
- *
- * It is NOT in the Google Play services downloadable-fonts catalog, so the
- * provider silently fell back to Roboto. One variable file serves every weight;
- * [GoogleSansFlexRounded] turns the ROND axis up for the emphasized styles —
- * the soft, rounded headline voice of Material 3 Expressive.
+ * Bundled, because Google Sans Flex is NOT in the Google Play services downloadable-fonts
+ * catalog (the provider silently fell back to Roboto). One variable file serves every
+ * weight; [GoogleSansFlexRounded] turns the ROND axis up for the emphasized styles.
  */
 @OptIn(ExperimentalTextApi::class)
 private fun gsf(weight: FontWeight, round: Float) = Font(
@@ -52,10 +49,6 @@ private val W400 = FontWeight.Normal
 private val W500 = FontWeight.Medium
 private val W600 = FontWeight.SemiBold
 
-/**
- * M3 Expressive type scale. Each role has a baseline and an `…Emphasized`
- * variant that is one weight step heavier (display/headline jump to 600).
- */
 val Typography = Typography(
     displayLarge = style(57, 64, W400, -0.25f),
     displayMedium = style(45, 52, W400),

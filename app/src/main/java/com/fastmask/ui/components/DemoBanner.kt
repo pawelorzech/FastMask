@@ -40,11 +40,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Banner shown on screens that benefit from a hint that the user is in
- * demo mode. It hides itself outside the demo, and its action ends the demo
- * before handing control to [onSignInClick].
- */
 @Composable
 fun DemoBanner(
     onSignInClick: () -> Unit,
@@ -66,20 +61,13 @@ fun DemoBanner(
     )
 }
 
-/**
- * The stateless banner: a tonal `secondaryContainer` card with an icon, the
- * demo-mode notice and a "Sign in" text button (a stock M3 button, so it has
- * the 48dp target, the Button role and the press-morph for free).
- */
 @Composable
 fun DemoBannerContent(
     onSignInClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // At large font scales the side-by-side layout leaves the text a sliver of
-    // width (icon + button take ~40%), so it wraps to four lines and the banner eats
-    // a third of the list. Stack it instead: text on the full width, the action as
-    // an icon-plus-label button underneath. Nothing is truncated.
+    // At large font scales the side-by-side layout leaves the text a sliver of width
+    // and the banner eats a third of the list, so stack it.
     val stacked = LocalDensity.current.fontScale >= STACKED_FONT_SCALE
     Surface(
         modifier = modifier
@@ -140,7 +128,6 @@ fun DemoBannerContent(
     }
 }
 
-/** From this font scale up the banner stacks its text above the action. */
 private const val STACKED_FONT_SCALE = 1.5f
 
 @HiltViewModel
@@ -150,17 +137,9 @@ class DemoBannerViewModel @Inject constructor(
 
     val session: StateFlow<Session> = sessionRepository.session
 
-    /** Ends the demo, then calls [onDone], so the next screen already sees the signed-out session. */
     fun exitDemoMode(onDone: () -> Unit) {
-        // Same synchronous double-tap guard as every other mutating entry
-        // point: the button stays enabled during the sign-out, and
-        // two taps in that window would each fire [onDone] — double navigation.
         if (exitInFlight) return
         exitInFlight = true
-        // QuietWriteFailure swallows a failed write; [onDone] only runs after
-        // sign-out succeeds, so navigation never fires on a half-applied state
-        // change. The guard releases on every terminal outcome (the finally) so a
-        // failed write can still be retried with the next tap.
         viewModelScope.launch(QuietWriteFailure) {
             try {
                 sessionRepository.signOut()

@@ -50,12 +50,6 @@ import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
 import com.fastmask.ui.theme.seedScheme
 
-/**
- * Row of round color swatches: Wallpaper first (a four-quadrant mini of the
- * current scheme), then the five Pro seeds. The selected swatch morphs into a
- * Sunny and shows a check; for non-Pro users the seeds carry a lock badge and
- * [onLockedTap] fires instead of [onSelect].
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ColorSwatchRow(
@@ -153,7 +147,6 @@ private fun ColorSwatch(
             },
         contentAlignment = Alignment.Center,
     ) {
-        // Null for [Accent.DYNAMIC], which draws the wallpaper scheme instead of a seed.
         val seedColor = accent.seedScheme(dark)?.primary
         Box(
             modifier = Modifier

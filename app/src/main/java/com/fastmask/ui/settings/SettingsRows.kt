@@ -25,7 +25,6 @@ import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.SegmentedSurface
 
-/** Header plus a [SegmentedGroup] of whatever rows [rows] adds, indexed as they land. */
 @Composable
 internal fun SettingsSection(
     title: String,
@@ -42,7 +41,6 @@ internal fun SettingsSection(
     }
 }
 
-/** Non-clickable group member whose children keep their own semantics. */
 @Composable
 internal fun StaticSegment(
     index: Int,
@@ -88,10 +86,8 @@ internal fun SettingsRow(
 }
 
 /**
- * One toggleable row with a Switch role. A clickable row plus an
- * independently-clickable Switch gives TalkBack two focus targets for a single
- * setting and announces no state on the row, so the Switch itself is purely
- * visual (`onCheckedChange = null`).
+ * A clickable row plus an independently-clickable Switch gives TalkBack two focus targets
+ * for one setting, so the Switch itself is purely visual (`onCheckedChange = null`).
  */
 @Composable
 internal fun SettingsToggleRow(

@@ -10,15 +10,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/**
- * Shared Material 3 confirmation dialog for destructive or irreversible actions
- * (discard unsaved edits, sign out, archive) so they never happen on a single
- * accidental tap.
- *
- * @param destructive when true (default) the confirm action is drawn in the error
- *   role and confirming gives a haptic tick; pass false for a plain "yes".
- * @param icon optional hero icon above the title, as in the M3 basic dialog spec.
- */
 @Composable
 fun ConfirmDialog(
     title: String,

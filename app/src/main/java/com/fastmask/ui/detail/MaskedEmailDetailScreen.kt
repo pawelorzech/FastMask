@@ -77,10 +77,8 @@ import com.fastmask.ui.components.rememberDiscardChangesGuard
 import com.fastmask.ui.components.expressive.maskContainer
 import kotlinx.coroutines.delay
 
-/** How long the copy button shows its "Copied" confirmation. */
 private const val COPIED_FEEDBACK_MS = 1800L
 
-/** Hero scroll offset after which the app bar title fades in. */
 private const val TITLE_REVEAL_SCROLL_DP = 120
 
 @Composable
@@ -107,9 +105,7 @@ fun MaskedEmailDetailScreen(
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
                 is MaskedEmailDetailEvent.Deleted -> {
-                    // Navigate straight back and let the list host the "archived —
-                    // undo" snackbar, so the undo action lives where the mask
-                    // reappears. No blocking snackbar here.
+                    // The list hosts the archived/undo snackbar, where the mask reappears.
                     onArchived(event.id, event.previousState)
                 }
             }
@@ -131,8 +127,6 @@ fun MaskedEmailDetailScreen(
         )
     }
 
-    // The list row this screen grows out of. Taken from the route rather than the
-    // loaded mask, so the shared-bounds key is stable from the first frame.
     val containerId = viewModel.emailId
 
     MaskedEmailDetailContent(
@@ -339,7 +333,6 @@ private fun DetailBody(
             )
             IconButton(
                 onClick = {
-                    // Closing the editor discards the draft, like Cancel.
                     if (editing) onDiscardEdits() else onStartEditing()
                 },
                 enabled = !uiState.isUpdating,
