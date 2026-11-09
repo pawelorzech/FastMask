@@ -2,6 +2,7 @@ package com.fastmask.ui.list
 
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.domain.model.EmailState
+import kotlinx.coroutines.flow.StateFlow
 import java.io.Serializable
 import java.util.UUID
 
@@ -24,16 +25,19 @@ sealed interface ListResult : Serializable {
 
     /** The create screen made the mask with this [email] address. */
     data class Created(val email: String) : ListResult
-
-    companion object {
-        const val KEY = "list_result"
-    }
 }
+
+/** The one slot in the list entry's handle; only the three functions below touch it. */
+private const val LIST_RESULT_KEY = "list_result"
 
 /** Hands [result] to the list, replacing any result it has not consumed yet. */
 fun SavedStateHandle.postListResult(result: ListResult) {
-    this[ListResult.KEY] = result
+    this[LIST_RESULT_KEY] = result
 }
+
+/** The result waiting for the list to show it, or null; emits as results are posted and consumed. */
+fun SavedStateHandle.pendingListResult(): StateFlow<ListResult?> =
+    getStateFlow<ListResult?>(LIST_RESULT_KEY, null)
 
 /**
  * Marks [result] as shown. Clears the slot only while it still holds exactly
@@ -41,5 +45,5 @@ fun SavedStateHandle.postListResult(result: ListResult) {
  * archive during the first Undo) must never be erased by consuming the older one.
  */
 fun SavedStateHandle.consumeListResult(result: ListResult) {
-    if (get<ListResult>(ListResult.KEY) == result) this[ListResult.KEY] = null
+    if (get<ListResult>(LIST_RESULT_KEY) == result) this[LIST_RESULT_KEY] = null
 }

@@ -25,6 +25,7 @@ import com.fastmask.ui.components.expressive.LocalSharedTransitionScope
 import com.fastmask.ui.list.ListResult
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.list.consumeListResult
+import com.fastmask.ui.list.pendingListResult
 import com.fastmask.ui.list.postListResult
 import com.fastmask.ui.pro.ProScreen
 import com.fastmask.ui.settings.SettingsScreen
@@ -116,9 +117,7 @@ fun FastMaskNavHost(
         ) { entry ->
             // What the detail screen (archived) or the create screen (created) handed
             // back: the list shows its Undo / "mask created" snackbar and consumes it.
-            val pendingResult by entry.savedStateHandle
-                .getStateFlow<ListResult?>(ListResult.KEY, null)
-                .collectAsState()
+            val pendingResult by entry.savedStateHandle.pendingListResult().collectAsState()
             MaskedEmailListScreen(
                 onNavigateToCreate = {
                     navController.navigate(NavRoutes.createEmail()) { launchSingleTop = true }
