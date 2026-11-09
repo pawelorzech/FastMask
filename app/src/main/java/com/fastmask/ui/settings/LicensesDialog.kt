@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -19,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
+import com.fastmask.ui.components.DialogTextButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -37,19 +36,12 @@ private val bundledLicenses = listOf(
 private val PARAGRAPH_JOIN_REGEX = Regex("(?<=\\S)[ \\t]*\\r?\\n[ \\t]*(?=\\S)")
 private val HORIZONTAL_RULE_REGEX = Regex("-{5,}")
 
-/**
- * The license files are hard-wrapped at about 80 columns, which leaves ragged
- * half-lines in a narrower dialog. Joins lines inside a paragraph (blank lines stay)
- * and shortens the rule lines; the wording is untouched.
- */
+/** The license files are hard-wrapped at about 80 columns, which leaves ragged half-lines in a narrower dialog. */
 private fun reflow(text: String): String =
     text.replace(PARAGRAPH_JOIN_REGEX, " ")
         .replace(HORIZONTAL_RULE_REGEX, "———")
 
-/**
- * Attribution for what FastMask bundles: the font (SIL OFL 1.1) and the icon glyph
- * (Apache 2.0). Both licenses require their text to accompany the software.
- */
+/** Both licenses (SIL OFL 1.1 font, Apache 2.0 icon glyph) require their text to accompany the software. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun LicensesDialog(onDismiss: () -> Unit) {
@@ -91,9 +83,7 @@ internal fun LicensesDialog(onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) {
-                Text(stringResource(R.string.pro_close))
-            }
+            DialogTextButton(text = stringResource(R.string.action_close), onClick = onDismiss)
         },
     )
 }

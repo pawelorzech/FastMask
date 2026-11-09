@@ -24,12 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.components.expressive.MorphingShape
 
-/**
- * The Pro paywall hero: three [MaterialShapes] on staggered morph timers, the
- * main one carrying the premium glyph. When [celebrate] flips on (a purchase
- * just completed) the main shape bursts and the whole cluster springs up and
- * back. Purely decorative, so it exposes no semantics.
- */
+/** Purely decorative: exposes no semantics. */
 @Composable
 internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
     val motion = MaterialTheme.motionScheme

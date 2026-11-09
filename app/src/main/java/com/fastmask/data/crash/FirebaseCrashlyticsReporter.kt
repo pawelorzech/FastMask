@@ -4,16 +4,12 @@ import com.fastmask.domain.crash.CrashReporter
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 /**
- * The single point where the app touches the Firebase Crashlytics SDK.
- *
- * It exposes nothing beyond the two switches [CrashReporter] declares. That is
- * deliberate: the SDK's user-identifier, custom-key and log APIs are one-liners
- * that ship whatever they are handed straight to Google, and the values closest
+ * Exposes nothing beyond the two switches [CrashReporter] declares, on purpose:
+ * the SDK's user-identifier, custom-key and log APIs are one-liners that ship whatever they are handed straight to Google, and the values closest
  * to hand in this app are exactly the ones that must never leave the device —
  * the mask address, the mask description, the site a mask was made for, the
  * owner's own e-mail and the Fastmail API token. With no way to pass them, no
- * future call site can leak them by accident. `CrashReportingPrivacyTest`
- * enforces that this stays the only file naming the SDK.
+ * future call site can leak them by accident.
  *
  * What Crashlytics still sends on a crash is what it derives itself: the stack
  * trace, the app and OS version, the device model, and device state it reads at
@@ -29,10 +25,14 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * `SettingsController.loadSettingsData`, which fetches Crashlytics' own remote
  * config (carrying the installation ID, device model and OS build), and
  * `IdManager` registers the Firebase installation. Both are gated on
- * `DataCollectionArbiter`, verified in 19.2.1 bytecode:
+ * `DataCollectionArbiter`, verified by reading firebase-crashlytics 20.1.0
+ * bytecode with `javap` (static reading, not run on a device):
  *
- *  - the config fetch waits on `waitForDataCollectionPermission()`, which never
- *    resolves once collection is off;
+ *  - the config fetch waits on `waitForDataCollectionPermission()`, a task that
+ *    only `grantDataCollectionPermission(true)` completes, and the SDK's
+ *    unsent-report handling is its only caller; this app never calls
+ *    `sendUnsentReports`. The chain from there to "collection off means the
+ *    grant never happens" was not traced end to end;
  *  - `IdManager.getInstallIds()` branches on
  *    `isAutomaticDataCollectionEnabled()` and returns
  *    `InstallIds.createWithoutFid(...)` — a locally generated value — without
@@ -42,7 +42,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
  * the whole of what the privacy docs mean by "switching it off stops the
  * startup traffic". Re-verify both branches when the Firebase BOM moves.
  *
- * The SDK handle is resolved lazily, per call, and never in the constructor.
+ * The SDK handle is resolved per call, never in the constructor.
  * `FirebaseCrashlytics.getInstance()` throws `IllegalStateException` when the
  * default `FirebaseApp` was never initialised — which happens on OEM ROMs that
  * strip content providers, in app-cloning frameworks and during direct boot.
@@ -56,10 +56,8 @@ class FirebaseCrashlyticsReporter : CrashReporter {
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(enabled)
     }
 
-    /**
-     * Requests deletion of reports captured before an opt-out. Fire-and-forget:
-     * the SDK returns a Task, but awaiting it would block the settings toggle on I/O.
-     */
+    // Fire-and-forget: the SDK returns a Task, but awaiting it would block the
+    // settings toggle on I/O.
     override fun deleteUnsentReports() {
         FirebaseCrashlytics.getInstance().deleteUnsentReports()
     }

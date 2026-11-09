@@ -70,22 +70,21 @@ class UiErrorsTest {
         assertEquals(R.string.error_server, UiErrors.messageRes(failureForStatus(503), fallback))
     }
 
-    // Ported from ListErrorActionTest: the action now comes out of the same table as the message.
-    
-    fun `rejected token routes to reauthentication`() {
-        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(401), fallback).action)
-        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(403), fallback).action)
+    @Test
+    fun `a refused token routes to reauthentication whether or not the operation can be retried`() {
+        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(401), fallback, retryable = true).action)
+        assertEquals(UiErrorAction.REAUTHENTICATE, UiErrors.of(failureForStatus(403), fallback, retryable = false).action)
     }
 
     @Test
-    fun `network and generic list failures remain retryable`() {
-        assertEquals(UiErrorAction.RETRY, UiErrors.of(IOException("x"), fallback).action)
-        val generic = UiErrors.of(RuntimeException("boom"), R.string.error_load_emails, UiErrorAction.RETRY)
-        assertEquals(UiError(R.string.error_load_emails, UiErrorAction.RETRY), generic)
+    fun `a retryable operation offers retry for transient and unknown failures alike`() {
+        assertEquals(UiError(R.string.error_network, UiErrorAction.RETRY), UiErrors.of(IOException("x"), fallback, retryable = true))
+        assertEquals(UiError(fallback, UiErrorAction.RETRY), UiErrors.of(RuntimeException("boom"), fallback, retryable = true))
     }
 
     @Test
-    fun `unknown failures offer nothing by default`() {
-        assertEquals(UiError(fallback, UiErrorAction.NONE), UiErrors.of(RuntimeException("boom"), fallback))
+    fun `an operation that cannot be repeated offers no retry but keeps the message`() {
+        assertEquals(UiError(R.string.error_network, UiErrorAction.NONE), UiErrors.of(IOException("x"), fallback, retryable = false))
+        assertEquals(UiError(fallback, UiErrorAction.NONE), UiErrors.of(RuntimeException("boom"), fallback, retryable = false))
     }
 }

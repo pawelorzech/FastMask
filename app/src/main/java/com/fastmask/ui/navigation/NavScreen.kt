@@ -12,10 +12,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.fastmask.ui.components.expressive.LocalNavAnimatedScope
 
-/**
- * `composable` that also provides [LocalNavAnimatedScope] to the destination, so
- * `maskContainer` can find the AnimatedContentScope of the navigation transition.
- */
 fun NavGraphBuilder.screen(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),

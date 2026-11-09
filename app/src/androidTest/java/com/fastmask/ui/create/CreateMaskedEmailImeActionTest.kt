@@ -3,10 +3,7 @@ package com.fastmask.ui.create
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -20,12 +17,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.MainActivity
 import com.fastmask.R
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.testutil.createFab
 import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.launchOnFreshInstall
 import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import javax.inject.Inject
-import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -72,27 +70,10 @@ class CreateMaskedEmailImeActionTest {
 
     private lateinit var scenario: ActivityScenario<MainActivity>
 
-    /**
-     * The list's create button: the extended FAB is named by its visible "New mask" label,
-     * the icon-only toggle FAB (while scrolling down) by the create description.
-     */
-    private fun createFab(): SemanticsMatcher =
-        hasClickAction() and (
-            hasContentDescription(string(R.string.email_list_create_description)) or
-                hasContentDescription(string(R.string.email_list_create_fab))
-            )
-
     @Before
     fun launchOnAFreshInstallAndOpenTheCreateScreen() {
         hiltRule.inject()
-        runBlocking {
-            sessionRepository.signOut()
-        }
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.welcome_demo_cta))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        scenario = composeRule.launchOnFreshInstall(sessionRepository)
 
         composeRule.enterDemoAndDismissTutorial()
 
@@ -130,33 +111,8 @@ class CreateMaskedEmailImeActionTest {
             .config
             .getOrNull(SemanticsProperties.ImeAction)
 
-    @Test
-    fun prefixFieldExposesImeActionNext() {
-        assertEquals(
-            "prefix field must expose ImeAction.Next",
-            ImeAction.Next,
-            imeActionOf(R.string.create_email_prefix_label),
-        )
-    }
-
-    @Test
-    fun domainFieldExposesImeActionNext() {
-        assertEquals(
-            "domain field must expose ImeAction.Next",
-            ImeAction.Next,
-            imeActionOf(R.string.create_email_domain_label),
-        )
-    }
-
-    @Test
-    fun descriptionFieldExposesImeActionNext() {
-        assertEquals(
-            "description field must expose ImeAction.Next",
-            ImeAction.Next,
-            imeActionOf(R.string.create_email_description_label),
-        )
-    }
-
+    // The three leading fields' Next actions are implied by the focus-chain test below, which
+    // moves focus field to field through the screen's own keyboard actions.
     @Test
     fun urlFieldExposesImeActionDone() {
         assertEquals(

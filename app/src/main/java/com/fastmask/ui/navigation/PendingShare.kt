@@ -19,11 +19,10 @@ import com.fastmask.domain.share.ShareRouter
 import com.fastmask.domain.share.SharedLinkParser
 
 /**
- * Text shared into the app (ACTION_SEND) that has not been routed yet.
- *
- * A rotation re-runs onCreate with the same intent, so whether the launch
- * intent's share was already routed is kept in the instance state; otherwise
- * every rotation would reopen a create form the user had filled in or dismissed.
+ * Text shared into the app (ACTION_SEND) that has not been routed yet. A rotation
+ * re-runs onCreate with the same intent, so whether the launch intent's share was
+ * already routed is kept in the instance state, or every rotation would reopen a
+ * create form the user had filled in or dismissed.
  */
 class PendingShare {
     var request by mutableStateOf<ShareRequest?>(null)
@@ -37,7 +36,6 @@ class PendingShare {
         request = if (consumed) null else fromIntent(intent)
     }
 
-    /** Only a new share re-arms; an unrelated intent must not revive one already routed. */
     fun onNewIntent(intent: Intent) {
         val share = fromIntent(intent) ?: return
         consumed = false
@@ -59,7 +57,7 @@ class PendingShare {
         // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
         // and a Spanned from the sending app makes getStringExtra return null.
         val sharedText: String = ShareIntentPolicy.sharedText(
-            action = intent?.action,
+            isSend = intent?.action == Intent.ACTION_SEND,
             type = intent?.type,
             text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
         ) ?: return null
@@ -71,11 +69,7 @@ class PendingShare {
     }
 }
 
-/**
- * Routes [pending] once content may show. Must be composed only behind the app
- * lock: a share waits there ([ShareRoute.WaitForUnlock]) and must never become a
- * way past it.
- */
+/** Must be composed only behind the app lock: a share waits there and must never become a way past it. */
 @Composable
 fun RoutePendingShare(
     pending: PendingShare,
@@ -89,11 +83,9 @@ fun RoutePendingShare(
         when (route) {
             is ShareRoute.OpenCreate ->
                 navController.navigate(NavRoutes.createEmail(route.prefill)) { launchSingleTop = true }
-            // Dropped, but never in silence: the create form cannot be submitted
-            // without a session, and replaying the text minutes later, after an
-            // external sign-in round trip, would be a surprise nobody can connect
-            // to anything they did. A Toast because there is no SnackbarHost
-            // above the NavHost, and this lands on the welcome screen.
+            // Dropped, but never in silence: replaying the text after an external
+            // sign-in round trip would be a surprise nobody can connect to anything
+            // they did. A Toast because there is no SnackbarHost above the NavHost.
             ShareRoute.RejectSignedOut ->
                 Toast.makeText(context, R.string.share_requires_sign_in, Toast.LENGTH_LONG).show()
             ShareRoute.WaitForUnlock -> Unit

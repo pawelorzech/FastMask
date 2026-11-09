@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Fastmail 마스크 이메일 관리자</string>
     <string name="login_api_token_label">API 토큰</string>
     <string name="login_api_token_placeholder">Fastmail API 토큰을 입력하세요</string>
     <string name="login_paste_button">붙여넣기</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. 통합 > API 토큰 클릭</string>
     <string name="login_instructions_step4">4. \"Masked Email\" 범위로 새 토큰 생성</string>
     <string name="login_instructions_step5">5. 토큰을 복사하여 위에 붙여넣기</string>
-    <string name="login_instructions_full">1. Fastmail 웹 앱에 로그인\n2. 설정 > 개인정보 및 보안으로 이동\n3. 통합 > API 토큰 클릭\n4. \"Masked Email\" 범위로 새 토큰 생성\n5. 토큰을 복사하여 위에 붙여넣기</string>
     <string name="login_open_token_settings">Fastmail 토큰 설정 열기</string>
     <string name="login_error_missing_scope_action">Fastmail 토큰 설정 열기</string>
     <string name="login_paste_empty">붙여넣을 내용이 없습니다. 먼저 Fastmail에서 토큰을 복사하세요.</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">마스크 이메일</string>
     <string name="email_list_search_placeholder">이메일 검색…</string>
     <string name="email_list_clear_search">검색 지우기</string>
-    <string name="email_list_filter_emails">이메일 필터</string>
     <string name="email_list_create_fab">생성</string>
     <string name="email_list_create_description">새 마스크 이메일 생성</string>
     <string name="email_list_empty">마스크 이메일을 찾을 수 없습니다</string>
-    <string name="email_list_logout">로그아웃</string>
     <string name="email_list_settings">설정</string>
     <string name="filter_all">전체</string>
     <string name="filter_enabled">활성화됨</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">예: mysite_shopping</string>
     <string name="create_email_prefix_hint">최대 64자: 소문자, 숫자, 밑줄</string>
     <string name="create_email_domain_label">연결된 도메인 (선택)</string>
-    <string name="create_email_domain_placeholder">예: example.com</string>
+    <string name="mask_field_domain_placeholder">예: example.com</string>
     <string name="create_email_description_label">설명 (선택)</string>
-    <string name="create_email_description_placeholder">예: 쇼핑 계정</string>
+    <string name="mask_field_description_placeholder">예: 쇼핑 계정</string>
     <string name="create_email_url_label">URL (선택)</string>
-    <string name="create_email_url_placeholder">예: https://example.com</string>
+    <string name="mask_field_url_placeholder">예: https://example.com</string>
     <string name="create_email_initial_state">초기 상태</string>
     <string name="create_email_button">마스크 이메일 생성</string>
     <string name="create_email_created">생성됨: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">뒤로</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">이메일 상세</string>
     <string name="email_detail_copy_email">이메일 주소 복사</string>
     <string name="email_detail_delete">마스크 보관</string>
     <string name="email_detail_status">상태:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">생성일</string>
     <string name="email_detail_last_message">마지막 메시지</string>
     <string name="email_detail_enable">활성화</string>
-    <string name="email_detail_disable">비활성화</string>
     <string name="email_detail_edit_title">상세 정보 편집</string>
     <string name="email_detail_description_label">설명</string>
     <string name="email_detail_domain_label">연결된 도메인</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">변경 사항 저장</string>
     <string name="email_detail_updated">업데이트 완료</string>
-    <string name="email_detail_deleted">보관됨</string>
     <string name="email_detail_copied">클립보드에 복사됨</string>
     <string name="email_detail_delete_dialog_title">이 마스크를 보관할까요?</string>
     <string name="email_detail_delete_dialog_message">이 주소로 보낸 메일은 반송됩니다. 마스크는 나중에 복원할 수 있습니다.</string>
     <string name="email_detail_delete_confirm">보관</string>
-    <string name="email_detail_delete_cancel">취소</string>
 
     <!-- Email States -->
     <string name="state_enabled">활성화됨</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">설정</string>
     <string name="settings_language">언어</string>
-    <string name="settings_language_description">앱 언어 선택</string>
     <string name="settings_system_default">시스템 기본값</string>
     <string name="settings_contact">연락처 및 피드백</string>
     <string name="settings_contact_description">피드백을 보내주세요</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Keys (Login/Welcome/Intro) -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">조용한 장소 마스크 이메일</string>
     <string name="login_hero_accent">마스크 이메일</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">로그인 실패</string>
     <string name="email_list_empty_sub">마스크를 생성하여 실제 주소를 공유하지 않고 메일을 라우팅합니다.</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">마스크를 로드할 수 없음</string>
-    <string name="create_email_subtitle">새 마스크 주소 설정</string>
     <string name="create_email_preview_label">미리보기</string>
     <string name="create_email_preview_random">무작위</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">마스크를 만들 수 없음</string>
+    <string name="error_create_mask">마스크를 만들 수 없음</string>
     <string name="email_detail_error_load">이 마스크를 로드할 수 없음</string>
-    <string name="email_detail_error_update">업데이트할 수 없음</string>
+    <string name="error_update_mask">업데이트할 수 없음</string>
     <string name="email_detail_error_save">변경 사항을 저장할 수 없음</string>
     <string name="email_detail_error_delete">보관할 수 없음</string>
     <string name="time_never">없음</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">실행 취소</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">오픈소스 지원</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">작은 구매가 독립적인 오픈소스 앱을 지원 — 그리고 추가 기능을 잠금 해제합니다.</string>
     <string name="pro_feature_accents_title">색상 테마</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro이 잠금 해제됨. 감사합니다!</string>
     <string name="pro_purchase_pending">결제 대기 중 — 완료되면 Pro가 잠금 해제됩니다. 보통 몇 분 걸리지만 일부 결제 수단은 최대 하루가 걸릴 수 있습니다.</string>
     <string name="action_ok">확인</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_close">닫기</string>
     <string name="pro_purchase_cancelled">구매가 취소되었습니다.</string>
     <string name="pro_purchase_failed">문제가 발생했습니다. 청구되지 않았습니다.</string>
     <string name="pro_billing_unavailable">이 기기에서는 Google Play 청구를 사용할 수 없습니다.</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">색상, 앱 잠금 및 내보내기 잠금 해제</string>
     <string name="settings_pro_value_active">활성 — 감사합니다!</string>
     <string name="settings_accent">색상</string>
-    <string name="settings_accent_locked">FastMask Pro 기능</string>
+    <string name="pro_feature_locked">FastMask Pro 기능</string>
     <string name="accent_amber">앰버</string>
     <string name="accent_ink">잉크</string>
     <string name="accent_sage">세이지</string>

@@ -9,9 +9,8 @@ import java.util.concurrent.atomic.AtomicLong
  * `mutableStateOf` treats an equal value as "no change", so without it a second
  * share of the same link would not re-run the navigating effect.
  *
- * @param prefill parsed link, or null when the shared text carried none — that
- *   is still a share, and it opens an EMPTY create form.
- * @param deliveryId strictly increasing per [ShareInbox]; never reused.
+ * @param prefill null when the shared text carried no link: that is still a
+ *   share, and it opens an EMPTY create form.
  */
 data class ShareRequest(
     val prefill: SharePrefill?,
@@ -26,7 +25,6 @@ data class ShareRequest(
  */
 sealed interface ShareRoute {
 
-    /** Navigate to the create screen, prefilled from [prefill] (null = empty form). */
     data class OpenCreate(val prefill: SharePrefill?) : ShareRoute
 
     /**
@@ -42,21 +40,13 @@ sealed interface ShareRoute {
      */
     data object RejectSignedOut : ShareRoute
 
-    /** Nothing pending. */
     data object Idle : ShareRoute
 }
 
-/**
- * Hands out [ShareRequest]s, one per delivery.
- *
- * Deliberately not an object: the counter is per-Activity instance, and tests
- * need their own.
- */
 class ShareInbox {
 
     private val nextDeliveryId = AtomicLong(0)
 
-    /** @return a request whose `deliveryId` is greater than every previous one. */
     fun offer(prefill: SharePrefill?): ShareRequest =
         ShareRequest(
             prefill = prefill,
@@ -64,23 +54,9 @@ class ShareInbox {
         )
 }
 
-/**
- * The share routing decision, free of Android and Compose types.
- *
- * The routing input is the LIVE session state, never a launch-time start
- * destination.
- */
 object ShareRouter {
 
-    /**
-     * @param request the pending delivery, or null when there is none.
-     * @param signedIn LIVE session state — whether a create form could be
-     *   submitted right now. Demo mode counts as signed in: `Session.isSignedIn`
-     *   is true there and the create screen is reachable and usable.
-     *   Never pass a launch-time snapshot.
-     * @param locked whether the biometric app-lock gate is currently covering
-     *   the content.
-     */
+    // The routing input is the LIVE session state, never a launch-time snapshot.
     fun route(request: ShareRequest?, signedIn: Boolean, locked: Boolean): ShareRoute =
         when {
             request == null -> ShareRoute.Idle
@@ -90,8 +66,6 @@ object ShareRouter {
         }
 
     /**
-     * Whether [route] finished with the request — i.e. the caller may clear it.
-     *
      * A held share ([ShareRoute.WaitForUnlock]) must survive: clearing it would
      * turn the lock gate into a share shredder.
      */

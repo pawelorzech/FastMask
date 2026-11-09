@@ -26,11 +26,6 @@ class JmapApi @Inject constructor(
     private val jmapService: JmapService,
     private val json: Json
 ) {
-    /**
-     * Everything one successful session fetch produced, as one immutable value:
-     * the token it was fetched for, the masked-email account id and the session
-     * itself (whose `apiUrl` has passed the trust check).
-     */
     private class CachedSession(
         val token: String,
         val accountId: String,
@@ -39,27 +34,18 @@ class JmapApi @Inject constructor(
         val apiUrl: String get() = session.apiUrl
     }
 
-    // @Volatile: the lock-free fast path in ensureSession() runs on different
-    // Dispatchers.IO threads than the writers. One field holding one immutable
-    // value means a reader sees a whole session or none, never a torn mix of
-    // account id, URL and token from two different fetches.
     @Volatile
     private var cached: CachedSession? = null
     private val sessionMutex = Mutex()
 
     private fun bearer(token: String) = "Bearer $token"
 
-    /**
-     * [runSuspendCatching] that also translates transport failures into the domain's own
-     * types, so callers above the data layer never see Retrofit's `HttpException`.
-     */
     private suspend inline fun <T> remote(block: suspend () -> T): Result<T> =
         runSuspendCatching(block).fold(
             onSuccess = { Result.success(it) },
             onFailure = { Result.failure(it.asDomainFailure()) },
         )
 
-    /** Fetches, validates and caches the session; also what sign-in uses to validate a token. */
     suspend fun getSession(token: String): Result<JmapSession> = remote { loadSession(token).session }
 
     private suspend fun loadSession(token: String): CachedSession {
@@ -84,11 +70,6 @@ class JmapApi @Inject constructor(
         fetchMaskedEmails(token, ids = null)
     }
 
-    /**
-     * One mask by id (`MaskedEmail/get` restricted with `ids`). Returns null
-     * when the server does not know the id, so callers can distinguish
-     * "absent" from "network failed".
-     */
     suspend fun getMaskedEmail(token: String, id: String): Result<MaskedEmailDto?> =
         remote {
             fetchMaskedEmails(token, ids = listOf(id)).firstOrNull()
@@ -178,18 +159,11 @@ class JmapApi @Inject constructor(
             throw jmapSetException("Failed to delete", error)
         }
 
-        // A silent server no-op must not be reported as a successful destroy.
         if (response.destroyed?.contains(id) != true) {
             throw JmapException("Delete not confirmed by server - ID not found in destroyed response")
         }
     }
 
-    /**
-     * One JMAP method call: makes sure there is a session for [token], sends
-     * the request envelope with the Bearer header, unwraps the single method
-     * response (turning a JMAP `error` into [JmapException]) and decodes it as
-     * [T]. [args] fills the method's arguments; `accountId` is added first.
-     */
     private suspend inline fun <reified T> call(
         token: String,
         method: String,
@@ -246,15 +220,13 @@ class JmapApi @Inject constructor(
     }
 
     private companion object {
-        /** Client-side id of the single record a create request carries. */
         const val CREATE_ID = "new1"
     }
 }
 
-open class JmapException(message: String) : Exception(message)
+class JmapException(message: String) : Exception(message)
 
 
-/** HTTP status -> domain failure; anything else (IOException, JMAP errors, ...) passes through. */
 internal fun Throwable.asDomainFailure(): Throwable = when {
     this is HttpException && (code() == 401 || code() == 403) -> AuthRejectedException(this)
     this is HttpException && code() == 429 -> RateLimitedException(cause = this)

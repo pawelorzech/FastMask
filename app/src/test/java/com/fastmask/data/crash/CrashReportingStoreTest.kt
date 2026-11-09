@@ -52,7 +52,7 @@ class CrashReportingStoreTest {
 
     private fun crashReporting(store: DataStore<Preferences>) = CrashReporting(
         dataStore = store,
-        reporter = { reporter },
+        reporter = reporter,
         isDebugBuild = false,
     )
 
@@ -100,12 +100,16 @@ class CrashReportingStoreTest {
     fun `a value in the new store wins and the old one is left alone`() = runBlocking {
         val oldStore = FakePreferencesDataStore(preferencesOf(crashKey to false))
         // The new store already holds an answer, written on its own.
-        val firstRun = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val firstRunJob = SupervisorJob()
+        val firstRun = CoroutineScope(firstRunJob + Dispatchers.IO)
         PreferenceDataStoreFactory.create(
             scope = firstRun,
             produceFile = { temp.root.resolve("crash_reporting.preferences_pb") },
         ).let { crashReporting(it).setEnabled(true) }
-        firstRun.cancel()
+        // DataStore allows one live instance per file and releases it when its scope completes:
+        // wait for that instead of racing the cancellation.
+        firstRunJob.cancel()
+        firstRunJob.join()
 
         // Restart: the same file, now with the migration attached.
         val store = newStore(oldStore)

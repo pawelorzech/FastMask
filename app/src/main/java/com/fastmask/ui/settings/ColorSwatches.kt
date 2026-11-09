@@ -43,20 +43,13 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.Morph
-import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.domain.model.Accent
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
-import com.fastmask.ui.theme.swatchColor
+import com.fastmask.ui.theme.seedScheme
 
-/**
- * Row of round color swatches: Wallpaper first (a four-quadrant mini of the
- * current scheme), then the five Pro seeds. The selected swatch morphs into a
- * Sunny and shows a check; for non-Pro users the seeds carry a lock badge and
- * [onLockedTap] fires instead of [onSelect].
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ColorSwatchRow(
@@ -68,7 +61,7 @@ internal fun ColorSwatchRow(
 ) {
     val haptic = LocalHapticFeedback.current
     FlowRow(
-        modifier = modifier.radioButtonGroup(),
+        modifier = modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -129,7 +122,7 @@ private fun ColorSwatch(
     val morph = remember(accent) { Morph(accent.style.shape, MaterialShapes.Sunny) }
 
     val name = stringResource(accent.style.nameRes)
-    val lockedText = stringResource(R.string.settings_accent_locked)
+    val lockedText = stringResource(R.string.pro_feature_locked)
     val scheme = MaterialTheme.colorScheme
     val dark = isSystemInDarkTheme()
 
@@ -154,12 +147,12 @@ private fun ColorSwatch(
             },
         contentAlignment = Alignment.Center,
     ) {
-        val seedColor = if (accent == Accent.DYNAMIC) Color.Unspecified else accent.swatchColor(dark)
+        val seedColor = accent.seedScheme(dark)?.primary
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .drawMorph(morph = { morph }, progress = { morphProgress }) { path ->
-                    if (accent == Accent.DYNAMIC) {
+                    if (seedColor == null) {
                         clipPath(path) {
                             val half = Size(size.width / 2f, size.height / 2f)
                             drawRect(scheme.primary, Offset.Zero, half)
@@ -175,7 +168,7 @@ private fun ColorSwatch(
         ) {
             val checkTint: Color
             val checkBackdrop: Boolean
-            if (accent == Accent.DYNAMIC) {
+            if (seedColor == null) {
                 checkTint = scheme.primary
                 checkBackdrop = true
             } else {

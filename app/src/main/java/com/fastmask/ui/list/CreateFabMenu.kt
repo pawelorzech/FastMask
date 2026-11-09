@@ -42,7 +42,6 @@ import androidx.compose.ui.semantics.text
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 
-/** Tracks scroll direction for the FAB without consuming any scroll. */
 internal class FabScrollState {
     var scrollingUp by mutableStateOf(true)
         private set
@@ -60,12 +59,6 @@ internal class FabScrollState {
     }
 }
 
-/**
- * The create FAB. Collapsed it is an extended FAB with a label (at the top of
- * the list / while scrolling up) or an icon-only toggle FAB (while scrolling
- * down); tapping opens a FAB menu with "Random mask" and "New mask", and the
- * toggle morphs its + into a ×.
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun CreateFabMenu(

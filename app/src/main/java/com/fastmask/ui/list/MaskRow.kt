@@ -48,8 +48,9 @@ import com.fastmask.ui.components.expressive.maskContainer
 import com.fastmask.ui.util.RelativeTime
 import com.fastmask.ui.util.RelativeTimeBuckets
 
-/** Font scale from which a mask row drops its trailing time label / state chip. */
 private const val CompactRowFontScale = 1.3f
+
+internal const val HIGHLIGHT_HOLD_MS = 1_600L
 
 @Composable
 internal fun MaskRow(
@@ -65,9 +66,7 @@ internal fun MaskRow(
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
     val stateLabel = stringResource(email.state.labelRes)
-    // Key the formatted string on the coarse relative bucket rather than raw
-    // `nowSec` so a refresh that advances `nowSec` by a few seconds does not
-    // re-run ICU formatting for every row whose bucket ("3d ago") did not change.
+    // Key on the coarse bucket, not raw nowSec: a refresh must not re-run ICU formatting for rows whose bucket did not change.
     val timeBucket = remember(email.lastActivityAt, nowSec) {
         RelativeTimeBuckets.of(email.lastActivityAt?.epochSecond, nowSec)
     }
@@ -75,17 +74,11 @@ internal fun MaskRow(
         RelativeTime.format(context, timeBucket)
     }
     val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
-    // Wraps only before the "@" (see addressWrapText); semantics keep the plain address.
     val headline = remember(email.email, mutedColor) {
-        val display = addressWrapText(email.email)
-        val at = addressWrapDomainStart(display)
+        val parts = addressWrapParts(email.email)
         buildAnnotatedString {
-            if (at < 0) {
-                append(display)
-            } else {
-                append(display.substring(0, at))
-                withStyle(SpanStyle(color = mutedColor)) { append(display.substring(at)) }
-            }
+            append(parts.local)
+            withStyle(SpanStyle(color = mutedColor)) { append(parts.domain) }
         }
     }
     val domain = email.siteDomain
@@ -149,7 +142,6 @@ internal fun MaskRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                // Compact rows carry both in the supporting line instead.
                 if (!compact && email.state == EmailState.ENABLED) {
                     Text(
                         text = timeLabel,

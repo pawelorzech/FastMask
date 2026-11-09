@@ -1,11 +1,14 @@
 package com.fastmask.quickmask
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
-import com.fastmask.domain.usecase.QuickMaskCreator
-import com.fastmask.domain.usecase.QuickMaskResult
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import com.fastmask.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CancellationException
@@ -40,8 +43,8 @@ class QuickMaskUndoIdempotenceTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private fun runner() = QuickMaskRunner(
-        context = mockk<Context>(relaxed = true),
+    private fun runner(context: Context = mockk<Context>(relaxed = true)) = QuickMaskRunner(
+        context = context,
         quickMaskCreator = creator,
         notifier = notifier,
         // The runner's own scope, on the test scheduler: with Dispatchers.IO the
@@ -135,9 +138,27 @@ class QuickMaskUndoIdempotenceTest {
         verify(exactly = 1) { notifier.showCreated(id = "m1", copied = false) }
     }
 
+    // The other half of the pair above: with a working clipboard the confirmation may say so.
     @Test
-    fun `the undo timeout leaves headroom inside the goAsync window`() {
-        assertTrue(QuickMaskUndoReceiver.UNDO_TIMEOUT_MS < QuickMaskUndoReceiver.GO_ASYNC_BUDGET_MS)
+    fun `a successful clipboard copy is reported as copied`() = runTest {
+        val clipboard = mockk<ClipboardManager>(relaxed = true)
+        val context = mockk<Context>(relaxed = true) {
+            every { getSystemService(Context.CLIPBOARD_SERVICE) } returns clipboard
+        }
+        mockkStatic(ClipData::class)
+        try {
+            every { ClipData.newPlainText(any(), any()) } returns mockk<ClipData>(relaxed = true)
+            coEvery { creator.create() } returns QuickMaskResult.Created(id = "m1", email = "a@b.c")
+            val runner = runner(context)
+
+            runner.createFromTile { true }
+            advanceUntilIdle()
+
+            verify(exactly = 1) { clipboard.setPrimaryClip(any()) }
+            verify(exactly = 1) { notifier.showCreated(id = "m1", copied = true) }
+        } finally {
+            unmockkStatic(ClipData::class)
+        }
     }
 
     @Test

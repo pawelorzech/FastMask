@@ -1,4 +1,4 @@
-package com.fastmask.domain.usecase
+package com.fastmask.quickmask
 
 import com.fastmask.R
 import com.fastmask.domain.model.Session
@@ -9,7 +9,6 @@ import com.fastmask.testutil.FakeSessionRepository
 import com.fastmask.ui.common.UiErrors
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
-import com.fastmask.testutil.failureForStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -103,7 +102,7 @@ class QuickMaskCreatorTest {
     }
 
     private fun messageFor(result: QuickMaskResult): Int =
-        UiErrors.messageRes(failureCause(result), R.string.create_email_error_failed)
+        UiErrors.messageRes(failureCause(result), R.string.error_create_mask)
 
     @Test
     fun `network failure reports the network message and no address`() = runTest {
@@ -115,34 +114,6 @@ class QuickMaskCreatorTest {
         assertEquals(QuickMaskResult.Failed(offline), result)
         assertSame(offline, failureCause(result))
         assertEquals(R.string.error_network, messageFor(result))
-    }
-
-    @Test
-    fun `a rejected token reports the auth message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = failureForStatus(401))
-
-        assertEquals(R.string.error_auth, messageFor(creator(repo = repo).create()))
-    }
-
-    @Test
-    fun `rate limiting reports the rate limit message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = failureForStatus(429))
-
-        assertEquals(R.string.error_rate_limit, messageFor(creator(repo = repo).create()))
-    }
-
-    @Test
-    fun `a server error reports the server message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = failureForStatus(503))
-
-        assertEquals(R.string.error_server, messageFor(creator(repo = repo).create()))
-    }
-
-    @Test
-    fun `an unrecognized failure falls back to the create error message`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = IllegalStateException("boom"))
-
-        assertEquals(R.string.create_email_error_failed, messageFor(creator(repo = repo).create()))
     }
 
     // --- undo ---------------------------------------------------------------

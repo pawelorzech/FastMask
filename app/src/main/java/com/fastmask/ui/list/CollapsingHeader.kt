@@ -14,14 +14,8 @@ import androidx.compose.ui.layout.layout
 import kotlin.math.roundToInt
 
 /**
- * Lets a block of chrome (search + filters) scroll away with the list instead of
- * staying pinned, for windows too short to spare the height — phones in
- * landscape. It sits above the list in the same column, so it survives the list
- * switching to an empty/no-match state (the search field keeps its focus), which
- * making it a list item would not.
- *
- * Scrolling the list up collapses the header first; any scroll back down shows it
- * again before the list moves ("enter always"). Nothing is consumed horizontally.
+ * Sits above the list rather than being a list item, so it survives the list
+ * switching to an empty/no-match state (the search field keeps its focus).
  */
 @Stable
 internal class CollapsingHeaderState {

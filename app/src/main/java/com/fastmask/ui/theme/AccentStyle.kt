@@ -7,10 +7,6 @@ import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.domain.model.Accent
 
-/**
- * Everything the UI draws for one [Accent]: its seed schemes (null for the
- * wallpaper colours), the swatch's resting shape and its name.
- */
 internal class AccentStyle(
     val light: ColorScheme?,
     val dark: ColorScheme?,
@@ -28,5 +24,4 @@ internal val Accent.style: AccentStyle
         Accent.COBALT -> AccentStyle(CobaltLight, CobaltDark, MaterialShapes.Pentagon, R.string.accent_cobalt)
     }
 
-/** Fixed seed scheme for this accent, or null for [Accent.DYNAMIC]. */
 internal fun Accent.seedScheme(dark: Boolean): ColorScheme? = if (dark) style.dark else style.light

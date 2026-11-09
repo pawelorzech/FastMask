@@ -35,13 +35,10 @@ class QuickMaskTileService : TileService() {
     }
 
     /**
-     * Opens the app from the shade.
-     *
      * Both branches use `startActivityAndCollapse`, because collapsing the
      * shade is the point: a plain `startActivity` on API 26–33 leaves
      * MainActivity running UNDER the still-expanded Quick Settings panel, which
-     * the user reads as "the tile did nothing" — and this is the path taken
-     * whenever the tile refuses to create (signed out, demo, app lock armed).
+     * the user reads as "the tile did nothing".
      *
      * The `UnsupportedOperationException` that made the Intent overload look
      * unusable is gated on `START_ACTIVITY_NEEDS_PENDING_INTENT`, a compat

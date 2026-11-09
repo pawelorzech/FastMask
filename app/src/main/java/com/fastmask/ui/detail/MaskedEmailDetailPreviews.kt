@@ -7,6 +7,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.theme.FastMaskTheme
 import java.time.Instant
 
@@ -40,6 +42,7 @@ private fun PreviewHost(uiState: MaskedEmailDetailUiState) {
             banner = {},
             onBack = {},
             onRetry = {},
+            onReauthenticate = {},
             onDescriptionChange = {},
             onForDomainChange = {},
             onUrlChange = {},
@@ -90,7 +93,7 @@ private fun DetailLoadingPreview() = PreviewHost(MaskedEmailDetailUiState(isLoad
 @Preview(name = "Error", showBackground = true)
 @Composable
 private fun DetailErrorPreview() =
-    PreviewHost(MaskedEmailDetailUiState(errorRes = R.string.email_detail_error_load))
+    PreviewHost(MaskedEmailDetailUiState(error = UiError(R.string.email_detail_error_load, UiErrorAction.RETRY)))
 
 @Preview(name = "Long address", showBackground = true, heightDp = 900)
 @Composable

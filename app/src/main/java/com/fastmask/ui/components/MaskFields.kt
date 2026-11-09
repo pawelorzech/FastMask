@@ -40,23 +40,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import com.fastmask.R
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 
-/*
- * The pieces the create form and the detail editor share. Labels stay
- * parameters: each screen has its own string resources, and the screens differ
- * in field order, so the focus chain is wired at the call site via `onNext`.
- */
-
 /**
- * One text field of the mask form.
- *
- * The label is part of the field; naming the node explicitly keeps it
- * addressable by label (TalkBack, instrumented tests), and an invalid entry
- * puts its message on the field's own node.
+ * The label is part of the field; naming the node explicitly keeps it addressable by
+ * label (TalkBack, instrumented tests), and an invalid entry puts its message on the
+ * field's own node.
  */
 @Composable
 fun MaskField(
@@ -102,7 +94,7 @@ fun MaskDescriptionField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_description_placeholder),
+    placeholder = stringResource(R.string.mask_field_description_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
     keyboardActions = KeyboardActions(onNext = { onNext() }),
@@ -121,14 +113,13 @@ fun MaskDomainField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_domain_placeholder),
+    placeholder = stringResource(R.string.mask_field_domain_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
     keyboardActions = KeyboardActions(onNext = { onNext() }),
     modifier = modifier,
 )
 
-/** The URL field; always the last in the chain, so the IME action is "Done". */
 @Composable
 fun MaskUrlField(
     value: String,
@@ -140,22 +131,18 @@ fun MaskUrlField(
     value = value,
     onValueChange = onValueChange,
     label = label,
-    placeholder = stringResource(R.string.create_email_url_placeholder),
+    placeholder = stringResource(R.string.mask_field_url_placeholder),
     enabled = enabled,
     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
     modifier = modifier,
 )
 
 /**
- * One half of the two-option Enabled / Disabled toggle. Exactly one option is
- * always chosen, so it is a radio choice for screen readers rather than two
- * independent toggles; [onSelect] fires only when an unchosen option is tapped.
- *
- * @param loading shows a spinner in place of the check while the change this
- *   option represents is being applied (detail screen only).
+ * Exactly one option is always chosen, so this is a radio choice for screen readers
+ * rather than two independent toggles.
  */
 @Composable
-fun MaskStateToggle(
+private fun MaskStateToggle(
     label: String,
     checked: Boolean,
     shapes: ToggleButtonShapes,
@@ -198,18 +185,6 @@ fun MaskStateToggle(
     }
 }
 
-/**
- * The Enabled / Disabled choice shared by the create form and the detail
- * screen: two connected [MaskStateToggle]s that read as one radio group, with
- * the toggle haptic on a selection.
- *
- * @param activeSelected true when "Enabled" is the chosen option (see
- *   `EmailState.isActive`); "Disabled" is chosen otherwise.
- * @param enabled false dims and disables both options (create form while saving).
- * @param busy true ignores taps (no callback, no haptic) without dimming, for a
- *   change already in flight (detail screen).
- * @param loading shows the spinner on whichever option is chosen.
- */
 @Composable
 fun EnabledDisabledToggle(
     activeSelected: Boolean,
@@ -222,7 +197,7 @@ fun EnabledDisabledToggle(
 ) {
     val haptic = LocalHapticFeedback.current
     AdaptiveToggleGroup(
-        modifier = modifier.radioButtonGroup(),
+        modifier = modifier.selectableGroup(),
         first = { toggleModifier, stacked ->
             MaskStateToggle(
                 label = stringResource(R.string.state_enabled),
@@ -258,12 +233,6 @@ fun EnabledDisabledToggle(
     )
 }
 
-/**
- * Guards a form against losing typed-but-unsaved input: while [isDirty], the
- * system back gesture opens the discard dialog, and so does the returned
- * request-leave callback (wire it to the close / back button). Confirming
- * calls [onLeave]. When the form is clean the callback leaves immediately.
- */
 @Composable
 fun rememberDiscardChangesGuard(isDirty: Boolean, onLeave: () -> Unit): () -> Unit {
     var showDialog by remember { mutableStateOf(false) }

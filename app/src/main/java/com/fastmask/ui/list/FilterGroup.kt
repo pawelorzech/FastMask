@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import com.fastmask.ui.accessibility.radioButtonGroup
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,23 +35,6 @@ import com.fastmask.R
 import com.fastmask.ui.components.expressive.ConnectedGap
 import com.fastmask.ui.components.expressive.connectedToggleShapes
 
-/** Side gutter of the list screen; the filter row scrolls through it to the screen edge. */
-internal val FilterGutter = 16.dp
-
-/**
- * Single-select filter: a connected group of toggle buttons. The selected one is
- * filled and fully rounded (stock `ToggleButton` shape morph); the rest keep the
- * flat inner corners of a connected group.
- *
- * The row is meant to be placed full-bleed (no parent horizontal padding) and
- * supplies the [FilterGutter] itself as content padding:
- *  - counts are shown when the row fits with them and dropped otherwise (see
- *    [FilterRowLayout]); the variant that fits shares the leftover width, no scrolling;
- *  - otherwise the row scrolls edge to edge, so an overflowing button slides out
- *    under the screen edge (the standard chip-row peek) rather than being clipped
- *    at the gutter;
- *  - when [selected] changes it is scrolled fully into view, gutter included.
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun FilterGroup(
@@ -63,13 +46,12 @@ internal fun FilterGroup(
     val filters = EmailFilter.entries
     val scroll = rememberScrollState()
     val density = LocalDensity.current
-    val gutterPx = with(density) { FilterGutter.roundToPx() }
+    val gutterPx = with(density) { ListGutter.roundToPx() }
     val gapPx = with(density) { ConnectedGap.roundToPx() }
     val scrollSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
-    // Horizontal extent (start, end) of each button inside the scrolled content.
     val spans = remember { mutableStateMapOf<EmailFilter, IntRange>() }
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth().radioButtonGroup()) {
+    BoxWithConstraints(modifier = modifier.fillMaxWidth().selectableGroup()) {
         val viewportPx = constraints.maxWidth
         val span = spans[selected]
 
@@ -123,16 +105,7 @@ internal fun FilterGroup(
     }
 }
 
-/**
- * Lays the buttons out in one row with [gutterPx] of padding at both ends.
- *
- * Tries the labels with their counts first. If that row is wider than the viewport
- * minus the gutters, the counts are dropped (the app bar subtitle already states
- * them); in Polish that alone makes the four buttons fit a phone. The variant that
- * fits shares the leftover width equally and nothing scrolls. Only when even the
- * plain labels are too wide (very large font) do the buttons keep their natural
- * widths and the content grow past the viewport, so the parent scroll takes over.
- */
+/** Counts are dropped when the row would overflow: the app bar subtitle already states them. */
 @Composable
 private fun FilterRowLayout(
     viewportPx: Int,

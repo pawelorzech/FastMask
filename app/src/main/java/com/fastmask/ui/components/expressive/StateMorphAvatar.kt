@@ -29,7 +29,6 @@ import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.theme.FastMaskTheme
 
-/** Shape for a state: ENABLED Sunny, PENDING SoftBurst, DISABLED Circle, DELETED Square. */
 internal fun polygonFor(state: EmailState): RoundedPolygon = when (state) {
     EmailState.ENABLED -> MaterialShapes.Sunny
     EmailState.PENDING -> MaterialShapes.SoftBurst
@@ -37,12 +36,6 @@ internal fun polygonFor(state: EmailState): RoundedPolygon = when (state) {
     EmailState.DELETED -> MaterialShapes.Square
 }
 
-/**
- * Avatar whose shape encodes the mask's [state] (Sunny / SoftBurst / Circle /
- * Square) and morphs between shapes when the state changes, using
- * `fastSpatialSpec()`; colors cross-fade with `defaultEffectsSpec()`.
- * Decorative (no semantics); pair with a [StateChip].
- */
 @Composable
 fun StateMorphAvatar(
     initial: String,
@@ -57,8 +50,8 @@ fun StateMorphAvatar(
 
     LaunchedEffect(state) {
         if (state != to) {
-            // Restart from wherever the shape visually is is not possible with a
-            // plain Morph, so a mid-flight change begins from the previous target.
+            // A plain Morph cannot restart from where the shape visually is, so a
+            // mid-flight change begins from the previous target.
             from = to
             to = state
             progress.snapTo(0f)

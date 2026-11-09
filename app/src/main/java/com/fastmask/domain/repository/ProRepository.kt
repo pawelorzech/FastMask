@@ -15,36 +15,21 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface ProRepository {
 
-    /** Current entitlement. Seeded from local cache, refreshed from Play. */
     val proStatus: StateFlow<ProStatus>
 
-    /** One-time purchase lifecycle events for UI feedback. */
     val events: Flow<ProPurchaseEvent>
 
-    /**
-     * Discard events buffered while no UI was collecting. Called when the
-     * paywall opens so a purchase resolution from a long-closed session
-     * doesn't replay as a stale snackbar days later. Entitlement state itself
-     * always flows through [proStatus], never through events.
-     */
     fun drainPendingEvents()
 
-    /**
-     * Returns once [proStatus] holds at least the locally cached entitlement, so
-     * the first frame can be themed for a Pro user before Play has answered.
-     */
+    // So the first frame can be themed for a Pro user before Play has answered.
     suspend fun awaitCached()
 
-    /** Re-query Play for purchases and reconcile the entitlement. */
     suspend fun refresh(): RefreshResult
 
-    /** Product info for the paywall, or null when unavailable. */
     suspend fun getProduct(): ProProduct?
 
-    /** Launch the Play purchase flow. Returns whether the flow started. */
     suspend fun purchase(activity: Activity): PurchaseLaunch
 
-    /** Explicit "restore purchases" action. */
     suspend fun restore(): RestoreResult
 }
 

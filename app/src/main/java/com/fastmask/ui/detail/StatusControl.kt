@@ -36,9 +36,6 @@ internal fun StatusControl(
     onDisable: () -> Unit,
 ) {
     val motion = rememberMotion()
-    // Optimistic selection: show the tapped option immediately while the request
-    // is in flight. When the request fails the in-flight flag drops without the
-    // state having changed, which rolls the selection back.
     var pending by remember { mutableStateOf<EmailState?>(null) }
     val shown = if (toggling) pending ?: state else state
     val statusDesc = stringResource(R.string.email_detail_status)

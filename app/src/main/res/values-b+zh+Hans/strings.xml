@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Fastmail 隐藏邮箱管理器</string>
     <string name="login_api_token_label">API 令牌</string>
     <string name="login_api_token_placeholder">输入您的 Fastmail API 令牌</string>
     <string name="login_paste_button">粘贴</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. 点击 集成 > API 令牌</string>
     <string name="login_instructions_step4">4. 创建一个具有"隐藏邮箱"权限的新令牌</string>
     <string name="login_instructions_step5">5. 复制令牌并粘贴到上方</string>
-    <string name="login_instructions_full">1. 登录 Fastmail 网页版\n2. 前往 设置 > 隐私与安全\n3. 点击 集成 > API 令牌\n4. 创建一个具有"隐藏邮箱"权限的新令牌\n5. 复制令牌并粘贴到上方</string>
     <string name="login_open_token_settings">打开 Fastmail 令牌设置</string>
     <string name="login_error_missing_scope_action">打开 Fastmail 令牌设置</string>
     <string name="login_paste_empty">没有可粘贴的内容，请先在 Fastmail 中复制您的令牌。</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">隐藏邮箱</string>
     <string name="email_list_search_placeholder">搜索邮箱…</string>
     <string name="email_list_clear_search">清除搜索</string>
-    <string name="email_list_filter_emails">筛选邮箱</string>
     <string name="email_list_create_fab">创建</string>
     <string name="email_list_create_description">创建新的隐藏邮箱</string>
     <string name="email_list_empty">未找到隐藏邮箱</string>
-    <string name="email_list_logout">退出登录</string>
     <string name="email_list_settings">设置</string>
     <string name="filter_all">全部</string>
     <string name="filter_enabled">已启用</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">例如：mysite_shopping</string>
     <string name="create_email_prefix_hint">最多64个字符：小写字母、数字、下划线</string>
     <string name="create_email_domain_label">关联域名（可选）</string>
-    <string name="create_email_domain_placeholder">例如：example.com</string>
+    <string name="mask_field_domain_placeholder">例如：example.com</string>
     <string name="create_email_description_label">描述（可选）</string>
-    <string name="create_email_description_placeholder">例如：购物账户</string>
+    <string name="mask_field_description_placeholder">例如：购物账户</string>
     <string name="create_email_url_label">网址（可选）</string>
-    <string name="create_email_url_placeholder">例如：https://example.com</string>
+    <string name="mask_field_url_placeholder">例如：https://example.com</string>
     <string name="create_email_initial_state">初始状态</string>
     <string name="create_email_button">创建隐藏邮箱</string>
     <string name="create_email_created">已创建：%s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">返回</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">邮箱详情</string>
     <string name="email_detail_copy_email">复制邮箱地址</string>
     <string name="email_detail_delete">存档面具</string>
     <string name="email_detail_status">状态：</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">创建时间</string>
     <string name="email_detail_last_message">最后消息</string>
     <string name="email_detail_enable">启用</string>
-    <string name="email_detail_disable">禁用</string>
     <string name="email_detail_edit_title">编辑详情</string>
     <string name="email_detail_description_label">描述</string>
     <string name="email_detail_domain_label">关联域名</string>
     <string name="email_detail_url_label">网址</string>
     <string name="email_detail_save">保存更改</string>
     <string name="email_detail_updated">更新成功</string>
-    <string name="email_detail_deleted">已存档</string>
     <string name="email_detail_copied">已复制到剪贴板</string>
     <string name="email_detail_delete_dialog_title">存档这个面具？</string>
     <string name="email_detail_delete_dialog_message">发往此地址的邮件将被退回。您可以稍后恢复此面具。</string>
     <string name="email_detail_delete_confirm">存档</string>
-    <string name="email_detail_delete_cancel">取消</string>
 
     <!-- Email States -->
     <string name="state_enabled">已启用</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">设置</string>
     <string name="settings_language">语言</string>
-    <string name="settings_language_description">选择应用语言</string>
     <string name="settings_system_default">跟随系统</string>
     <string name="settings_contact">联系与反馈</string>
     <string name="settings_contact_description">向我们发送反馈</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Login and Welcome Screens -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">静谧之地用于隐藏邮箱</string>
     <string name="login_hero_accent">用于隐藏邮箱</string>
     <string name="login_hero_suffix">。</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">登录失败</string>
     <string name="email_list_empty_sub">创建一个隐藏邮箱来转发邮件，而无需泄露您的真实地址。</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">无法加载隐藏邮箱</string>
-    <string name="create_email_subtitle">配置新的隐藏邮箱</string>
     <string name="create_email_preview_label">预览</string>
     <string name="create_email_preview_random">随机</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">无法创建隐藏邮箱</string>
+    <string name="error_create_mask">无法创建隐藏邮箱</string>
     <string name="email_detail_error_load">无法加载此隐藏邮箱</string>
-    <string name="email_detail_error_update">无法更新</string>
+    <string name="error_update_mask">无法更新</string>
     <string name="email_detail_error_save">无法保存更改</string>
     <string name="email_detail_error_delete">无法归档</string>
     <string name="time_never">从不</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">撤销</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">支持开源</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">一次小购买支持独立的开源应用 — 并解锁额外功能。</string>
     <string name="pro_feature_accents_title">颜色主题</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro 已解锁。谢谢！</string>
     <string name="pro_purchase_pending">付款待处理——完成后将解锁 Pro。通常需要几分钟，部分付款方式最长可能需要一天。</string>
     <string name="action_ok">好的</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_close">关闭</string>
     <string name="pro_purchase_cancelled">购买已取消。</string>
     <string name="pro_purchase_failed">出错了。未向你收费。</string>
     <string name="pro_billing_unavailable">Google Play 此设备不可用。</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">解锁颜色、应用锁和导出</string>
     <string name="settings_pro_value_active">已激活 — 谢谢！</string>
     <string name="settings_accent">颜色</string>
-    <string name="settings_accent_locked">FastMask Pro 功能</string>
+    <string name="pro_feature_locked">FastMask Pro 功能</string>
     <string name="accent_amber">琥珀色</string>
     <string name="accent_ink">墨色</string>
     <string name="accent_sage">鼠尾草色</string>

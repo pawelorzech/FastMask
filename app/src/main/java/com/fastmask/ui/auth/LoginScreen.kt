@@ -16,7 +16,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -46,7 +45,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -86,7 +84,6 @@ import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.expressive.ExpressiveTextField
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
-import com.fastmask.ui.common.FastmailLinks
 import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.ButtonLoadingStyle
@@ -128,12 +125,10 @@ fun LoginScreen(
         onOpenTokenSettings = {
             settingsOpenFailed = !openExternalIntent(
                 context,
-                // BROWSABLE narrows the candidates to real browsers. A bare
-                // ACTION_VIEW https intent matches any component declaring that
-                // filter, and the destination is the page where the user is
-                // about to type their Fastmail password. openExternalIntent
-                // still reports a no-handler case, which the hint covers.
-                Intent(Intent.ACTION_VIEW, Uri.parse(FastmailLinks.TOKEN_SETTINGS_URL))
+                // BROWSABLE narrows the candidates to real browsers: a bare ACTION_VIEW https
+                // intent matches any component declaring that filter, and the destination is
+                // the page where the user is about to type their Fastmail password.
+                Intent(Intent.ACTION_VIEW, Uri.parse(TOKEN_SETTINGS_URL))
                     .addCategory(Intent.CATEGORY_BROWSABLE),
             )
         },
@@ -265,7 +260,6 @@ internal fun LoginContent(
 
             val liveWarning = uiState.warningRes
             SpringVisibility(visible = liveWarning != null) {
-                // Keeps the last text on screen while the card collapses.
                 val warningRes = rememberLast(liveWarning)
                 Surface(
                     shape = MaterialTheme.shapes.medium,
@@ -373,7 +367,6 @@ private fun LoginHero() {
     )
 }
 
-/** The "How to get your API token" card. */
 @Composable
 private fun HowToCard(
     onOpenTokenSettings: () -> Unit,
@@ -480,7 +473,6 @@ private fun HowToCard(
     }
 }
 
-/** Expands/collapses [content] with the theme's spatial spring and cross-fades it with the effects spring. */
 @Composable
 private fun SpringVisibility(visible: Boolean, content: @Composable () -> Unit) {
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
@@ -494,7 +486,6 @@ private fun SpringVisibility(visible: Boolean, content: @Composable () -> Unit) 
     }
 }
 
-/** The most recent non-null [value], so an exit animation can keep drawing what just left. */
 @Composable
 private fun <T : Any> rememberLast(value: T?): T? {
     var last by remember { mutableStateOf(value) }

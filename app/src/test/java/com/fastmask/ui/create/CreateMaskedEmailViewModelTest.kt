@@ -6,6 +6,10 @@ import com.fastmask.domain.model.EmailState
 import androidx.lifecycle.SavedStateHandle
 import com.fastmask.testutil.FakeMaskedEmailRepository
 import com.fastmask.testutil.MainDispatcherRule
+import com.fastmask.testutil.failureForStatus
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
+import java.io.IOException
 import com.fastmask.ui.navigation.NavRoutes
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -54,27 +58,6 @@ class CreateMaskedEmailViewModelTest {
         viewModel.onPrefixChange("My.Shop-Name!")
 
         assertEquals("myshopname", viewModel.uiState.value.emailPrefix)
-        assertNull(viewModel.uiState.value.prefixErrorRes)
-    }
-
-    @Test
-    fun `underscores and digits survive sanitization`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-
-        viewModel.onPrefixChange("shop_2026")
-
-        assertEquals("shop_2026", viewModel.uiState.value.emailPrefix)
-    }
-
-    @Test
-    fun `non-ASCII letters are dropped like any other disallowed character`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository())
-
-        // MaskPrefix is the one rule: 'é' is outside [a-z0-9_], so it is filtered
-        // as typed (no error, nothing to fix) and the create button stays usable.
-        viewModel.onPrefixChange("café")
-
-        assertEquals("caf", viewModel.uiState.value.emailPrefix)
         assertNull(viewModel.uiState.value.prefixErrorRes)
     }
 
@@ -133,6 +116,40 @@ class CreateMaskedEmailViewModelTest {
         assertEquals(EmailState.DISABLED, repo.lastCreateParams?.state)
     }
 
+    // --- failure presentation ----------------------------------------------
+
+    @Test
+    fun `refused token asks to sign in again`() = runTest {
+        val viewModel = vm(FakeMaskedEmailRepository(failure = failureForStatus(401)))
+
+        viewModel.create()
+        advanceUntilIdle()
+
+        assertEquals(
+            UiError(R.string.error_auth, UiErrorAction.REAUTHENTICATE),
+            viewModel.uiState.value.error,
+        )
+        assertFalse(viewModel.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `create failures offer a retry, a refused token offers sign-in`() = runTest {
+        val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
+        val viewModel = vm(repo)
+
+        viewModel.create()
+        advanceUntilIdle()
+        assertEquals(UiErrorAction.RETRY, viewModel.uiState.value.error?.action)
+
+        repo.failure = RuntimeException("boom")
+        viewModel.create()
+        advanceUntilIdle()
+        assertEquals(
+            UiError(R.string.error_create_mask, UiErrorAction.RETRY),
+            viewModel.uiState.value.error,
+        )
+    }
+
     // --- share prefill ------------------------------------------------------
 
     private val github = "https://www.github.com"
@@ -173,18 +190,6 @@ class CreateMaskedEmailViewModelTest {
             assertEquals("", state.url)
             assertEquals("", state.description)
         }
-    }
-
-    @Test
-    fun `the prefill seeds the form once and never overwrites what the user typed`() = runTest {
-        val viewModel = vm(FakeMaskedEmailRepository(), forDomain = github)
-        viewModel.onDomainChange("github.com/work")
-        viewModel.onDescriptionChange("GitHub work account")
-
-        // Rotation keeps this ViewModel; nothing re-reads the argument, so the
-        // edit is all that is in the state.
-        assertEquals("github.com/work", viewModel.uiState.value.forDomain)
-        assertEquals("GitHub work account", viewModel.uiState.value.description)
     }
 
     // --- regression: the screen without a share behaves exactly as before ----

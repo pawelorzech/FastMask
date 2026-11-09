@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Менеджер масок email для Fastmail</string>
     <string name="login_api_token_label">API токен</string>
     <string name="login_api_token_placeholder">Введіть ваш API токен Fastmail</string>
     <string name="login_paste_button">Вставити</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. Натисніть Інтеграції > API токени</string>
     <string name="login_instructions_step4">4. Створіть новий токен з правами \"Masked Email\"</string>
     <string name="login_instructions_step5">5. Скопіюйте токен і вставте вище</string>
-    <string name="login_instructions_full">1. Увійдіть у веб-застосунок Fastmail\n2. Перейдіть до Налаштування > Конфіденційність і безпека\n3. Натисніть Інтеграції > API токени\n4. Створіть новий токен з правами \"Masked Email\"\n5. Скопіюйте токен і вставте вище</string>
     <string name="login_open_token_settings">Відкрити налаштування токенів Fastmail</string>
     <string name="login_error_missing_scope_action">Відкрити налаштування токенів Fastmail</string>
     <string name="login_paste_empty">Немає чого вставляти — спочатку скопіюйте токен у Fastmail.</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">Маски email</string>
     <string name="email_list_search_placeholder">Пошук email…</string>
     <string name="email_list_clear_search">Очистити пошук</string>
-    <string name="email_list_filter_emails">Фільтрувати email</string>
     <string name="email_list_create_fab">Створити</string>
     <string name="email_list_create_description">Створити нову маску email</string>
     <string name="email_list_empty">Маски email не знайдено</string>
-    <string name="email_list_logout">Вийти</string>
     <string name="email_list_settings">Налаштування</string>
     <string name="filter_all">Усі</string>
     <string name="filter_enabled">Активні</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">напр., mysite_shopping</string>
     <string name="create_email_prefix_hint">Макс. 64 символи: малі літери, цифри, підкреслення</string>
     <string name="create_email_domain_label">Пов\'язаний домен (необов\'язково)</string>
-    <string name="create_email_domain_placeholder">напр., example.com</string>
+    <string name="mask_field_domain_placeholder">напр., example.com</string>
     <string name="create_email_description_label">Опис (необов\'язково)</string>
-    <string name="create_email_description_placeholder">напр., Акаунт для покупок</string>
+    <string name="mask_field_description_placeholder">напр., Акаунт для покупок</string>
     <string name="create_email_url_label">URL (необов\'язково)</string>
-    <string name="create_email_url_placeholder">напр., https://example.com</string>
+    <string name="mask_field_url_placeholder">напр., https://example.com</string>
     <string name="create_email_initial_state">Початковий стан</string>
     <string name="create_email_button">Створити маску email</string>
     <string name="create_email_created">Створено: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">Назад</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">Деталі email</string>
     <string name="email_detail_copy_email">Копіювати адресу email</string>
     <string name="email_detail_delete">Архівувати маску</string>
     <string name="email_detail_status">Статус:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">Створено</string>
     <string name="email_detail_last_message">Останнє повідомлення</string>
     <string name="email_detail_enable">Увімкнути</string>
-    <string name="email_detail_disable">Вимкнути</string>
     <string name="email_detail_edit_title">Редагувати</string>
     <string name="email_detail_description_label">Опис</string>
     <string name="email_detail_domain_label">Пов\'язаний домен</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">Зберегти зміни</string>
     <string name="email_detail_updated">Успішно оновлено</string>
-    <string name="email_detail_deleted">Архівовано</string>
     <string name="email_detail_copied">Скопійовано до буфера обміну</string>
     <string name="email_detail_delete_dialog_title">Архівувати цю маску?</string>
     <string name="email_detail_delete_dialog_message">Листи на цю адресу відхилятимуться. Маску можна відновити пізніше.</string>
     <string name="email_detail_delete_confirm">Архівувати</string>
-    <string name="email_detail_delete_cancel">Скасувати</string>
 
     <!-- Email States -->
     <string name="state_enabled">Активна</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">Налаштування</string>
     <string name="settings_language">Мова</string>
-    <string name="settings_language_description">Вибрати мову застосунку</string>
     <string name="settings_system_default">Системна за замовчуванням</string>
     <string name="settings_contact">Зв\'язок та відгуки</string>
     <string name="settings_contact_description">Надішліть нам відгук</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Login and Welcome Screens -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">Тихе місце для замаскованої пошти</string>
     <string name="login_hero_accent">замаскованої пошти</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">Не вдалося увійти</string>
     <string name="email_list_empty_sub">Створіть маску для маршрутизації пошти без розкриття вашої справжної адреси.</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">Не вдалося завантажити маски</string>
-    <string name="create_email_subtitle">Налаштуйте нову замасковану адресу</string>
     <string name="create_email_preview_label">Попередній перегляд</string>
     <string name="create_email_preview_random">випадкова</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">Не вдалося створити маску</string>
+    <string name="error_create_mask">Не вдалося створити маску</string>
     <string name="email_detail_error_load">Не вдалося завантажити цю маску</string>
-    <string name="email_detail_error_update">Не вдалося оновити</string>
+    <string name="error_update_mask">Не вдалося оновити</string>
     <string name="email_detail_error_save">Не вдалося зберегти зміни</string>
     <string name="email_detail_error_delete">Не вдалося архівувати</string>
     <string name="time_never">ніколи</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">Скасувати</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">Підтримайте вільне програмне забезпечення</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">Невелика покупка підтримує незалежний додаток з відкритим кодом — і розблоковує додаткові функції.</string>
     <string name="pro_feature_accents_title">Кольорові теми</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro розблоковано. Дякуємо!</string>
     <string name="pro_purchase_pending">Платіж в обробці — Pro розблокується після його завершення. Зазвичай це триває кілька хвилин, з деякими способами оплати — до доби.</string>
     <string name="action_ok">ОК</string>
+    <string name="action_cancel">Скасувати</string>
+    <string name="action_close">Закрити</string>
     <string name="pro_purchase_cancelled">Покупка скасована.</string>
     <string name="pro_purchase_failed">Щось пішло не так. Вам не було виставлено рахунок.</string>
     <string name="pro_billing_unavailable">Біллінг Google Play недоступний на цьому пристрої.</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">Розблокувати кольори, блокування та експорт</string>
     <string name="settings_pro_value_active">Активне — дякуємо!</string>
     <string name="settings_accent">Кольори</string>
-    <string name="settings_accent_locked">Функція FastMask Pro</string>
+    <string name="pro_feature_locked">Функція FastMask Pro</string>
     <string name="accent_amber">Бурштин</string>
     <string name="accent_ink">Чорнило</string>
     <string name="accent_sage">Шавлія</string>

@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">مدير البريد المقنّع من Fastmail</string>
     <string name="login_api_token_label">رمز API</string>
     <string name="login_api_token_placeholder">أدخل رمز API الخاص بـ Fastmail</string>
     <string name="login_paste_button">لصق</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">٣. انقر على التكاملات > رموز API</string>
     <string name="login_instructions_step4">٤. أنشئ رمزاً جديداً بصلاحية \"Masked Email\"</string>
     <string name="login_instructions_step5">٥. انسخ الرمز والصقه أعلاه</string>
-    <string name="login_instructions_full">١. سجّل الدخول إلى تطبيق Fastmail\n٢. انتقل إلى الإعدادات > الخصوصية والأمان\n٣. انقر على التكاملات > رموز API\n٤. أنشئ رمزاً جديداً بصلاحية \"Masked Email\"\n٥. انسخ الرمز والصقه أعلاه</string>
     <string name="login_open_token_settings">فتح إعدادات رموز Fastmail</string>
     <string name="login_error_missing_scope_action">فتح إعدادات رموز Fastmail</string>
     <string name="login_paste_empty">لا يوجد شيء للصقه — انسخ الرمز من Fastmail أولاً.</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">البريد المقنّع</string>
     <string name="email_list_search_placeholder">البحث في البريد…</string>
     <string name="email_list_clear_search">مسح البحث</string>
-    <string name="email_list_filter_emails">تصفية البريد</string>
     <string name="email_list_create_fab">إنشاء</string>
     <string name="email_list_create_description">إنشاء بريد مقنّع جديد</string>
     <string name="email_list_empty">لم يتم العثور على بريد مقنّع</string>
-    <string name="email_list_logout">تسجيل الخروج</string>
     <string name="email_list_settings">الإعدادات</string>
     <string name="filter_all">الكل</string>
     <string name="filter_enabled">مُفعّل</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">مثال: mysite_shopping</string>
     <string name="create_email_prefix_hint">الحد الأقصى ٦٤ حرفاً: أحرف صغيرة، أرقام، شرطات سفلية</string>
     <string name="create_email_domain_label">النطاق المرتبط (اختياري)</string>
-    <string name="create_email_domain_placeholder">مثال: example.com</string>
+    <string name="mask_field_domain_placeholder">مثال: example.com</string>
     <string name="create_email_description_label">الوصف (اختياري)</string>
-    <string name="create_email_description_placeholder">مثال: حساب التسوق</string>
+    <string name="mask_field_description_placeholder">مثال: حساب التسوق</string>
     <string name="create_email_url_label">الرابط (اختياري)</string>
-    <string name="create_email_url_placeholder">مثال: https://example.com</string>
+    <string name="mask_field_url_placeholder">مثال: https://example.com</string>
     <string name="create_email_initial_state">الحالة الأولية</string>
     <string name="create_email_button">إنشاء بريد مقنّع</string>
     <string name="create_email_created">تم الإنشاء: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">رجوع</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">تفاصيل البريد</string>
     <string name="email_detail_copy_email">نسخ عنوان البريد</string>
     <string name="email_detail_delete">أرشفة القناع</string>
     <string name="email_detail_status">الحالة:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">تاريخ الإنشاء</string>
     <string name="email_detail_last_message">آخر رسالة</string>
     <string name="email_detail_enable">تفعيل</string>
-    <string name="email_detail_disable">تعطيل</string>
     <string name="email_detail_edit_title">تعديل التفاصيل</string>
     <string name="email_detail_description_label">الوصف</string>
     <string name="email_detail_domain_label">النطاق المرتبط</string>
     <string name="email_detail_url_label">الرابط</string>
     <string name="email_detail_save">حفظ التغييرات</string>
     <string name="email_detail_updated">تم التحديث بنجاح</string>
-    <string name="email_detail_deleted">تمت الأرشفة</string>
     <string name="email_detail_copied">تم النسخ إلى الحافظة</string>
     <string name="email_detail_delete_dialog_title">أرشفة هذا القناع؟</string>
     <string name="email_detail_delete_dialog_message">سيتم رفض الرسائل المرسلة إلى هذا العنوان. يمكنك استعادة القناع لاحقًا.</string>
     <string name="email_detail_delete_confirm">أرشفة</string>
-    <string name="email_detail_delete_cancel">إلغاء</string>
 
     <!-- Email States -->
     <string name="state_enabled">مُفعّل</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">الإعدادات</string>
     <string name="settings_language">اللغة</string>
-    <string name="settings_language_description">اختر لغة التطبيق</string>
     <string name="settings_system_default">الافتراضي للنظام</string>
     <string name="settings_contact">التواصل والملاحظات</string>
     <string name="settings_contact_description">أرسل لنا ملاحظاتك</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- Login Screen - Additional -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">مكان هادئ لـالبريد المقنّع</string>
     <string name="login_hero_accent">البريد المقنّع</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">فشل تسجيل الدخول</string>
     <string name="email_list_empty_sub">أنشئ بريداً مقنّعاً لتوجيه البريد دون مشاركة عنوانك الحقيقي.</string>
     <string name="list_stats">%2$s · %1$s</string>
-    <string name="error_load_emails_short">لم يتم تحميل البريد المقنّع</string>
-    <string name="create_email_subtitle">إعداد بريد مقنّع جديد</string>
     <string name="create_email_preview_label">معاينة</string>
     <string name="create_email_preview_random">عشوائي</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">لم يتم إنشاء البريد المقنّع</string>
+    <string name="error_create_mask">لم يتم إنشاء البريد المقنّع</string>
     <string name="email_detail_error_load">لم يتم تحميل هذا البريد المقنّع</string>
-    <string name="email_detail_error_update">لم يتم التحديث</string>
+    <string name="error_update_mask">لم يتم التحديث</string>
     <string name="email_detail_error_save">لم يتم حفظ التغييرات</string>
     <string name="email_detail_error_delete">لم يتم الأرشفة</string>
     <string name="time_never">أبداً</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">تراجع</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">دعم المصدر المفتوح</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">شراء صغير يدعم تطبيقاً مستقلاً ومفتوح المصدر — وفتح المميزات الإضافية.</string>
     <string name="pro_feature_accents_title">سمات الألوان</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">تم فتح Pro. شكراً!</string>
     <string name="pro_purchase_pending">الدفع قيد الانتظار — سيتم فتح Pro عند اكتماله. يستغرق ذلك عادةً دقائق، وقد يصل إلى يوم مع بعض طرق الدفع.</string>
     <string name="action_ok">حسنًا</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_close">إغلاق</string>
     <string name="pro_purchase_cancelled">تم إلغاء الشراء.</string>
     <string name="pro_purchase_failed">حدث خطأ ما. لم يتم تحديد رسوم لك.</string>
     <string name="pro_billing_unavailable">Google Play billing غير متوفر على هذا الجهاز.</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">فتح الألوان وقفل التطبيق والتصدير</string>
     <string name="settings_pro_value_active">نشط — شكراً!</string>
     <string name="settings_accent">الألوان</string>
-    <string name="settings_accent_locked">ميزة FastMask Pro</string>
+    <string name="pro_feature_locked">ميزة FastMask Pro</string>
     <string name="accent_amber">كهرماني</string>
     <string name="accent_ink">حبر</string>
     <string name="accent_sage">حكيم</string>

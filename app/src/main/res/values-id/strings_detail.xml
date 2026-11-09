@@ -3,5 +3,4 @@
     <string name="email_detail_edit_action">Edit detail</string>
     <string name="email_detail_edit_stop">Berhenti mengedit</string>
     <string name="email_detail_no_domain">Tanpa domain</string>
-    <string name="create_email_close">Tutup</string>
 </resources>

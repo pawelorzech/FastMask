@@ -1,24 +1,19 @@
 package com.fastmask.quickmask
 
+import android.os.Build
+
 /**
- * Platform-version decisions behind the quick-create entry points, kept free of
- * Android types so the thresholds themselves stay unit-testable.
- *
  * Both rules here are about *not* silently losing the created address: the tile
  * copies a masked address and then tells the user about it. If the telling path
  * is unavailable (no POST_NOTIFICATIONS on 33+, or notifications switched off
- * for the app), the caller must fall back to a Toast instead of dropping the
- * message on the floor.
+ * for the app), the caller must fall back to a Toast.
  */
 internal object QuickMaskPolicy {
 
-    /** [android.os.Build.VERSION_CODES.TIRAMISU] — POST_NOTIFICATIONS became runtime-granted. */
-    const val NOTIFICATION_PERMISSION_SDK: Int = 33
+    /** POST_NOTIFICATIONS became runtime-granted on Android 13. */
+    const val NOTIFICATION_PERMISSION_SDK: Int = Build.VERSION_CODES.TIRAMISU
 
     /**
-     * Whether `NotificationManagerCompat.notify` may be called at all.
-     *
-     * @param sdkInt running platform level.
      * @param notificationsEnabled app-level notification switch (user can kill it on any version).
      * @param postPermissionGranted result of `checkSelfPermission(POST_NOTIFICATIONS)`;
      *   meaningless below [NOTIFICATION_PERMISSION_SDK], where the permission does
@@ -34,39 +29,16 @@ internal object QuickMaskPolicy {
     }
 
     /**
-     * Whether an incoming launch of `QuickMaskActivity` may create a mask.
+     * On Android 13+ the permission is DENIED on a fresh install, and without it
+     * the quick-create confirmation — the only place the "Undo" action exists —
+     * never appears. Asked at most once, and only where it means something: a
+     * signed-in user looking at their masks, not a cold welcome screen.
      *
-     * Creation is conditional on OUR OWN action, so an unrecognized launch
-     * degrades into opening the app instead of writing to the account.
-     *
-     * @param action the launching intent's action.
-     */
-    fun isQuickCreateLaunch(action: String?): Boolean = action == ACTION_QUICK_MASK
-
-    /**
-     * Whether to ask for POST_NOTIFICATIONS.
-     *
-     * The permission is declared and never requested, so on Android 13+ it is
-     * DENIED on a fresh install and the quick-create confirmation — the only
-     * place the "Undo" action exists — never appears. Asked at most once, and
-     * only where it means something: a signed-in user looking at their masks,
-     * not a cold welcome screen.
-     *
-     * @param sdkInt running platform level.
-     * @param permissionGranted result of `checkSelfPermission(POST_NOTIFICATIONS)`.
-     * @param alreadyAsked whether this install has already shown the prompt.
-     * @param signedIn whether there is a session to create masks in.
-     * @param locked whether the biometric app-lock gate is covering the
-     *   content. A system dialog stacked on that gate asks about a feature the
-     *   user cannot see; deferring costs nothing because the persisted flag is
-     *   only written when the dialog is actually launched, so the one ask is
-     *   not consumed.
-     * @param demoMode whether this is the in-memory demo session.
-     *   QuickMaskCreator returns DemoMode before touching the account, so the
-     *   confirmation notification this permission exists for can never be
-     *   posted there. Worse, a denial in demo is remembered by the platform and
-     *   makes the later real request harder to surface; keeping the persisted
-     *   flag false through the demo moves the one ask to the first real sign-in.
+     * @param locked a system dialog stacked on the biometric gate asks about a
+     *   feature the user cannot see.
+     * @param demoMode the confirmation notification this permission exists for
+     *   can never be posted in demo, and a denial there is remembered by the
+     *   platform and makes the later real request harder to surface.
      */
     fun shouldRequestNotificationPermission(
         sdkInt: Int,

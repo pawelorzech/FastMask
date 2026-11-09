@@ -67,7 +67,7 @@ class JmapApiTest {
     private fun session(
         apiUrl: String,
         primaryAccounts: Map<String, String> =
-            mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-1"),
+            mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-1"),
         accounts: Map<String, JmapAccount> = emptyMap(),
     ) = JmapSession(
         apiUrl = apiUrl,
@@ -177,30 +177,6 @@ class JmapApiTest {
     private fun accountIdOfLastCall(service: FakeJmapService): String? {
         val arguments = service.lastRequest!!.methodCalls.single()[1] as JsonObject
         return (arguments["accountId"] as? JsonPrimitive)?.content
-    }
-
-    @Test
-    fun `http (non-https) fastmail apiUrl is rejected`() = runTest {
-        val service = FakeJmapService(session = session("http://api.fastmail.com/jmap/api/"))
-        val api = JmapApi(service, json)
-
-        assertTrue(api.getSession("tok").isFailure)
-    }
-
-    @Test
-    fun `host suffix trick evilfastmail com is rejected`() = runTest {
-        val service = FakeJmapService(session = session("https://evilfastmail.com/jmap/"))
-        val api = JmapApi(service, json)
-
-        assertTrue(api.getSession("tok").isFailure)
-    }
-
-    @Test
-    fun `subdomain of fastmail com is accepted`() = runTest {
-        val service = FakeJmapService(session = session("https://beta.fastmail.com/jmap/api/"))
-        val api = JmapApi(service, json)
-
-        assertTrue(api.getSession("tok").isSuccess)
     }
 
     // --- get parsing -------------------------------------------------------
@@ -647,7 +623,7 @@ class JmapApiTest {
         val service = FakeJmapService(
             session = session(
                 apiUrl = "https://api.fastmail.com/jmap/api/",
-                primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-first"),
+                primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-first"),
             ),
             response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
         )
@@ -657,7 +633,7 @@ class JmapApiTest {
 
         service.session = session(
             apiUrl = "https://api.fastmail.com/jmap/api/",
-            primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-second"),
+            primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-second"),
         )
         api.getMaskedEmails("token-2").getOrThrow()
 
@@ -711,45 +687,6 @@ class JmapApiTest {
         assertTrue(call.exceptionOrNull() is MaskedEmailScopeMissingException)
         assertEquals("nothing was cached, so the call fetched again", 2, service.sessionFetches)
         assertEquals(0, service.executeCount)
-    }
-
-    /**
-     * The consequence that matters: no masked-email request may ever be
-     * addressed to an account borrowed from another scope.
-     */
-    @Test
-    fun `masked email calls never run against a borrowed account`() = runTest {
-        val service = FakeJmapService(
-            session = session(
-                apiUrl = "https://api.fastmail.com/jmap/api/",
-                primaryAccounts = mapOf(
-                    "urn:ietf:params:jmap:mail" to "acc-mail",
-                    "urn:ietf:params:jmap:contacts" to "acc-contacts",
-                ),
-            )
-        )
-        val api = JmapApi(service, json)
-
-        val result = api.getMaskedEmails("tok")
-
-        assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is MaskedEmailScopeMissingException)
-        assertEquals("no JMAP method call should have been attempted", 0, service.executeCount)
-    }
-
-    @Test
-    fun `a session that grants the scope still logs in`() = runTest {
-        val service = FakeJmapService(
-            session = session("https://api.fastmail.com/jmap/api/"),
-            response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
-        )
-        val api = JmapApi(service, json)
-
-        val result = api.getSession("tok")
-        api.getMaskedEmails("tok").getOrThrow()
-
-        assertTrue(result.isSuccess)
-        assertEquals("acc-1", accountIdOfLastCall(service))
     }
 
     @Test

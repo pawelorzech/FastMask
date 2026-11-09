@@ -31,11 +31,8 @@ class QuickMaskUndoReceiver : BroadcastReceiver() {
         /** Headroom left for `PendingResult.finish()` and scheduling once the delete is abandoned. */
         const val FINISH_MARGIN_MS = 2_000L
 
-        /**
-         * Upper bound for the undo network call, derived from [GO_ASYNC_BUDGET_MS]
-         * so the two cannot drift apart: a dead network would otherwise hold the
-         * call for OkHttp's 30-second socket timeouts and blow the window.
-         */
+        // A dead network would otherwise hold the call for OkHttp's 30-second socket
+        // timeouts and blow the goAsync window.
         const val UNDO_TIMEOUT_MS = GO_ASYNC_BUDGET_MS - FINISH_MARGIN_MS
     }
 }

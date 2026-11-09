@@ -1,6 +1,6 @@
 package com.fastmask.di
 
-import com.fastmask.data.local.SettingsDataStore
+import com.fastmask.data.local.AppLockStore
 import com.fastmask.data.repository.MaskedEmailRepositoryDispatcher
 import com.fastmask.data.session.SessionRepositoryImpl
 import com.fastmask.domain.repository.AppLockSetting
@@ -19,7 +19,7 @@ abstract class RepositoryModule {
     abstract fun bindSessionRepository(impl: SessionRepositoryImpl): SessionRepository
 
     @Binds
-    abstract fun bindAppLockSetting(impl: SettingsDataStore): AppLockSetting
+    abstract fun bindAppLockSetting(impl: AppLockStore): AppLockSetting
 
     @Binds
     abstract fun bindMaskedEmailRepository(impl: MaskedEmailRepositoryDispatcher): MaskedEmailRepository

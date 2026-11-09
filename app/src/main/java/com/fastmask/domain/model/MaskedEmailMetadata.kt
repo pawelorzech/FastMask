@@ -3,12 +3,10 @@ package com.fastmask.domain.model
 import java.net.URI
 import java.util.Locale
 
-/** Fastmail Masked Email metadata rules that are shared by create and edit flows. */
 object MaskedEmailMetadata {
 
     /**
      * Fastmail defines `forDomain` as an HTTP(S) origin, not a bare host or a page URL.
-     * Accept the convenient forms users paste, then store only scheme + host + optional port.
      */
     fun normalizeForDomain(raw: String): String? {
         val value = raw.trim()
@@ -29,17 +27,8 @@ object MaskedEmailMetadata {
     private val SCHEME = Regex("^[A-Za-z][A-Za-z0-9+.-]*://")
 }
 
-/**
- * The create parameters as they are stored, so every repository (the real one
- * and the demo) applies the same rules: `forDomain` becomes a normalised
- * origin, and a blank field means "not supplied" (null). Fails with
- * [IllegalArgumentException] when `forDomain` is not a valid web origin.
- */
 fun CreateMaskedEmailParams.normalized(): Result<CreateMaskedEmailParams> {
-    val origin = forDomain?.let { raw ->
-        MaskedEmailMetadata.normalizeForDomain(raw)
-            ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
-    }
+    val origin = normalizedOrigin(forDomain).getOrElse { return Result.failure(it) }
     return Result.success(
         CreateMaskedEmailParams(
             state = state,
@@ -51,15 +40,15 @@ fun CreateMaskedEmailParams.normalized(): Result<CreateMaskedEmailParams> {
     )
 }
 
-/**
- * The update parameters with `forDomain` normalised. Unlike create, empty
- * strings keep their meaning here: they clear the field (see [UpdateMaskedEmailParams.clearsUrl]).
- * Fails with [IllegalArgumentException] when `forDomain` is not a valid web origin.
- */
+// Unlike create, empty strings keep their meaning here: they clear the field.
 fun UpdateMaskedEmailParams.normalized(): Result<UpdateMaskedEmailParams> {
-    val origin = forDomain?.let { raw ->
-        MaskedEmailMetadata.normalizeForDomain(raw)
-            ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
-    }
+    val origin = normalizedOrigin(forDomain).getOrElse { return Result.failure(it) }
     return Result.success(copy(forDomain = origin))
+}
+
+private fun normalizedOrigin(forDomain: String?): Result<String?> {
+    if (forDomain == null) return Result.success(null)
+    val origin = MaskedEmailMetadata.normalizeForDomain(forDomain)
+        ?: return Result.failure(IllegalArgumentException("Invalid web origin"))
+    return Result.success(origin)
 }

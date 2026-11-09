@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.repository.AppLockSetting
 import com.fastmask.domain.repository.NotificationPromptSetting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -23,12 +22,8 @@ import javax.inject.Singleton
  * A corrupt preferences file is unreadable for good once it happens (interrupted
  * write, full disk), and every read then throws. The handler trades the stored
  * settings for an app that still starts. It resets to "never set", so only keys
- * where that is safe may live here: accent, app lock, language, demo mode and
- * its tutorial flag, and the notification-prompt flag — all re-settable.
- *
- * Nothing whose default is the permissive side belongs in this file. The crash
- * reporting opt-out (default: enabled) has its own store for that reason; see
- * `com.fastmask.data.crash.crashReportingDataStore`.
+ * where that is safe may live here. Nothing whose default is the permissive side
+ * belongs in this file.
  */
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
@@ -38,10 +33,9 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
 @Singleton
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
-) : AppLockSetting, NotificationPromptSetting {
+) : NotificationPromptSetting {
 
     private val accentKey = stringPreferencesKey("accent")
-    private val appLockKey = booleanPreferencesKey("app_lock_enabled")
 
     val accent: Flow<Accent> = context.settingsDataStore.data.map { preferences ->
         Accent.fromName(preferences[accentKey])
@@ -53,27 +47,10 @@ class SettingsDataStore @Inject constructor(
         }
     }
 
-    val appLockEnabled: Flow<Boolean> = context.settingsDataStore.data.map { preferences ->
-        preferences[appLockKey] ?: false
-    }
-
-    suspend fun setAppLockEnabled(enabled: Boolean) {
-        context.settingsDataStore.edit { preferences ->
-            preferences[appLockKey] = enabled
-        }
-    }
-
-    override suspend fun isAppLockEnabled(): Boolean = appLockEnabled.first()
-
-
     private val notificationPromptShownKey = booleanPreferencesKey("notification_prompt_shown")
 
-    /**
-     * True once the runtime notification prompt has been shown. Kept so the app
-     * asks a single time: a second `launch()` on a permanently denied
-     * permission returns instantly with no dialog, which would silently do
-     * nothing on every launch.
-     */
+    // A second `launch()` on a permanently denied permission returns instantly
+    // with no dialog, so the app must ask only once.
     override suspend fun notificationPromptShown(): Boolean =
         context.settingsDataStore.data.first()[notificationPromptShownKey] ?: false
 

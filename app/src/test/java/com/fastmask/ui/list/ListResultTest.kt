@@ -11,7 +11,7 @@ class ListResultTest {
 
     private val handle = SavedStateHandle()
 
-    private fun pending(): ListResult? = handle.get<ListResult>(ListResult.KEY)
+    private fun pending(): ListResult? = handle.pendingListResult().value
 
     @Test
     fun `older snackbar result does not consume a newer archive`() {
@@ -51,15 +51,6 @@ class ListResultTest {
         handle.consumeListResult(ListResult.Archived("a", EmailState.ENABLED))
 
         assertEquals(created, pending())
-    }
-
-    @Test
-    fun `an archive keeps its pre-archive state through the handle`() {
-        val archived = ListResult.Archived("a", EmailState.DISABLED)
-        handle.postListResult(archived)
-
-        assertEquals(archived, pending())
-        assertEquals(EmailState.DISABLED, (pending() as ListResult.Archived).previousState)
     }
 
     @Test

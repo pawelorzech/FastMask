@@ -7,32 +7,11 @@
          the Play Billing library's manifest. -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Confirms a mask created from the tile or the shortcut, and carries the
-         only "Undo" button the feature has. Requested once from MainActivity,
-         when a signed-in user is looking at their masks (see
-         QuickMaskPolicy.shouldRequestNotificationPermission) — on Android 13+
-         the permission is DENIED on a fresh install, so without asking, the
-         confirmation and its Undo would never appear at all. A denial is not
-         fatal: the quick-create path falls back to a Toast, so it costs the
-         confirmation, not the mask. -->
+         only "Undo" button the feature has. On Android 13+ the permission is
+         DENIED on a fresh install, so without asking, the confirmation and its
+         Undo would never appear at all. A denial is not fatal: the quick-create
+         path falls back to a Toast, so it costs the confirmation, not the mask. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!--
-      Android 11+ (API 30) package visibility. Without these declarations
-      PackageManager.resolveActivity() returns null for the intents below even
-      when a handler is installed, so the "Contact" row and the Play-required
-      Privacy / Terms links on the paywall would silently do nothing.
-      See com.fastmask.core.platform.openExternalIntent.
-    -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.SENDTO" />
-            <data android:scheme="mailto" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
-        </intent>
-    </queries>
 
     <!--
       allowBackup="false" disables backup outright, which makes
@@ -56,9 +35,6 @@
 
       Android 12 (API 31) blocks cross-uid task insertion, so the exposure is
       API 26-30, which minSdk = 26 keeps in scope.
-
-      An empty affinity is compatible with MainActivity's standard launch mode,
-      which must stay standard so a share re-evaluates the lock (see below).
     -->
     <application
         android:name=".FastMaskApplication"
@@ -91,13 +67,15 @@
             it ahead of any remote configuration, so no session event is ever
             published and the SDK never listens to lifecycle events.
 
-            What the flag does NOT stop, verified in firebase-sessions 2.0.6
-            bytecode: FirebaseSessions' init coroutine calls
-            SessionsSettings.updateSettings() — a fetch from
-            firebase-settings.crashlytics.com carrying the installation ID,
-            device model and OS build — BEFORE it reads getSessionsEnabled().
-            That fetch is gated on data collection, so the crash-reports toggle
-            stops it; the flag alone does not. The privacy policy discloses the
+            What the flag does NOT stop, verified by reading firebase-sessions 3.0.7
+            bytecode with javap (static reading, not run on a device):
+            FirebaseSessions' init coroutine calls SessionsSettings.updateSettings()
+            — a fetch from firebase-settings.crashlytics.com carrying the
+            installation ID, device model and OS build — BEFORE it reads
+            getSessionsEnabled(). That call is skipped when no subscriber reports
+            data collection enabled, and Crashlytics' subscriber answers with
+            DataCollectionArbiter.isAutomaticDataCollectionEnabled(), so the
+            crash-reports toggle stops it; the flag alone does not. The privacy policy discloses the
             configuration download, so this is a note for the next reader, not
             an undisclosed request.
 
@@ -108,8 +86,6 @@
             android:name="firebase_sessions_enabled"
             android:value="false" />
 
-        <!-- Shares the CSV mask export (Pro) from cacheDir/exports — no storage
-             permissions, receiver gets a one-off read grant. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -154,15 +130,12 @@
           The launcher shortcut does not need the export: the system starts
           shortcuts through LauncherApps#startShortcut, which runs the intent
           as the publishing package, so the caller is FastMask itself.
-          QuickMaskActivity additionally refuses to create for any intent that
-          does not carry ACTION_QUICK_MASK.
         -->
         <activity
             android:name=".quickmask.QuickMaskActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
-            android:taskAffinity=""
             android:theme="@style/Theme.FastMask.Invisible" />
 
         <receiver

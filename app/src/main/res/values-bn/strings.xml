@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">Fastmail মাস্কড ইমেইল ম্যানেজার</string>
     <string name="login_api_token_label">API টোকেন</string>
     <string name="login_api_token_placeholder">আপনার Fastmail API টোকেন দিন</string>
     <string name="login_paste_button">পেস্ট করুন</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">৩. ইন্টিগ্রেশন > API টোকেনে ক্লিক করুন</string>
     <string name="login_instructions_step4">৪. \"Masked Email\" স্কোপ সহ একটি নতুন টোকেন তৈরি করুন</string>
     <string name="login_instructions_step5">৫. টোকেন কপি করুন এবং উপরে পেস্ট করুন</string>
-    <string name="login_instructions_full">১. Fastmail ওয়েব অ্যাপে লগইন করুন\n২. সেটিংস > প্রাইভেসি এবং সিকিউরিটিতে যান\n৩. ইন্টিগ্রেশন > API টোকেনে ক্লিক করুন\n৪. \"Masked Email\" স্কোপ সহ একটি নতুন টোকেন তৈরি করুন\n৫. টোকেন কপি করুন এবং উপরে পেস্ট করুন</string>
     <string name="login_open_token_settings">Fastmail টোকেন সেটিংস খুলুন</string>
     <string name="login_error_missing_scope_action">Fastmail টোকেন সেটআপ খুলুন</string>
     <string name="login_paste_empty">পেস্ট করার মতো কিছু নেই — প্রথমে Fastmail-এ আপনার টোকেন কপি করুন।</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">মাস্কড ইমেইল</string>
     <string name="email_list_search_placeholder">ইমেইল খুঁজুন…</string>
     <string name="email_list_clear_search">সার্চ মুছুন</string>
-    <string name="email_list_filter_emails">ইমেইল ফিল্টার করুন</string>
     <string name="email_list_create_fab">তৈরি করুন</string>
     <string name="email_list_create_description">নতুন মাস্কড ইমেইল তৈরি করুন</string>
     <string name="email_list_empty">কোনো মাস্কড ইমেইল পাওয়া যায়নি</string>
-    <string name="email_list_logout">লগআউট</string>
     <string name="email_list_settings">সেটিংস</string>
     <string name="filter_all">সব</string>
     <string name="filter_enabled">সক্রিয়</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">যেমন, mysite_shopping</string>
     <string name="create_email_prefix_hint">সর্বোচ্চ ৬৪ অক্ষর: ছোট হাতের অক্ষর, সংখ্যা, আন্ডারস্কোর</string>
     <string name="create_email_domain_label">সংশ্লিষ্ট ডোমেইন (ঐচ্ছিক)</string>
-    <string name="create_email_domain_placeholder">যেমন, example.com</string>
+    <string name="mask_field_domain_placeholder">যেমন, example.com</string>
     <string name="create_email_description_label">বিবরণ (ঐচ্ছিক)</string>
-    <string name="create_email_description_placeholder">যেমন, শপিং অ্যাকাউন্ট</string>
+    <string name="mask_field_description_placeholder">যেমন, শপিং অ্যাকাউন্ট</string>
     <string name="create_email_url_label">URL (ঐচ্ছিক)</string>
-    <string name="create_email_url_placeholder">যেমন, https://example.com</string>
+    <string name="mask_field_url_placeholder">যেমন, https://example.com</string>
     <string name="create_email_initial_state">প্রাথমিক অবস্থা</string>
     <string name="create_email_button">মাস্কড ইমেইল তৈরি করুন</string>
     <string name="create_email_created">তৈরি হয়েছে: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">পিছনে যান</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">ইমেইল বিবরণ</string>
     <string name="email_detail_copy_email">ইমেইল ঠিকানা কপি করুন</string>
     <string name="email_detail_delete">মাস্ক আর্কাইভ করুন</string>
     <string name="email_detail_status">অবস্থা:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">তৈরি</string>
     <string name="email_detail_last_message">শেষ বার্তা</string>
     <string name="email_detail_enable">সক্রিয় করুন</string>
-    <string name="email_detail_disable">নিষ্ক্রিয় করুন</string>
     <string name="email_detail_edit_title">বিবরণ সম্পাদনা করুন</string>
     <string name="email_detail_description_label">বিবরণ</string>
     <string name="email_detail_domain_label">সংশ্লিষ্ট ডোমেইন</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">পরিবর্তন সংরক্ষণ করুন</string>
     <string name="email_detail_updated">সফলভাবে আপডেট হয়েছে</string>
-    <string name="email_detail_deleted">আর্কাইভ করা হয়েছে</string>
     <string name="email_detail_copied">ক্লিপবোর্ডে কপি হয়েছে</string>
     <string name="email_detail_delete_dialog_title">এই মাস্কটি আর্কাইভ করবেন?</string>
     <string name="email_detail_delete_dialog_message">এই ঠিকানায় পাঠানো মেইল ফেরত যাবে। আপনি পরে মাস্কটি পুনরুদ্ধার করতে পারবেন।</string>
     <string name="email_detail_delete_confirm">আর্কাইভ করুন</string>
-    <string name="email_detail_delete_cancel">বাতিল</string>
 
     <!-- Email States -->
     <string name="state_enabled">সক্রিয়</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">সেটিংস</string>
     <string name="settings_language">ভাষা</string>
-    <string name="settings_language_description">অ্যাপের ভাষা নির্বাচন করুন</string>
     <string name="settings_system_default">সিস্টেম ডিফল্ট</string>
     <string name="settings_contact">যোগাযোগ এবং প্রতিক্রিয়া</string>
     <string name="settings_contact_description">আমাদের আপনার প্রতিক্রিয়া পাঠান</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- Login Screen - Additional -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">একটি শান্ত জায়গা মাস্কড ইমেইলের জন্য</string>
     <string name="login_hero_accent">মাস্কড ইমেইলের জন্য</string>
     <string name="login_hero_suffix">।</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">লগইন ব্যর্থ</string>
     <string name="email_list_empty_sub">আপনার আসল ঠিকানা শেয়ার না করে মেইল রুট করতে একটি মাস্ক তৈরি করুন।</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">মাস্ক লোড করা যায়নি</string>
-    <string name="create_email_subtitle">নতুন মাস্কড ঠিকানা কনফিগার করুন</string>
     <string name="create_email_preview_label">প্রিভিউ</string>
     <string name="create_email_preview_random">র্যান্ডম</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">মাস্ক তৈরি করা যায়নি</string>
+    <string name="error_create_mask">মাস্ক তৈরি করা যায়নি</string>
     <string name="email_detail_error_load">এই মাস্কটি লোড করা যায়নি</string>
-    <string name="email_detail_error_update">আপডেট করা যায়নি</string>
+    <string name="error_update_mask">আপডেট করা যায়নি</string>
     <string name="email_detail_error_save">পরিবর্তন সংরক্ষণ করা যায়নি</string>
     <string name="email_detail_error_delete">আর্কাইভ করা যায়নি</string>
     <string name="time_never">কখনও না</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">পূর্ববর্তী অবস্থায় ফিরান</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">ওপেন সোর্স সমর্থন করুন</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">একটি ছোট ক্রয় একটি স্বাধীন, ওপেন-সোর্স অ্যাপ সমর্থন করে — এবং অতিরিক্ত সুবিধা আনলক করে।</string>
     <string name="pro_feature_accents_title">রঙের থিম</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">Pro আনলক করা হয়েছে। ধন্যবাদ!</string>
     <string name="pro_purchase_pending">পেমেন্ট মুলতুবি — সম্পূর্ণ হলে Pro আনলক হবে। সাধারণত কয়েক মিনিট লাগে, কিছু পেমেন্ট পদ্ধতিতে এক দিন পর্যন্ত লাগতে পারে।</string>
     <string name="action_ok">ঠিক আছে</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="action_close">বন্ধ করুন</string>
     <string name="pro_purchase_cancelled">ক্রয় বাতিল করা হয়েছে।</string>
     <string name="pro_purchase_failed">কিছু ভুল হয়েছে। আপনাকে চার্জ করা হয়নি।</string>
     <string name="pro_billing_unavailable">Google Play এই ডিভাইসে উপলব্ধ নয়।</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">রং, অ্যাপ লক এবং রপ্তানি আনলক করুন</string>
     <string name="settings_pro_value_active">সক্রিয় — ধন্যবাদ!</string>
     <string name="settings_accent">রং</string>
-    <string name="settings_accent_locked">একটি FastMask Pro বৈশিষ্ট্য</string>
+    <string name="pro_feature_locked">একটি FastMask Pro বৈশিষ্ট্য</string>
     <string name="accent_amber">পীতরঙ্গ</string>
     <string name="accent_ink">কালি</string>
     <string name="accent_sage">ঋষি</string>

@@ -10,7 +10,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fastmask.ui.theme.FastMaskTheme
 
-/** Header above a [SegmentedGroup]: titleSmall in `primary`, inset 32dp from the start. */
 @Composable
 fun SectionHeader(text: String, modifier: Modifier = Modifier) {
     Text(

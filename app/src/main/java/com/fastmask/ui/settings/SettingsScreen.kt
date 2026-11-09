@@ -2,40 +2,19 @@ package com.fastmask.ui.settings
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Science
@@ -49,25 +28,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ripple
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -76,23 +46,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import com.fastmask.ui.accessibility.screenHeading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.BuildConfig
@@ -101,20 +62,17 @@ import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
-import com.fastmask.ui.accessibility.politeLiveRegion
-import com.fastmask.ui.accessibility.radioButtonGroup
+import com.fastmask.domain.model.ProFeature
 import com.fastmask.core.platform.openExternalIntent
-import com.fastmask.ui.components.expressive.SectionHeader
-import com.fastmask.ui.components.expressive.SegmentedSurface
-import com.fastmask.ui.components.expressive.SegmentedGroup
-import com.fastmask.ui.components.expressive.SegmentedRow
+import com.fastmask.ui.components.ConfirmDialog
+import com.fastmask.ui.components.DialogTextButton
+import com.fastmask.ui.components.expressive.ShapeBadge
 import com.fastmask.ui.lock.canUseAppLock
+import com.fastmask.ui.pro.style
 import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.theme.style
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** Everything the settings content draws, so it can be previewed without Hilt. */
 internal data class SettingsViewState(
     val isDemo: Boolean = false,
     val isPro: Boolean = false,
@@ -134,7 +92,6 @@ internal class SettingsCallbacks(
     val onSignOut: () -> Unit = {},
     val onProRowClick: () -> Unit = {},
     val onAccentSelected: (Accent) -> Unit = {},
-    /** The user chose "Unlock" on the locked-colors snackbar. */
     val onUnlockColors: () -> Unit = {},
     val onAppLockToggled: (Boolean) -> Unit = {},
     val onCrashReportingToggled: (Boolean) -> Unit = {},
@@ -222,16 +179,15 @@ internal fun SettingsContent(
     callbacks: SettingsCallbacks,
 ) {
     val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLockUnavailableDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
 
-    val colorsLockedMessage = stringResource(R.string.settings_accent_locked)
+    val colorsLockedMessage = stringResource(R.string.pro_feature_locked)
     val unlockLabel = stringResource(R.string.settings_colors_unlock)
-    val noMailAppMessage = stringResource(R.string.error_no_app_for_link)
+    val noAppForLinkMessage = stringResource(R.string.error_no_app_for_link)
     val feedbackSubject = stringResource(R.string.settings_feedback_subject)
     val supportEmail = stringResource(R.string.support_email)
     val backDesc = stringResource(R.string.navigate_back)
@@ -249,9 +205,15 @@ internal fun SettingsContent(
     }
 
     if (state.showExportConfirmation) {
-        ExportConfirmationDialog(
+        ConfirmDialog(
+            title = stringResource(R.string.settings_export_title),
+            message = stringResource(R.string.settings_export_confirm_message),
+            confirmText = stringResource(R.string.settings_export_title),
+            dismissText = stringResource(R.string.action_cancel),
             onConfirm = callbacks.onExportConfirmed,
             onDismiss = callbacks.onExportDismissed,
+            destructive = false,
+            icon = ProFeature.EXPORT.style.icon,
         )
     }
 
@@ -260,35 +222,24 @@ internal fun SettingsContent(
     }
 
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            icon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null) },
-            title = { Text(stringResource(R.string.logout_confirm_title)) },
-            text = { Text(stringResource(R.string.logout_confirm_message)) },
-            confirmButton = {
-                DialogTextButton(
-                    text = stringResource(R.string.settings_logout),
-                    color = MaterialTheme.colorScheme.error,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                        showLogoutDialog = false
-                        callbacks.onSignOut()
-                    },
-                )
+        ConfirmDialog(
+            title = stringResource(R.string.logout_confirm_title),
+            message = stringResource(R.string.logout_confirm_message),
+            confirmText = stringResource(R.string.settings_logout),
+            dismissText = stringResource(R.string.action_cancel),
+            onConfirm = {
+                showLogoutDialog = false
+                callbacks.onSignOut()
             },
-            dismissButton = {
-                DialogTextButton(
-                    text = stringResource(R.string.email_detail_delete_cancel),
-                    onClick = { showLogoutDialog = false },
-                )
-            },
+            onDismiss = { showLogoutDialog = false },
+            icon = Icons.AutoMirrored.Filled.Logout,
         )
     }
 
     if (showLockUnavailableDialog) {
         AlertDialog(
             onDismissRequest = { showLockUnavailableDialog = false },
-            icon = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
+            icon = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
             title = { Text(stringResource(R.string.settings_app_lock)) },
             text = { Text(stringResource(R.string.settings_app_lock_unavailable)) },
             confirmButton = {
@@ -333,7 +284,6 @@ internal fun SettingsContent(
                 .readableWidth(ContentWidth.Form)
                 .padding(bottom = 32.dp),
         ) {
-            // --- Account ---
             SettingsSection(title = stringResource(R.string.settings_demo_section)) {
                 if (state.isDemo) {
                     add { index, count ->
@@ -380,7 +330,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- FastMask Pro ---
             if (state.monetizationEnabled) {
                 SettingsSection(title = stringResource(R.string.settings_pro_section)) {
                     add { index, count ->
@@ -393,7 +342,7 @@ internal fun SettingsContent(
                             } else {
                                 stringResource(R.string.settings_pro_value_free)
                             },
-                            leading = { ProBadge() },
+                            leading = { ShapeBadge(MaterialShapes.Sunny, Icons.Filled.WorkspacePremium, size = 40.dp) },
                             trailing = { ChevronIcon() },
                             onClick = callbacks.onProRowClick,
                         )
@@ -401,7 +350,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Appearance ---
             SettingsSection(title = stringResource(R.string.settings_appearance_section)) {
                 if (state.monetizationEnabled) {
                     add { index, count ->
@@ -453,23 +401,19 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Privacy ---
             SettingsSection(title = stringResource(R.string.settings_privacy_section)) {
-                if (state.monetizationEnabled) {
+                if (state.monetizationEnabled || state.appLockEnabled) {
                     add { index, count ->
-                        // An armed lock keeps its switch even without Pro so it can
-                        // always be turned off; the "Pro" placeholder is only for an
-                        // unarmed lock.
+                        // An armed lock keeps its switch even without Pro so it can always be turned off.
                         if (isPro || state.appLockEnabled) {
                             SettingsToggleRow(
                                 index = index,
                                 count = count,
                                 label = stringResource(R.string.settings_app_lock),
                                 supporting = stringResource(R.string.settings_app_lock_description),
-                                leading = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
-                                // The preference alone, matching MainActivity's
-                                // gate: the switch reports the lock that is
-                                // actually armed, not the entitlement behind it.
+                                leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
+                                // The preference alone: the switch reports the lock that is actually
+                                // armed, not the entitlement behind it.
                                 checked = state.appLockEnabled,
                                 onCheckedChange = { enabled ->
                                     if (enabled && isPro && !canUseAppLock(context)) {
@@ -484,8 +428,8 @@ internal fun SettingsContent(
                                 index = index,
                                 count = count,
                                 label = stringResource(R.string.settings_app_lock),
-                                supporting = stringResource(R.string.settings_accent_locked),
-                                leading = { Icon(Icons.Filled.Fingerprint, contentDescription = null) },
+                                supporting = stringResource(R.string.pro_feature_locked),
+                                leading = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
                                 trailing = { Icon(Icons.Filled.Lock, contentDescription = null) },
                                 onClick = { callbacks.onAppLockToggled(true) },
                             )
@@ -506,7 +450,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- Data ---
             if (state.monetizationEnabled) {
                 SettingsSection(title = stringResource(R.string.settings_data_section)) {
                     add { index, count ->
@@ -517,9 +460,9 @@ internal fun SettingsContent(
                             supporting = if (isPro) {
                                 stringResource(R.string.settings_export_description)
                             } else {
-                                stringResource(R.string.settings_accent_locked)
+                                stringResource(R.string.pro_feature_locked)
                             },
-                            leading = { Icon(Icons.Filled.FileDownload, contentDescription = null) },
+                            leading = { Icon(ProFeature.EXPORT.style.icon, contentDescription = null) },
                             trailing = {
                                 if (isPro) ChevronIcon() else Icon(Icons.Filled.Lock, contentDescription = null)
                             },
@@ -531,7 +474,6 @@ internal fun SettingsContent(
                 }
             }
 
-            // --- About ---
             SettingsSection(title = stringResource(R.string.settings_about_section)) {
                 add { index, count ->
                     SettingsRow(
@@ -561,14 +503,13 @@ internal fun SettingsContent(
                             // package-visibility filtered and can report no handler for
                             // mailto: even with a mail app installed.
                             if (!openExternalIntent(context, emailIntent)) {
-                                scope.launch { snackbarHostState.showSnackbar(noMailAppMessage) }
+                                scope.launch { snackbarHostState.showSnackbar(noAppForLinkMessage) }
                             }
                         },
                     )
                 }
             }
 
-            // --- More from the maker ---
             SettingsSection(title = stringResource(R.string.more_apps_title)) {
                 MoreApps.otherThan(context.packageName).forEach { app ->
                     add { index, count ->
@@ -579,7 +520,11 @@ internal fun SettingsContent(
                             supporting = stringResource(app.taglineRes),
                             leading = { Icon(Icons.Filled.Apps, contentDescription = null) },
                             trailing = { ChevronIcon() },
-                            onClick = { MoreApps.open(context, app.packageId) },
+                            onClick = {
+                                if (!MoreApps.open(context, app.packageId)) {
+                                    scope.launch { snackbarHostState.showSnackbar(noAppForLinkMessage) }
+                                }
+                            },
                         )
                     }
                 }
@@ -597,277 +542,6 @@ internal fun SettingsContent(
         }
     }
 }
-
-@Composable
-internal fun ExportConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Filled.FileDownload, contentDescription = null) },
-        title = { Text(stringResource(R.string.settings_export_title)) },
-        text = { Text(stringResource(R.string.settings_export_confirm_message)) },
-        confirmButton = {
-            DialogTextButton(
-                text = stringResource(R.string.settings_export_title),
-                onClick = onConfirm,
-            )
-        },
-        dismissButton = {
-            DialogTextButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
-                onClick = onDismiss,
-            )
-        },
-    )
-}
-
-@Composable
-private fun DialogTextButton(
-    text: String,
-    onClick: () -> Unit,
-    color: Color = Color.Unspecified,
-) {
-    TextButton(
-        onClick = onClick,
-        shapes = ButtonDefaults.shapes(),
-        colors = if (color == Color.Unspecified) {
-            ButtonDefaults.textButtonColors()
-        } else {
-            ButtonDefaults.textButtonColors(contentColor = color)
-        },
-    ) {
-        Text(text)
-    }
-}
-
-/** Header plus a [SegmentedGroup] of whatever rows [rows] adds, indexed as they land. */
-@Composable
-private fun SettingsSection(
-    title: String,
-    rows: MutableList<@Composable (index: Int, count: Int) -> Unit>.() -> Unit,
-) {
-    val list = buildList(rows)
-    if (list.isEmpty()) return
-    SectionHeader(title)
-    SegmentedGroup(
-        count = list.size,
-        modifier = Modifier.padding(horizontal = 16.dp),
-    ) { index ->
-        list[index](index, list.size)
-    }
-}
-
-/** Non-clickable group member whose children keep their own semantics. */
-@Composable
-private fun StaticSegment(
-    index: Int,
-    count: Int,
-    content: @Composable RowScope.() -> Unit,
-) {
-    SegmentedSurface(index = index, count = count, minHeight = 56.dp, content = content)
-}
-
-@Composable
-private fun SettingsRow(
-    index: Int,
-    count: Int,
-    label: String,
-    leading: @Composable () -> Unit,
-    onClick: () -> Unit,
-    supporting: String? = null,
-    trailing: (@Composable () -> Unit)? = null,
-    labelColor: Color = Color.Unspecified,
-    showProgress: Boolean = false,
-    progressDescription: String? = null,
-) {
-    SegmentedRow(
-        index = index,
-        count = count,
-        modifier = if (showProgress && progressDescription != null) {
-            Modifier
-                .politeLiveRegion()
-                .semantics { stateDescription = progressDescription }
-        } else {
-            Modifier
-        },
-        onClick = onClick,
-        leading = leading,
-        supporting = supporting?.let { text -> { Text(text) } },
-        trailing = if (showProgress) {
-            { LoadingIndicator(modifier = Modifier.size(32.dp)) }
-        } else {
-            trailing
-        },
-        headline = { Text(text = label, color = labelColor) },
-    )
-}
-
-/**
- * One toggleable row with a Switch role. A clickable row plus an
- * independently-clickable Switch gives TalkBack two focus targets for a single
- * setting and announces no state on the row, so the Switch itself is purely
- * visual (`onCheckedChange = null`).
- */
-@Composable
-private fun SettingsToggleRow(
-    index: Int,
-    count: Int,
-    label: String,
-    supporting: String,
-    leading: @Composable () -> Unit,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    val haptic = LocalHapticFeedback.current
-    SegmentedRow(
-        index = index,
-        count = count,
-        checked = checked,
-        onCheckedChange = { enabled ->
-            haptic.performHapticFeedback(
-                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
-            )
-            onCheckedChange(enabled)
-        },
-        leading = leading,
-        supporting = { Text(supporting) },
-        trailing = {
-            Switch(
-                checked = checked,
-                onCheckedChange = null,
-                thumbContent = if (checked) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
-        },
-        headline = { Text(label) },
-    )
-}
-
-@Composable
-private fun ProBadge() {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(MaterialShapes.Sunny.toShape())
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = Icons.Filled.WorkspacePremium,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.size(22.dp),
-        )
-    }
-}
-
-@Composable
-private fun ChevronIcon() {
-    // KeyboardArrowRight is AutoMirrored, so RTL (Arabic) points "deeper".
-    Icon(
-        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-        contentDescription = null,
-    )
-}
-
-private const val CLOSE_AFTER_SELECT_MS = 220L
-
-@Composable
-private fun LanguagePickerDialog(
-    selected: Language?,
-    onSelect: (Language?) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    // The radio animates to the chosen row first, then the dialog closes.
-    var pending by remember { mutableStateOf(selected) }
-    var committed by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
-    val choose: (Language?) -> Unit = { language ->
-        if (!committed) {
-            committed = true
-            pending = language
-            haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-            scope.launch {
-                delay(CLOSE_AFTER_SELECT_MS)
-                onSelect(language)
-            }
-        }
-    }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Outlined.Language, contentDescription = null) },
-        title = { Text(stringResource(R.string.settings_select_language)) },
-        text = {
-            // heightIn, not height: at a 200% font scale a fixed box can
-            // overflow the dialog on a short screen in landscape.
-            Box(modifier = Modifier.heightIn(max = 360.dp)) {
-                LazyColumn(modifier = Modifier.radioButtonGroup()) {
-                    item {
-                        LanguageRow(
-                            label = stringResource(R.string.settings_system_default),
-                            isSelected = pending == null,
-                            onClick = { choose(null) },
-                        )
-                    }
-                    items(items = Language.entries.toList(), key = { it.code }) { lang ->
-                        LanguageRow(
-                            label = stringResource(lang.displayNameRes),
-                            isSelected = pending == lang,
-                            onClick = { choose(lang) },
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            DialogTextButton(
-                text = stringResource(R.string.email_detail_delete_cancel),
-                onClick = onDismiss,
-            )
-        },
-    )
-}
-
-@Composable
-private fun LanguageRow(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            // TalkBack must announce which language is active, not just a list
-            // of identically-labelled buttons.
-            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
-            .heightIn(min = 48.dp)
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = isSelected, onClick = null)
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-// --- Previews ---------------------------------------------------------------
 
 @Composable
 private fun SettingsPreviewHost(state: SettingsViewState, accent: Accent = Accent.DYNAMIC) {

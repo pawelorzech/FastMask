@@ -4,11 +4,6 @@ import android.app.Activity
 import com.fastmask.domain.repository.ProProduct
 import kotlinx.coroutines.flow.SharedFlow
 
-/**
- * Thin, testable abstraction over Google Play Billing. Maps every Play type to
- * plain Kotlin so [com.fastmask.data.repository.ProRepositoryImpl] (which owns
- * all entitlement logic) can be unit-tested against a fake.
- */
 interface BillingDataSource {
 
     /** Emissions from Play's PurchasesUpdatedListener (buy flow results). */

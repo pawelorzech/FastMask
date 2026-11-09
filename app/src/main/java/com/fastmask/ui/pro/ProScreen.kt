@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ContainedLoadingIndicator
@@ -40,7 +38,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -49,21 +46,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -76,16 +69,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.graphics.shapes.RoundedPolygon
 import com.fastmask.R
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
+import com.fastmask.domain.model.ProFeature
 import com.fastmask.domain.model.ProStatus
 import com.fastmask.domain.repository.ProProduct
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.core.platform.openExternalIntent
 import com.fastmask.ui.components.expressive.SegmentedGroup
 import com.fastmask.ui.components.expressive.SegmentedRow
+import com.fastmask.ui.components.expressive.ShapeBadge
 import com.fastmask.ui.theme.FastMaskTheme
 import kotlinx.coroutines.launch
 
@@ -115,8 +109,7 @@ fun ProScreen(
         }
     }
 
-    // Play requires these legal links to work; tell the user when no
-    // browser can take the intent.
+    // Play requires these legal links to work; tell the user when no browser can take the intent.
     val noAppMessage = stringResource(R.string.error_no_app_for_link)
     val scope = rememberCoroutineScope()
     val openLink: (String) -> Unit = { url ->
@@ -130,8 +123,6 @@ fun ProScreen(
         state = uiState,
         snackbarHostState = snackbarHostState,
         celebrate = uiState.celebrate,
-        // PAYWALL_CLOSED is tracked in the ViewModel's onCleared so
-        // gesture/system back counts too, not just this button.
         onClose = onNavigateBack,
         onBuy = { activity?.let(viewModel::buy) },
         onRetry = viewModel::loadProduct,
@@ -139,8 +130,6 @@ fun ProScreen(
         onOpenLink = openLink,
     )
 }
-
-private enum class PurchaseArea { OWNED, PENDING, LOADING, UNAVAILABLE, READY }
 
 @Composable
 internal fun ProContent(
@@ -156,14 +145,8 @@ internal fun ProContent(
     val motion = MaterialTheme.motionScheme
     val owned = state.status == ProStatus.PRO
     val scroll = rememberScrollState()
-    val closeDesc = stringResource(R.string.pro_close)
-    val area = when {
-        owned -> PurchaseArea.OWNED
-        state.status == ProStatus.PENDING -> PurchaseArea.PENDING
-        state.productState == ProductState.LOADING -> PurchaseArea.LOADING
-        state.productState == ProductState.UNAVAILABLE -> PurchaseArea.UNAVAILABLE
-        else -> PurchaseArea.READY
-    }
+    val closeDesc = stringResource(R.string.action_close)
+    val area = state.purchaseArea
 
     val showBarTitle = scroll.value > 220
     val barTitleAlpha by androidx.compose.animation.core.animateFloatAsState(
@@ -245,34 +228,15 @@ internal fun ProContent(
 
             Spacer(Modifier.height(24.dp))
 
-            val features = listOf(
-                ProFeature(
-                    icon = Icons.Filled.Palette,
-                    shape = MaterialShapes.Cookie4Sided,
-                    title = stringResource(R.string.pro_feature_accents_title),
-                    body = stringResource(R.string.pro_feature_accents_body),
-                ),
-                ProFeature(
-                    icon = Icons.Filled.Fingerprint,
-                    shape = MaterialShapes.Clover4Leaf,
-                    title = stringResource(R.string.pro_feature_lock_title),
-                    body = stringResource(R.string.pro_feature_lock_body),
-                ),
-                ProFeature(
-                    icon = Icons.Filled.FileDownload,
-                    shape = MaterialShapes.Pentagon,
-                    title = stringResource(R.string.pro_feature_export_title),
-                    body = stringResource(R.string.pro_feature_export_body),
-                ),
-            )
+            val features = ProFeature.entries
             SegmentedGroup(count = features.size) { index ->
-                val feature = features[index]
+                val style = features[index].style
                 SegmentedRow(
                     index = index,
                     count = features.size,
-                    leading = { ShapeIcon(feature.shape, feature.icon) },
-                    supporting = { Text(feature.body) },
-                    headline = { Text(feature.title) },
+                    leading = { ShapeBadge(style.shape, style.icon) },
+                    supporting = { Text(stringResource(style.bodyRes)) },
+                    headline = { Text(stringResource(style.titleRes)) },
                 )
             }
 
@@ -384,112 +348,97 @@ internal fun ProContent(
     }
 }
 
-private class ProFeature(
-    val icon: ImageVector,
-    val shape: RoundedPolygon,
-    val title: String,
-    val body: String,
-)
-
 @Composable
-private fun ShapeIcon(shape: RoundedPolygon, icon: ImageVector) {
-    Box(
-        modifier = Modifier
-            .size(44.dp)
-            .clip(shape.toShape())
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center,
+private fun InFlightButton(
+    inFlight: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    modifier: Modifier,
+    button: @Composable (onClick: () -> Unit, modifier: Modifier, content: @Composable RowScope.() -> Unit) -> Unit,
+    busy: @Composable () -> Unit,
+    idle: @Composable () -> Unit,
+) {
+    val working = stringResource(R.string.state_working)
+    val motion = MaterialTheme.motionScheme
+    button(
+        { if (!inFlight) onClick() },
+        modifier.then(
+            if (inFlight) {
+                Modifier.politeLiveRegion().semantics { stateDescription = working }
+            } else {
+                Modifier
+            },
+        ),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.size(22.dp),
-        )
+        AnimatedContent(
+            targetState = inFlight,
+            transitionSpec = {
+                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
+            },
+            label = label,
+        ) { isBusy ->
+            if (isBusy) busy() else idle()
+        }
     }
 }
 
 @Composable
 private fun BuyButton(price: String, inFlight: Boolean, onClick: () -> Unit) {
-    val working = stringResource(R.string.state_working)
-    val motion = MaterialTheme.motionScheme
-    Button(
-        // The ViewModel guards re-entry too; this keeps the button enabled so
-        // the indicator is not painted in disabled colors.
-        onClick = { if (!inFlight) onClick() },
-        shapes = ButtonDefaults.shapes(),
+    InFlightButton(
+        inFlight = inFlight,
+        onClick = onClick,
+        label = "buyButtonContent",
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = ButtonDefaults.LargeContainerHeight)
-            .then(
-                if (inFlight) {
-                    Modifier.politeLiveRegion().semantics { stateDescription = working }
-                } else {
-                    Modifier
-                },
-            ),
-        contentPadding = ButtonDefaults.LargeContentPadding,
-    ) {
-        AnimatedContent(
-            targetState = inFlight,
-            transitionSpec = {
-                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
-            },
-            label = "buyButtonContent",
-        ) { busy ->
-            if (busy) {
-                LoadingIndicator(
-                    modifier = Modifier.size(32.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
+            .heightIn(min = ButtonDefaults.LargeContainerHeight),
+        button = { click, modifier, content ->
+            Button(
+                onClick = click,
+                shapes = ButtonDefaults.shapes(),
+                modifier = modifier,
+                contentPadding = ButtonDefaults.LargeContentPadding,
+                content = content,
+            )
+        },
+        busy = {
+            LoadingIndicator(
+                modifier = Modifier.size(32.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        },
+        idle = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = Icons.Filled.LockOpen, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = stringResource(R.string.pro_buy_cta, price),
+                    style = MaterialTheme.typography.titleMediumEmphasized,
                 )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Filled.LockOpen, contentDescription = null)
-                    Spacer(Modifier.size(8.dp))
-                    Text(
-                        text = stringResource(R.string.pro_buy_cta, price),
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                    )
-                }
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
 private fun RestoreButton(inFlight: Boolean, onClick: () -> Unit) {
-    val working = stringResource(R.string.state_working)
-    val motion = MaterialTheme.motionScheme
-    TextButton(
-        onClick = { if (!inFlight) onClick() },
-        shapes = ButtonDefaults.shapes(),
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (inFlight) {
-                    Modifier.politeLiveRegion().semantics { stateDescription = working }
-                } else {
-                    Modifier
-                },
-            ),
-    ) {
-        AnimatedContent(
-            targetState = inFlight,
-            transitionSpec = {
-                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
-            },
-            label = "restoreButtonContent",
-        ) { busy ->
-            if (busy) {
-                LoadingIndicator(modifier = Modifier.size(24.dp))
-            } else {
-                Text(stringResource(R.string.pro_restore))
-            }
-        }
-    }
+    InFlightButton(
+        inFlight = inFlight,
+        onClick = onClick,
+        label = "restoreButtonContent",
+        modifier = Modifier.fillMaxWidth(),
+        button = { click, modifier, content ->
+            TextButton(
+                onClick = click,
+                shapes = ButtonDefaults.shapes(),
+                modifier = modifier,
+                content = content,
+            )
+        },
+        busy = { LoadingIndicator(modifier = Modifier.size(24.dp)) },
+        idle = { Text(stringResource(R.string.pro_restore)) },
+    )
 }
 
-/** Inline status card for states the purchase button cannot express. */
 @Composable
 private fun InlineNotice(
     text: String,
@@ -523,8 +472,6 @@ private fun InlineNotice(
         )
     }
 }
-
-// --- Previews ---------------------------------------------------------------
 
 private val PreviewProduct = ProProduct(
     formattedPrice = "14,99 zł",

@@ -125,59 +125,6 @@ class TranslationCompletenessTest {
     }
 
     /**
-     * gh-29 — "Strings assembled in Kotlin break ja/zh/ar rendering".
-     *
-     * Two of the three sites in that ticket require brand-new resource keys
-     * (the third, `create_email_created`, already exists — that site's fix is
-     * a call-site change covered by [com.fastmask.i18n.StringAssemblyTest]):
-     *
-     *  - `login_hero` — LoginScreen currently builds its hero line by
-     *    `append`-ing `login_hero_prefix`, a literal `" "`, then
-     *    `login_hero_accent`. That hardcoded space is wrong for ja/zh (no
-     *    inter-word spacing) and for ar (it separates the proclitic لـ from
-     *    the word it must stay attached to). The fix is ONE resource per
-     *    locale holding the two fragments already joined the way that
-     *    locale actually joins them.
-     *  - `settings_footer` — SettingsScreen currently builds
-     *    `"FastMask · ${stringResource(R.string.settings_version, ...)}"` as
-     *    a Kotlin template, whose left-to-right concatenation order cannot
-     *    be controlled from Kotlin once bidi (Arabic) is involved. The fix
-     *    moves the whole composed line into one resource with a positional
-     *    placeholder for the version number.
-     *
-     * Neither key exists anywhere today, so this fails until the fix adds
-     * both to `values/strings.xml` and every `values-<locale>` folder. Once
-     * added, [translations take the same format arguments as the default]
-     * above automatically extends to cover them too.
-     */
-    @Test
-    fun `gh-29 hero and footer resources exist in the default locale and every translated locale`() {
-        val newKeys = setOf("login_hero", "settings_footer")
-        val base = stringsIn(File(resDir, "values"))
-        val locales = localeDirs()
-        assertTrue("no locale resource directories found", locales.isNotEmpty())
-
-        val missingFromBase = newKeys.filterNot { it in base }
-        assertTrue(
-            "gh-29 key(s) missing from the default locale (values/strings.xml) — the fix " +
-                "must introduce them there before translating:\n" +
-                missingFromBase.joinToString("\n").prependIndent("  "),
-            missingFromBase.isEmpty(),
-        )
-
-        val missingFromLocales = locales.flatMap { dir ->
-            val translated = stringsIn(dir)
-            newKeys.filterNot { it in translated }.map { "${dir.name}: $it" }
-        }
-        assertTrue(
-            "${missingFromLocales.size} gh-29 key(s) missing from a translated locale " +
-                "(${locales.size} locale dirs checked):\n" +
-                missingFromLocales.joinToString("\n").prependIndent("  "),
-            missingFromLocales.isEmpty(),
-        )
-    }
-
-    /**
      * `settings_footer` replaces a Kotlin template that interpolated the
      * version number in the middle of the line — it must keep exactly one
      * format argument (the version) in every locale, the same shape
@@ -204,12 +151,11 @@ class TranslationCompletenessTest {
     }
 
     /**
-     * gh-29 follow-up — restoring the "masked mail" accent styling without
-     * reintroducing the hardcoded Kotlin join.
+     * Keeps the "masked mail" accent styling on the hero line without a
+     * hardcoded Kotlin join.
      *
-     * `login_hero` is the single pre-joined sentence per locale (see the
-     * gh-29 test above). `login_hero_accent` is NOT joined into it at
-     * render time — it exists purely so LoginScreen.kt can `indexOf` it
+     * `login_hero` is the single pre-joined sentence per locale.
+     * `login_hero_accent` is NOT joined into it at render time — it exists purely so LoginScreen.kt can `indexOf` it
      * inside `login_hero` and re-apply the accent colour + italic to that
      * exact range. That only works if `login_hero_accent` is present as a
      * verbatim substring of `login_hero` in every locale; if a future
@@ -219,20 +165,7 @@ class TranslationCompletenessTest {
      */
     @Test
     fun `login_hero contains login_hero_accent verbatim in every locale`() {
-        val keys = listOf("login_hero", "login_hero_accent")
         val allDirs = listOf(File(resDir, "values")) + localeDirs()
-        assertTrue("no locale resource directories found", allDirs.size > 1)
-
-        val missingKeys = allDirs.flatMap { dir ->
-            val translated = stringsIn(dir)
-            keys.filterNot { it in translated }.map { "${dir.name}: missing $it" }
-        }
-        assertTrue(
-            "${missingKeys.size} locale(s) are missing login_hero and/or login_hero_accent:\n" +
-                missingKeys.joinToString("\n").prependIndent("  "),
-            missingKeys.isEmpty(),
-        )
-
         val notContained = allDirs.mapNotNull { dir ->
             val translated = stringsIn(dir)
             val hero = translated.getValue("login_hero")

@@ -1,7 +1,6 @@
 package com.fastmask.ui.create
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -38,8 +37,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -82,14 +79,18 @@ import com.fastmask.ui.accessibility.screenHeading
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.EnabledDisabledToggle
+import com.fastmask.ui.components.InlineErrorBanner
+import com.fastmask.ui.components.ScrollRaisedTopBar
+import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.theme.FastMaskTheme
 
 @Composable
 fun CreateMaskedEmailScreen(
     onNavigateBack: () -> Unit,
-    /** The mask exists; hand its address to the list, which reports it there. */
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
+    onReauthenticate: () -> Unit,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -99,9 +100,8 @@ fun CreateMaskedEmailScreen(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                // Leave immediately: the list shows the confirmation, with the same Copy
-                // action, where the new mask now is. Awaiting showSnackbar here would block
-                // navigation for its full Long duration (~10 s).
+                // Leave immediately: awaiting showSnackbar here would block navigation
+                // for its full Long duration (~10 s).
                 is CreateMaskedEmailEvent.Created -> onCreated(event.email)
             }
         }
@@ -109,7 +109,7 @@ fun CreateMaskedEmailScreen(
 
     CreateMaskedEmailContent(
         uiState = uiState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
         onClose = onClose,
         onPrefixChange = viewModel::onPrefixChange,
         onDomainChange = viewModel::onDomainChange,
@@ -117,6 +117,7 @@ fun CreateMaskedEmailScreen(
         onUrlChange = viewModel::onUrlChange,
         onStateChange = viewModel::onStateChange,
         onCreate = viewModel::create,
+        onReauthenticate = onReauthenticate,
     )
 }
 
@@ -131,41 +132,29 @@ internal fun CreateMaskedEmailContent(
     onUrlChange: (String) -> Unit,
     onStateChange: (EmailState) -> Unit,
     onCreate: () -> Unit,
+    onReauthenticate: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val barColor by animateColorAsState(
-        targetValue = if (scrollState.value > 0) {
-            MaterialTheme.colorScheme.surfaceContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        label = "barColor",
-    )
-    val closeDesc = stringResource(R.string.create_email_close)
+    val closeDesc = stringResource(R.string.action_close)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.create_email_title),
-                            modifier = Modifier.screenHeading(),
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
-                            Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
-                )
-                // Demo mode banner (auto-hides in REAL mode). Below the app bar, which already
-                // consumed the status-bar inset, so there is no gap above the back arrow.
-                banner()
-            }
+            ScrollRaisedTopBar(
+                raised = scrollState.value > 0,
+                title = {
+                    Text(
+                        text = stringResource(R.string.create_email_title),
+                        modifier = Modifier.screenHeading(),
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
+                        Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
+                    }
+                },
+                banner = banner,
+            )
         },
     ) { paddingValues ->
         Column(
@@ -244,21 +233,24 @@ internal fun CreateMaskedEmailContent(
             )
 
             AnimatedVisibility(
-                visible = uiState.errorRes != null,
+                visible = uiState.error != null,
                 enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
                     expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
                 exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
                     shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
             ) {
                 // Keep showing the last message while the exit animation runs.
-                val shownError = remember { mutableStateOf(uiState.errorRes) }
-                if (uiState.errorRes != null) shownError.value = uiState.errorRes
-                CreateError(
-                    messageRes = shownError.value,
-                    enabled = !uiState.isLoading,
-                    onRetry = onCreate,
-                    modifier = Modifier.padding(top = 18.dp),
-                )
+                val shownError = remember { mutableStateOf(uiState.error) }
+                if (uiState.error != null) shownError.value = uiState.error
+                shownError.value?.let { error ->
+                    InlineErrorBanner(
+                        error = error,
+                        onRetry = onCreate,
+                        onReauthenticate = onReauthenticate,
+                        actionEnabled = !uiState.isLoading,
+                        modifier = Modifier.padding(top = 18.dp),
+                    )
+                }
             }
 
             Spacer(Modifier.size(24.dp))
@@ -287,9 +279,6 @@ internal fun CreateMaskedEmailContent(
     }
 }
 
-// --- preview card -----------------------------------------------------------
-
-/** Shapes the decorative blob cycles through. */
 private val blobShapes = listOf(
     MaterialShapes.Cookie9Sided,
     MaterialShapes.Flower,
@@ -375,42 +364,6 @@ private fun PreviewCard(prefix: String) {
     }
 }
 
-// --- form -------------------------------------------------------------------
-
-@Composable
-private fun CreateError(
-    messageRes: Int?,
-    enabled: Boolean,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (messageRes == null) return
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = stringResource(messageRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier
-                .weight(1f)
-                .politeLiveRegion(),
-        )
-        TextButton(
-            onClick = onRetry,
-            enabled = enabled,
-        ) { Text(stringResource(R.string.error_retry)) }
-    }
-}
-
-// --- previews ---------------------------------------------------------------
-
 @Composable
 private fun PreviewHost(uiState: CreateMaskedEmailUiState) {
     FastMaskTheme {
@@ -424,6 +377,7 @@ private fun PreviewHost(uiState: CreateMaskedEmailUiState) {
             onUrlChange = {},
             onStateChange = {},
             onCreate = {},
+            onReauthenticate = {},
         )
     }
 }
@@ -471,5 +425,8 @@ private fun CreateLoadingPreview() = PreviewHost(
 @Preview(name = "Create failed", showBackground = true, heightDp = 900)
 @Composable
 private fun CreateErrorPreview() = PreviewHost(
-    CreateMaskedEmailUiState(emailPrefix = "mysite", errorRes = R.string.create_email_error_failed),
+    CreateMaskedEmailUiState(
+        emailPrefix = "mysite",
+        error = UiError(R.string.error_create_mask, UiErrorAction.RETRY),
+    ),
 )

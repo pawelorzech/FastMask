@@ -52,13 +52,11 @@ class FakeBillingDataSource : BillingDataSource {
 
     val acknowledgedTokens = mutableListOf<String>()
     var launchCalls = 0
-    var queryPurchasesCalls = 0
 
     override suspend fun queryProduct(productId: String): BillingResponse<ProProduct?> =
         productResponse
 
     override suspend fun queryPurchases(): BillingResponse<List<BillingPurchase>> {
-        queryPurchasesCalls++
         return purchasesResponse
     }
 
@@ -101,7 +99,6 @@ class FakeProRepository(
 
     var refreshCalls = 0
     var purchaseCalls = 0
-    var restoreCalls = 0
 
     override suspend fun refresh(): RefreshResult {
         refreshCalls++
@@ -116,7 +113,6 @@ class FakeProRepository(
     }
 
     override suspend fun restore(): RestoreResult {
-        restoreCalls++
         return restoreResult
     }
 }

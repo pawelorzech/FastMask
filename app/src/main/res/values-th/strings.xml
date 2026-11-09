@@ -4,7 +4,6 @@
     <string name="app_name">FastMask</string>
 
     <!-- Login Screen -->
-    <string name="login_subtitle">ตัวจัดการอีเมลซ่อน Fastmail</string>
     <string name="login_api_token_label">โทเค็น API</string>
     <string name="login_api_token_placeholder">ใส่โทเค็น API ของ Fastmail</string>
     <string name="login_paste_button">วาง</string>
@@ -17,7 +16,6 @@
     <string name="login_instructions_step3">3. คลิก การเชื่อมต่อ > โทเค็น API</string>
     <string name="login_instructions_step4">4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"</string>
     <string name="login_instructions_step5">5. คัดลอกโทเค็นและวางด้านบน</string>
-    <string name="login_instructions_full">1. เข้าสู่ระบบแอป Fastmail บนเว็บ\n2. ไปที่ ตั้งค่า > ความเป็นส่วนตัวและความปลอดภัย\n3. คลิก การเชื่อมต่อ > โทเค็น API\n4. สร้างโทเค็นใหม่ที่มีขอบเขต \"Masked Email\"\n5. คัดลอกโทเค็นและวางด้านบน</string>
     <string name="login_open_token_settings">เปิดการตั้งค่าโทเค็นของ Fastmail</string>
     <string name="login_error_missing_scope_action">เปิดการตั้งค่าโทเค็น Fastmail</string>
     <string name="login_paste_empty">ไม่มีอะไรให้วาง — คัดลอกโทเค็นของคุณใน Fastmail ก่อน</string>
@@ -30,11 +28,9 @@
     <string name="email_list_title">อีเมลซ่อน</string>
     <string name="email_list_search_placeholder">ค้นหาอีเมล…</string>
     <string name="email_list_clear_search">ล้างการค้นหา</string>
-    <string name="email_list_filter_emails">กรองอีเมล</string>
     <string name="email_list_create_fab">สร้าง</string>
     <string name="email_list_create_description">สร้างอีเมลซ่อนใหม่</string>
     <string name="email_list_empty">ไม่พบอีเมลซ่อน</string>
-    <string name="email_list_logout">ออกจากระบบ</string>
     <string name="email_list_settings">การตั้งค่า</string>
     <string name="filter_all">ทั้งหมด</string>
     <string name="filter_enabled">เปิดใช้งาน</string>
@@ -47,11 +43,11 @@
     <string name="create_email_prefix_placeholder">เช่น mysite_shopping</string>
     <string name="create_email_prefix_hint">สูงสุด 64 ตัวอักษร: ตัวพิมพ์เล็ก, ตัวเลข, ขีดล่าง</string>
     <string name="create_email_domain_label">โดเมนที่เกี่ยวข้อง (ไม่บังคับ)</string>
-    <string name="create_email_domain_placeholder">เช่น example.com</string>
+    <string name="mask_field_domain_placeholder">เช่น example.com</string>
     <string name="create_email_description_label">คำอธิบาย (ไม่บังคับ)</string>
-    <string name="create_email_description_placeholder">เช่น บัญชีช้อปปิ้ง</string>
+    <string name="mask_field_description_placeholder">เช่น บัญชีช้อปปิ้ง</string>
     <string name="create_email_url_label">URL (ไม่บังคับ)</string>
-    <string name="create_email_url_placeholder">เช่น https://example.com</string>
+    <string name="mask_field_url_placeholder">เช่น https://example.com</string>
     <string name="create_email_initial_state">สถานะเริ่มต้น</string>
     <string name="create_email_button">สร้างอีเมลซ่อน</string>
     <string name="create_email_created">สร้างแล้ว: %s</string>
@@ -59,7 +55,6 @@
     <string name="navigate_back">กลับ</string>
 
     <!-- Email Detail Screen -->
-    <string name="email_detail_title">รายละเอียดอีเมล</string>
     <string name="email_detail_copy_email">คัดลอกที่อยู่อีเมล</string>
     <string name="email_detail_delete">เก็บถาวรหน้ากาก</string>
     <string name="email_detail_status">สถานะ:</string>
@@ -67,19 +62,16 @@
     <string name="email_detail_created">สร้างเมื่อ</string>
     <string name="email_detail_last_message">ข้อความล่าสุด</string>
     <string name="email_detail_enable">เปิดใช้งาน</string>
-    <string name="email_detail_disable">ปิดใช้งาน</string>
     <string name="email_detail_edit_title">แก้ไขรายละเอียด</string>
     <string name="email_detail_description_label">คำอธิบาย</string>
     <string name="email_detail_domain_label">โดเมนที่เกี่ยวข้อง</string>
     <string name="email_detail_url_label">URL</string>
     <string name="email_detail_save">บันทึกการเปลี่ยนแปลง</string>
     <string name="email_detail_updated">อัปเดตสำเร็จ</string>
-    <string name="email_detail_deleted">เก็บถาวรแล้ว</string>
     <string name="email_detail_copied">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
     <string name="email_detail_delete_dialog_title">เก็บถาวรหน้ากากนี้หรือไม่</string>
     <string name="email_detail_delete_dialog_message">อีเมลที่ส่งมายังที่อยู่นี้จะถูกตีกลับ คุณสามารถกู้คืนหน้ากากได้ในภายหลัง</string>
     <string name="email_detail_delete_confirm">เก็บถาวร</string>
-    <string name="email_detail_delete_cancel">ยกเลิก</string>
 
     <!-- Email States -->
     <string name="state_enabled">เปิดใช้งาน</string>
@@ -95,7 +87,6 @@
     <!-- Settings Screen -->
     <string name="settings_title">การตั้งค่า</string>
     <string name="settings_language">ภาษา</string>
-    <string name="settings_language_description">เลือกภาษาแอป</string>
     <string name="settings_system_default">ค่าเริ่มต้นของระบบ</string>
     <string name="settings_contact">ติดต่อและความคิดเห็น</string>
     <string name="settings_contact_description">ส่งความคิดเห็นให้เรา</string>
@@ -128,7 +119,6 @@
     <string name="language_id">Bahasa Indonesia</string>
 
     <!-- New Login and Welcome Screens -->
-    <string name="login_eyebrow">FastMask · v%s</string>
     <string name="login_hero">สถานที่เงียบสำหรับอีเมลซ่อน</string>
     <string name="login_hero_accent">อีเมลซ่อน</string>
     <string name="login_hero_suffix">.</string>
@@ -137,14 +127,12 @@
     <string name="login_error_failed">ไม่สามารถเข้าสู่ระบบ</string>
     <string name="email_list_empty_sub">สร้างอีเมลซ่อนเพื่อส่งต่อเมลโดยไม่เปิดเผยที่อยู่จริงของคุณ</string>
     <string name="list_stats">%1$s · %2$s</string>
-    <string name="error_load_emails_short">ไม่สามารถโหลดอีเมลซ่อน</string>
-    <string name="create_email_subtitle">กำหนดค่าที่อยู่อีเมลซ่อนใหม่</string>
     <string name="create_email_preview_label">ตัวอย่าง</string>
     <string name="create_email_preview_random">สุ่ม</string>
     <string name="create_email_preview_suffix">.xyzw@fastmail.com</string>
-    <string name="create_email_error_failed">ไม่สามารถสร้างอีเมลซ่อน</string>
+    <string name="error_create_mask">ไม่สามารถสร้างอีเมลซ่อน</string>
     <string name="email_detail_error_load">ไม่สามารถโหลดอีเมลซ่อนนี้</string>
-    <string name="email_detail_error_update">ไม่สามารถอัปเดต</string>
+    <string name="error_update_mask">ไม่สามารถอัปเดต</string>
     <string name="email_detail_error_save">ไม่สามารถบันทึกการเปลี่ยนแปลง</string>
     <string name="email_detail_error_delete">ไม่สามารถเก็บถาวร</string>
     <string name="time_never">ไม่เคย</string>
@@ -179,7 +167,6 @@
     <string name="list_undo">เลิกทำ</string>
 
     <!-- FastMask Pro -->
-    <string name="pro_label">สนับสนุนซอฟต์แวร์โอเพนซอร์ส</string>
     <string name="pro_title">FastMask Pro</string>
     <string name="pro_subtitle">การซื้อเล็กน้อยช่วยสนับสนุนแอปที่เป็นอิสระและโอเพนซอร์ส — และปลดล็อกเพิ่มเติม</string>
     <string name="pro_feature_accents_title">ธีมสี</string>
@@ -196,6 +183,8 @@
     <string name="pro_purchase_success">ปลดล็อก Pro แล้ว ขอบคุณ!</string>
     <string name="pro_purchase_pending">การชำระเงินอยู่ระหว่างดำเนินการ — Pro จะปลดล็อกเมื่อเสร็จสิ้น โดยปกติใช้เวลาไม่กี่นาที บางวิธีการชำระเงินอาจใช้เวลาถึงหนึ่งวัน</string>
     <string name="action_ok">ตกลง</string>
+    <string name="action_cancel">ยกเลิก</string>
+    <string name="action_close">ปิด</string>
     <string name="pro_purchase_cancelled">ยกเลิกการซื้อแล้ว</string>
     <string name="pro_purchase_failed">มีบางอย่างผิดปกติ คุณไม่ถูกเรียกเก็บเงิน</string>
     <string name="pro_billing_unavailable">การเรียกเก็บเงิน Google Play ไม่พร้อมใช้งานบนอุปกรณ์นี้</string>
@@ -209,7 +198,7 @@
     <string name="settings_pro_value_free">ปลดล็อกสี ล็อกแอป และส่งออก</string>
     <string name="settings_pro_value_active">เปิดใช้งาน — ขอบคุณ!</string>
     <string name="settings_accent">สี</string>
-    <string name="settings_accent_locked">คุณสมบัติ FastMask Pro</string>
+    <string name="pro_feature_locked">คุณสมบัติ FastMask Pro</string>
     <string name="accent_amber">สีทอง</string>
     <string name="accent_ink">สีดำ</string>
     <string name="accent_sage">สีเขียว</string>

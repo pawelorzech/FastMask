@@ -1,6 +1,6 @@
 package com.fastmask.data.repository
 
-import com.fastmask.data.demo.INITIAL_DEMO_MASKS
+import com.fastmask.data.demo.demoMasks
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -19,27 +19,17 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * In-memory implementation of [MaskedEmailRepository] used in demo mode.
- *
- * State lives only for the process; leaving demo mode and entering it again
- * always restarts from the same seed list.
- *
- * [archiveMaskedEmail] flips state to [EmailState.DELETED] (reversible, shown under
- * the "Archived" filter), while [destroyMaskedEmail] drops the entry (irreversible),
- * as the real repository does.
- */
 @Singleton
 class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepository {
 
-    private val state = MutableStateFlow(INITIAL_DEMO_MASKS)
+    private val state = MutableStateFlow(demoMasks(Instant.now()))
 
     private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val changes: Flow<Unit> = _changes.asSharedFlow()
 
-    /** Entering demo mode starts from the seed list again. */
-    fun reset() {
-        state.value = INITIAL_DEMO_MASKS
+    /** Restores the seed masks, dated relative to [now] so they look as fresh as when demo mode was first entered. */
+    fun reset(now: Instant = Instant.now()) {
+        state.value = demoMasks(now)
     }
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> {
@@ -50,13 +40,9 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         return Result.success(state.value.find { it.id == id })
     }
 
-    /** Demo data already lives in memory and is never persisted. */
     override suspend fun cachedMaskedEmails(): CachedMasks? = null
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {
-        // The same parameter rules as the real repository, so demo mode shows
-        // what an account would: a normalised origin, blanks as "not supplied",
-        // and a refusal for an origin Fastmail would not take.
         val normalized = params.normalized().getOrElse { return Result.failure(it) }
         val newMask = buildNewMask(normalized)
         state.update { current -> current + newMask }
@@ -81,10 +67,6 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
 
     override suspend fun destroyMaskedEmail(id: String): Result<Unit> = change(id) { null }
 
-    /**
-     * The one mutation path: applies [transform] to the mask with [id] (null
-     * removes it) and emits a change, or fails when no such mask exists.
-     */
     private fun change(id: String, transform: (MaskedEmail) -> MaskedEmail?): Result<Unit> {
         var found = false
         state.update { current ->
@@ -106,7 +88,6 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         }
     }
 
-    /** [params] are already normalised: blank fields are null. */
     private fun buildNewMask(params: CreateMaskedEmailParams): MaskedEmail {
         val id = "demo-${UUID.randomUUID().toString().substring(0, 8)}"
         val prefix = params.emailPrefix ?: generatePrefix()

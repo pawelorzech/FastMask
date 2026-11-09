@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_colors_unlock">ปลดล็อก</string>
-    <string name="pro_close">ปิด</string>
     <string name="pro_done">เสร็จสิ้น</string>
     <string name="settings_appearance_section">การแสดงผล</string>
     <string name="settings_privacy_section">ความเป็นส่วนตัว</string>

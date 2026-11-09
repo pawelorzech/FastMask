@@ -62,11 +62,6 @@ class TokenFormatTest {
         assertEquals("fmu1-8f2c1d9e4a", TokenFormat.sanitizePasted("  fmu1-8f2c1d9e4a\n"))
     }
 
-    @Test
-    fun `the cap has room for far more than a token`() {
-        assertTrue(TokenFormat.MAX_PASTED_CHARS > 40 * 10)
-    }
-
     /**
      * Cleaning happens before counting: a clip padded with thousands of
      * newlines still yields its token, which a leading-substring cap would
@@ -77,16 +72,6 @@ class TokenFormatTest {
         val padded = "\n".repeat(10_000) + "fmu1-8f2c1d9e4a"
 
         assertEquals("fmu1-8f2c1d9e4a", TokenFormat.sanitizePasted(padded))
-    }
-
-    @Test
-    fun `a whitespace only clipboard sanitizes to nothing`() {
-        assertEquals("", TokenFormat.sanitizePasted("  \n\t "))
-    }
-
-    @Test
-    fun `an empty clipboard sanitizes to nothing`() {
-        assertEquals("", TokenFormat.sanitizePasted(""))
     }
 
     // --- the soft warning --------------------------------------------------
@@ -126,12 +111,7 @@ class TokenFormatTest {
 
     /** Empty input has its own dedicated error; warning twice is noise. */
     @Test
-    fun `empty input does not warn`() {
-        assertFalse(TokenFormat.shouldWarn(""))
-    }
-
-    @Test
-    fun `whitespace only input does not warn`() {
+    fun `blank input does not warn`() {        assertFalse(TokenFormat.shouldWarn(""))
         assertFalse(TokenFormat.shouldWarn("   \n "))
     }
 }

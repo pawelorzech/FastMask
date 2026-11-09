@@ -3,7 +3,6 @@ package com.fastmask.ui.detail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -31,14 +30,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,21 +64,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
-import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
+import com.fastmask.ui.components.ErrorState
+import com.fastmask.ui.components.InlineErrorBanner
+import com.fastmask.ui.components.ScrollRaisedTopBar
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.rememberDiscardChangesGuard
 import com.fastmask.ui.components.expressive.maskContainer
 import kotlinx.coroutines.delay
 
-/** How long the copy button shows its "Copied" confirmation. */
 private const val COPIED_FEEDBACK_MS = 1800L
 
-/** Hero scroll offset after which the app bar title fades in. */
 private const val TITLE_REVEAL_SCROLL_DP = 120
 
 @Composable
@@ -86,6 +86,7 @@ fun MaskedEmailDetailScreen(
     onNavigateBack: () -> Unit,
     onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
+    onReauthenticate: () -> Unit,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -104,9 +105,7 @@ fun MaskedEmailDetailScreen(
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
                 is MaskedEmailDetailEvent.Deleted -> {
-                    // Navigate straight back and let the list host the "archived —
-                    // undo" snackbar, so the undo action lives where the mask
-                    // reappears. No blocking snackbar here.
+                    // The list hosts the archived/undo snackbar, where the mask reappears.
                     onArchived(event.id, event.previousState)
                 }
             }
@@ -119,7 +118,7 @@ fun MaskedEmailDetailScreen(
             title = stringResource(R.string.email_detail_delete_dialog_title),
             message = stringResource(R.string.email_detail_delete_dialog_message),
             confirmText = stringResource(R.string.email_detail_delete_confirm),
-            dismissText = stringResource(R.string.email_detail_delete_cancel),
+            dismissText = stringResource(R.string.action_cancel),
             onConfirm = {
                 showArchiveDialog = false
                 viewModel.delete()
@@ -128,17 +127,16 @@ fun MaskedEmailDetailScreen(
         )
     }
 
-    // The list row this screen grows out of. Taken from the route rather than the
-    // loaded mask, so the shared-bounds key is stable from the first frame.
     val containerId = viewModel.emailId
 
     MaskedEmailDetailContent(
         uiState = uiState,
         containerId = containerId,
         snackbarHostState = snackbarHostState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
         onBack = onBack,
         onRetry = { viewModel.loadEmail() },
+        onReauthenticate = onReauthenticate,
         onDescriptionChange = viewModel::onDescriptionChange,
         onForDomainChange = viewModel::onForDomainChange,
         onUrlChange = viewModel::onUrlChange,
@@ -160,6 +158,7 @@ internal fun MaskedEmailDetailContent(
     banner: @Composable () -> Unit,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onReauthenticate: () -> Unit,
     onDescriptionChange: (String) -> Unit,
     onForDomainChange: (String) -> Unit,
     onUrlChange: (String) -> Unit,
@@ -174,17 +173,11 @@ internal fun MaskedEmailDetailContent(
     val scrollState = rememberScrollState()
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
     val titleVisible = scrollState.value > revealPx
-    val raised = scrollState.value > 0
 
     val titleAlpha by animateFloatAsState(
         targetValue = if (titleVisible) 1f else 0f,
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "titleAlpha",
-    )
-    val barColor by animateColorAsState(
-        targetValue = if (raised) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surface,
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        label = "barColor",
     )
 
     val email = uiState.email
@@ -196,34 +189,30 @@ internal fun MaskedEmailDetailContent(
         containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            Column {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = email?.localPart.orEmpty(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            // The hero already carries the heading, so this faded
-                            // duplicate stays out of the accessibility tree.
-                            modifier = Modifier
-                                .graphicsLayer { alpha = titleAlpha }
-                                .clearAndSetSemantics { },
+            ScrollRaisedTopBar(
+                raised = scrollState.value > 0,
+                title = {
+                    Text(
+                        text = email?.localPart.orEmpty(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        // The hero already carries the heading, so this faded
+                        // duplicate stays out of the accessibility tree.
+                        modifier = Modifier
+                            .graphicsLayer { alpha = titleAlpha }
+                            .clearAndSetSemantics { },
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = backDesc,
                         )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = backDesc,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = barColor),
-                )
-                // Demo mode banner (auto-hides in REAL mode). Below the app bar, which already
-                // consumed the status-bar inset, so there is no gap above the back arrow.
-                banner()
-            }
+                    }
+                },
+                banner = banner,
+            )
         },
     ) { paddingValues ->
         Box(
@@ -237,9 +226,13 @@ internal fun MaskedEmailDetailContent(
                     contentAlignment = Alignment.Center,
                 ) { LoadingIndicator() }
 
-                uiState.errorRes != null && email == null -> DetailErrorState(
-                    message = stringResource(uiState.errorRes),
+                uiState.error != null && email == null -> ErrorState(
+                    title = R.string.email_detail_error_load,
+                    error = uiState.error,
                     onRetry = onRetry,
+                    onReauthenticate = onReauthenticate,
+                    heroShape = MaterialShapes.SoftBurst.toShape(),
+                    icon = Icons.Filled.ErrorOutline,
                 )
 
                 email != null -> DetailBody(
@@ -252,6 +245,8 @@ internal fun MaskedEmailDetailContent(
                     onEnable = onEnable,
                     onDisable = onDisable,
                     onSaveChanges = onSaveChanges,
+                    onRetry = onRetry,
+                    onReauthenticate = onReauthenticate,
                     onStartEditing = onStartEditing,
                     onDiscardEdits = onDiscardEdits,
                     onCopyEmail = onCopyEmail,
@@ -273,6 +268,8 @@ private fun DetailBody(
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onSaveChanges: () -> Unit,
+    onRetry: () -> Unit,
+    onReauthenticate: () -> Unit,
     onStartEditing: () -> Unit,
     onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
@@ -338,7 +335,6 @@ private fun DetailBody(
             )
             IconButton(
                 onClick = {
-                    // Closing the editor discards the draft, like Cancel.
                     if (editing) onDiscardEdits() else onStartEditing()
                 },
                 enabled = !uiState.isUpdating,
@@ -387,14 +383,13 @@ private fun DetailBody(
             }
         }
 
-        if (uiState.errorRes != null) {
-            Text(
-                text = stringResource(uiState.errorRes),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
+        uiState.error?.let { error ->
+            InlineErrorBanner(
+                error = error,
+                onRetry = onRetry,
+                onReauthenticate = onReauthenticate,
                 modifier = Modifier
-                    .politeLiveRegion()
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(top = 12.dp),
             )
         }

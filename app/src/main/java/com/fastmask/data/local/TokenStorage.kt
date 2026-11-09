@@ -43,10 +43,8 @@ class TokenStorage @Inject constructor(
         return try {
             sharedPreferences.getString(KEY_API_TOKEN, null)
         } catch (e: Exception) {
-            // Covers both a single-value decryption failure (SecurityException)
-            // and a double-fault where the lazy initializer's retry also failed
-            // (KeyStore unavailable). Treat as logged out instead of crashing —
-            // saveToken() will surface the underlying error at login time.
+            // A single-value decryption failure (SecurityException) or a KeyStore
+            // that stays unavailable after the retry above.
             null
         }
     }

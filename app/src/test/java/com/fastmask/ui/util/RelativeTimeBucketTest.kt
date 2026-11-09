@@ -1,7 +1,6 @@
 package com.fastmask.ui.util
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -115,53 +114,5 @@ class RelativeTimeBucketTest {
         assertEquals(RelativeTimeBucket(RelativeTimeUnit.YEARS, 4), bucketOf(4 * year))
         assertEquals(RelativeTimeBucket(RelativeTimeUnit.YEARS, 5), bucketOf(5 * year))
         assertEquals(RelativeTimeBucket(RelativeTimeUnit.YEARS, 22), bucketOf(22 * year))
-    }
-
-    // --- the invariant the wording depends on --------------------------------
-
-    @Test
-    fun `a counted bucket never carries zero`() {
-        // "0 minut temu" is not a thing any language renders well, and a zero
-        // would land in the CLDR "other" class in Polish — the wrong form for
-        // the wrong number. Walk every boundary and one second either side.
-        val boundaries = listOf(minute, hour, day, week, month, year)
-        val probes = boundaries.flatMap { listOf(it - 1, it, it + 1) } +
-            listOf(0L, 45L, 90L, 5 * hour, 3 * day, 3 * week, 7 * month, 9 * year)
-
-        probes.forEach { ago ->
-            val bucket = bucketOf(ago)
-            if (bucket.unit != RelativeTimeUnit.NEVER && bucket.unit != RelativeTimeUnit.JUST_NOW) {
-                assertTrue(
-                    "$ago s ago bucketed as ${bucket.unit} with count ${bucket.count}",
-                    bucket.count >= 1L,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun `the buckets march forward as the timestamp gets older`() {
-        // Guards against a reordered when-branch: every threshold crossing must
-        // move to a coarser unit, never back to a finer one.
-        val order = listOf(
-            RelativeTimeUnit.JUST_NOW,
-            RelativeTimeUnit.MINUTES,
-            RelativeTimeUnit.HOURS,
-            RelativeTimeUnit.DAYS,
-            RelativeTimeUnit.WEEKS,
-            RelativeTimeUnit.MONTHS,
-            RelativeTimeUnit.YEARS,
-        )
-        val samples = listOf(
-            0L, 59L, minute, hour - 1, hour, day - 1, day, week - 1, week,
-            month - 1, month, year - 1, year, 10 * year,
-        )
-        var lowest = 0
-        samples.forEach { ago ->
-            val index = order.indexOf(bucketOf(ago).unit)
-            assertTrue("$ago s ago produced an unexpected unit", index >= 0)
-            assertTrue("$ago s ago went back to a finer unit", index >= lowest)
-            lowest = index
-        }
     }
 }

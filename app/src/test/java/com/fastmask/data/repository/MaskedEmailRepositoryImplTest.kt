@@ -5,6 +5,7 @@ import com.fastmask.data.api.MaskedEmailDto
 import com.fastmask.data.local.MaskedEmailCache
 import com.fastmask.data.local.TokenStorage
 import com.fastmask.domain.model.EmailState
+import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import io.mockk.coEvery
@@ -12,7 +13,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.verify
 import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +35,11 @@ class MaskedEmailRepositoryImplTest {
     private val cache = mockk<MaskedEmailCache>(relaxed = true)
     private val appScope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
     private val repo = MaskedEmailRepositoryImpl(jmapApi, tokenStorage, cache, UnconfinedTestDispatcher(), appScope)
+
+    // A relaxed mock would not run the fetch; the real cache does, then writes.
+    init {
+        coEvery { cache.refresh(any(), any(), any()) } coAnswers { thirdArg<FetchMasks>().invoke() }
+    }
 
     private fun dto(
         createdAt: String? = null,
@@ -72,26 +77,6 @@ class MaskedEmailRepositoryImplTest {
 
         assertNull(result.createdAt)
         assertNull(result.lastMessageAt)
-    }
-
-    @Test
-    fun `all four jmap states map to domain states`() = runTest {
-        every { tokenStorage.getToken() } returns "tok"
-        coEvery { jmapApi.getMaskedEmails("tok") } returns Result.success(
-            listOf(
-                dto(state = EmailState.PENDING),
-                dto(state = EmailState.ENABLED),
-                dto(state = EmailState.DISABLED),
-                dto(state = EmailState.DELETED),
-            )
-        )
-
-        val states = repo.getMaskedEmails().getOrThrow().map { it.state }
-
-        assertEquals(
-            listOf(EmailState.PENDING, EmailState.ENABLED, EmailState.DISABLED, EmailState.DELETED),
-            states
-        )
     }
 
     @Test
@@ -162,17 +147,10 @@ class MaskedEmailRepositoryImplTest {
 
         val result = repo.getMaskedEmails()
 
-        assertTrue(result.isSuccess)
+        assertEquals("m1", result.getOrThrow().single().id)
         // The owner marker must be present: a snapshot without one is read back
         // as "not mine" and the offline list silently stays empty.
-        verify {
-            cache.write(
-                match { it.single().id == "m1" },
-                match { owner -> !owner.isNullOrBlank() },
-                any(),
-                any(),
-            )
-        }
+        coVerify { cache.refresh(match { owner -> owner.isNotBlank() }, any(), any()) }
     }
 
     /*
@@ -186,7 +164,7 @@ class MaskedEmailRepositoryImplTest {
         every { tokenStorage.getToken() } returns "token"
         coEvery { jmapApi.getMaskedEmails("token") } returns Result.success(listOf(dto()))
         val written = slot<String>()
-        every { cache.write(any(), capture(written), any(), any()) } returns Unit
+        coEvery { cache.refresh(capture(written), any(), any()) } coAnswers { thirdArg<FetchMasks>().invoke() }
         val readWith = slot<String>()
         every { cache.read(capture(readWith)) } returns null
 
@@ -198,10 +176,8 @@ class MaskedEmailRepositoryImplTest {
 
     @Test
     fun `a different token asks the cache for a different owner`() = runTest {
-        val owners = mutableListOf<String?>()
-        // captureNullable, not capture: the owner parameter is String?, and
-        // capture()'s type variable is bounded by Any.
-        every { cache.write(any(), captureNullable(owners), any(), any()) } returns Unit
+        val owners = mutableListOf<String>()
+        coEvery { cache.refresh(capture(owners), any(), any()) } coAnswers { thirdArg<FetchMasks>().invoke() }
         coEvery { jmapApi.getMaskedEmails(any()) } returns Result.success(listOf(dto()))
 
         every { tokenStorage.getToken() } returns "account-a-token"
@@ -213,7 +189,6 @@ class MaskedEmailRepositoryImplTest {
         assertTrue("two accounts must not share an owner marker", owners[0] != owners[1])
     }
 
-    /** A failed fetch must not overwrite a good snapshot with nothing. */
     /*
      * Audit 2026-07-27. "Archive mask" promises, in its own confirmation dialog,
      * that "Mail sent here will bounce. You can restore it later", and the list
@@ -251,32 +226,35 @@ class MaskedEmailRepositoryImplTest {
     }
 
     @Test
-    fun `a failed fetch leaves the cache untouched`() = runTest {
+    fun `a failed fetch is returned as is`() = runTest {
         every { tokenStorage.getToken() } returns "token"
-        coEvery { jmapApi.getMaskedEmails("token") } returns
-            Result.failure(java.io.IOException("offline"))
+        val offline = java.io.IOException("offline")
+        coEvery { jmapApi.getMaskedEmails("token") } returns Result.failure(offline)
 
-        repo.getMaskedEmails()
-
-        verify(exactly = 0) { cache.write(any(), any(), any(), any()) }
+        assertEquals(offline, repo.getMaskedEmails().exceptionOrNull())
     }
 
     // A sign-out during an in-flight refresh must not put the snapshot back.
-    // The generation has to be read BEFORE the network call: reading it at write
-    // time would pick up the value the clear() already installed and the guard
-    // would pass. The mask list must therefore be stamped with what the cache
-    // said when the fetch started.
+    // That guard lives in the cache, which only works if the network call runs
+    // inside its refresh(); the guard itself is pinned against the real cache in
+    // MaskedEmailCacheTest (instrumented, it needs the Keystore).
     @Test
-    fun `the cache write is stamped with the generation captured before the fetch`() = runTest {
+    fun `the network call runs inside the cache refresh`() = runTest {
         every { tokenStorage.getToken() } returns "tok"
-        every { cache.currentGeneration() } returns 7L
-        coEvery { jmapApi.getMaskedEmails("tok") } returns Result.success(listOf(dto()))
-        val stamped = slot<Long>()
-        every { cache.write(any(), any(), any(), capture(stamped)) } returns Unit
+        var insideRefresh = false
+        var fetchedInside = false
+        coEvery { cache.refresh(any(), any(), any()) } coAnswers {
+            insideRefresh = true
+            thirdArg<FetchMasks>().invoke().also { insideRefresh = false }
+        }
+        coEvery { jmapApi.getMaskedEmails("tok") } coAnswers {
+            fetchedInside = insideRefresh
+            Result.success(listOf(dto()))
+        }
 
         repo.getMaskedEmails()
 
-        assertEquals(7L, stamped.captured)
+        assertTrue(fetchedInside)
     }
 
     // A request that may already have reached Fastmail must complete even when
@@ -320,3 +298,5 @@ class MaskedEmailRepositoryImplTest {
         assertEquals(2, changes)
     }
 }
+
+private typealias FetchMasks = suspend () -> Result<List<MaskedEmail>>

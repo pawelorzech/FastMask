@@ -56,33 +56,6 @@ class ShareRouterTest {
         assertEquals(ShareRoute.OpenCreate(github), route)
     }
 
-    @Test
-    fun `signing in during the session does not disarm the share target`() {
-        // The exact reproduction: welcome -> demo/sign-in -> list, all in one
-        // process. There is no input here to express "how the process started",
-        // and that absence IS the contract — see ShareRoutingWiringTest for the
-        // guard that MainActivity cannot reintroduce one.
-        val route = ShareRouter.route(request(), signedIn = true, locked = false)
-
-        assertTrue(
-            "a session that became valid mid-life must route like any other: $route",
-            route is ShareRoute.OpenCreate,
-        )
-    }
-
-    // --- the screen the app happens to be on ---------------------------------
-
-    @Test
-    fun `the screen the app is standing on is irrelevant to the decision`() {
-        // Mask detail, settings, an already-open create form: the share is a
-        // navigation command, not a function of where the user was. Encoded as
-        // "the route has no screen parameter" — the decision cannot depend on
-        // something it is never told.
-        val fromAnywhere = ShareRouter.route(request(), signedIn = true, locked = false)
-
-        assertEquals(ShareRoute.OpenCreate(github), fromAnywhere)
-    }
-
     // --- two shares in a row -------------------------------------------------
 
     @Test
@@ -186,21 +159,6 @@ class ShareRouterTest {
             route is ShareRoute.OpenCreate,
         )
         assertEquals(ShareRoute.RejectSignedOut, route)
-    }
-
-    @Test
-    fun `a signed out share is finished with, not held`() {
-        // The documented resolution of the open question in the brief: the
-        // share is DROPPED, but visibly — RejectSignedOut is the caller's cue to
-        // show a message. It is not parked for replay after a later sign-in,
-        // because that means holding shared text across an external OAuth
-        // round-trip and a possible process death, and because a create form
-        // appearing minutes later, on its own, is a surprise the user cannot
-        // connect to anything they did.
-        assertTrue(
-            "the caller must be free to clear a rejected share",
-            ShareRouter.consumes(ShareRoute.RejectSignedOut),
-        )
     }
 
     // --- text with no link ---------------------------------------------------

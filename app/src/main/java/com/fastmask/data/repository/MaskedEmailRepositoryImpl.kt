@@ -32,11 +32,10 @@ import javax.inject.Singleton
  * reading the token (Tink, KeyStore) and the encrypted cache write-through are
  * disk work that grows with the size of the account.
  *
- * Mutations (create / update / archive / destroy) additionally run in the
- * application scope. A request that may already have reached Fastmail must not
- * be cancelled because the caller went away: that leaves a mask nobody sees, or
- * a UI and account that disagree after an archive or Undo. The caller may stop
- * waiting; the request still completes.
+ * Mutations additionally run in the application scope. A request that may
+ * already have reached Fastmail must not be cancelled because the caller went
+ * away: that leaves a mask nobody sees, or a UI and account that disagree after
+ * an archive or Undo.
  */
 @Singleton
 class MaskedEmailRepositoryImpl @Inject constructor(
@@ -50,19 +49,11 @@ class MaskedEmailRepositoryImpl @Inject constructor(
     private val _changes = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     override val changes: Flow<Unit> = _changes.asSharedFlow()
 
-    /**
-     * Runs a mutation on [appScope]; cancelling the caller only abandons the wait.
-     * A success is announced on [changes] before the caller hears about it.
-     */
     private suspend fun <T> mutation(block: suspend () -> Result<T>): Result<T> =
         appScope.async(ioDispatcher) {
             block().also { if (it.isSuccess) _changes.tryEmit(Unit) }
         }.await()
 
-    /**
-     * The one "signed in?" guard: runs [block] with the stored token, or fails
-     * with the same "Not authenticated" error every operation reports.
-     */
     private inline fun <T> withToken(block: (token: String) -> Result<T>): Result<T> {
         val token = tokenStorage.getToken()
             ?: return Result.failure(IllegalStateException("Not authenticated"))
@@ -71,29 +62,14 @@ class MaskedEmailRepositoryImpl @Inject constructor(
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
         withToken { token ->
-            // Captured BEFORE the network call: if a sign-out clears the cache while
-            // this fetch is in flight, the write below is dropped instead of putting
-            // the signed-out account's mask list back on disk. There is no
-            // suspension point between the response and the write, so cancellation
-            // cannot do this job.
-            val generation = cache.currentGeneration()
-
-            jmapApi.getMaskedEmails(token)
-                .map { dtos -> dtos.map { it.toDomain() } }
-                // Write through on every success, so the newest good answer is
-                // always what an offline read gets. A cache write failure must not
-                // fail the fetch — MaskedEmailCache swallows its own errors.
-                .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
+            cache.refresh(owner = cacheOwner(token)) {
+                jmapApi.getMaskedEmails(token).map { dtos -> dtos.map { it.toDomain() } }
+            }
         }
     }
 
     override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> = withContext(ioDispatcher) {
         withToken { token ->
-            // Deliberately NO write-through: the disk cache holds whole-list
-            // snapshots, and merging a single fresh mask into one would mean a
-            // read-modify-write of the encrypted file on every detail open — the
-            // exact cost this method exists to avoid. The snapshot catches up on
-            // the next full list fetch.
             jmapApi.getMaskedEmail(token, id).map { it?.toDomain() }
         }
     }
@@ -103,17 +79,8 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         cache.read(owner = cacheOwner(token))
     }
 
-    /**
-     * Opaque per-account marker for the offline snapshot: SHA-256 of the API
-     * token, never the token itself.
-     *
-     * The JMAP account id would read better, but it is only known after a
-     * successful session fetch — and the whole point of the snapshot is to be
-     * readable with no network, where that fetch is exactly what failed. The
-     * token is on disk either way and identifies the account just as well: a
-     * different account means a different token, and a rotated token for the
-     * same account means a mismatch, which costs one refetch.
-     */
+    // The JMAP account id would read better, but it is only known after a
+    // successful session fetch, which is what fails when offline.
     private fun cacheOwner(token: String): String = token.sha256Hex()
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> = mutation {
@@ -168,6 +135,5 @@ private fun MaskedEmailDto.toDomain(): MaskedEmail {
     )
 }
 
-/** Unparseable timestamps degrade to null rather than failing the whole list. */
 private fun parseInstant(dateString: String): Instant? =
     runCatching { Instant.parse(dateString) }.getOrNull()

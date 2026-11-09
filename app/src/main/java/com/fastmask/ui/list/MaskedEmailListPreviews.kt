@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.tooling.preview.Preview
@@ -13,6 +15,7 @@ import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.components.DemoBannerContent
+import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.theme.FastMaskTheme
 import java.time.Instant
 
@@ -65,14 +68,13 @@ private fun PreviewList(
             onFilterSelect = {},
             onRowOpen = {},
             onRowCopy = {},
-            onRetry = {},
             onReauthenticate = {},
             onRefresh = {},
             onNavigateToCreate = {},
             onRandomMask = {},
             onNavigateToSettings = {},
             onTutorialBounds = { _, _ -> },
-            demoBanner = { if (showDemo) DemoBannerContent(onSignInClick = {}) },
+            demoBanner = { if (showDemo) DemoBannerContent(onSignInClick = {}, modifier = Modifier.padding(horizontal = ListGutter)) },
             initialMenuExpanded = menuExpanded,
         )
     }
@@ -138,5 +140,9 @@ private fun ListOfflinePreview() = PreviewList(
 @Preview(name = "Inline error", showBackground = true)
 @Composable
 private fun InlineErrorPreview() = FastMaskTheme {
-    InlineErrorBanner(text = "Could not refresh", actionLabel = "Retry", onAction = {})
+    InlineErrorBanner(
+        error = UiError(R.string.error_network, UiErrorAction.RETRY),
+        onRetry = {},
+        onReauthenticate = {},
+    )
 }

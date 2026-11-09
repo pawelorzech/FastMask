@@ -47,7 +47,7 @@ class MaskedEmailScopeTest {
         val session = session(
             primaryAccounts = mapOf(
                 mailCapability to "acc-mail",
-                MaskedEmailScope.CAPABILITY_URI to "acc-masked",
+                FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-masked",
             ),
         )
 
@@ -81,21 +81,9 @@ class MaskedEmailScopeTest {
     }
 
     @Test
-    fun `an empty masked email account id is rejected`() {
-        val session = session(
-            primaryAccounts = mapOf(
-                MaskedEmailScope.CAPABILITY_URI to "",
-                mailCapability to "acc-mail",
-            ),
-        )
-
-        assertNull(MaskedEmailScope.accountId(session))
-    }
-
-    @Test
     fun `a blank masked email account id is rejected`() {
         val session = session(
-            primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "   "),
+            primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "   "),
         )
 
         assertNull(MaskedEmailScope.accountId(session))
@@ -109,7 +97,7 @@ class MaskedEmailScopeTest {
     fun `a lookalike capability key does not count as the masked email scope`() {
         val session = session(
             primaryAccounts = mapOf(
-                "${MaskedEmailScope.CAPABILITY_URI}v2" to "acc-other",
+                "${FastmailEndpoints.MASKED_EMAIL_CAPABILITY}v2" to "acc-other",
             ),
         )
 
@@ -132,7 +120,7 @@ class MaskedEmailScopeTest {
             primaryAccounts = mapOf(mailCapability to "acc-mail"),
             accounts = mapOf(
                 "acc-mail" to account(mailCapability),
-                "acc-masked" to account(mailCapability, MaskedEmailScope.CAPABILITY_URI),
+                "acc-masked" to account(mailCapability, FastmailEndpoints.MASKED_EMAIL_CAPABILITY),
             ),
         )
 
@@ -143,8 +131,8 @@ class MaskedEmailScopeTest {
     fun `multiple capable accounts are rejected when no primary account disambiguates them`() {
         val session = session(
             accounts = mapOf(
-                "acc-a" to account(MaskedEmailScope.CAPABILITY_URI),
-                "acc-b" to account(MaskedEmailScope.CAPABILITY_URI),
+                "acc-a" to account(FastmailEndpoints.MASKED_EMAIL_CAPABILITY),
+                "acc-b" to account(FastmailEndpoints.MASKED_EMAIL_CAPABILITY),
             ),
         )
 
@@ -170,8 +158,8 @@ class MaskedEmailScopeTest {
     @Test
     fun `an empty masked email primary entry falls through to an account that advertises the scope`() {
         val session = session(
-            primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to ""),
-            accounts = mapOf("acc-masked" to account(MaskedEmailScope.CAPABILITY_URI)),
+            primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to ""),
+            accounts = mapOf("acc-masked" to account(FastmailEndpoints.MASKED_EMAIL_CAPABILITY)),
         )
 
         assertEquals("acc-masked", MaskedEmailScope.accountId(session))
