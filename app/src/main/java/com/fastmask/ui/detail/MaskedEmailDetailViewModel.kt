@@ -84,6 +84,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
             onSuccess = { email ->
                 if (email != null) {
                     applyLoadedEmail(email, resetEdits)
+                    _uiState.update { it.copy(error = null) }
                 } else {
                     // Server does not know this id: deleted elsewhere,
                     // or a stale deep link. Full-screen only when nothing
@@ -102,7 +103,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         updateOperation = null,
-                        error = UiErrors.of(error, R.string.email_detail_error_load, UiErrorAction.RETRY)
+                        error = UiErrors.of(error, R.string.email_detail_error_load, retryable = true)
                     )
                 }
             }
@@ -185,7 +186,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            error = UiErrors.of(error, R.string.error_update_mask).withoutRetry()
+                            error = UiErrors.of(error, R.string.error_update_mask, retryable = false)
                         )
                     }
                 }
@@ -209,7 +210,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            error = UiErrors.of(error, R.string.email_detail_error_save).withoutRetry()
+                            error = UiErrors.of(error, R.string.email_detail_error_save, retryable = false)
                         )
                     }
                 }
@@ -238,7 +239,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            error = UiErrors.of(error, R.string.email_detail_error_delete).withoutRetry()
+                            error = UiErrors.of(error, R.string.email_detail_error_delete, retryable = false)
                         )
                     }
                 }

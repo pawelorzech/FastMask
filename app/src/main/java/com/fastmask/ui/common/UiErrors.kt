@@ -15,10 +15,7 @@ enum class UiErrorAction {
     NONE,
 }
 
-data class UiError(@StringRes val message: Int, val action: UiErrorAction) {
-    /** For failures the screen has no way to repeat; a refused token still offers sign-in. */
-    fun withoutRetry(): UiError = if (action == UiErrorAction.RETRY) copy(action = UiErrorAction.NONE) else this
-}
+data class UiError(@StringRes val message: Int, val action: UiErrorAction)
 
 /**
  * Raw `Throwable.message` values ("Unable to resolve host…", "HTTP 401") must never reach
@@ -30,22 +27,30 @@ data class UiError(@StringRes val message: Int, val action: UiErrorAction) {
  */
 object UiErrors {
 
-    fun of(
-        throwable: Throwable?,
-        @StringRes fallback: Int,
-        unknownAction: UiErrorAction = UiErrorAction.NONE,
-    ): UiError = when (throwable) {
-        is IOException -> UiError(R.string.error_network, UiErrorAction.RETRY)
-        is AuthRejectedException -> UiError(R.string.error_auth, UiErrorAction.REAUTHENTICATE)
-        is RateLimitedException -> UiError(R.string.error_rate_limit, UiErrorAction.RETRY)
-        is ServerErrorException -> UiError(R.string.error_server, UiErrorAction.RETRY)
-        else -> UiError(fallback, unknownAction)
+    /**
+     * @param retryable whether the screen can repeat the failed operation. A refused
+     *   token offers sign-in either way.
+     */
+    fun of(throwable: Throwable?, @StringRes fallback: Int, retryable: Boolean): UiError {
+        val message = messageRes(throwable, fallback)
+        val action = when {
+            throwable is AuthRejectedException -> UiErrorAction.REAUTHENTICATE
+            retryable -> UiErrorAction.RETRY
+            else -> UiErrorAction.NONE
+        }
+        return UiError(message, action)
     }
 
     @StringRes
-    fun messageRes(throwable: Throwable?, @StringRes fallback: Int): Int =
-        of(throwable, fallback).message
+    fun messageRes(throwable: Throwable?, @StringRes fallback: Int): Int = when (throwable) {
+        is IOException -> R.string.error_network
+        is AuthRejectedException -> R.string.error_auth
+        is RateLimitedException -> R.string.error_rate_limit
+        is ServerErrorException -> R.string.error_server
+        else -> fallback
+    }
 
+    /** Transient failures: trying the same thing again later can succeed. */
     fun isRetryable(throwable: Throwable?): Boolean =
-        of(throwable, fallback = R.string.error_generic).action == UiErrorAction.RETRY
+        throwable is IOException || throwable is RateLimitedException || throwable is ServerErrorException
 }

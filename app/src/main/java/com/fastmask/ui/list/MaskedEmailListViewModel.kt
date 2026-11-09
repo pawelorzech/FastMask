@@ -13,7 +13,6 @@ import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.core.SingleFlight
 import com.fastmask.ui.common.UiError
-import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import dagger.hilt.android.lifecycle.HiltViewModel
 import com.fastmask.core.QuietWriteFailure
@@ -80,7 +79,7 @@ class MaskedEmailListViewModel @Inject constructor(
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived is worse than an error banner.
                     _uiState.update {
-                        it.copy(error = UiErrors.of(error, R.string.error_update_mask).withoutRetry())
+                        it.copy(error = UiErrors.of(error, R.string.error_update_mask, retryable = false))
                     }
                 }
         }
@@ -155,7 +154,7 @@ class MaskedEmailListViewModel @Inject constructor(
                         )
                         userInitiated || it.emails.isEmpty() -> it.copy(
                             isLoading = false,
-                            error = UiErrors.of(error, R.string.error_load_emails, UiErrorAction.RETRY),
+                            error = UiErrors.of(error, R.string.error_load_emails, retryable = true),
                         )
                         else -> it.copy(isLoading = false)
                     }

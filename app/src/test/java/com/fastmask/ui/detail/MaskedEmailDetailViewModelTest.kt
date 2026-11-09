@@ -298,6 +298,24 @@ class MaskedEmailDetailViewModelTest {
     }
 
     @Test
+    fun `a retry that succeeds clears the inline error over the cached mask`() = runTest {
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(mask("m1", description = "fresh copy")),
+            cached = CachedMasks(masks = listOf(mask("m1")), cachedAt = Instant.now()),
+            failure = IOException("offline"),
+        )
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = null
+        viewModel.loadEmail()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.error)
+        assertEquals("fresh copy", viewModel.uiState.value.email?.description)
+    }
+
+    @Test
     fun `mask missing on the server shows the load error state`() = runTest {
         val repo = FakeMaskedEmailRepository(
             emails = emptyList(),
