@@ -13,7 +13,17 @@ package com.fastmask.ui.list
  * Only for display. Callers must keep the plain address as the semantics text so
  * TalkBack and copy/search read the real address.
  */
-internal fun addressWrapText(address: String): String {
+internal fun addressWrapText(address: String): String =
+    addressWrapParts(address).let { it.local + it.domain }
+
+/**
+ * [addressWrapText] split where the domain starts, so a caller can style the
+ * domain separately without finding the `@` again. [local] carries the
+ * zero-width space; [domain] starts with `@` and is empty when there is none.
+ */
+internal class AddressWrapParts(val local: String, val domain: String)
+
+internal fun addressWrapParts(address: String): AddressWrapParts {
     val at = address.indexOf('@')
     val local = if (at < 0) address else address.substring(0, at)
     val joined = buildString(local.length * 2) {
@@ -21,11 +31,8 @@ internal fun addressWrapText(address: String): String {
             if (c.isLetterOrDigit()) append(c) else append(WORD_JOINER).append(c).append(WORD_JOINER)
         }
     }
-    return if (at < 0) joined else joined + ZERO_WIDTH_SPACE + address.substring(at)
+    return if (at < 0) AddressWrapParts(joined, "") else AddressWrapParts(joined + ZERO_WIDTH_SPACE, address.substring(at))
 }
-
-/** Index of `@` in the display text, so the domain can be styled separately. */
-internal fun addressWrapDomainStart(display: String): Int = display.indexOf('@')
 
 internal const val WORD_JOINER = '⁠'
 internal const val ZERO_WIDTH_SPACE = '​'

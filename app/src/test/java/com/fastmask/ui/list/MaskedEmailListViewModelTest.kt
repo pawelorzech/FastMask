@@ -309,7 +309,7 @@ class MaskedEmailListViewModelTest {
         val viewModel = vm(repo)
         advanceUntilIdle()
 
-        viewModel.restoreMask("m1")
+        viewModel.restoreMask("m1", restoreTo = EmailState.ENABLED)
         advanceUntilIdle()
 
         assertEquals(1, repo.updateCalls)
@@ -343,7 +343,7 @@ class MaskedEmailListViewModelTest {
         advanceUntilIdle()
 
         repo.failure = IOException("offline now")
-        viewModel.restoreMask("m1")
+        viewModel.restoreMask("m1", restoreTo = EmailState.ENABLED)
         advanceUntilIdle()
 
         // Undo appearing to work while the mask stays archived is a silent

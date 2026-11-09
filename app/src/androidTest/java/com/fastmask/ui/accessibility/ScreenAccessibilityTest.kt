@@ -233,7 +233,6 @@ class ScreenAccessibilityTest {
         onFilterSelect = {},
         onRowOpen = {},
         onRowCopy = {},
-        onRetry = {},
         onReauthenticate = {},
         onRefresh = {},
         onNavigateToCreate = {},

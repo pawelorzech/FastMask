@@ -66,7 +66,6 @@ private fun PreviewList(
             onFilterSelect = {},
             onRowOpen = {},
             onRowCopy = {},
-            onRetry = {},
             onReauthenticate = {},
             onRefresh = {},
             onNavigateToCreate = {},

@@ -31,8 +31,10 @@ class AddressWrapTest {
 
     @Test
     fun `domain styling starts at the at sign`() {
-        val display = addressWrapText("a.b@x.com")
-        assertTrue(display.substring(addressWrapDomainStart(display)).startsWith("@x.com"))
+        val parts = addressWrapParts("a.b@x.com")
+        assertEquals("@x.com", parts.domain)
+        assertEquals(ZERO_WIDTH_SPACE, parts.local.last())
+        assertEquals("", addressWrapParts("plain").domain)
         assertFalse(addressWrapText("plain").contains(ZERO_WIDTH_SPACE))
     }
 }
