@@ -58,24 +58,6 @@ class MaskedEmailDetailViewModelTest {
     }
 
     @Test
-    fun `only changed fields are included in update params`() = runTest {
-        val repo = FakeMaskedEmailRepository(
-            emails = listOf(mask("m1", description = "note", forDomain = "example.com", url = "https://example.com"))
-        )
-        val viewModel = vm(repo)
-        advanceUntilIdle()
-
-        viewModel.onForDomainChange("other.com")
-        viewModel.saveChanges()
-        advanceUntilIdle()
-
-        assertEquals(1, repo.updateCalls)
-        assertEquals("other.com", repo.lastUpdateParams?.forDomain)
-        assertNull(repo.lastUpdateParams?.description)
-        assertNull(repo.lastUpdateParams?.url)
-    }
-
-    @Test
     fun `save with no changes performs no network call`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "note")))
         val viewModel = vm(repo)

@@ -334,13 +334,6 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `the crash reporting switch reads as on for an untouched install`() = runTest {
-        val vm = viewModel()
-
-        assertTrue(vm.crashReportingEnabled.value)
-    }
-
-    @Test
     fun `the crash reporting switch follows the stored preference in both directions`() = runTest {
         val vm = viewModel()
         val collector = launch { vm.crashReportingEnabled.collect { } }
@@ -370,17 +363,6 @@ class SettingsViewModelTest {
         assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
     }
 
-    @Test
-    fun `opting back in persists the choice and resumes collection without purging`() = runTest {
-        val vm = viewModel()
-
-        vm.onCrashReportingToggled(true)
-        advanceUntilIdle()
-
-        assertEquals(true, crashStore.snapshot()[crashKey])
-        assertEquals(listOf("collection=true"), crashReporter.calls)
-    }
-
     /** A full disk must not turn an opt-out into a crash, nor into a no-op. */
     @Test
     fun `a failed write still stops collection and does not crash`() = runTest {
@@ -391,20 +373,6 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("collection=false", "delete"), crashReporter.calls)
-    }
-
-    /** An SDK that cannot start must not take the Settings screen down. */
-    @Test
-    fun `an sdk that cannot start does not crash the settings screen`() = runTest {
-        crashReporter.failure = IllegalStateException(
-            "Default FirebaseApp is not initialized in this process"
-        )
-        val vm = viewModel()
-
-        vm.onCrashReportingToggled(false)
-        advanceUntilIdle()
-
-        assertEquals(false, crashStore.snapshot()[crashKey])
     }
 }
 

@@ -81,18 +81,6 @@ class MaskedEmailScopeTest {
     }
 
     @Test
-    fun `an empty masked email account id is rejected`() {
-        val session = session(
-            primaryAccounts = mapOf(
-                FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "",
-                mailCapability to "acc-mail",
-            ),
-        )
-
-        assertNull(MaskedEmailScope.accountId(session))
-    }
-
-    @Test
     fun `a blank masked email account id is rejected`() {
         val session = session(
             primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "   "),

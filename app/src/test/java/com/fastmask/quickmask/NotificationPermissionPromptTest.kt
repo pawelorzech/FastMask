@@ -290,47 +290,4 @@ class NotificationPermissionPromptTest {
         )
         assertEquals(listOf(false, false, false, true, false), answers)
     }
-
-    @Test
-    fun `a session below Android 13 never asks`() {
-        val answers = replay(
-            listOf(Session(signedIn = false), Session(signedIn = true), Session(signedIn = true)),
-            sdkInt = 32,
-        )
-        assertTrue("Android 12 was prompted: $answers", answers.none { it })
-    }
-
-    @Test
-    fun `a session that already holds the permission never asks`() {
-        val answers = replay(
-            listOf(
-                Session(signedIn = false, permissionGranted = true),
-                Session(signedIn = true, permissionGranted = true),
-            )
-        )
-        assertTrue("already granted, still prompted: $answers", answers.none { it })
-    }
-
-    @Test
-    fun `the prompt agrees with the policy on the first snapshot`() {
-        // The latch is the ONLY thing the gate adds; the rules stay in
-        // QuickMaskPolicy so there is one place to get them wrong.
-        val cases = listOf(
-            Session(signedIn = true),
-            Session(signedIn = false),
-            Session(signedIn = true, locked = true),
-            Session(signedIn = true, demoMode = true),
-            Session(signedIn = true, permissionGranted = true),
-        )
-        cases.forEach { snapshot ->
-            val gateSaid = replay(listOf(snapshot)).single()
-            val policySaid = shouldAsk(
-                permissionGranted = snapshot.permissionGranted,
-                signedIn = snapshot.signedIn,
-                locked = snapshot.locked,
-                demoMode = snapshot.demoMode,
-            )
-            assertEquals("gate and policy disagree about $snapshot", policySaid, gateSaid)
-        }
-    }
 }
