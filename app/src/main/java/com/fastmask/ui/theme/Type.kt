@@ -30,9 +30,9 @@ private fun gsf(weight: FontWeight, round: Float) = Font(
 
 private val Weights = listOf(FontWeight.Normal, FontWeight.Medium, FontWeight.SemiBold, FontWeight.Bold)
 
-val GoogleSansFlex = FontFamily(Weights.map { gsf(it, 0f) })
+private val GoogleSansFlex = FontFamily(Weights.map { gsf(it, 0f) })
 
-val GoogleSansFlexRounded = FontFamily(Weights.map { gsf(it, 100f) })
+private val GoogleSansFlexRounded = FontFamily(Weights.map { gsf(it, 100f) })
 
 private fun style(
     size: Int,

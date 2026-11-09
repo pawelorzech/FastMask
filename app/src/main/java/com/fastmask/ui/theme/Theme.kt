@@ -2,27 +2,13 @@ package com.fastmask.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.fastmask.domain.model.Accent
-
-/**
- * Swatch color for the accent picker: the seed scheme's `primary`. For
- * [Accent.DYNAMIC] it is the *current* `MaterialTheme.colorScheme.primary`
- * (wallpaper-derived on API 31+), hence @Composable.
- */
-@Composable
-fun Accent.swatchColor(dark: Boolean): Color =
-    seedScheme(dark)?.primary ?: MaterialTheme.colorScheme.primary
 
 @Composable
 fun FastMaskTheme(
