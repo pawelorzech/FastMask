@@ -4,8 +4,6 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -24,7 +22,9 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.fastmask.domain.repository.SessionRepository
+import com.fastmask.testutil.createFab
 import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.launchOnFreshInstall
 import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -36,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
-import kotlinx.coroutines.runBlocking
 
 /**
  * End-to-end coverage of the paths a user actually walks, driven through the
@@ -68,43 +67,16 @@ class MainFlowsTest {
 
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 
-    /**
-     * The list's create button: the extended FAB is named by its visible "New mask" label,
-     * the icon-only toggle FAB (while scrolling down) by the create description.
-     */
-    private fun createFab(): SemanticsMatcher =
-        hasClickAction() and (
-            hasContentDescription(string(R.string.email_list_create_description)) or
-                hasContentDescription(string(R.string.email_list_create_fab))
-            )
-
+    /** Entering the demo restores its seed list, so each test counts the same masks. */
     @Before
     fun launchOnAFreshInstall() {
         hiltRule.inject()
-        resetToFreshInstall()
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.welcome_demo_cta))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        scenario = composeRule.launchOnFreshInstall(sessionRepository)
     }
 
     @After
     fun tearDown() {
         if (::scenario.isInitialized) scenario.close()
-    }
-
-    /**
-     * Puts the app back to a just-installed state through its own API.
-     *
-     * Deleting the DataStore files instead does not work: DataStore is a
-     * process-wide singleton that keeps serving its in-memory value, so the
-     * second test would still start in demo mode and never see the welcome
-     * screen. Entering the demo restores its seed list, so each test counts
-     * the same masks.
-     */
-    private fun resetToFreshInstall() = runBlocking {
-        sessionRepository.signOut()
     }
 
     /** Demo mode opens with coach marks over the whole list; see the shared helper for why order matters. */

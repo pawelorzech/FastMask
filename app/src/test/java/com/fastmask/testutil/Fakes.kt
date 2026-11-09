@@ -61,7 +61,6 @@ class FakeMaskedEmailRepository(
     var archiveCalls = 0
     var destroyCalls = 0
     var getSingleCalls = 0
-    var lastArchiveId: String? = null
     var lastDestroyId: String? = null
     var lastUpdateId: String? = null
     var lastUpdateParams: UpdateMaskedEmailParams? = null
@@ -117,7 +116,6 @@ class FakeMaskedEmailRepository(
 
     override suspend fun archiveMaskedEmail(id: String): Result<Unit> {
         archiveCalls++
-        lastArchiveId = id
         failure?.let { return Result.failure(it) }
         _changes.tryEmit(Unit)
         return Result.success(Unit)
@@ -140,13 +138,12 @@ class FakeSessionRepository(
 ) : SessionRepository {
     private val _session = MutableStateFlow(initial)
     override val session: StateFlow<Session> = _session
-    val tutorial = MutableStateFlow(false)
+    private val tutorial = MutableStateFlow(false)
     override val tutorialCompleted: Flow<Boolean> = tutorial
 
     var signInCalls = 0
     var lastToken: String? = null
     var enterDemoCalls = 0
-    var signOutCalls = 0
 
     override suspend fun current(): Session = _session.value
 
@@ -163,7 +160,6 @@ class FakeSessionRepository(
     }
 
     override suspend fun signOut() {
-        signOutCalls++
         _session.value = Session.SIGNED_OUT
     }
 
