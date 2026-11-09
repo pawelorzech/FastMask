@@ -17,7 +17,9 @@ object FastmailEndpoints {
     private const val TRUSTED_DOMAIN = "fastmail.com"
 
     const val SESSION_URL = "https://$API_HOST/jmap/session"
-    const val API_URL = "https://$API_HOST/jmap/api/"
+
+    /** Retrofit insists on a base URL; every call passes its own `@Url`, so this is never requested. */
+    const val RETROFIT_BASE_URL = "https://$API_HOST/"
 
     const val CORE_CAPABILITY = "urn:ietf:params:jmap:core"
     const val MASKED_EMAIL_CAPABILITY = "https://www.fastmail.com/dev/maskedemail"

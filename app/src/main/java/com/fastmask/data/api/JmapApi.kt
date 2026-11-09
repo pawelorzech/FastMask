@@ -251,7 +251,7 @@ class JmapApi @Inject constructor(
     }
 }
 
-open class JmapException(message: String) : Exception(message)
+class JmapException(message: String) : Exception(message)
 
 
 /** HTTP status -> domain failure; anything else (IOException, JMAP errors, ...) passes through. */

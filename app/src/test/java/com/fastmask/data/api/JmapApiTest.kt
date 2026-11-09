@@ -67,7 +67,7 @@ class JmapApiTest {
     private fun session(
         apiUrl: String,
         primaryAccounts: Map<String, String> =
-            mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-1"),
+            mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-1"),
         accounts: Map<String, JmapAccount> = emptyMap(),
     ) = JmapSession(
         apiUrl = apiUrl,
@@ -647,7 +647,7 @@ class JmapApiTest {
         val service = FakeJmapService(
             session = session(
                 apiUrl = "https://api.fastmail.com/jmap/api/",
-                primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-first"),
+                primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-first"),
             ),
             response = methodResponse("MaskedEmail/get", singleGetPayload("m1")),
         )
@@ -657,7 +657,7 @@ class JmapApiTest {
 
         service.session = session(
             apiUrl = "https://api.fastmail.com/jmap/api/",
-            primaryAccounts = mapOf(MaskedEmailScope.CAPABILITY_URI to "acc-second"),
+            primaryAccounts = mapOf(FastmailEndpoints.MASKED_EMAIL_CAPABILITY to "acc-second"),
         )
         api.getMaskedEmails("token-2").getOrThrow()
 

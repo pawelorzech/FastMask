@@ -30,7 +30,7 @@ class FastmailEndpointsTest {
         }
 
         assertEquals(listOf(FastmailEndpoints.API_HOST), domains)
-        assertTrue(FastmailEndpoints.API_URL.startsWith("https://${FastmailEndpoints.API_HOST}/"))
+        assertTrue(FastmailEndpoints.RETROFIT_BASE_URL.startsWith("https://${FastmailEndpoints.API_HOST}/"))
         assertTrue(FastmailEndpoints.SESSION_URL.startsWith("https://${FastmailEndpoints.API_HOST}/"))
     }
 

@@ -43,10 +43,11 @@ import kotlin.coroutines.resume
 class AppUpdateController @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val preferences: AppUpdatePreferences,
-    managerProvider: Lazy<AppUpdateManager>,
+    private val managerProvider: Lazy<AppUpdateManager>,
 ) {
 
-    private val manager: AppUpdateManager by lazy { managerProvider.get() }
+    // dagger.Lazy memoises, so the SDK manager is built on first use and once.
+    private val manager: AppUpdateManager get() = managerProvider.get()
 
     private val uiState = MutableStateFlow<AppUpdateUiState>(AppUpdateUiState.Idle)
     val state: StateFlow<AppUpdateUiState> = uiState.asStateFlow()

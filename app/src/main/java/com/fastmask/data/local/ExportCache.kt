@@ -9,7 +9,6 @@ import com.fastmask.domain.model.MaskCsv
 import com.fastmask.domain.model.MaskedEmail
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -59,7 +58,7 @@ class ExportCache @Inject constructor(
      * because they never see the generation.
      */
     suspend fun export(
-        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+        ioDispatcher: CoroutineDispatcher,
         fetch: suspend () -> Result<List<MaskedEmail>>,
     ): ExportOutcome {
         val generation = guard.current()

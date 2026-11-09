@@ -104,8 +104,7 @@ class ProRepositoryImpl @Inject constructor(
                 BillingErrorCode.ITEM_ALREADY_OWNED -> {
                     // Already owned on this Play account (e.g. bought on
                     // another device) — reconcile, then report honestly.
-                    refresh()
-                    if (_proStatus.value == ProStatus.PRO) {
+                    if (ownershipConfirmedByRefresh()) {
                         _events.send(ProPurchaseEvent.Completed)
                     } else {
                         _events.send(ProPurchaseEvent.Failed)
@@ -140,6 +139,12 @@ class ProRepositoryImpl @Inject constructor(
         }
     }
 
+    /** Play said "already owned": reconcile, and trust only what the reconcile shows. */
+    private suspend fun ownershipConfirmedByRefresh(): Boolean {
+        refresh()
+        return _proStatus.value == ProStatus.PRO
+    }
+
     override suspend fun getProduct(): ProProduct? =
         when (val response = billing.queryProduct(PRO_LIFETIME)) {
             is BillingResponse.Ok -> response.value
@@ -153,9 +158,8 @@ class ProRepositoryImpl @Inject constructor(
             is BillingResponse.Ok -> PurchaseLaunch.LAUNCHED
             is BillingResponse.Error -> when (response.code) {
                 BillingErrorCode.ITEM_ALREADY_OWNED -> {
-                    refresh()
                     // Report ownership only when the reconcile confirmed it.
-                    if (_proStatus.value == ProStatus.PRO) {
+                    if (ownershipConfirmedByRefresh()) {
                         PurchaseLaunch.ALREADY_OWNED
                     } else {
                         PurchaseLaunch.ERROR

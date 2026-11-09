@@ -17,15 +17,12 @@ package com.fastmask.data.api
  */
 object MaskedEmailScope {
 
-    /** Capability/primary-account key Fastmail uses for Masked Email. */
-    const val CAPABILITY_URI = FastmailEndpoints.MASKED_EMAIL_CAPABILITY
-
     /**
      * The account id to use, or null when the session proves the token lacks
      * the Masked Email scope.
      */
     fun accountId(session: JmapSession): String? {
-        val primaryAccountId = session.primaryAccounts[CAPABILITY_URI]
+        val primaryAccountId = session.primaryAccounts[FastmailEndpoints.MASKED_EMAIL_CAPABILITY]
         if (!primaryAccountId.isNullOrBlank()) {
             return primaryAccountId
         }
@@ -34,7 +31,7 @@ object MaskedEmailScope {
         // unambiguous. Picking the first of several would depend on JSON map
         // order and could write to the wrong Fastmail account.
         return session.accounts.entries.singleOrNull { (_, account) ->
-            account.accountCapabilities.containsKey(CAPABILITY_URI)
+            account.accountCapabilities.containsKey(FastmailEndpoints.MASKED_EMAIL_CAPABILITY)
         }?.key
     }
 }

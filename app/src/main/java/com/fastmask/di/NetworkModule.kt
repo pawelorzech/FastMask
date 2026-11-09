@@ -62,7 +62,7 @@ object NetworkModule {
     ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl(FastmailEndpoints.API_URL)
+            .baseUrl(FastmailEndpoints.RETROFIT_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
