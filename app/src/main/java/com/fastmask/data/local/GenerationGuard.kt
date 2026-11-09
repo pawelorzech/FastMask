@@ -18,9 +18,9 @@ import java.util.concurrent.atomic.AtomicLong
  *  2. after it, inside the store's own lock, write only if [isCurrent];
  *  3. the store's `clear()` calls [advance], inside the same lock.
  *
- * A store takes the snapshot for its callers and requires it back on `write`
- * with no default: a default would be read at write time, which is exactly the
- * stale-session case the check exists to catch.
+ * A store runs the whole sequence behind one function ([MaskedEmailCache.refresh],
+ * [ExportCache.export]): callers never see the snapshot, so they cannot take it
+ * after the fetch, which would pass the check and defeat it.
  */
 internal class GenerationGuard {
     private val generation = AtomicLong(0)

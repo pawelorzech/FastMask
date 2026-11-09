@@ -53,15 +53,12 @@ class MaskedEmailCache @Inject constructor(
     private val lock = Any()
 
     /**
-     * Sign-out guard: a writer takes [currentGeneration] before its fetch and
-     * [write] drops the write if a [clear] happened since. Without it a slow
-     * fetch re-encrypts the account's masks onto disk after log-out, which
+     * Sign-out guard: [refresh] takes a snapshot before its fetch and the write
+     * is dropped if a [clear] happened since. Without it a slow fetch
+     * re-encrypts the account's masks onto disk after log-out, which
      * `docs/privacy.md` promises removes them.
      */
     private val guard = GenerationGuard()
-
-    /** Snapshot of the current generation, for a caller about to fetch. */
-    fun currentGeneration(): Long = guard.current()
 
     /**
      * In-memory mirror of the last written/read snapshot, keyed by owner and
@@ -90,17 +87,27 @@ class MaskedEmailCache @Inject constructor(
     }
 
     /**
-     * Replaces the snapshot. Failures are swallowed — caching is best-effort.
+     * Runs [fetch] and, if it succeeds, replaces the snapshot with its result,
+     * which is returned unchanged. The order (snapshot the sign-out generation,
+     * fetch, write only if no [clear] happened meanwhile) lives here so callers
+     * cannot get it wrong. Cache failures are swallowed: caching is best-effort
+     * and never fails the fetch.
      *
      * @param owner identifies the account this snapshot belongs to; see [read].
-     * @param generation what [currentGeneration] returned when this write's
-     *   fetch began; a [clear] since then drops the write. Deliberately has no
-     *   default: it would be read at call time, defeating the stale-session check.
      */
-    fun write(
-        masks: List<MaskedEmail>,
-        owner: String?,
+    suspend fun refresh(
+        owner: String,
         now: Instant = Instant.now(),
+        fetch: suspend () -> Result<List<MaskedEmail>>,
+    ): Result<List<MaskedEmail>> {
+        val generation = guard.current()
+        return fetch().onSuccess { write(it, owner, now, generation) }
+    }
+
+    private fun write(
+        masks: List<MaskedEmail>,
+        owner: String,
+        now: Instant,
         generation: Long,
     ) {
         synchronized(lock) {
@@ -121,7 +128,7 @@ class MaskedEmailCache @Inject constructor(
                 if (!staging.renameTo(file)) {
                     staging.delete()
                     memoryCache = null
-                } else if (owner != null) {
+                } else {
                     val target = file
                     memoryCache = MemoryEntry(
                         owner = owner,
@@ -129,8 +136,6 @@ class MaskedEmailCache @Inject constructor(
                         lastModified = target.lastModified(),
                         masks = MaskedEmailSnapshotCodec.decoded(payload).masks,
                     )
-                } else {
-                    memoryCache = null
                 }
             }
         }
@@ -138,8 +143,8 @@ class MaskedEmailCache @Inject constructor(
 
     /**
      * @param owner the account asking. A snapshot written for a different
-     *   owner — or written before owners existed — is treated as absent rather
-     *   than returned.
+     *   owner — or by an older build that wrote none — is treated as absent
+     *   rather than returned.
      *   The file name is fixed and the snapshot carries no addresses of its own
      *   to give a mismatch away, so this check is what keeps account A's masks
      *   from being shown to account B if a sign-out cleanup failed.
@@ -147,14 +152,13 @@ class MaskedEmailCache @Inject constructor(
      * @return the snapshot, or null when there is none, it belongs to someone
      *   else, or it cannot be read.
      */
-    fun read(owner: String?): CachedMasks? = synchronized(lock) {
+    fun read(owner: String): CachedMasks? = synchronized(lock) {
         runCatching {
             val target = file
             if (!target.exists()) {
                 memoryCache = null
                 return@synchronized null
             }
-            if (owner == null) return@synchronized null
             val currentLength = target.length()
             val currentModified = target.lastModified()
             val cached = memoryCache
@@ -168,7 +172,7 @@ class MaskedEmailCache @Inject constructor(
             }
             val bytes = encryptedFile(target).openFileInput().use { it.readBytes() }
             val snapshot = MaskedEmailSnapshotCodec.decode(String(bytes))
-            if (snapshot.owner == null || snapshot.owner != owner) {
+            if (snapshot.owner != owner) {
                 return@synchronized null
             }
             val result = snapshot.masks

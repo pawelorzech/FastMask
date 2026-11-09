@@ -71,19 +71,13 @@ class MaskedEmailRepositoryImpl @Inject constructor(
 
     override suspend fun getMaskedEmails(): Result<List<MaskedEmail>> = withContext(ioDispatcher) {
         withToken { token ->
-            // Captured BEFORE the network call: if a sign-out clears the cache while
-            // this fetch is in flight, the write below is dropped instead of putting
-            // the signed-out account's mask list back on disk. There is no
-            // suspension point between the response and the write, so cancellation
-            // cannot do this job.
-            val generation = cache.currentGeneration()
-
-            jmapApi.getMaskedEmails(token)
-                .map { dtos -> dtos.map { it.toDomain() } }
-                // Write through on every success, so the newest good answer is
-                // always what an offline read gets. A cache write failure must not
-                // fail the fetch — MaskedEmailCache swallows its own errors.
-                .onSuccess { cache.write(it, owner = cacheOwner(token), generation = generation) }
+            // Write through on every success, so the newest good answer is always
+            // what an offline read gets. The cache owns the order that keeps a
+            // fetch outliving a sign-out from being written back, and a cache
+            // write failure never fails the fetch.
+            cache.refresh(owner = cacheOwner(token)) {
+                jmapApi.getMaskedEmails(token).map { dtos -> dtos.map { it.toDomain() } }
+            }
         }
     }
 
