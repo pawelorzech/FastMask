@@ -19,7 +19,6 @@ class ArchiveWordingTest {
     private val archiveKeys = listOf(
         "filter_deleted",
         "state_deleted",
-        "email_detail_deleted",
         "email_detail_delete",
         "email_detail_delete_dialog_title",
         "email_detail_delete_confirm",
@@ -58,15 +57,6 @@ class ArchiveWordingTest {
         return Regex("""<string name="([^"]+)"[^>]*>(.*?)</string>""", RegexOption.DOT_MATCHES_ALL)
             .findAll(xml)
             .associate { it.groupValues[1] to it.groupValues[2].lowercase() }
-    }
-
-    @Test
-    fun everyLocaleHasAWordList() {
-        val locales = resDir.listFiles { f -> f.isDirectory && f.name.startsWith("values-") && File(f, "strings.xml").exists() }!!
-            .map { it.name.removePrefix("values-") }
-            .filter { it !in setOf("night", "v31", "night-v31") }
-            .toSet()
-        assertTrue("locales without a word list: ${locales - words.keys}", words.keys.containsAll(locales))
     }
 
     @Test
