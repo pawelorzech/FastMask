@@ -43,8 +43,8 @@ android {
         applicationId = "com.fastmask"
         minSdk = 26
         targetSdk = 36
-        versionCode = 30
-        versionName = "1.14.0"
+        versionCode = 31
+        versionName = "1.14.1"
 
         // Hilt needs its own Application in instrumented tests; HiltTestRunner
         // swaps FastMaskApplication for HiltTestApplication.

@@ -1,6 +1,3 @@
-What's new in 1.14.0
+What's new in 1.14.1
 
-• The list updates as soon as you create, edit or archive a mask
-• A mask made from a shared link is always confirmed on the list
-• If you turned crash reports off, they stay off, even if app settings get damaged
-• Rebuilt app internals for a steadier FastMask, plus smaller fixes
+• New: "More from the maker" section in Settings with the other apps by the same developer

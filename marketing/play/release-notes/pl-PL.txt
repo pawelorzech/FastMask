@@ -1,6 +1,3 @@
-Nowości w 1.14.0
+Nowości w 1.14.1
 
-• Lista odświeża się od razu po utworzeniu, edycji lub archiwizacji maski
-• Maska z udostępnionego linku zawsze pojawia się na liście z potwierdzeniem
-• Wyłączone raporty o awariach zostają wyłączone, nawet gdy ustawienia się uszkodzą
-• Przebudowane wnętrze aplikacji i drobne poprawki
+• Nowość: sekcja „Więcej od autora” w ustawieniach z pozostałymi aplikacjami tego samego twórcy

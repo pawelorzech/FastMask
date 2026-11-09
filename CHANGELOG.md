@@ -6,6 +6,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.1] — 2026-11-09
+
+### Added
+- "More from the maker" section in Settings linking to the other apps by the same developer.
+
+### Build
+- `versionCode` 30 → 31, `versionName` "1.14.0" → "1.14.1".
+
 ## [1.14.0] — 2026-11-07
 
 ### Fixed
