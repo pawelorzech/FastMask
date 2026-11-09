@@ -22,24 +22,19 @@ package com.fastmask.domain.share
  */
 object ShareIntentPolicy {
 
-    /**
-     * `android.content.Intent.ACTION_SEND`, spelled out so this file stays
-     * Android-free. The constant's value is public API and cannot change.
-     */
-    const val ACTION_SEND: String = "android.intent.action.SEND"
-
     /** Hard cap on the text handed to [SharedLinkParser]. */
     const val MAX_SHARED_TEXT_LENGTH: Int = 8_192
 
     /**
-     * @param action intent action.
+     * @param isSend whether the intent's action is `Intent.ACTION_SEND`; the
+     *   Android-side caller answers that, so this file needs no Android types.
      * @param type intent MIME type.
      * @param text value of `EXTRA_TEXT`, read as a CharSequence.
      * @return the text to parse, truncated to [MAX_SHARED_TEXT_LENGTH], or null
      *   when this intent is not a text share worth acting on.
      */
-    fun sharedText(action: String?, type: String?, text: CharSequence?): String? {
-        if (action != ACTION_SEND) {
+    fun sharedText(isSend: Boolean, type: String?, text: CharSequence?): String? {
+        if (!isSend) {
             return null
         }
         if (type?.startsWith("text/") != true) {

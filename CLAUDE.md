@@ -17,7 +17,7 @@ Android app (Kotlin, Compose, Hilt, Retrofit) for Fastmail Masked Email over JMA
 
 MVVM over a small domain layer, under `app/src/main/java/com/fastmask/`:
 
-- `domain/`: models and rules (`MaskedEmail`, `EmailState`, `Session`, `Accent`, `MaskPrefix`, `MaskCsv`, share parsing), repository interfaces, domain failures. No Android types except `Activity` in `ProRepository.purchase`. ViewModels call repositories directly; `usecase/` holds only `QuickMaskCreator`, the tile/shortcut decision table.
+- `domain/`: models and rules (`MaskedEmail`, `EmailState`, `Session`, `Accent`, `MaskPrefix`, `MaskCsv`, share parsing), repository interfaces, domain failures. No Android types except `Activity` in `ProRepository.purchase`. ViewModels call repositories directly; the tile/shortcut feature (`QuickMaskCreator` and its decision table) lives in `quickmask/`, depending on domain interfaces only.
 - `data/`: `api/` (JMAP client, one `call()` per method, `FastmailEndpoints`), `session/` (`SessionRepository`: sign-in, demo, sign-out and the account data they create or wipe), `repository/` (real + in-memory demo masks behind one dispatcher; mutations run in the app scope and announce `changes`), `local/` (DataStore settings, token, caches), `billing/`, `crash/` (`CrashReporting`, own DataStore), `update/` (in-app updates).
 - `ui/`: feature screens + ViewModels; shared pieces in `ui/components/` (M3E in `expressive/`), routes and their argument names in `ui/navigation/NavRoutes`.
 - `core/`: qualifiers, `runSuspendCatching`, `SingleFlight`, hashing, `platform/` (clipboard, external intents). `di/`: Hilt modules. `quickmask/`: notification/tile quick-create.

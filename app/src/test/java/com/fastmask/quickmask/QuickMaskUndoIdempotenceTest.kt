@@ -1,8 +1,6 @@
 package com.fastmask.quickmask
 
 import android.content.Context
-import com.fastmask.domain.usecase.QuickMaskCreator
-import com.fastmask.domain.usecase.QuickMaskResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

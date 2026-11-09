@@ -11,7 +11,7 @@ import org.junit.Test
  */
 class ShareIntentPolicyTest {
 
-    private val send = ShareIntentPolicy.ACTION_SEND
+    private val send = true
 
     /**
      * Deliberately NOT a String. `Intent.EXTRA_TEXT` is declared as a
@@ -42,8 +42,7 @@ class ShareIntentPolicyTest {
     fun `non-text and non-send intents are ignored`() {
         assertNull(ShareIntentPolicy.sharedText(send, "image/png", "x"))
         assertNull(ShareIntentPolicy.sharedText(send, null, "x"))
-        assertNull(ShareIntentPolicy.sharedText("android.intent.action.VIEW", "text/plain", "x"))
-        assertNull(ShareIntentPolicy.sharedText(null, "text/plain", "x"))
+        assertNull(ShareIntentPolicy.sharedText(false, "text/plain", "x"))
     }
 
     @Test
@@ -69,12 +68,5 @@ class ShareIntentPolicyTest {
         val shared = "Sign up here: example.com/promo"
 
         assertEquals(shared, ShareIntentPolicy.sharedText(send, "text/plain", shared))
-    }
-
-    @Test
-    fun `the action constant matches the platform value`() {
-        // Spelled out in the policy so the file stays Android-free; the value
-        // is public API and must not drift.
-        assertEquals("android.intent.action.SEND", ShareIntentPolicy.ACTION_SEND)
     }
 }

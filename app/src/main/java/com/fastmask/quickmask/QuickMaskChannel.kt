@@ -13,16 +13,10 @@ internal object QuickMaskChannel {
     const val VERSION: Int = 2
 
     /**
-     * Importance the channel is created with: `NotificationManager.IMPORTANCE_HIGH`,
-     * spelled out so this file stays Android-free. The value is public platform
-     * API and cannot change.
-     *
-     * Importance and lock-screen visibility are INDEPENDENT fields: a heads-up
-     * banner is what the user sees while looking at their unlocked phone, and
-     * `VISIBILITY_SECRET` is what keeps the same notification off the lock
-     * screen. Raising one does not weaken the other.
+     * The id the channel had before versioning existed. Every versioned id is
+     * built on it, and it is itself deleted as stale (see [staleIds]).
      */
-    const val IMPORTANCE: Int = 4
+    const val LEGACY_ID: String = "quick_mask"
 
     /** The id the notifier posts under today. */
     val id: String = idFor(VERSION)
@@ -38,7 +32,7 @@ internal object QuickMaskChannel {
      * [VERSION] is the deliberate action that ships a channel FIELD change,
      * because the system only re-reads those fields for an id it has not seen.
      */
-    val staleIds: List<String> = listOf(QUICK_MASK_CHANNEL_ID) + (1 until VERSION).map(::idFor)
+    val staleIds: List<String> = listOf(LEGACY_ID) + (1 until VERSION).map(::idFor)
 
-    private fun idFor(version: Int): String = "${QUICK_MASK_CHANNEL_ID}_v$version"
+    private fun idFor(version: Int): String = "${LEGACY_ID}_v$version"
 }

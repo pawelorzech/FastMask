@@ -59,7 +59,7 @@ class PendingShare {
         // getCharSequenceExtra, not getStringExtra: EXTRA_TEXT is a CharSequence
         // and a Spanned from the sending app makes getStringExtra return null.
         val sharedText: String = ShareIntentPolicy.sharedText(
-            action = intent?.action,
+            isSend = intent?.action == Intent.ACTION_SEND,
             type = intent?.type,
             text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT),
         ) ?: return null

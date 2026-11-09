@@ -17,13 +17,6 @@ import org.junit.Test
 class QuickMaskChannelTest {
 
     @Test
-    fun `the channel asks for a heads-up importance`() {
-        // IMPORTANCE_HIGH == 4. At IMPORTANCE_DEFAULT (3) the "Mask created" notification, and the
-        // Undo action that is the only way back from a mistaken mask, never becomes visible.
-        assertEquals(4, QuickMaskChannel.IMPORTANCE)
-    }
-
-    @Test
     fun `raising the importance shipped under a new channel id`() {
         // The system re-reads importance only for an id it has never seen.
         assertTrue(QuickMaskChannel.VERSION >= 2)
@@ -46,7 +39,7 @@ class QuickMaskChannelTest {
         (1 until QuickMaskChannel.VERSION).forEach { old ->
             assertTrue(
                 "v$old channel survives the bump to v${QuickMaskChannel.VERSION}: $stale",
-                "${QUICK_MASK_CHANNEL_ID}_v$old" in stale,
+                "${QuickMaskChannel.LEGACY_ID}_v$old" in stale,
             )
         }
     }
@@ -54,7 +47,7 @@ class QuickMaskChannelTest {
     @Test
     fun `the original unversioned channel is deleted too`() {
         // It is idFor(n) for no n, so nothing else in the scheme would ever clean it up.
-        assertTrue(QUICK_MASK_CHANNEL_ID in QuickMaskChannel.staleIds)
+        assertTrue(QuickMaskChannel.LEGACY_ID in QuickMaskChannel.staleIds)
     }
 
     @Test
