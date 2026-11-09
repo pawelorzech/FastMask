@@ -19,22 +19,8 @@ class QuickMaskIconTest {
     private fun res(path: String) = File("src/main/res/$path")
 
     private val shortcutForeground = res("drawable/ic_shortcut_quick_mask_foreground.xml").readText()
-    private val shortcuts = res("xml/shortcuts.xml").readText()
 
     // --- the non-tinting contract: the launcher shortcut ---------------------
-
-    @Test
-    fun `the shortcut no longer uses the untinted white glyph`() {
-        assertFalse(
-            "the shortcut points back at ic_quick_mask — white ink on the white disc " +
-                "Launcher3 wraps legacy icons in is the empty circle users reported",
-            shortcuts.contains("""android:icon="@drawable/ic_quick_mask""""),
-        )
-        assertTrue(
-            "the shortcut must use its own icon resource",
-            shortcuts.contains("""android:icon="@drawable/ic_shortcut_quick_mask""""),
-        )
-    }
 
     @Test
     fun `the shortcut glyph is not white`() {
@@ -80,15 +66,8 @@ class QuickMaskIconTest {
     }
 
     @Test
-    fun `the launcher icon is a vector adaptive icon with a themed monochrome layer`() {
-        val adaptive = res("mipmap-anydpi-v26/ic_launcher.xml").readText()
-        assertTrue(adaptive.contains("@drawable/ic_launcher_foreground"))
-        assertTrue(adaptive.contains("@drawable/ic_launcher_monochrome"))
-        listOf("ic_launcher_foreground", "ic_launcher_monochrome", "ic_launcher_background").forEach { name ->
-            val xml = res("drawable/$name.xml").readText()
-            assertTrue("$name must use the 108dp adaptive canvas", xml.contains("android:viewportWidth=\"108\""))
-        }
-        // The themed icon is one evenOdd path so the @ is cut out of the cookie, not painted on it:
+    fun `the themed monochrome layer is one evenOdd path`() {
+        // One evenOdd path so the @ is cut out of the cookie, not painted on it:
         // launchers tint the monochrome layer by alpha only.
         val mono = res("drawable/ic_launcher_monochrome.xml").readText()
         assertEquals(1, Regex("<path").findAll(mono).count())

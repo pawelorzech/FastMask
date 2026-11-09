@@ -31,9 +31,9 @@ object MoreApps {
     fun otherThan(ownPackageId: String): List<MoreApp> =
         catalog.filterNot { it.packageId == ownPackageId }
 
-    fun marketUrl(packageId: String): String = "market://details?id=$packageId"
+    private fun marketUrl(packageId: String): String = "market://details?id=$packageId"
 
-    fun webUrl(packageId: String): String =
+    private fun webUrl(packageId: String): String =
         "https://play.google.com/store/apps/details?id=$packageId"
 
     /**

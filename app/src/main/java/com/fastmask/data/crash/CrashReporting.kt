@@ -160,7 +160,7 @@ class CrashReporting(
     }
 
     companion object {
-        const val KEY_NAME = "crash_reporting_enabled"
+        private const val KEY_NAME = "crash_reporting_enabled"
         internal val KEY = booleanPreferencesKey(KEY_NAME)
 
         /**

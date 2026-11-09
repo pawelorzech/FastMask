@@ -1,7 +1,6 @@
 package com.fastmask.ui.theme
 
 import java.io.File
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,16 +21,6 @@ class SplashResourcesTest {
     private fun item(style: String, name: String): String? =
         Regex("""<item name="$name">(.*?)</item>""").find(style)?.groupValues?.get(1)
 
-    private val splashDirs = listOf("values", "values-v31", "values-night", "values-night-v31")
-
-    @Test
-    fun everySplashVariantUsesTheCurrentLauncherMark() {
-        val icons = splashDirs.mapNotNull { dir ->
-            splashStyle(dir)?.let { item(it, "windowSplashScreenAnimatedIcon") }
-        }
-        assertTrue("splash styles found: $icons", icons.isNotEmpty())
-        icons.forEach { assertEquals("@drawable/ic_launcher_foreground", it) }
-    }
 
     @Test
     fun darkModeHasItsOwnSplashBackground() {

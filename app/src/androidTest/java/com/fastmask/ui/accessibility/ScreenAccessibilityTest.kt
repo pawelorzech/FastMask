@@ -41,8 +41,8 @@ import org.junit.runner.RunWith
  * selectable groups, and every state that changes under the user's finger has a polite
  * announcement path.
  *
- * Replaces the source-grep `AccessibilitySemanticsWiringTest` (unit). The modifiers
- * themselves are covered in isolation by [AccessibilitySemanticsTest].
+ * Replaces the source-grep `AccessibilitySemanticsWiringTest` (unit). The modifier wrappers
+ * (`screenHeading`, `politeLiveRegion`) are exercised here through the screens that use them.
  */
 @RunWith(AndroidJUnit4::class)
 class ScreenAccessibilityTest {

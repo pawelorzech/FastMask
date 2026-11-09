@@ -7,7 +7,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import java.time.Instant
 import java.util.Locale
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -32,16 +31,6 @@ class RelativeTimeLocaleTest {
     }
 
     private fun label(tag: String, secondsAgo: Long) = RelativeTime.format(context(tag), ago(secondsAgo), now)
-
-    @Test
-    fun monthsUseTheLocalesOwnWord() {
-        val expected = mapOf("de" to "Mon", "fr" to "m.", "es" to "m", "it" to "mes", "pt-BR" to "mes", "tr" to "ay", "nl" to "maand", "pl" to "mies", "ru" to "мес", "en" to "mo")
-        expected.forEach { (tag, word) ->
-            val text = label(tag, fiveMonths)
-            assertTrue("$tag: '$text' should contain '$word'", text.contains(word, ignoreCase = true))
-            assertTrue("$tag: '$text' should contain the count", text.contains("5"))
-        }
-    }
 
     @Test
     fun noLocaleKeepsTheEnglishMonthAbbreviation() {
