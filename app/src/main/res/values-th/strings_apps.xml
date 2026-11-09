@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">แอปอื่นจากผู้พัฒนา</string>
+    <string name="more_apps_tagline_stash">อ่านทีหลัง ออฟไลน์ จ่ายครั้งเดียว</string>
+    <string name="more_apps_tagline_skim">โปรแกรมอ่าน RSS สำหรับ FreshRSS และ Miniflux</string>
+    <string name="more_apps_tagline_nib">ไคลเอนต์ไมโครบล็อกสำหรับ Ghost</string>
+    <string name="more_apps_tagline_paperline">สแกนเอกสารออฟไลน์</string>
+    <string name="more_apps_tagline_dotenote">โน้ตห้าอัน แค่นั้น</string>
+    <string name="more_apps_tagline_fastmask">อีเมลปกปิดของ Fastmail บน Android</string>
+    <string name="more_apps_tagline_sunzones">พระอาทิตย์ขึ้น ตก และโกลเดนอาวร์</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">개발자의 다른 앱</string>
+    <string name="more_apps_tagline_stash">나중에 읽기, 오프라인, 한 번만 결제</string>
+    <string name="more_apps_tagline_skim">FreshRSS와 Miniflux용 RSS 리더</string>
+    <string name="more_apps_tagline_nib">Ghost용 마이크로블로깅 클라이언트</string>
+    <string name="more_apps_tagline_paperline">오프라인 문서 스캐너</string>
+    <string name="more_apps_tagline_dotenote">노트 다섯 개, 그게 전부</string>
+    <string name="more_apps_tagline_fastmask">Android용 Fastmail 마스크 이메일</string>
+    <string name="more_apps_tagline_sunzones">일출, 일몰, 골든 아워</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">निर्माता के और ऐप्स</string>
+    <string name="more_apps_tagline_stash">बाद में पढ़ें, ऑफ़लाइन, एक बार भुगतान</string>
+    <string name="more_apps_tagline_skim">FreshRSS और Miniflux के लिए RSS रीडर</string>
+    <string name="more_apps_tagline_nib">Ghost के लिए माइक्रोब्लॉगिंग क्लाइंट</string>
+    <string name="more_apps_tagline_paperline">ऑफ़लाइन दस्तावेज़ स्कैनर</string>
+    <string name="more_apps_tagline_dotenote">पाँच नोट, और कुछ नहीं</string>
+    <string name="more_apps_tagline_fastmask">Android पर Fastmail मास्क्ड ईमेल</string>
+    <string name="more_apps_tagline_sunzones">सूर्योदय, सूर्यास्त और गोल्डन आवर</string>
+</resources>

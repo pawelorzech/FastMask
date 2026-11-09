@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">Thêm từ tác giả</string>
+    <string name="more_apps_tagline_stash">Đọc sau, ngoại tuyến, trả một lần</string>
+    <string name="more_apps_tagline_skim">Trình đọc RSS cho FreshRSS và Miniflux</string>
+    <string name="more_apps_tagline_nib">Ứng dụng microblog cho Ghost</string>
+    <string name="more_apps_tagline_paperline">Máy quét tài liệu ngoại tuyến</string>
+    <string name="more_apps_tagline_dotenote">Năm ghi chú, không gì khác</string>
+    <string name="more_apps_tagline_fastmask">Email ẩn danh Fastmail trên Android</string>
+    <string name="more_apps_tagline_sunzones">Bình minh, hoàng hôn và giờ vàng</string>
+</resources>

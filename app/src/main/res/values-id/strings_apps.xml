@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">Lainnya dari pembuat</string>
+    <string name="more_apps_tagline_stash">Baca nanti, offline, bayar sekali</string>
+    <string name="more_apps_tagline_skim">Pembaca RSS untuk FreshRSS dan Miniflux</string>
+    <string name="more_apps_tagline_nib">Klien microblogging untuk Ghost</string>
+    <string name="more_apps_tagline_paperline">Pemindai dokumen offline</string>
+    <string name="more_apps_tagline_dotenote">Lima catatan, tidak ada yang lain</string>
+    <string name="more_apps_tagline_fastmask">Email samaran Fastmail di Android</string>
+    <string name="more_apps_tagline_sunzones">Matahari terbit, terbenam, dan golden hour</string>
+</resources>
