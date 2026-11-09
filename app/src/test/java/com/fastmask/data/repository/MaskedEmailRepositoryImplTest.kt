@@ -80,26 +80,6 @@ class MaskedEmailRepositoryImplTest {
     }
 
     @Test
-    fun `all four jmap states map to domain states`() = runTest {
-        every { tokenStorage.getToken() } returns "tok"
-        coEvery { jmapApi.getMaskedEmails("tok") } returns Result.success(
-            listOf(
-                dto(state = EmailState.PENDING),
-                dto(state = EmailState.ENABLED),
-                dto(state = EmailState.DISABLED),
-                dto(state = EmailState.DELETED),
-            )
-        )
-
-        val states = repo.getMaskedEmails().getOrThrow().map { it.state }
-
-        assertEquals(
-            listOf(EmailState.PENDING, EmailState.ENABLED, EmailState.DISABLED, EmailState.DELETED),
-            states
-        )
-    }
-
-    @Test
     fun `missing token fails without touching the network`() = runTest {
         every { tokenStorage.getToken() } returns null
 

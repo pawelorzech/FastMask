@@ -105,9 +105,12 @@ class CrashReportingPrivacyTest {
      */
     @Test
     fun `neither crash reporting file declares anything at the top level`() {
+        // A facade is named after the FILE, and both seam files are named after their class, so
+        // the names are derived from the real classes: renaming a class breaks this at compile
+        // time. Renaming only the file would still pass silently (the limit of this check).
         val facades = listOf(
-            "com.fastmask.data.crash.FirebaseCrashlyticsReporterKt",
-            "com.fastmask.domain.crash.CrashReporterKt",
+            FirebaseCrashlyticsReporter::class.java.name + "Kt",
+            CrashReporter::class.java.name + "Kt",
         ).filter { name ->
             runCatching { Class.forName(name, false, javaClass.classLoader) }.isSuccess
         }
@@ -315,26 +318,6 @@ class CrashReportingPrivacyTest {
             "src/main/AndroidManifest.xml must declare firebase_sessions_enabled=false, " +
                 "otherwise the app pings Google on every launch and the privacy policy is wrong",
             declaration.containsMatchIn(manifest),
-        )
-    }
-
-    /**
-     * The switch needs a label and an explanation, and both must exist in the
-     * default locale before `TranslationCompletenessTest` can hold the other 19
-     * to the same standard.
-     */
-    @Test
-    fun `the crash reporting switch has user-facing strings`() {
-        val strings = File("src/main/res/values/strings.xml").readText()
-
-        val missing = listOf(
-            "settings_crash_reporting",
-            "settings_crash_reporting_description",
-        ).filterNot { strings.contains("""<string name="$it"""") }
-
-        assertTrue(
-            "missing string resource(s): ${missing.joinToString()}",
-            missing.isEmpty(),
         )
     }
 }

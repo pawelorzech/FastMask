@@ -11,6 +11,8 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -18,12 +20,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
+import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import com.fastmask.MainActivity
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.ui.theme.FastMaskTheme
 import java.time.Instant
+import kotlinx.coroutines.runBlocking
 
 /**
  * Helpers shared by the instrumented tests. They used to be copy-pasted into each
@@ -72,6 +78,35 @@ fun layoutOf(node: SemanticsNode): TextLayoutResult {
 /** True when any line ends in an ellipsis, i.e. the text was cut off. */
 fun overflowOf(node: SemanticsNode): Boolean =
     layoutOf(node).let { l -> (0 until l.lineCount).any { l.isLineEllipsized(it) } }
+
+/**
+ * The list's create button: the extended FAB is named by its visible "New mask" label,
+ * the icon-only toggle FAB (while scrolling down) by the create description.
+ */
+fun createFab(): SemanticsMatcher =
+    hasClickAction() and (
+        hasContentDescription(string(R.string.email_list_create_description)) or
+            hasContentDescription(string(R.string.email_list_create_fab))
+        )
+
+/**
+ * Puts the app back to a just-installed state through its own API, launches [MainActivity]
+ * and waits for the Welcome screen. Returns the scenario for the caller to close.
+ *
+ * Use with `createEmptyComposeRule()`, not `createAndroidComposeRule`: the Activity reads
+ * persisted state in onCreate to pick its start destination, so app state has to be wiped
+ * BEFORE it launches, not after. Deleting the DataStore files instead does not work: DataStore
+ * is a process-wide singleton that keeps serving its in-memory value, so the second test would
+ * still start in demo mode and never see the welcome screen.
+ */
+fun ComposeTestRule.launchOnFreshInstall(sessionRepository: SessionRepository): ActivityScenario<MainActivity> {
+    runBlocking { sessionRepository.signOut() }
+    val scenario = ActivityScenario.launch(MainActivity::class.java)
+    waitUntil(timeoutMillis = 10_000) {
+        onAllNodesWithText(string(R.string.welcome_demo_cta)).fetchSemanticsNodes().isNotEmpty()
+    }
+    return scenario
+}
 
 /**
  * From the Welcome screen: opens the demo and gets past its coach marks.

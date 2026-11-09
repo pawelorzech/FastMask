@@ -156,15 +156,8 @@ class AppUpdatePolicyTest {
     /**
      * An interrupted immediate install has to be re-entered — that is the state a user is left in
      * when they back out of the blocking flow, and it is the reason the check runs on every resume.
+     * Whatever the urgency fields say: they are undefined for an update already in progress.
      */
-    @Test
-    fun `an interrupted urgent update is resumed`() {
-        assertEquals(
-            AppUpdateDecision.Start(AppUpdateFlowType.IMMEDIATE),
-            decide(snapshot(availability = AppUpdateAvailability.IN_PROGRESS, priority = 5))
-        )
-    }
-
     @Test
     fun `an interrupted immediate update resumes without relying on undefined urgency fields`() {
         assertEquals(

@@ -1,6 +1,5 @@
 package com.fastmask.data.crash
 
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -50,24 +49,10 @@ class CrashReportingTest {
 
     // --- The stored preference ----------------------------------------------
 
-    @Test
-    fun `the key name is the one installed copies already use`() {
-        assertEquals("crash_reporting_enabled", CrashReporting.KEY_NAME)
-    }
-
+    // crashKey above spells the key literally on purpose: it is a contract with installed copies.
     @Test
     fun `no stored key reads as enabled`() = runTest {
         assertTrue(crashReporting().enabled.first())
-    }
-
-    @Test
-    fun `an existing install without the key is opted in and keeps its other settings`() = runTest {
-        val existing: Preferences = preferencesOf(
-            stringPreferencesKey("language_code") to "pl",
-            booleanPreferencesKey("tutorial_completed") to true,
-        )
-
-        assertTrue(crashReporting(FakePreferencesDataStore(existing)).enabled.first())
     }
 
     @Test

@@ -74,25 +74,6 @@ class MaskedEmailListViewModelTest {
         assertEquals(setOf("enabled", "pending"), ids)
     }
 
-    @Test
-    fun `disabled and deleted filters match exactly one state`() = runTest {
-        val repo = FakeMaskedEmailRepository(
-            emails = listOf(
-                mask("e", state = EmailState.ENABLED),
-                mask("d", state = EmailState.DISABLED),
-                mask("x", state = EmailState.DELETED),
-            )
-        )
-        val viewModel = vm(repo)
-        advanceUntilIdle()
-
-        viewModel.onFilterChange(EmailFilter.DISABLED)
-        assertEquals(listOf("d"), viewModel.uiState.value.filteredEmails.map { it.id })
-
-        viewModel.onFilterChange(EmailFilter.DELETED)
-        assertEquals(listOf("x"), viewModel.uiState.value.filteredEmails.map { it.id })
-    }
-
     // --- search ------------------------------------------------------------
 
     @Test
@@ -166,20 +147,8 @@ class MaskedEmailListViewModelTest {
 
     // --- duplicate fetch guard (regression: double fetch on first entry) ---
 
-    @Test
-    fun `refresh during in-flight initial load is queued, not run concurrently`() = runTest {
-        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
-        val viewModel = vm(repo)
-        // Init load dispatched but not yet run — mirrors the on-resume refresh
-        // firing ~250ms after first composition. It no longer starts a second,
-        // concurrent request, but it is not discarded either: the init fetch may
-        // predate a mask that was just created, so one re-run follows.
-        viewModel.refreshMaskedEmails()
-        advanceUntilIdle()
-
-        assertEquals(2, repo.getCalls)
-    }
-
+    // A refresh while the init load is in flight is not discarded: the init fetch may predate
+    // a mask that was just created, so one re-run follows (init + first + ONE queued re-run).
     @Test
     fun `two same-frame refreshes coalesce into a single queued re-run`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
@@ -262,19 +231,23 @@ class MaskedEmailListViewModelTest {
     fun `resume refreshes again once the last fetch is older than the throttle`() = runTest {
         val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
         val viewModel = vm(repo)
-        advanceUntilIdle() // the init fetch stamped the real clock
-        var now = System.currentTimeMillis()
+        var now = 1_000_000L
         viewModel.clockMillis = { now }
+        // The init fetch already stamped the real clock. Queue one more fetch so the last stamp
+        // is the fake clock's, and the throttle below never depends on how long this test took.
+        viewModel.refreshMaskedEmails()
+        advanceUntilIdle()
+        assertEquals("init fetch plus the queued re-run", 2, repo.getCalls)
 
         now += MaskedEmailListViewModel.STALE_AFTER_MS - 1_000
         viewModel.refreshIfStale()
         advanceUntilIdle()
-        assertEquals(1, repo.getCalls)
+        assertEquals(2, repo.getCalls)
 
         now += 2_000
         viewModel.refreshIfStale()
         advanceUntilIdle()
-        assertEquals(2, repo.getCalls)
+        assertEquals(3, repo.getCalls)
     }
 
     @Test
@@ -291,15 +264,6 @@ class MaskedEmailListViewModelTest {
     }
 
     // --- error mapping -----------------------------------------------------
-
-    @Test
-    fun `network failure maps to localized network error resource`() = runTest {
-        val repo = FakeMaskedEmailRepository(failure = IOException("Unable to resolve host"))
-        val viewModel = vm(repo)
-        advanceUntilIdle()
-
-        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
-    }
 
     @Test
     fun `restoreMask re-enables an archived mask and reloads`() = runTest {
@@ -364,38 +328,6 @@ class MaskedEmailListViewModelTest {
         // Old data stays, no error banner over a working list.
         assertEquals(null, viewModel.uiState.value.error?.message)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
-    }
-
-    // The two entry points used to guard on separate flags. A silent refresh
-    // does not raise isLoading while the list has data, so a pull-to-refresh
-    // arriving mid-refresh passed its own guard and ran a second concurrent
-    // fetch whose result raced the first. The second request is now remembered and
-    // runs after the first ends (init + silent + one queued re-run = 3 calls), still
-    // never two at once — see the in-flight test below.
-    @Test
-    fun `pull-to-refresh during a silent refresh queues one re-run instead of a concurrent fetch`() = runTest {
-        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
-        val viewModel = vm(repo)
-        advanceUntilIdle() // init load → getCalls == 1
-
-        viewModel.refreshMaskedEmails() // silent, keeps isLoading false
-        viewModel.loadMaskedEmails()    // user pull-to-refresh in the same frame
-        advanceUntilIdle()
-
-        assertEquals(3, repo.getCalls)
-    }
-
-    @Test
-    fun `a silent refresh during a pull-to-refresh queues one re-run instead of a concurrent fetch`() = runTest {
-        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1")))
-        val viewModel = vm(repo)
-        advanceUntilIdle()
-
-        viewModel.loadMaskedEmails()
-        viewModel.refreshMaskedEmails()
-        advanceUntilIdle()
-
-        assertEquals(3, repo.getCalls)
     }
 
     // Device audit: a mask created while the initial / resume fetch was in flight

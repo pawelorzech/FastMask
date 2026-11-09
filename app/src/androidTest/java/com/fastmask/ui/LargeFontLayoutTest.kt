@@ -13,9 +13,11 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.testutil.WithFontScale
 import com.fastmask.testutil.layoutOf
+import com.fastmask.testutil.string
 import com.fastmask.ui.components.expressive.AdaptiveToggleGroup
 import com.fastmask.ui.components.expressive.StateChip
 import com.fastmask.ui.components.expressive.connectedToggleShapes
@@ -42,7 +44,7 @@ class LargeFontLayoutTest {
 
         // The chip clips what it cannot fit, so the text node itself is capped at
         // the chip height; compare what the text WANTS with what it was given.
-        val label = compose.onNode(hasText("Active"), useUnmergedTree = true).fetchSemanticsNode()
+        val label = compose.onNode(hasText(string(R.string.state_enabled)), useUnmergedTree = true).fetchSemanticsNode()
         val layout = layoutOf(label)
         assertTrue(
             "label wants ${layout.multiParagraph.height}px but the chip gives ${layout.size.height}px",

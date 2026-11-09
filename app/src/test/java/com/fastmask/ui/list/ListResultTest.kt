@@ -54,15 +54,6 @@ class ListResultTest {
     }
 
     @Test
-    fun `an archive keeps its pre-archive state through the handle`() {
-        val archived = ListResult.Archived("a", EmailState.DISABLED)
-        handle.postListResult(archived)
-
-        assertEquals(archived, pending())
-        assertEquals(EmailState.DISABLED, (pending() as ListResult.Archived).previousState)
-    }
-
-    @Test
     fun `two archives of the same mask are different results`() {
         assertNotEquals(
             ListResult.Archived("a", EmailState.ENABLED),

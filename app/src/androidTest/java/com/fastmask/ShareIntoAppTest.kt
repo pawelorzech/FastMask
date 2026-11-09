@@ -18,6 +18,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.testutil.awaitNonNull
 import com.fastmask.testutil.enterDemoAndDismissTutorial
+import com.fastmask.testutil.launchOnFreshInstall
 import com.fastmask.testutil.string
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -69,12 +70,7 @@ class ShareIntoAppTest {
     @Before
     fun launchOnAFreshInstall() {
         hiltRule.inject()
-        runBlocking { sessionRepository.signOut() }
-        scenario = ActivityScenario.launch(MainActivity::class.java)
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText(string(R.string.welcome_demo_cta))
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        scenario = composeRule.launchOnFreshInstall(sessionRepository)
     }
 
     @After

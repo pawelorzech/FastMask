@@ -10,6 +10,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.fastmask.R
+import com.fastmask.testutil.string
 import com.fastmask.ui.theme.FastMaskTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -49,7 +51,7 @@ class TutorialOverlaySemanticsTest {
     fun skipExposesButtonRole() {
         setContent(listOf(STEP_ONE))
 
-        val role = compose.onNodeWithText("Skip")
+        val role = compose.onNodeWithText(string(R.string.tutorial_skip))
             .fetchSemanticsNode()
             .config
             .getOrNull(SemanticsProperties.Role)
@@ -105,7 +107,7 @@ class TutorialOverlaySemanticsTest {
         compose.waitForIdle()
 
         compose.onNodeWithText(STEP_ONE.title).assertExists()
-        compose.onNodeWithText("Next").performClick()
+        compose.onNodeWithText(string(R.string.tutorial_next)).performClick()
 
         // Advance partway into the 300ms crossfade (`ANIM_DURATION_MS` in
         // TutorialOverlay.kt) — short of letting it finish, which is exactly
