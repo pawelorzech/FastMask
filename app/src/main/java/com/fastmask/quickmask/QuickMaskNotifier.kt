@@ -175,17 +175,15 @@ class QuickMaskNotifier @Inject constructor(
                 .forEach { manager.deleteNotificationChannel(it) }
             channelReady = true
         }
-        // QuickMaskChannel is deliberately free of Android types, so the
-        // importance arrives here as a plain Int and lint's @IntDef cannot see
-        // that it is one of the platform constants. The check the annotation
-        // would have given us lives in QuickMaskChannelTest, which
-        // asserts QuickMaskChannel.IMPORTANCE == IMPORTANCE_HIGH == 4 and fails
-        // the build the moment the two drift apart.
-        @Suppress("WrongConstant")
+        // Importance and lock-screen visibility are INDEPENDENT fields: a
+        // heads-up banner is what the user sees on an unlocked phone, and
+        // VISIBILITY_SECRET keeps the same notification off the lock screen.
+        // At IMPORTANCE_DEFAULT the "Mask created" notification, and the Undo
+        // that is the only way back from a mistaken mask, would never show.
         val channel = NotificationChannel(
             QuickMaskChannel.id,
             context.getString(R.string.quick_mask_channel_name),
-            QuickMaskChannel.IMPORTANCE,
+            NotificationManager.IMPORTANCE_HIGH,
         ).apply {
             description = context.getString(R.string.quick_mask_channel_description)
             // Caps every notification on this channel, whatever the builder

@@ -5,8 +5,6 @@ import android.util.Log
 import com.fastmask.BuildConfig
 import com.fastmask.R
 import com.fastmask.core.runSuspendCatching
-import com.fastmask.domain.usecase.QuickMaskCreator
-import com.fastmask.domain.usecase.QuickMaskResult
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.core.platform.openExternalIntent

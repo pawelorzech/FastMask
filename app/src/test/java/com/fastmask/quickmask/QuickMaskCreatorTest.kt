@@ -1,4 +1,4 @@
-package com.fastmask.domain.usecase
+package com.fastmask.quickmask
 
 import com.fastmask.R
 import com.fastmask.domain.model.Session

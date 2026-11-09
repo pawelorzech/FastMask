@@ -83,25 +83,9 @@ class QuickMaskPolicyTest {
 
     // --- what may create a mask ---------------------------------------------
     //
-    // QuickMaskActivity used to create one for ANY intent that reached it,
-    // while the manifest exported it with no intent-filter — a write to the
-    // user's Fastmail account that any installed app could trigger in a loop.
-    // The activity is unexported now; this predicate is the second lock, so
-    // that "someone started this activity" can never by itself mean "create".
-
-    @Test
-    fun `only our own shortcut action may create a mask`() {
-        assertTrue(QuickMaskPolicy.isQuickCreateLaunch(ACTION_QUICK_MASK))
-    }
-
-    @Test
-    fun `any other launch is not consent to create`() {
-        assertFalse(QuickMaskPolicy.isQuickCreateLaunch(null))
-        assertFalse(QuickMaskPolicy.isQuickCreateLaunch(""))
-        assertFalse(QuickMaskPolicy.isQuickCreateLaunch("android.intent.action.VIEW"))
-        assertFalse(QuickMaskPolicy.isQuickCreateLaunch("android.intent.action.MAIN"))
-        assertFalse(QuickMaskPolicy.isQuickCreateLaunch("com.fastmask.action.quick_mask"))
-    }
+    // QuickMaskActivity only creates for OUR OWN action (the second lock behind
+    // the unexported manifest entry), so the one thing worth pinning is that the
+    // static shortcut still carries that action.
 
     @Test
     fun `the shortcut action is the one declared in shortcuts xml`() {

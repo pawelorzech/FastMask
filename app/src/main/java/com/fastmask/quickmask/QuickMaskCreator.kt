@@ -1,4 +1,4 @@
-package com.fastmask.domain.usecase
+package com.fastmask.quickmask
 
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -59,10 +59,7 @@ class QuickMaskCreator @Inject constructor(
             return QuickMaskResult.LockRequired
         }
 
-        val params = CreateMaskedEmailParams(
-            state = EmailState.ENABLED,
-            emailPrefix = null,
-        )
+        val params = CreateMaskedEmailParams(state = EmailState.ENABLED)
         return maskedEmailRepository.createMaskedEmail(params).fold(
             onSuccess = { mask ->
                 QuickMaskResult.Created(id = mask.id, email = mask.email)
