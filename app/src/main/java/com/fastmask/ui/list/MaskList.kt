@@ -81,7 +81,7 @@ internal fun MaskList(
                 },
         ) {
             item(key = "demo-banner") {
-                Box(Modifier.animateItem().padding(horizontal = ListGutter)) { demoBanner() }
+                Box(Modifier.animateItem()) { demoBanner() }
             }
             sections.forEachIndexed { sectionIndex, section ->
                 item(key = "section-${section.section.name}") {

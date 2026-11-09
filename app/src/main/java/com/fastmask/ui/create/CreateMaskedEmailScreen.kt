@@ -109,7 +109,7 @@ fun CreateMaskedEmailScreen(
 
     CreateMaskedEmailContent(
         uiState = uiState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
         onClose = onClose,
         onPrefixChange = viewModel::onPrefixChange,
         onDomainChange = viewModel::onDomainChange,
@@ -427,6 +427,6 @@ private fun CreateLoadingPreview() = PreviewHost(
 private fun CreateErrorPreview() = PreviewHost(
     CreateMaskedEmailUiState(
         emailPrefix = "mysite",
-        error = UiError(R.string.error_create_mask, UiErrorAction.NONE),
+        error = UiError(R.string.error_create_mask, UiErrorAction.RETRY),
     ),
 )

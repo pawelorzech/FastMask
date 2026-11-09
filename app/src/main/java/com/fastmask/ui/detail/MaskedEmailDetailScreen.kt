@@ -133,7 +133,7 @@ fun MaskedEmailDetailScreen(
         uiState = uiState,
         containerId = containerId,
         snackbarHostState = snackbarHostState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
         onBack = onBack,
         onRetry = { viewModel.loadEmail() },
         onReauthenticate = onReauthenticate,
@@ -245,6 +245,7 @@ internal fun MaskedEmailDetailContent(
                     onEnable = onEnable,
                     onDisable = onDisable,
                     onSaveChanges = onSaveChanges,
+                    onRetry = onRetry,
                     onReauthenticate = onReauthenticate,
                     onStartEditing = onStartEditing,
                     onDiscardEdits = onDiscardEdits,
@@ -267,6 +268,7 @@ private fun DetailBody(
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onSaveChanges: () -> Unit,
+    onRetry: () -> Unit,
     onReauthenticate: () -> Unit,
     onStartEditing: () -> Unit,
     onDiscardEdits: () -> Unit,
@@ -382,11 +384,9 @@ private fun DetailBody(
         }
 
         uiState.error?.let { error ->
-            // No retry: a failed save or toggle is fixed by editing or tapping
-            // again; only a refused token has a recovery here (sign in).
             InlineErrorBanner(
                 error = error,
-                onRetry = null,
+                onRetry = onRetry,
                 onReauthenticate = onReauthenticate,
                 modifier = Modifier
                     .padding(horizontal = 16.dp)

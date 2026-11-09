@@ -340,6 +340,32 @@ class MaskedEmailDetailViewModelTest {
         )
     }
 
+    @Test
+    fun `failed save toggle and delete never offer a retry`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline")
+        viewModel.onDescriptionChange("new")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+        assertEquals(UiError(R.string.error_network, UiErrorAction.NONE), viewModel.uiState.value.error)
+
+        viewModel.disable()
+        advanceUntilIdle()
+        assertEquals(UiError(R.string.error_network, UiErrorAction.NONE), viewModel.uiState.value.error)
+
+        viewModel.delete()
+        advanceUntilIdle()
+        assertEquals(UiError(R.string.error_network, UiErrorAction.NONE), viewModel.uiState.value.error)
+
+        repo.failure = RuntimeException("boom")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+        assertEquals(UiError(R.string.email_detail_error_save, UiErrorAction.NONE), viewModel.uiState.value.error)
+    }
+
     // --- edit mode is owned by the ViewModel -------------------------------
 
     @Test

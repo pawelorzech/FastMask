@@ -265,7 +265,7 @@ fun MaskedEmailListScreen(
             onRandomMask = viewModel::createRandomMask,
             onNavigateToSettings = onNavigateToSettings,
             onTutorialBounds = { target, bounds -> tutorialBounds[target] = bounds },
-            demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner) },
+            demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = ListGutter)) },
             // The scrim blocks touch but not screen readers: hide the subtree from
             // TalkBack while the tutorial is up.
             modifier = if (showTutorial) Modifier.clearAndSetSemantics { } else Modifier,

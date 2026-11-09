@@ -9,6 +9,7 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskPrefix
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiError
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.trimToNull
 import com.fastmask.ui.navigation.NavRoutes
@@ -94,7 +95,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = UiErrors.of(error, R.string.error_create_mask)
+                            error = UiErrors.of(error, R.string.error_create_mask, UiErrorAction.RETRY)
                         )
                     }
                 }

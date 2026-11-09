@@ -185,7 +185,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            error = UiErrors.of(error, R.string.error_update_mask)
+                            error = UiErrors.of(error, R.string.error_update_mask).withoutRetry()
                         )
                     }
                 }
@@ -209,7 +209,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
-                            error = UiErrors.of(error, R.string.email_detail_error_save)
+                            error = UiErrors.of(error, R.string.email_detail_error_save).withoutRetry()
                         )
                     }
                 }
@@ -238,7 +238,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isDeleting = false,
-                            error = UiErrors.of(error, R.string.email_detail_error_delete)
+                            error = UiErrors.of(error, R.string.email_detail_error_delete).withoutRetry()
                         )
                     }
                 }

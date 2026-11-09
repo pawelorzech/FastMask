@@ -80,7 +80,7 @@ class MaskedEmailListViewModel @Inject constructor(
                 .onFailure { error ->
                     // Undo silently "succeeding" while the mask stays archived is worse than an error banner.
                     _uiState.update {
-                        it.copy(error = UiErrors.of(error, R.string.error_update_mask, UiErrorAction.RETRY))
+                        it.copy(error = UiErrors.of(error, R.string.error_update_mask).withoutRetry())
                     }
                 }
         }

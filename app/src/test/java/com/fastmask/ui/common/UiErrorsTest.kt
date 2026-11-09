@@ -86,6 +86,16 @@ class UiErrorsTest {
     }
 
     @Test
+    fun `withoutRetry drops only the retry`() {
+        assertEquals(UiErrorAction.NONE, UiErrors.of(IOException("x"), fallback).withoutRetry().action)
+        assertEquals(R.string.error_network, UiErrors.of(IOException("x"), fallback).withoutRetry().message)
+        assertEquals(
+            UiErrorAction.REAUTHENTICATE,
+            UiErrors.of(failureForStatus(401), fallback).withoutRetry().action,
+        )
+    }
+
+    @Test
     fun `unknown failures offer nothing by default`() {
         assertEquals(UiError(fallback, UiErrorAction.NONE), UiErrors.of(RuntimeException("boom"), fallback))
     }

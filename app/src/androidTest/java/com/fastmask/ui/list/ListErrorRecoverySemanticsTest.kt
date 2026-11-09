@@ -81,12 +81,13 @@ class ListErrorRecoverySemanticsTest {
     }
 
     @Test
-    fun inlineErrorWithoutARetryOffersNoButtonUnlessTheTokenWasRefused() {
+    fun inlineErrorWithNoActionOffersNoButtonWhateverHandlersAreSupplied() {
+        var retries = 0
         compose.setContent {
             FastMaskTheme {
                 InlineErrorBanner(
                     error = UiError(R.string.error_create_mask, UiErrorAction.NONE),
-                    onRetry = null,
+                    onRetry = { retries += 1 },
                     onReauthenticate = {},
                 )
             }
@@ -94,6 +95,7 @@ class ListErrorRecoverySemanticsTest {
 
         compose.onNodeWithText(string(R.string.error_retry)).assertDoesNotExist()
         compose.onNodeWithText(string(R.string.settings_signin_with_fastmail)).assertDoesNotExist()
+        assertEquals(0, retries)
     }
 
     @Test

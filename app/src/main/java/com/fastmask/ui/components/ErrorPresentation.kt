@@ -2,10 +2,8 @@ package com.fastmask.ui.components
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.ui.accessibility.politeLiveRegion
@@ -37,16 +34,17 @@ import com.fastmask.ui.common.UiErrorAction
 
 private class Recovery(@StringRes val label: Int, val onClick: () -> Unit)
 
-private fun UiError.recovery(onRetry: (() -> Unit)?, onReauthenticate: () -> Unit): Recovery? =
+private fun UiError.recovery(onRetry: () -> Unit, onReauthenticate: () -> Unit): Recovery? =
     when (action) {
         UiErrorAction.REAUTHENTICATE -> Recovery(R.string.settings_signin_with_fastmail, onReauthenticate)
-        UiErrorAction.RETRY, UiErrorAction.NONE -> onRetry?.let { Recovery(R.string.error_retry, it) }
+        UiErrorAction.RETRY -> Recovery(R.string.error_retry, onRetry)
+        UiErrorAction.NONE -> null
     }
 
 @Composable
 internal fun InlineErrorBanner(
     error: UiError,
-    onRetry: (() -> Unit)?,
+    onRetry: () -> Unit,
     onReauthenticate: () -> Unit,
     modifier: Modifier = Modifier,
     actionEnabled: Boolean = true,
@@ -103,39 +101,22 @@ internal fun ErrorState(
     icon: ImageVector = Icons.Filled.CloudOff,
 ) {
     val recovery = error.recovery(onRetry, onReauthenticate)
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(32.dp)
-            .politeLiveRegion(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        StateIllustration(
-            icon = icon,
-            shape = heroShape,
-            container = MaterialTheme.colorScheme.errorContainer,
-            content = MaterialTheme.colorScheme.onErrorContainer,
-        )
-        Spacer(Modifier.size(24.dp))
-        Text(
-            text = stringResource(title),
-            style = MaterialTheme.typography.headlineSmallEmphasized,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(
-            text = stringResource(error.message),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        if (recovery != null) {
-            Spacer(Modifier.size(24.dp))
-            FilledTonalButton(onClick = recovery.onClick) {
-                Text(stringResource(recovery.label))
+    StateBlock(
+        icon = icon,
+        title = stringResource(title),
+        body = stringResource(error.message),
+        contentPadding = PaddingValues(32.dp),
+        modifier = modifier,
+        liveRegion = true,
+        illustrationShape = heroShape,
+        illustrationContainer = MaterialTheme.colorScheme.errorContainer,
+        illustrationContent = MaterialTheme.colorScheme.onErrorContainer,
+        action = recovery?.let {
+            {
+                FilledTonalButton(onClick = it.onClick) {
+                    Text(stringResource(it.label))
+                }
             }
-        }
-    }
+        },
+    )
 }

@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,7 +74,7 @@ private fun PreviewList(
             onRandomMask = {},
             onNavigateToSettings = {},
             onTutorialBounds = { _, _ -> },
-            demoBanner = { if (showDemo) DemoBannerContent(onSignInClick = {}) },
+            demoBanner = { if (showDemo) DemoBannerContent(onSignInClick = {}, modifier = Modifier.padding(horizontal = ListGutter)) },
             initialMenuExpanded = menuExpanded,
         )
     }

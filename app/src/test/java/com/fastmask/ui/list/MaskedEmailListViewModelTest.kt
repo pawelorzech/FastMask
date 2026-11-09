@@ -5,6 +5,7 @@ package com.fastmask.ui.list
 import com.fastmask.R
 import com.fastmask.domain.model.Session
 import com.fastmask.testutil.FakeSessionRepository
+import com.fastmask.ui.common.UiErrorAction
 import com.fastmask.domain.model.CachedMasks
 import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
@@ -313,6 +314,8 @@ class MaskedEmailListViewModelTest {
         // Undo appearing to work while the mask stays archived is a silent
         // data-state lie — the failure must reach the UI.
         assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+        // The banner's Retry would reload the list, not redo the undo.
+        assertEquals(UiErrorAction.NONE, viewModel.uiState.value.error?.action)
     }
 
     @Test
@@ -369,6 +372,7 @@ class MaskedEmailListViewModelTest {
 
         assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
         assertEquals(R.string.error_network, viewModel.uiState.value.inlineError?.message)
+        assertEquals(UiErrorAction.RETRY, viewModel.uiState.value.inlineError?.action)
         assertEquals(listOf("m1"), viewModel.uiState.value.emails.map { it.id })
     }
 

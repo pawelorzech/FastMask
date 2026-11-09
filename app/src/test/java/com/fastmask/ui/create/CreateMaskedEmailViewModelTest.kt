@@ -133,7 +133,7 @@ class CreateMaskedEmailViewModelTest {
     }
 
     @Test
-    fun `network failure offers a retry and an unknown one does not`() = runTest {
+    fun `create failures offer a retry, a refused token offers sign-in`() = runTest {
         val repo = FakeMaskedEmailRepository(failure = IOException("offline"))
         val viewModel = vm(repo)
 
@@ -145,7 +145,7 @@ class CreateMaskedEmailViewModelTest {
         viewModel.create()
         advanceUntilIdle()
         assertEquals(
-            UiError(R.string.error_create_mask, UiErrorAction.NONE),
+            UiError(R.string.error_create_mask, UiErrorAction.RETRY),
             viewModel.uiState.value.error,
         )
     }

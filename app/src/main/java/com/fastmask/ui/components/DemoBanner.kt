@@ -72,7 +72,7 @@ fun DemoBannerContent(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = if (stacked) 4.dp else 8.dp),
+            .padding(vertical = if (stacked) 4.dp else 8.dp),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -156,11 +156,11 @@ class DemoBannerViewModel @Inject constructor(
 @Preview(name = "Demo banner", showBackground = true)
 @Composable
 private fun DemoBannerPreview() {
-    FastMaskTheme { DemoBannerContent(onSignInClick = {}) }
+    FastMaskTheme { DemoBannerContent(onSignInClick = {}, modifier = Modifier.padding(horizontal = 16.dp)) }
 }
 
 @Preview(name = "Demo banner dark", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DemoBannerDarkPreview() {
-    FastMaskTheme { DemoBannerContent(onSignInClick = {}) }
+    FastMaskTheme { DemoBannerContent(onSignInClick = {}, modifier = Modifier.padding(horizontal = 16.dp)) }
 }

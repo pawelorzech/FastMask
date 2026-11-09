@@ -15,7 +15,10 @@ enum class UiErrorAction {
     NONE,
 }
 
-data class UiError(@StringRes val message: Int, val action: UiErrorAction)
+data class UiError(@StringRes val message: Int, val action: UiErrorAction) {
+    /** For failures the screen has no way to repeat; a refused token still offers sign-in. */
+    fun withoutRetry(): UiError = if (action == UiErrorAction.RETRY) copy(action = UiErrorAction.NONE) else this
+}
 
 /**
  * Raw `Throwable.message` values ("Unable to resolve host…", "HTTP 401") must never reach
