@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">নির্মাতার আরও অ্যাপ</string>
+    <string name="more_apps_tagline_stash">পরে পড়ুন, অফলাইনে, একবারই পেমেন্ট</string>
+    <string name="more_apps_tagline_skim">FreshRSS ও Miniflux-এর জন্য RSS রিডার</string>
+    <string name="more_apps_tagline_nib">Ghost-এর জন্য মাইক্রোব্লগিং ক্লায়েন্ট</string>
+    <string name="more_apps_tagline_paperline">অফলাইন ডকুমেন্ট স্ক্যানার</string>
+    <string name="more_apps_tagline_dotenote">পাঁচটি নোট, আর কিছু নয়</string>
+    <string name="more_apps_tagline_fastmask">অ্যান্ড্রয়েডে Fastmail মাস্কড ইমেইল</string>
+    <string name="more_apps_tagline_sunzones">সূর্যোদয়, সূর্যাস্ত ও গোল্ডেন আওয়ার</string>
+</resources>

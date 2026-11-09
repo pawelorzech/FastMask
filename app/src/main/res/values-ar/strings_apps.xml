@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">المزيد من المطوّر</string>
+    <string name="more_apps_tagline_stash">اقرأ لاحقًا، دون اتصال، ادفع مرة واحدة</string>
+    <string name="more_apps_tagline_skim">قارئ RSS لـ FreshRSS وMiniflux</string>
+    <string name="more_apps_tagline_nib">تطبيق تدوين مصغّر لـ Ghost</string>
+    <string name="more_apps_tagline_paperline">ماسح مستندات يعمل دون اتصال</string>
+    <string name="more_apps_tagline_dotenote">خمس ملاحظات ولا شيء غيرها</string>
+    <string name="more_apps_tagline_fastmask">بريد Fastmail المقنّع على أندرويد</string>
+    <string name="more_apps_tagline_sunzones">الشروق والغروب والساعة الذهبية</string>
+</resources>

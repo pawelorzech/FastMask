@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">Ще від автора</string>
+    <string name="more_apps_tagline_stash">Читати пізніше, офлайн, платите раз</string>
+    <string name="more_apps_tagline_skim">RSS-рідер для FreshRSS і Miniflux</string>
+    <string name="more_apps_tagline_nib">Клієнт мікроблогів для Ghost</string>
+    <string name="more_apps_tagline_paperline">Сканер документів офлайн</string>
+    <string name="more_apps_tagline_dotenote">П\'ять нотаток, і нічого зайвого</string>
+    <string name="more_apps_tagline_fastmask">Приховані адреси Fastmail на Android</string>
+    <string name="more_apps_tagline_sunzones">Схід, захід сонця і золота година</string>
+</resources>

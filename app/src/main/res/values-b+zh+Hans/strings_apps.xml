@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">来自同一开发者</string>
+    <string name="more_apps_tagline_stash">稍后阅读，离线可用，一次付费</string>
+    <string name="more_apps_tagline_skim">适用于 FreshRSS 和 Miniflux 的 RSS 阅读器</string>
+    <string name="more_apps_tagline_nib">Ghost 微博客客户端</string>
+    <string name="more_apps_tagline_paperline">离线文档扫描仪</string>
+    <string name="more_apps_tagline_dotenote">只有五条笔记，别无其他</string>
+    <string name="more_apps_tagline_fastmask">Android 上的 Fastmail 屏蔽邮箱</string>
+    <string name="more_apps_tagline_sunzones">日出、日落与黄金时刻</string>
+</resources>

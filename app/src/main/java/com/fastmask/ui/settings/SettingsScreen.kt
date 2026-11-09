@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FileDownload
@@ -564,6 +565,23 @@ internal fun SettingsContent(
                             }
                         },
                     )
+                }
+            }
+
+            // --- More from the maker ---
+            SettingsSection(title = stringResource(R.string.more_apps_title)) {
+                MoreApps.otherThan(context.packageName).forEach { app ->
+                    add { index, count ->
+                        SettingsRow(
+                            index = index,
+                            count = count,
+                            label = app.name,
+                            supporting = stringResource(app.taglineRes),
+                            leading = { Icon(Icons.Filled.Apps, contentDescription = null) },
+                            trailing = { ChevronIcon() },
+                            onClick = { MoreApps.open(context, app.packageId) },
+                        )
+                    }
                 }
             }
 

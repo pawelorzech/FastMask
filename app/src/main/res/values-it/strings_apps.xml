@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">Altro dallo sviluppatore</string>
+    <string name="more_apps_tagline_stash">Leggi dopo, offline, paghi una volta</string>
+    <string name="more_apps_tagline_skim">Lettore RSS per FreshRSS e Miniflux</string>
+    <string name="more_apps_tagline_nib">Client di microblogging per Ghost</string>
+    <string name="more_apps_tagline_paperline">Scanner di documenti offline</string>
+    <string name="more_apps_tagline_dotenote">Solo cinque note, e basta</string>
+    <string name="more_apps_tagline_fastmask">Email mascherate di Fastmail su Android</string>
+    <string name="more_apps_tagline_sunzones">Alba, tramonto e golden hour</string>
+</resources>

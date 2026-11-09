@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">Geliştiriciden daha fazlası</string>
+    <string name="more_apps_tagline_stash">Sonra oku, çevrimdışı, bir kez öde</string>
+    <string name="more_apps_tagline_skim">FreshRSS ve Miniflux için RSS okuyucu</string>
+    <string name="more_apps_tagline_nib">Ghost için mikroblog istemcisi</string>
+    <string name="more_apps_tagline_paperline">Çevrimdışı belge tarayıcı</string>
+    <string name="more_apps_tagline_dotenote">Beş not, başka hiçbir şey</string>
+    <string name="more_apps_tagline_fastmask">Android için Fastmail maskeli e-posta</string>
+    <string name="more_apps_tagline_sunzones">Gün doğumu, gün batımı ve altın saat</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="more_apps_title">開発者のその他のアプリ</string>
+    <string name="more_apps_tagline_stash">あとで読む、オフライン対応、買い切り</string>
+    <string name="more_apps_tagline_skim">FreshRSS と Miniflux 向け RSS リーダー</string>
+    <string name="more_apps_tagline_nib">Ghost 向けマイクロブログクライアント</string>
+    <string name="more_apps_tagline_paperline">オフライン書類スキャナー</string>
+    <string name="more_apps_tagline_dotenote">ノートは5つだけ、それ以外はなし</string>
+    <string name="more_apps_tagline_fastmask">Android 向け Fastmail マスクメール</string>
+    <string name="more_apps_tagline_sunzones">日の出、日の入り、ゴールデンアワー</string>
+</resources>
