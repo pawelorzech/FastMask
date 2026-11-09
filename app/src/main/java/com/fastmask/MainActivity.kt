@@ -29,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.fastmask.core.runSuspendCatching
+import com.fastmask.data.local.AppLockStore
 import com.fastmask.data.local.SettingsDataStore
 import com.fastmask.domain.model.Accent
 import com.fastmask.domain.repository.SessionRepository
@@ -61,6 +62,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var settingsDataStore: SettingsDataStore
+
+    @Inject
+    lateinit var appLockStore: AppLockStore
 
     @Inject
     lateinit var proRepository: ProRepository
@@ -127,7 +131,8 @@ class MainActivity : AppCompatActivity() {
         // The splash stays up until this block has picked the start destination,
         // so a signed-in user never sees Welcome flash by.
         lifecycleScope.launch {
-            var lockAtLaunch = false
+            // Its own read: a failure of the reads below must not change the lock decision.
+            val lockRead = async(Dispatchers.IO) { appLockStore.lockAtLaunch() }
             var cachedAccent = Accent.DEFAULT
             val startDestination = runSuspendCatching {
                 val signedIn = withContext(Dispatchers.IO) {
@@ -139,11 +144,6 @@ class MainActivity : AppCompatActivity() {
                         val session = async { sessionRepository.current() }
                         // For the accent: a Pro user's first frame is themed from the cache.
                         val proCached = async { proRepository.awaitCached() }
-                        // The lock engages from the preference alone, never the
-                        // entitlement: Pro gates turning it on, so a lapsed purchase
-                        // cannot disarm a lock the user chose, and turning it off is
-                        // always allowed.
-                        lockAtLaunch = settingsDataStore.appLockEnabled.first()
                         cachedAccent = settingsDataStore.accent.first()
                         notificationPrompt.load()
                         proCached.await()
@@ -154,6 +154,10 @@ class MainActivity : AppCompatActivity() {
             }.getOrElse {
                 NavRoutes.WELCOME
             }
+            // The lock engages from the preference alone, never the entitlement:
+            // Pro gates turning it on, so a lapsed purchase cannot disarm a lock
+            // the user chose, and turning it off is always allowed.
+            val lockAtLaunch = lockRead.await()
             lockGate.restore(savedInstanceState, lockAtLaunch)
             isReady = true
 
@@ -162,7 +166,7 @@ class MainActivity : AppCompatActivity() {
                 val accentPref by settingsDataStore.accent.collectAsState(initial = cachedAccent)
                 val accent = accentPref.shownFor(proStatus)
 
-                val appLockEnabled by settingsDataStore.appLockEnabled
+                val appLockEnabled by appLockStore.appLockEnabled
                     .collectAsState(initial = lockAtLaunch)
                 val isLocked = lockGate.locked && appLockEnabled
 

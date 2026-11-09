@@ -2,6 +2,7 @@ package com.fastmask.ui.settings
 
 import android.content.Context
 import com.fastmask.R
+import com.fastmask.data.local.AppLockStore
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.LanguageSettings
 import com.fastmask.data.local.SettingsDataStore
@@ -73,8 +74,11 @@ class SettingsViewModelTest {
 
     private val settingsDataStore = mockk<SettingsDataStore> {
         every { accent } returns flowOf(Accent.AMBER)
-        every { appLockEnabled } returns flowOf(false)
         coJustRun { setAccent(any()) }
+    }
+
+    private val appLockStore = mockk<AppLockStore> {
+        every { appLockEnabled } returns flowOf(false)
         coJustRun { setAppLockEnabled(any()) }
     }
 
@@ -86,6 +90,7 @@ class SettingsViewModelTest {
             languageSettings = languageSettings,
             sessionRepository = FakeSessionRepository(),
             settingsDataStore = settingsDataStore,
+            appLockStore = appLockStore,
             proRepository = proRepository,
             maskedEmailRepository = maskRepository,
             exportCache = exportCache,
@@ -154,7 +159,7 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SettingsEvent.OpenPro("app_lock"), vm.events.first())
-        coVerify(exactly = 0) { settingsDataStore.setAppLockEnabled(any()) }
+        coVerify(exactly = 0) { appLockStore.setAppLockEnabled(any()) }
     }
 
     @Test
@@ -163,7 +168,7 @@ class SettingsViewModelTest {
         vm.onAppLockToggled(false)
         advanceUntilIdle()
 
-        coVerify { settingsDataStore.setAppLockEnabled(false) }
+        coVerify { appLockStore.setAppLockEnabled(false) }
     }
 
     @Test

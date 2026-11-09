@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fastmask.domain.model.Accent
-import com.fastmask.domain.repository.AppLockSetting
 import com.fastmask.domain.repository.NotificationPromptSetting
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +23,7 @@ import javax.inject.Singleton
  * write, full disk), and every read then throws. The handler trades the stored
  * settings for an app that still starts. It resets to "never set", so only keys
  * where that is safe may live here. Nothing whose default is the permissive side
- * belongs in this file: the crash reporting opt-out would silently flip to ENABLED.
+ * belongs in this file.
  */
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "settings",
@@ -34,10 +33,9 @@ val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
 @Singleton
 class SettingsDataStore @Inject constructor(
     @ApplicationContext private val context: Context
-) : AppLockSetting, NotificationPromptSetting {
+) : NotificationPromptSetting {
 
     private val accentKey = stringPreferencesKey("accent")
-    private val appLockKey = booleanPreferencesKey("app_lock_enabled")
 
     val accent: Flow<Accent> = context.settingsDataStore.data.map { preferences ->
         Accent.fromName(preferences[accentKey])
@@ -48,19 +46,6 @@ class SettingsDataStore @Inject constructor(
             preferences[accentKey] = accent.name
         }
     }
-
-    val appLockEnabled: Flow<Boolean> = context.settingsDataStore.data.map { preferences ->
-        preferences[appLockKey] ?: false
-    }
-
-    suspend fun setAppLockEnabled(enabled: Boolean) {
-        context.settingsDataStore.edit { preferences ->
-            preferences[appLockKey] = enabled
-        }
-    }
-
-    override suspend fun isAppLockEnabled(): Boolean = appLockEnabled.first()
-
 
     private val notificationPromptShownKey = booleanPreferencesKey("notification_prompt_shown")
 

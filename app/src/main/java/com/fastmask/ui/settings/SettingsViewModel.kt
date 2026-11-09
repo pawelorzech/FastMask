@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.data.crash.CrashReporting
+import com.fastmask.data.local.AppLockStore
 import com.fastmask.data.local.ExportCache
 import com.fastmask.data.local.ExportOutcome
 import com.fastmask.data.local.LanguageSettings
@@ -42,6 +43,7 @@ class SettingsViewModel @Inject constructor(
     private val languageSettings: LanguageSettings,
     private val sessionRepository: SessionRepository,
     private val settingsDataStore: SettingsDataStore,
+    private val appLockStore: AppLockStore,
     private val proRepository: ProRepository,
     private val maskedEmailRepository: MaskedEmailRepository,
     private val exportCache: ExportCache,
@@ -65,7 +67,7 @@ class SettingsViewModel @Inject constructor(
         initialValue = Accent.DEFAULT,
     )
 
-    val appLockEnabled: StateFlow<Boolean> = settingsDataStore.appLockEnabled.stateIn(
+    val appLockEnabled: StateFlow<Boolean> = appLockStore.appLockEnabled.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = false,
@@ -141,7 +143,7 @@ class SettingsViewModel @Inject constructor(
 
     fun onAppLockToggled(enabled: Boolean) {
         if (enabled && !hasPro(ProFeature.APP_LOCK)) return
-        viewModelScope.launch(QuietWriteFailure) { settingsDataStore.setAppLockEnabled(enabled) }
+        viewModelScope.launch(QuietWriteFailure) { appLockStore.setAppLockEnabled(enabled) }
     }
 
     fun onExportClick() {
