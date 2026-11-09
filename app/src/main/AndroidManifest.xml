@@ -17,24 +17,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
-      Android 11+ (API 30) package visibility. Without these declarations
-      PackageManager.resolveActivity() returns null for the intents below even
-      when a handler is installed, so the "Contact" row and the Play-required
-      Privacy / Terms links on the paywall would silently do nothing.
-      See com.fastmask.core.platform.openExternalIntent.
-    -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.SENDTO" />
-            <data android:scheme="mailto" />
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:scheme="https" />
-        </intent>
-    </queries>
-
-    <!--
       allowBackup="false" disables backup outright, which makes
       fullBackupContent and dataExtractionRules inert on their own. They are
       kept deliberately, not by oversight: they exclude the encrypted token
@@ -162,7 +144,6 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
-            android:taskAffinity=""
             android:theme="@style/Theme.FastMask.Invisible" />
 
         <receiver
