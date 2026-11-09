@@ -16,14 +16,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The corruption handler is required, as on [com.fastmask.data.local.settingsDataStore].
- *
  * A truncated `pro_entitlement.preferences_pb` (interrupted write, full disk) makes
- * every read *and every write* throw `CorruptionException`. The write on the next
- * Play reconciliation runs in a bare `lifecycleScope.launch`, where a throwable
- * kills the process: a permanent launch-time crash loop for anyone who paid.
- * Replacing the file only costs the offline cache, which Play restores on the
- * next reconciliation.
+ * every read *and every write* throw `CorruptionException`: a permanent launch-time
+ * crash loop for anyone who paid. Replacing the file only costs the offline cache,
+ * which Play restores on the next reconciliation.
  */
 private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "pro_entitlement",
@@ -31,15 +27,9 @@ private val Context.proDataStore: DataStore<Preferences> by preferencesDataStore
 )
 
 /**
- * Offline cache of the last Play-verified Pro entitlement status. Play remains
- * the authoritative source of truth and is consulted on every app start.
- *
- * The cache stores two fields: the entitlement [statusKey] (PRO or FREE) and a
- * SHA-256 digest of the purchase token (stored in the [proofKey] field as a
- * presence marker only, never for verification or HMAC). On a rooted device,
- * the DataStore file can be edited directly — there is no tamper resistance.
- * The proof field simply indicates whether the cached PRO status is backed by
- * a purchase token or is an orphaned cache entry.
+ * The SHA-256 digest of the purchase token in [proofKey] is a presence marker
+ * only, never used for verification. On a rooted device the DataStore file can be
+ * edited directly: there is no tamper resistance.
  */
 @Singleton
 class ProEntitlementStore @Inject constructor(
@@ -53,8 +43,6 @@ class ProEntitlementStore @Inject constructor(
         val status = preferences[statusKey]?.let { value ->
             runCatching { ProStatus.valueOf(value) }.getOrNull()
         } ?: ProStatus.FREE
-        // A PRO status without its proof digest is not a state this app writes —
-        // treat as FREE until the next Play reconciliation confirms it.
         return if (status == ProStatus.PRO && preferences[proofKey].isNullOrEmpty()) {
             ProStatus.FREE
         } else {

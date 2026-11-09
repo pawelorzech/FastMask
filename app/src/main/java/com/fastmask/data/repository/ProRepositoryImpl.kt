@@ -30,15 +30,6 @@ import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Owns all FastMask Pro entitlement logic:
- *
- * - seeds [proStatus] from the local cache, then reconciles against Play,
- * - acknowledges confirmed purchases (retried on the next refresh if it fails),
- * - keeps pending purchases locked ([ProStatus.PENDING] is not Pro),
- * - downgrades ONLY on an authoritative empty answer from Play — connection
- *   or availability errors keep the last verified state (offline support).
- */
 @Singleton
 class ProRepositoryImpl @Inject constructor(
     private val billing: BillingDataSource,
@@ -57,23 +48,13 @@ class ProRepositoryImpl @Inject constructor(
         while (_events.tryReceive().isSuccess) { /* discard stale */ }
     }
 
-    /** Serializes every entitlement reconciliation (seed, refresh, buy flow). */
     private val reconcileMutex = Mutex()
 
-    /**
-     * Purchase token behind the last [store] write, so a reconciliation can
-     * tell "same entitlement, same purchase" (skip the write) from "same
-     * entitlement, new purchase" (rewrite the proof). Guarded by
-     * [reconcileMutex] — only [handlePurchases] touches it.
-     */
     private var lastPersistedToken: String? = null
 
-    /** Cache seed — reconciliations wait for it so it can never clobber them. */
     private val seedJob = scope.launch {
         val cached = runSuspendCatching { store.read() }.getOrDefault(ProStatus.FREE)
         reconcileMutex.withLock {
-            // compareAndSet semantics: never overwrite a value an authoritative
-            // reconcile has already advanced past the initial FREE.
             if (_proStatus.value == ProStatus.FREE) {
                 _proStatus.value = cached
             }
@@ -86,8 +67,6 @@ class ProRepositoryImpl @Inject constructor(
         scope.launch {
             seedJob.join()
             billing.purchaseUpdates.collect { update ->
-                // A single failed update (DataStore I/O, closed channel…) must
-                // not kill the collector for the rest of the process lifetime.
                 runSuspendCatching { handleUpdate(update) }
             }
         }
@@ -102,8 +81,7 @@ class ProRepositoryImpl @Inject constructor(
                     _events.send(ProPurchaseEvent.Cancelled)
                 }
                 BillingErrorCode.ITEM_ALREADY_OWNED -> {
-                    // Already owned on this Play account (e.g. bought on
-                    // another device) — reconcile, then report honestly.
+                    // Already owned on this Play account (e.g. bought on another device).
                     if (ownershipConfirmedByRefresh()) {
                         _events.send(ProPurchaseEvent.Completed)
                     } else {
@@ -129,7 +107,6 @@ class ProRepositoryImpl @Inject constructor(
                 RefreshResult.OK
             }
             is BillingResponse.Error -> {
-                // Not authoritative — keep the cached entitlement untouched.
                 if (response.code == BillingErrorCode.UNAVAILABLE) {
                     RefreshResult.UNAVAILABLE
                 } else {
@@ -139,7 +116,6 @@ class ProRepositoryImpl @Inject constructor(
         }
     }
 
-    /** Play said "already owned": reconcile, and trust only what the reconcile shows. */
     private suspend fun ownershipConfirmedByRefresh(): Boolean {
         refresh()
         return _proStatus.value == ProStatus.PRO
@@ -158,7 +134,6 @@ class ProRepositoryImpl @Inject constructor(
             is BillingResponse.Ok -> PurchaseLaunch.LAUNCHED
             is BillingResponse.Error -> when (response.code) {
                 BillingErrorCode.ITEM_ALREADY_OWNED -> {
-                    // Report ownership only when the reconcile confirmed it.
                     if (ownershipConfirmedByRefresh()) {
                         PurchaseLaunch.ALREADY_OWNED
                     } else {
@@ -185,11 +160,10 @@ class ProRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Reconcile entitlement from a purchase list. Only `queryPurchases`
-     * ([fromBuyFlow] = false) is authoritative about ABSENCE: the buy-flow
-     * listener reports the purchases of that update, not the account's full
-     * holdings, so an OK update without our product must never downgrade.
-     * [fromBuyFlow] additionally controls user-facing events.
+     * Only `queryPurchases` ([fromBuyFlow] = false) is authoritative about
+     * ABSENCE: the buy-flow listener reports the purchases of that update, not the
+     * account's full holdings, so an OK update without our product must never
+     * downgrade.
      */
     private suspend fun handlePurchases(
         purchases: List<BillingPurchase>,
@@ -197,10 +171,6 @@ class ProRepositoryImpl @Inject constructor(
     ) = reconcileMutex.withLock {
         val proPurchase = purchases.firstOrNull { PRO_LIFETIME in it.productIds }
         if (fromBuyFlow && proPurchase == null) {
-            // Not ours, not authoritative — leave the cached entitlement alone.
-            // Still emit a terminal event: buy() reports LAUNCHED and relies on
-            // an event to clear its in-flight flag, so a silent return here would
-            // leave the paywall's buy button spinning forever.
             _events.send(ProPurchaseEvent.Failed)
             return@withLock
         }
@@ -216,10 +186,7 @@ class ProRepositoryImpl @Inject constructor(
                     // unacknowledged purchase is refunded by Play in ~3 days.
                     when (billing.acknowledge(proPurchase.purchaseToken)) {
                         is BillingResponse.Ok -> ProStatus.PRO
-                        // Charged but not yet acknowledged: surface it as a
-                        // pending (locked) state so the UI never hangs — the
-                        // acknowledge retries on the next refresh.
-                        is BillingResponse.Error -> ProStatus.PENDING
+                            is BillingResponse.Error -> ProStatus.PENDING
                     }
                 }
             }
@@ -227,24 +194,14 @@ class ProRepositoryImpl @Inject constructor(
             else -> ProStatus.FREE
         }
 
-        // Persist when the status moved, and also when it held at PRO across a
-        // DIFFERENT purchase token (a re-purchase after a refund): the stored
-        // proof digest derives from the token. Keeps an unchanged entitlement
-        // free of DataStore writes.
         val token = proPurchase?.purchaseToken
         if (newStatus != previous || token != lastPersistedToken) {
             _proStatus.value = newStatus
-            // The in-memory status already gates Pro this session; persisting is
-            // a cache write for the NEXT cold start, so a storage failure must not
-            // propagate (`refresh()` runs in a bare `lifecycleScope.launch`, where
-            // a throwable kills the process). `lastPersistedToken` advances only
-            // on a successful write, so a failure retries.
             runSuspendCatching {
                 store.write(newStatus, token)
                 lastPersistedToken = token
             }.onFailure {
-                // Retried on the next reconciliation; lastPersistedToken stays
-                // behind deliberately so the retry is not skipped.
+                // Retried on the next reconciliation.
             }
         }
         if (newStatus != previous) {
@@ -266,9 +223,6 @@ class ProRepositoryImpl @Inject constructor(
                     analytics.track(MonetizationEvent.PURCHASE_PENDING)
                     _events.send(ProPurchaseEvent.Pending)
                 }
-                // A buy-flow update that resolves to FREE (purchase neither
-                // PURCHASED nor PENDING) is still terminal — emit so the buy
-                // button's in-flight spinner is always cleared.
                 ProStatus.FREE -> _events.send(ProPurchaseEvent.Failed)
             }
         }

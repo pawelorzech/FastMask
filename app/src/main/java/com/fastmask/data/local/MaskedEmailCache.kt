@@ -19,11 +19,7 @@ import javax.inject.Singleton
  * without a network.
  *
  * This is the user's full set of masked addresses on disk, so it is encrypted
- * with a Keystore-backed key (as [TokenStorage] does for the API token) and
- * dropped on sign-out.
- *
- * Every failure is soft: a missing, unreadable or corrupt cache means "no
- * cache", never an error the user sees. The server remains the source of truth.
+ * with a Keystore-backed key and dropped on sign-out.
  */
 @Singleton
 class MaskedEmailCache @Inject constructor(
@@ -45,27 +41,14 @@ class MaskedEmailCache @Inject constructor(
     private val stagingFile: File
         get() = File(File(context.filesDir, STAGING_DIR).apply { mkdirs() }, FILE_NAME)
 
-    /**
-     * Serializes [write] against [clear] and against itself: two writers
-     * interleaving on one EncryptedFile produce a file whose GCM tag will not
-     * verify, i.e. a silently empty offline list.
-     */
+    // Two writers interleaving on one EncryptedFile produce a file whose GCM tag
+    // will not verify.
     private val lock = Any()
 
-    /**
-     * Sign-out guard: [refresh] takes a snapshot before its fetch and the write
-     * is dropped if a [clear] happened since. Without it a slow fetch
-     * re-encrypts the account's masks onto disk after log-out, which
-     * `docs/privacy.md` promises removes them.
-     */
+    // Without it a slow fetch re-encrypts the account's masks onto disk after
+    // log-out, which `docs/privacy.md` promises removes them.
     private val guard = GenerationGuard()
 
-    /**
-     * In-memory mirror of the last written/read snapshot, keyed by owner and
-     * the on-disk file's size + mtime. Avoids re-decrypting and re-parsing the
-     * full JSON list on every detail screen open (`seedFromCache`) while still
-     * invalidating if the underlying file is replaced or corrupted on disk.
-     */
     private data class MemoryEntry(
         val owner: String,
         val fileLength: Long,
@@ -86,15 +69,6 @@ class MaskedEmailCache @Inject constructor(
         ).build()
     }
 
-    /**
-     * Runs [fetch] and, if it succeeds, replaces the snapshot with its result,
-     * which is returned unchanged. The order (snapshot the sign-out generation,
-     * fetch, write only if no [clear] happened meanwhile) lives here so callers
-     * cannot get it wrong. Cache failures are swallowed: caching is best-effort
-     * and never fails the fetch.
-     *
-     * @param owner identifies the account this snapshot belongs to; see [read].
-     */
     suspend fun refresh(
         owner: String,
         now: Instant = Instant.now(),
@@ -111,14 +85,10 @@ class MaskedEmailCache @Inject constructor(
         generation: Long,
     ) {
         synchronized(lock) {
-            // Inside the lock, so a clear() cannot land between the check and
-            // the rename.
             if (!guard.isCurrent(generation)) return
             runCatching {
                 val payload = MaskedEmailSnapshotCodec.payload(masks, owner, now)
-                // Write to a temporary file and rename, so an interrupted write
-                // (process death, full disk) leaves the previous good snapshot
-                // in place; EncryptedFile refuses to overwrite in place.
+                // EncryptedFile refuses to overwrite in place, hence temp file + rename.
                 val staging = stagingFile
                 staging.delete()
                 encryptedFile(staging).openFileOutput().use { out ->
@@ -142,15 +112,10 @@ class MaskedEmailCache @Inject constructor(
     }
 
     /**
-     * @param owner the account asking. A snapshot written for a different
-     *   owner — or by an older build that wrote none — is treated as absent
-     *   rather than returned.
-     *   The file name is fixed and the snapshot carries no addresses of its own
-     *   to give a mismatch away, so this check is what keeps account A's masks
-     *   from being shown to account B if a sign-out cleanup failed.
-     *
-     * @return the snapshot, or null when there is none, it belongs to someone
-     *   else, or it cannot be read.
+     * A snapshot written for a different owner, or by an older build that wrote
+     * none, is treated as absent. The file name is fixed and the snapshot carries
+     * no addresses of its own to give a mismatch away, so this check is what keeps
+     * account A's masks from being shown to account B if a sign-out cleanup failed.
      */
     fun read(owner: String): CachedMasks? = synchronized(lock) {
         runCatching {
@@ -186,11 +151,8 @@ class MaskedEmailCache @Inject constructor(
         }.getOrNull()
     }
 
-    /** Drops the snapshot. Called on sign-out and before a new sign-in. */
     fun clear() {
         synchronized(lock) {
-            // Before the deletes, and inside the lock: any write already
-            // waiting on the lock is invalidated by the time it gets in.
             guard.advance()
             memoryCache = null
             runCatching {
@@ -206,21 +168,11 @@ class MaskedEmailCache @Inject constructor(
     }
 }
 
-/** A snapshot as read back from disk: who it belongs to plus the masks. */
 internal class DecodedSnapshot(val owner: String?, val masks: CachedMasks)
 
 /**
- * The encrypted file's plaintext format, and the only place that knows it.
- *
- * The on-disk shape is deliberately separate from the domain model and from
- * the wire DTO: instants become epoch millis and the state becomes its
- * [EmailState.name], so a change to [MaskedEmail] cannot silently break a
- * cache file an existing install already has. That layout is frozen: files
- * written by earlier builds must read back unchanged, so a field is only ever
- * added as optional and never renamed (a unit test feeds a literal old file
- * through [decode]).
- *
- * Kept free of Android and Keystore so it is unit-testable on the JVM.
+ * The on-disk layout is frozen: files written by earlier builds must read back
+ * unchanged, so a field is only ever added as optional and never renamed.
  */
 internal object MaskedEmailSnapshotCodec {
 
@@ -239,7 +191,6 @@ internal object MaskedEmailSnapshotCodec {
     fun decode(text: String): DecodedSnapshot =
         decoded(json.decodeFromString(CachedSnapshot.serializer(), text))
 
-    /** The snapshot as [decode] would return it, without the text round trip. */
     fun decoded(payload: CachedSnapshot): DecodedSnapshot = DecodedSnapshot(
         owner = payload.owner,
         masks = CachedMasks(
@@ -249,12 +200,7 @@ internal object MaskedEmailSnapshotCodec {
     )
 }
 
-/**
- * @param owner opaque per-account marker. Optional so a snapshot written by an
- *   older build still deserializes; [MaskedEmailCache.read] then treats the
- *   missing owner as "not mine", which degrades to no offline data until the
- *   next successful fetch — the behaviour from before the cache existed.
- */
+// `owner` is optional so a snapshot written by an older build still deserializes.
 @Serializable
 internal data class CachedSnapshot(
     val cachedAtEpochMs: Long,

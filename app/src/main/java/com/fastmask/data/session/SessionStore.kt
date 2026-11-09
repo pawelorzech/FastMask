@@ -12,11 +12,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * The persisted half of [SessionRepositoryImpl]: whether the app is in demo
- * mode and whether the demo tutorial was finished. The keys and stored values
- * predate this class and must not change, or upgrades lose the demo state.
- */
+/** The keys and stored values predate this class and must not change, or upgrades lose the demo state. */
 @Singleton
 class SessionStore @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -26,11 +22,6 @@ class SessionStore @Inject constructor(
     val tutorialCompleted: Flow<Boolean> =
         context.settingsDataStore.data.map { it[TUTORIAL_COMPLETED] ?: false }
 
-    /**
-     * Mode and tutorial flag change together, in one edit: two edits could be
-     * split by a process death, leaving the demo with its tutorial marked done
-     * (or the reverse), and an observer of the flag could see it before the mode.
-     */
     suspend fun startDemo() = setMode(DEMO)
 
     suspend fun endDemo() = setMode(REAL)

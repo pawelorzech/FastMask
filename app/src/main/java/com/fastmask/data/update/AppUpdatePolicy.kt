@@ -1,13 +1,5 @@
 package com.fastmask.data.update
 
-/**
- * What Play reports about an available update, with every Play type left at the door.
- *
- * The Play Core types are not stable to observe and not constructible in a unit test, so the
- * decision they feed is written against this instead. Everything the policy is allowed to consider
- * is a field here; anything absent from this class is, by construction, something the decision
- * cannot depend on.
- */
 data class AppUpdateSnapshot(
     val availability: AppUpdateAvailability,
     /** The versionCode Play would install. Zero when Play has no update to describe. */
@@ -23,11 +15,9 @@ data class AppUpdateSnapshot(
     val priority: Int,
     /** Days since the update became available on Play, or null when Play does not know. */
     val stalenessDays: Int?,
-    /** A flexible download that has finished and is waiting for [AppUpdateDecision.CompleteInstall]. */
     val isDownloaded: Boolean,
 )
 
-/** Play's `UpdateAvailability`, narrowed to the three cases that change what FastMask does. */
 enum class AppUpdateAvailability {
     NONE,
     AVAILABLE,
@@ -35,8 +25,7 @@ enum class AppUpdateAvailability {
     /**
      * Play is already part-way through an update this app started — the state a killed process
      * comes back to. An immediate flow interrupted this way leaves the install half-done and
-     * *must* be re-entered, which is the whole reason the check runs on every resume rather than
-     * only on a cold start.
+     * *must* be re-entered.
      */
     IN_PROGRESS,
 }
@@ -46,7 +35,6 @@ enum class AppUpdateFlowType { FLEXIBLE, IMMEDIATE }
 sealed interface AppUpdateDecision {
     data object None : AppUpdateDecision
 
-    /** Bytes are already on the device; all that is left is asking to restart. */
     data object CompleteInstall : AppUpdateDecision
 
     data class Start(val type: AppUpdateFlowType) : AppUpdateDecision
@@ -62,10 +50,9 @@ sealed interface AppUpdateDecision {
  * mask, and is reserved for a release that is either marked urgent at publish time or old enough
  * that the user is running something FastMask no longer stands behind.
  *
- * The two guards against nagging live outside this function, because they are state rather than
- * policy: one offer per process, and a version the user already declined. Both are deliberately
- * ignored for an immediate update — an urgent release is meant to re-prompt on every launch, which
- * is the only thing that separates it from a flexible one.
+ * The guards against nagging (one offer per process, a version the user already declined) are
+ * deliberately ignored for an immediate update: an urgent release is meant to re-prompt on every
+ * launch, which is the only thing that separates it from a flexible one.
  */
 object AppUpdatePolicy {
 

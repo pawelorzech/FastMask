@@ -5,11 +5,7 @@ import com.fastmask.domain.model.MaskedEmail
 import java.time.Duration
 import java.time.Instant
 
-/**
- * Static seed data used by the in-memory demo repository.
- *
- * Anchored to a fixed "today" ([DEMO_NOW]) so screenshots and walkthroughs render identically at any time.
- */
+/** Anchored to a fixed "today" ([DEMO_NOW]) so screenshots and walkthroughs render identically at any time. */
 internal val DEMO_NOW: Instant = Instant.parse("2026-05-13T10:00:00Z")
 
 private fun daysAgo(days: Long): Instant = DEMO_NOW.minus(Duration.ofDays(days))

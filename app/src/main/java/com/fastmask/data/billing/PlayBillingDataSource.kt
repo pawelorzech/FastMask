@@ -35,12 +35,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
 
-/**
- * Google Play implementation. One [BillingClient] for the process lifetime,
- * created lazily off the main thread, with automatic service reconnection.
- * Uses the base (Java) Billing 8.x artifact with hand-rolled suspend wrappers
- * — see build.gradle.kts for why billing-ktx is not used.
- */
 @Singleton
 class PlayBillingDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -48,8 +42,6 @@ class PlayBillingDataSource @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : BillingDataSource {
 
-    // replay=1 closes a narrow startup window: an update arriving before the
-    // repository's collector subscribes would otherwise be dropped silently.
     private val _purchaseUpdates =
         MutableSharedFlow<BillingResponse<List<BillingPurchase>>>(
             replay = 1,
@@ -66,10 +58,8 @@ class PlayBillingDataSource @Inject constructor(
                 } else {
                     BillingResponse.Error(billingResult.toErrorCode())
                 }
-                // Emit synchronously from the listener thread: launching a
-                // coroutine per callback can reorder two rapid updates (e.g.
-                // PENDING overtaking PURCHASED). tryEmit never suspends and the
-                // replay+extraBuffer capacity makes it lossless in practice.
+                // Launching a coroutine per callback can reorder two rapid updates
+                // (e.g. PENDING overtaking PURCHASED).
                 _purchaseUpdates.tryEmit(response)
             }
             .enablePendingPurchases(
@@ -84,9 +74,7 @@ class PlayBillingDataSource @Inject constructor(
     private suspend fun ensureConnected(): BillingResponse<Unit> = withContext(ioDispatcher) {
         connectionMutex.withLock {
             if (client.isReady) return@withLock BillingResponse.Ok(Unit)
-            // Timeout guards against a wedged Play Store never delivering the
-            // setup callback — without it the mutex would deadlock every
-            // future billing call in the process.
+            // A wedged Play Store may never deliver the setup callback.
             billingCall<Unit>(BillingErrorCode.UNAVAILABLE) { respond ->
                 client.startConnection(object : BillingClientStateListener {
                     override fun onBillingSetupFinished(billingResult: BillingResult) {
@@ -103,16 +91,6 @@ class PlayBillingDataSource @Inject constructor(
         }
     }
 
-    /**
-     * The one callback-to-suspend bridge for every Play call: owns the timeout,
-     * the "already resumed or cancelled" guard and the fallback answer when Play
-     * never calls back. [register] starts the call and passes the answer to
-     * `respond`, which is safe to call late or twice.
-     *
-     * [timeoutFallback] is explicit because the callers differ on purpose:
-     * connecting reports UNAVAILABLE (Play is not there), the calls made over a
-     * connection report NETWORK.
-     */
     private suspend fun <T> billingCall(
         timeoutFallback: BillingErrorCode,
         register: (respond: (BillingResponse<T>) -> Unit) -> Unit,
@@ -122,7 +100,6 @@ class PlayBillingDataSource @Inject constructor(
         }
     } ?: BillingResponse.Error(timeoutFallback)
 
-    /** Play's result code as a response; [value] is only built for an OK result. */
     private inline fun <T> BillingResult.toResponse(value: () -> T): BillingResponse<T> =
         if (responseCode == BillingClient.BillingResponseCode.OK) {
             BillingResponse.Ok(value())
@@ -243,11 +220,9 @@ class PlayBillingDataSource @Inject constructor(
 
     private fun Purchase.toBillingPurchase() = BillingPurchase(
         productIds = products,
-        // A purchase counts as PURCHASED only if Play's signature verifies —
+        // A purchase counts as PURCHASED only if Play's signature verifies:
         // a forged/replayed purchase on a hooked billing service must never
-        // unlock Pro. When no license key is configured (dev/CI builds), the
-        // check is skipped so those builds keep working; a release build with
-        // the key set enforces it. See PurchaseSecurity + build.gradle.kts.
+        // unlock Pro.
         isPurchased = purchaseState == Purchase.PurchaseState.PURCHASED && isSignatureValid(),
         isPending = purchaseState == Purchase.PurchaseState.PENDING,
         isAcknowledged = isAcknowledged,
@@ -273,15 +248,9 @@ class PlayBillingDataSource @Inject constructor(
     private fun Purchase.isSignatureValid(): Boolean {
         val key = BuildConfig.PLAY_LICENSE_KEY
         if (key.isBlank()) {
-            // No key configured — cannot verify. Permissive in DEBUG only, so
-            // dev and CI builds still function; a release build with no key
-            // treats every purchase as unverified instead of as valid.
-            //
-            // The Gradle task-graph guard refuses to build a SIGNED release
-            // without a key at all, so this branch should be unreachable in
-            // production. It returns fail-closed anyway: a check that answers
-            // "valid" when it did not run is not a check, and the two layers
-            // fail in opposite directions, which is the point.
+            // No key configured: permissive in DEBUG only, so dev and CI builds
+            // still function. A check that answers "valid" when it did not run
+            // is not a check.
             if (BuildConfig.DEBUG) {
                 Log.w("FastMaskBilling", "PLAY_LICENSE_KEY unset — purchase signature NOT verified")
             }

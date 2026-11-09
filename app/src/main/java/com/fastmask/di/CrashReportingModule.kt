@@ -14,11 +14,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Wires crash reporting. [CrashReporter] is the only type that touches the
- * Firebase SDK, which stays confined to `data/crash`; everything else goes
- * through [CrashReporting].
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object CrashReportingModule {

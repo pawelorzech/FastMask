@@ -24,10 +24,6 @@ import javax.inject.Singleton
 import kotlin.coroutines.resume
 
 /**
- * The only place in FastMask that touches Play's In-App Update API.
- *
- * Two rules, for the same reasons the Billing seam has them:
- *
  *  1. **It cannot take down the app.** `requestAppUpdateInfo` throws outright when the app was not
  *     installed by Play — a sideloaded APK, an emulator without Play services — and every one of
  *     those is a supported state. Every call is guarded and every failure is silent, because a
@@ -35,9 +31,8 @@ import kotlin.coroutines.resume
  *  2. **It reports nothing.** No analytics, no crash keys, no counters that leave the device. The
  *     dismissed version code is stored so the app can stop asking, and for nothing else.
  *
- * The Play types stay inside this class. [AppUpdateInfo] in particular is a mutable, unstable
- * object that Play refuses to accept twice, so exposing it to Compose would mean recomposing
- * against a value that silently expires; the UI sees [AppUpdateUiState] instead.
+ * [AppUpdateInfo] is a mutable object that Play refuses to accept twice, so it must not
+ * be exposed to Compose.
  */
 @Singleton
 class AppUpdateController @Inject constructor(
@@ -46,27 +41,19 @@ class AppUpdateController @Inject constructor(
     private val managerProvider: Lazy<AppUpdateManager>,
 ) {
 
-    // dagger.Lazy memoises, so the SDK manager is built on first use and once.
     private val manager: AppUpdateManager get() = managerProvider.get()
 
     private val uiState = MutableStateFlow<AppUpdateUiState>(AppUpdateUiState.Idle)
     val state: StateFlow<AppUpdateUiState> = uiState.asStateFlow()
 
-    /**
-     * One flexible offer per process, however many times the check runs.
-     *
-     * The check deliberately runs on every resume — that is what re-enters a stalled immediate
-     * update and what notices a download that finished while the app was away — so without this
-     * the user would be asked again every time they came back from another app.
-     */
+    // The check runs on every resume, so without this the user would be asked again
+    // every time they came back from another app.
     @Volatile
     private var hasPromptedThisProcess = false
 
-    /** "Later" on the restart prompt, remembered for as long as this process lives. */
     @Volatile
     private var hasDismissedInstallPrompt = false
 
-    /** What is currently in Play's hands, so the activity result knows what it is answering. */
     @Volatile
     private var pendingFlow: AppUpdateFlowType? = null
 
@@ -79,8 +66,6 @@ class AppUpdateController @Inject constructor(
                 uiState.value = AppUpdateUiState.ReadyToInstall
                 unregisterListener()
             }
-            // A failed, cancelled or already-installed update has nothing left to say. Drop back
-            // to Idle rather than leaving a stale state the user can never resolve.
             InstallStatus.FAILED, InstallStatus.CANCELED, InstallStatus.INSTALLED -> {
                 uiState.value = AppUpdateUiState.Idle
                 unregisterListener()
@@ -92,14 +77,6 @@ class AppUpdateController @Inject constructor(
     @Volatile
     private var isListening = false
 
-    /**
-     * The single entry point. Reads Play's view of the world, applies [AppUpdatePolicy], and does
-     * whatever it says — which is usually nothing.
-     *
-     * Call it on every resume. A cold-start-only check would miss both states that exist precisely
-     * because the app was interrupted: an immediate flow the user backed out of mid-install, and a
-     * flexible download that completed while FastMask was in the background.
-     */
     suspend fun checkAndStart(
         activity: Activity,
         launcher: ActivityResultLauncher<IntentSenderRequest>,
@@ -164,8 +141,6 @@ class AppUpdateController @Inject constructor(
     }
 
     /**
-     * The user's answer to Play's own dialog.
-     *
      * Only a declined *flexible* offer is remembered. Backing out of an immediate flow is not a
      * refusal of the release — it is a user who needed their phone back — and recording it would
      * silence the one class of update that exists to be insistent.
@@ -196,14 +171,8 @@ class AppUpdateController @Inject constructor(
     }
 
     /**
-     * "Later" on the restart prompt. The bytes stay on disk and Play installs them the next time
-     * the app is stopped anyway, so this hides a dialog rather than cancelling anything — which is
-     * why it records nothing durable.
-     *
-     * It does hold for the rest of the process. Without that the resume check would put the same
-     * dialog straight back the next time the user returned from another app, which is the exact
-     * nagging the per-process guard exists to prevent — and here it would be nagging about
-     * something Play is going to do by itself regardless.
+     * The bytes stay on disk and Play installs them the next time the app is stopped
+     * anyway, so this hides a dialog rather than cancelling anything.
      */
     fun dismissInstallPrompt() {
         hasDismissedInstallPrompt = true

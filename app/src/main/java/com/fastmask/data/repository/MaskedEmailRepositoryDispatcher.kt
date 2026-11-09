@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.merge
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Sends every call to the in-memory demo or the real account, whichever the session is. */
 @Singleton
 class MaskedEmailRepositoryDispatcher @Inject constructor(
     private val realRepo: MaskedEmailRepositoryImpl,
