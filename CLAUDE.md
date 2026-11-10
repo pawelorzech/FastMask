@@ -2,6 +2,8 @@
 
 Last verified: refactor/untangle-2 | 2026-11-09
 
+This codebase is yours: what it's for and how it's built are your call, and you'll keep building on it.
+
 Android app (Kotlin, Compose, Hilt, Retrofit) for Fastmail Masked Email over JMAP. Package `com.fastmask`, compileSdk 37, targetSdk 36, minSdk 26, AGP 9.5 (built-in Kotlin 2.2.20, Hilt on KSP), Gradle 9.6, JDK 17-21 (see `AGENTS.md` for JDK and `google-services.json` caveats). UI is Material 3 Expressive on `material3:1.5.0-beta02` (pinned above the Compose BOM).
 
 ## Commands
