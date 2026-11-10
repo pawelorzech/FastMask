@@ -1,3 +1,7 @@
-Nowości w 1.14.1
+Nowości w 1.14.2
 
-• Nowość: sekcja „Więcej od autora” w ustawieniach z pozostałymi aplikacjami tego samego twórcy
+• Blokada aplikacji zostaje włączona, nawet gdy jej ustawienie się uszkodzi albo nie da się go odczytać
+• Gdy Fastmail odrzuci token, przy tworzeniu i edycji maski możesz od razu zalogować się ponownie
+• Tryb demo pokazuje świeżą aktywność
+• Ikona skrótu szybkiej maski nie jest już przycinana na niektórych launcherach
+• Czytelniejsze komunikaty błędów i drobne poprawki

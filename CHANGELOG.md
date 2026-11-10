@@ -6,6 +6,24 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.2] — 2026-11-10
+
+### Fixed
+- App lock fails closed: a damaged or unreadable lock setting now keeps the app locked instead of silently turning the lock off. The setting moved to its own store and an armed lock is carried over on update.
+- When Fastmail refuses the token, the create and detail screens offer "Sign in with Fastmail" instead of a Retry that could not work.
+- A failed Undo no longer shows a Retry button that only reloaded the list.
+- Demo masks are dated relative to now, so the demo list shows recent activity again instead of everything being months old.
+- The quick-mask shortcut icon fits the adaptive-icon safe zone, so launchers no longer clip it.
+- The demo banner lines up with the rows in the mask list.
+
+### Changed
+- Errors look and behave the same on the list, create and detail screens; confirm dialogs share one button style.
+- Second structural clean-up of the codebase (one error presentation, one confirm dialog, version catalog, generic string names), with unused resources removed.
+
+### Build
+- `versionCode` 31 → 32, `versionName` "1.14.1" → "1.14.2".
+- Dependencies declared in `gradle/libs.versions.toml`.
+
 ## [1.14.1] — 2026-11-09
 
 ### Added

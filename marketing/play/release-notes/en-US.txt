@@ -1,3 +1,7 @@
-What's new in 1.14.1
+What's new in 1.14.2
 
-• New: "More from the maker" section in Settings with the other apps by the same developer
+• App lock stays on even if its setting gets damaged or can't be read
+• If Fastmail rejects your token, creating and editing a mask now offer to sign in again
+• Demo mode shows fresh, recent activity
+• Quick mask shortcut icon is no longer clipped on some launchers
+• Tidier error messages and smaller fixes
