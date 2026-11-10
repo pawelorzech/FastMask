@@ -1,7 +1,3 @@
-What's new in 1.14.2
+What's new in 1.14.3
 
-• App lock stays on even if its setting gets damaged or can't be read
-• If Fastmail rejects your token, creating and editing a mask now offer to sign in again
-• Demo mode shows fresh, recent activity
-• Quick mask shortcut icon is no longer clipped on some launchers
-• Tidier error messages and smaller fixes
+• More from the maker: BibleMe and TimeNudge are in the list, and every app now shows its icon

@@ -6,6 +6,17 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.3] — 2026-11-10
+
+### Added
+- "More from the maker" lists BibleMe and TimeNudge.
+
+### Changed
+- Every app in "More from the maker" shows its icon.
+
+### Build
+- `versionCode` 32 → 33, `versionName` "1.14.2" → "1.14.3".
+
 ## [1.14.2] — 2026-11-10
 
 ### Fixed
