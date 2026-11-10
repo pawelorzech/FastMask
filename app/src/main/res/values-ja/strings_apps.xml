@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">ノートは5つだけ、それ以外はなし</string>
     <string name="more_apps_tagline_fastmask">Android 向け Fastmail マスクメール</string>
     <string name="more_apps_tagline_sunzones">日の出、日の入り、ゴールデンアワー</string>
+    <string name="more_apps_tagline_bibleme">オフラインで読める聖書リーダー、アカウント不要</string>
+    <string name="more_apps_tagline_timenudge">終わるまでしつこく知らせるリマインダー</string>
 </resources>

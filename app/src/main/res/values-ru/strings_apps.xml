@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">Пять заметок, и ничего лишнего</string>
     <string name="more_apps_tagline_fastmask">Скрытые адреса Fastmail на Android</string>
     <string name="more_apps_tagline_sunzones">Рассвет, закат и золотой час</string>
+    <string name="more_apps_tagline_bibleme">Библия офлайн, без аккаунта</string>
+    <string name="more_apps_tagline_timenudge">Напоминания, которые не отстанут, пока не сделаешь</string>
 </resources>

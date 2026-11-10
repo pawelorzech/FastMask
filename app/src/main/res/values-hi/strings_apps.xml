@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">पाँच नोट, और कुछ नहीं</string>
     <string name="more_apps_tagline_fastmask">Android पर Fastmail मास्क्ड ईमेल</string>
     <string name="more_apps_tagline_sunzones">सूर्योदय, सूर्यास्त और गोल्डन आवर</string>
+    <string name="more_apps_tagline_bibleme">ऑफ़लाइन बाइबल रीडर, बिना खाते के</string>
+    <string name="more_apps_tagline_timenudge">काम पूरा होने तक याद दिलाते रहने वाले रिमाइंडर</string>
 </resources>

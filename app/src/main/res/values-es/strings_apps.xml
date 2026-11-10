@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">Cinco notas y nada más</string>
     <string name="more_apps_tagline_fastmask">Correo enmascarado de Fastmail en Android</string>
     <string name="more_apps_tagline_sunzones">Amanecer, atardecer y hora dorada</string>
+    <string name="more_apps_tagline_bibleme">Lector de la Biblia sin conexión ni cuenta</string>
+    <string name="more_apps_tagline_timenudge">Recordatorios que insisten hasta que lo hagas</string>
 </resources>

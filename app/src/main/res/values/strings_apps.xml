@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">Five notes, nothing else</string>
     <string name="more_apps_tagline_fastmask">Fastmail masked email on Android</string>
     <string name="more_apps_tagline_sunzones">Sunrise, sunset &amp; golden hour</string>
+    <string name="more_apps_tagline_bibleme">Offline Bible reader, no account</string>
+    <string name="more_apps_tagline_timenudge">Reminders that nag until done</string>
 </resources>

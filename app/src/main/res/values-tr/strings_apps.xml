@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">Beş not, başka hiçbir şey</string>
     <string name="more_apps_tagline_fastmask">Android için Fastmail maskeli e-posta</string>
     <string name="more_apps_tagline_sunzones">Gün doğumu, gün batımı ve altın saat</string>
+    <string name="more_apps_tagline_bibleme">Çevrimdışı Kutsal Kitap okuyucu, hesapsız</string>
+    <string name="more_apps_tagline_timenudge">İşi bitirene kadar peşini bırakmayan hatırlatıcılar</string>
 </resources>

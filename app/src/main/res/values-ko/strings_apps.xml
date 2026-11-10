@@ -8,4 +8,6 @@
     <string name="more_apps_tagline_dotenote">노트 다섯 개, 그게 전부</string>
     <string name="more_apps_tagline_fastmask">Android용 Fastmail 마스크 이메일</string>
     <string name="more_apps_tagline_sunzones">일출, 일몰, 골든 아워</string>
+    <string name="more_apps_tagline_bibleme">오프라인 성경 리더, 계정 필요 없음</string>
+    <string name="more_apps_tagline_timenudge">끝낼 때까지 계속 알려 주는 리마인더</string>
 </resources>
