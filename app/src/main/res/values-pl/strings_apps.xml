@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Wschody, zachody i złota godzina</string>
     <string name="more_apps_tagline_bibleme">Biblia offline, bez konta</string>
     <string name="more_apps_tagline_timenudge">Przypomnienia, które wracają, aż zrobisz</string>
+    <string name="more_apps_tagline_packmelist">Listy do pakowania, które liczą za ciebie</string>
+    <string name="more_apps_tagline_tessera">Timer pomodoro, każda sesja to kafelek</string>
+    <string name="more_apps_tagline_gooseneck">Timer do kawy, krok po kroku</string>
 </resources>

@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Схід, захід сонця і золота година</string>
     <string name="more_apps_tagline_bibleme">Біблія офлайн, без акаунта</string>
     <string name="more_apps_tagline_timenudge">Нагадування, які не відстануть, доки не зробиш</string>
+    <string name="more_apps_tagline_packmelist">Списки речей, які рахують за вас</string>
+    <string name="more_apps_tagline_tessera">Таймер помодоро: кожна сесія — плитка</string>
+    <string name="more_apps_tagline_gooseneck">Таймер заварювання кави крок за кроком</string>
 </resources>

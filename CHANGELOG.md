@@ -6,6 +6,11 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.4] — 2026-11-15
+
+### Added
+- "More from the maker" lists PackMeList, Tessera and Gooseneck.
+
 ## [1.14.3] — 2026-11-10
 
 ### Added

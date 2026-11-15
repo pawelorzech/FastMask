@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Lever, coucher du soleil et heure dorée</string>
     <string name="more_apps_tagline_bibleme">Lecteur de la Bible hors ligne, sans compte</string>
     <string name="more_apps_tagline_timenudge">Des rappels qui insistent jusqu\'à ce que ce soit fait</string>
+    <string name="more_apps_tagline_packmelist">Listes de bagages qui comptent pour vous</string>
+    <string name="more_apps_tagline_tessera">Minuteur pomodoro : chaque session, une tuile</string>
+    <string name="more_apps_tagline_gooseneck">Minuteur de café, étape par étape</string>
 </resources>

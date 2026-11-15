@@ -33,6 +33,15 @@ object MoreApps {
             R.string.more_apps_tagline_bibleme, R.drawable.maker_bibleme,
         ),
         MoreApp("TimeNudge", "com.timenudge", R.string.more_apps_tagline_timenudge, R.drawable.maker_timenudge),
+        MoreApp(
+            "PackMeList", "com.pawelorzech.packmelist",
+            R.string.more_apps_tagline_packmelist, R.drawable.maker_packmelist,
+        ),
+        MoreApp("Tessera", "com.pawelorzech.tessera", R.string.more_apps_tagline_tessera, R.drawable.maker_tessera),
+        MoreApp(
+            "Gooseneck", "com.pawelorzech.gooseneck",
+            R.string.more_apps_tagline_gooseneck, R.drawable.maker_gooseneck,
+        ),
     )
 
     fun otherThan(ownPackageId: String): List<MoreApp> =

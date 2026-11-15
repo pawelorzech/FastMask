@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Amanecer, atardecer y hora dorada</string>
     <string name="more_apps_tagline_bibleme">Lector de la Biblia sin conexión ni cuenta</string>
     <string name="more_apps_tagline_timenudge">Recordatorios que insisten hasta que lo hagas</string>
+    <string name="more_apps_tagline_packmelist">Listas de equipaje que cuentan por ti</string>
+    <string name="more_apps_tagline_tessera">Temporizador pomodoro: cada sesión, una tesela</string>
+    <string name="more_apps_tagline_gooseneck">Temporizador de café paso a paso</string>
 </resources>

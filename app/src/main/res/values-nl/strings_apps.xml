@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Zonsopgang, zonsondergang en gouden uur</string>
     <string name="more_apps_tagline_bibleme">Bijbellezer offline, zonder account</string>
     <string name="more_apps_tagline_timenudge">Herinneringen die blijven zeuren tot het af is</string>
+    <string name="more_apps_tagline_packmelist">Paklijsten die voor je tellen</string>
+    <string name="more_apps_tagline_tessera">Pomodoro-timer, elke sessie een tegel</string>
+    <string name="more_apps_tagline_gooseneck">Koffiezettimer, stap voor stap</string>
 </resources>

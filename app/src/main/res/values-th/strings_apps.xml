@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">พระอาทิตย์ขึ้น ตก และโกลเดนอาวร์</string>
     <string name="more_apps_tagline_bibleme">อ่านพระคัมภีร์ออฟไลน์ ไม่ต้องมีบัญชี</string>
     <string name="more_apps_tagline_timenudge">การเตือนที่ตามคุณจนกว่าจะทำเสร็จ</string>
+    <string name="more_apps_tagline_packmelist">รายการจัดกระเป๋าที่นับให้คุณ</string>
+    <string name="more_apps_tagline_tessera">ตัวจับเวลาโพโมโดโร ทุกเซสชันคือกระเบื้องหนึ่งแผ่น</string>
+    <string name="more_apps_tagline_gooseneck">ตัวจับเวลาชงกาแฟทีละขั้นตอน</string>
 </resources>

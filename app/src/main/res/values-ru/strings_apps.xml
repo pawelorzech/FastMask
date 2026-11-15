@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Рассвет, закат и золотой час</string>
     <string name="more_apps_tagline_bibleme">Библия офлайн, без аккаунта</string>
     <string name="more_apps_tagline_timenudge">Напоминания, которые не отстанут, пока не сделаешь</string>
+    <string name="more_apps_tagline_packmelist">Списки вещей, которые считают за вас</string>
+    <string name="more_apps_tagline_tessera">Таймер помодоро: каждая сессия — плитка</string>
+    <string name="more_apps_tagline_gooseneck">Таймер заваривания кофе по шагам</string>
 </resources>

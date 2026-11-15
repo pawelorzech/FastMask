@@ -21,7 +21,7 @@ class MoreAppsTest {
     fun `the new apps come last, in order, with an icon and tagline each`() {
         val apps = MoreApps.otherThan("com.fastmask")
 
-        assertEquals(listOf("BibleMe", "TimeNudge"), apps.takeLast(2).map { it.name })
+        assertEquals(listOf("TimeNudge", "PackMeList", "Tessera", "Gooseneck"), apps.takeLast(4).map { it.name })
         assertTrue(apps.all { it.iconRes != 0 && it.taglineRes != 0 })
     }
 }

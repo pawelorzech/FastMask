@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Sonnenaufgang, Sonnenuntergang und Goldene Stunde</string>
     <string name="more_apps_tagline_bibleme">Bibel-Reader offline, ohne Konto</string>
     <string name="more_apps_tagline_timenudge">Erinnerungen, die nerven, bis es erledigt ist</string>
+    <string name="more_apps_tagline_packmelist">Packlisten, die für dich zählen</string>
+    <string name="more_apps_tagline_tessera">Pomodoro-Timer, jede Sitzung eine Kachel</string>
+    <string name="more_apps_tagline_gooseneck">Kaffee-Brühtimer, Schritt für Schritt</string>
 </resources>

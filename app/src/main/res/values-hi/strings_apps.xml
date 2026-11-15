@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">सूर्योदय, सूर्यास्त और गोल्डन आवर</string>
     <string name="more_apps_tagline_bibleme">ऑफ़लाइन बाइबल रीडर, बिना खाते के</string>
     <string name="more_apps_tagline_timenudge">काम पूरा होने तक याद दिलाते रहने वाले रिमाइंडर</string>
+    <string name="more_apps_tagline_packmelist">पैकिंग सूचियाँ जो आपके लिए गिनती करें</string>
+    <string name="more_apps_tagline_tessera">पोमोडोरो टाइमर, हर सत्र एक टाइल</string>
+    <string name="more_apps_tagline_gooseneck">क़दम-दर-क़दम कॉफ़ी ब्रू टाइमर</string>
 </resources>

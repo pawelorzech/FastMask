@@ -10,4 +10,7 @@
     <string name="more_apps_tagline_sunzones">Alba, tramonto e golden hour</string>
     <string name="more_apps_tagline_bibleme">Lettore della Bibbia offline, senza account</string>
     <string name="more_apps_tagline_timenudge">Promemoria che insistono finché non hai finito</string>
+    <string name="more_apps_tagline_packmelist">Liste per la valigia che contano per te</string>
+    <string name="more_apps_tagline_tessera">Timer pomodoro: ogni sessione, una tessera</string>
+    <string name="more_apps_tagline_gooseneck">Timer per il caffè, passo dopo passo</string>
 </resources>
