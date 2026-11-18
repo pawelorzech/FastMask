@@ -1,3 +1,3 @@
-What's new in 1.14.4
+What's new in 1.14.5
 
-• New in Settings: links to three new apps from the same maker, PackMeList, Tessera and Gooseneck
+• After your third new mask, FastMask asks once if you'd like to rate it on Google Play. Skip it and it won't ask again

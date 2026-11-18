@@ -6,6 +6,11 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.5] — 2026-11-18
+
+### Added
+- One-time Google Play rating prompt after the third mask created in a real account (never in demo mode).
+
 ## [1.14.4] — 2026-11-15
 
 ### Added
