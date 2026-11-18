@@ -29,6 +29,7 @@ retrofitKotlinxSerializationConverter = "1.0.0"
 billing = "8.3.0"
 biometric = "1.1.0"
 playAppUpdate = "2.1.0"
+playReview = "2.0.2"
 securityCrypto = "1.1.0"
 datastore = "1.2.1"
 firebaseBom = "34.18.0"
@@ -84,6 +85,8 @@ play-billing = { module = "com.android.billingclient:billing", version.ref = "bi
 # Base (Java) artifact rather than `app-update-ktx`: AppUpdateController
 # hand-rolls its one suspending call, same as the Billing seam.
 play-app-update = { module = "com.google.android.play:app-update", version.ref = "playAppUpdate" }
+# Base (Java) artifact, NOT review-ktx: R8 fails on the KTX one (see PlayReviewLauncher).
+play-review = { module = "com.google.android.play:review", version.ref = "playReview" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

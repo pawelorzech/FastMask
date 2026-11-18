@@ -42,6 +42,7 @@ import com.fastmask.ui.navigation.NavRoutes
 import com.fastmask.ui.navigation.PendingShare
 import com.fastmask.ui.navigation.RoutePendingShare
 import com.fastmask.ui.theme.FastMaskTheme
+import com.fastmask.data.review.ReviewPrompter
 import com.fastmask.data.update.AppUpdateController
 import com.fastmask.data.update.AppUpdateUiState
 import com.fastmask.ui.update.UpdateReadyDialog
@@ -49,6 +50,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -81,6 +83,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var appUpdateController: AppUpdateController
+
+    @Inject
+    lateinit var reviewPrompter: ReviewPrompter
 
     private val appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest> =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -125,6 +130,21 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 appUpdateController.checkAndStart(this@MainActivity, appUpdateLauncher)
+            }
+        }
+
+        // The create screen has already popped back to the list by the time this fires. The card is
+        // held back while the app lock is up or the update restart dialog is showing, and re-checked
+        // after a short pause so it does not land on top of the new mask's own feedback.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                reviewPrompter.due.collect { due ->
+                    if (!due) return@collect
+                    delay(REVIEW_DELAY_MS)
+                    val blocked = lockGate.locked ||
+                        appUpdateController.state.value == AppUpdateUiState.ReadyToInstall
+                    if (reviewPrompter.due.value && !blocked) reviewPrompter.launch(this@MainActivity)
+                }
             }
         }
 
@@ -277,4 +297,8 @@ class MainActivity : AppCompatActivity() {
         runCatching { notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
     }
 
+
+    private companion object {
+        const val REVIEW_DELAY_MS = 1_500L
+    }
 }

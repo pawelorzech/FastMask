@@ -180,6 +180,7 @@ dependencies {
     // Google Play In-App Updates. Never gated on Pro, collects nothing: the
     // dismissed version code lives on the device and goes nowhere.
     implementation(libs.play.app.update)
+    implementation(libs.play.review)
 
     implementation(libs.androidx.security.crypto)
 

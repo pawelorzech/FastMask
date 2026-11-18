@@ -8,6 +8,7 @@ import com.fastmask.domain.model.CreateMaskedEmailParams
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskPrefix
 import com.fastmask.domain.repository.MaskedEmailRepository
+import com.fastmask.domain.review.ReviewTrigger
 import com.fastmask.ui.common.UiError
 import com.fastmask.ui.common.UiErrors
 import com.fastmask.ui.common.trimToNull
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class CreateMaskedEmailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val maskedEmailRepository: MaskedEmailRepository,
+    private val reviewTrigger: ReviewTrigger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -88,6 +90,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
             maskedEmailRepository.createMaskedEmail(params).fold(
                 onSuccess = { email ->
                     _uiState.update { it.copy(isLoading = false) }
+                    reviewTrigger.onMaskCreated()
                     _events.send(CreateMaskedEmailEvent.Created(email.email))
                 },
                 onFailure = { error ->

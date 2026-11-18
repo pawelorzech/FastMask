@@ -32,6 +32,9 @@ class CreateMaskedEmailViewModelTest {
                 if (forDomain == null) emptyMap() else mapOf(NavRoutes.ARG_FOR_DOMAIN to forDomain),
             ),
             repo,
+            object : com.fastmask.domain.review.ReviewTrigger {
+                override suspend fun onMaskCreated() = Unit
+            },
         )
 
     // --- double-tap guard (regression: duplicate masks created) ------------
