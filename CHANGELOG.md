@@ -6,6 +6,18 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.6] — 2026-11-19
+
+### Fixed
+- App lock: the unlock prompt only auto-opens while the app is in the foreground, no longer loops after cancelling the device PIN screen, and rotating during the unlock animation does not re-lock.
+- Mask detail: saving a URL the server normalizes (figma.com → https://figma.com) settles the draft and closes edit mode; inline errors clear when a new action starts.
+- Tutorial overlay keeps its step across rotation; demo tutorial state is read once per session.
+- FAB menu: the invisible tap-outside target covers the top app bar, and the collapsed button no longer morphs its icon while fading out; keyboard and navigation-bar insets on list, create and login.
+- Layout fixes on the lock, sign-in and Pro screens.
+
+### Build
+- `versionCode` 35 → 36, `versionName` "1.14.5" → "1.14.6".
+
 ## [1.14.5] — 2026-11-18
 
 ### Added

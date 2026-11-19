@@ -1,3 +1,6 @@
-Nowości w 1.14.5
+Nowości w 1.14.6
 
-• Po trzeciej utworzonej masce FastMask raz zapyta, czy chcesz ocenić go w Google Play. Pominiesz, to więcej nie zapyta
+• Blokada aplikacji nie prosi już w kółko o odcisk palca czy PIN, a obrót telefonu zaraz po odblokowaniu jej nie zamyka
+• Zapis maski z krótkim adresem typu figma.com zamyka edycję, a stare komunikaty o błędzie znikają
+• Menu pod plusem zamyka się po dotknięciu górnego paska i nie miga przy chowaniu
+• Drobne poprawki układu na ekranach blokady, logowania i Pro
