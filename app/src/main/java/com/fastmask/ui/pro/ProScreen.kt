@@ -49,20 +49,24 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.fastmask.ui.accessibility.screenHeading
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -85,6 +89,7 @@ import kotlinx.coroutines.launch
 
 private const val PRIVACY_URL = "https://pawelorzech.github.io/FastMask/privacy.html"
 private const val TERMS_URL = "https://pawelorzech.github.io/FastMask/terms.html"
+private const val PRO_TITLE_REVEAL_SCROLL_DP = 120
 
 @Composable
 fun ProScreen(
@@ -148,7 +153,9 @@ internal fun ProContent(
     val closeDesc = stringResource(R.string.action_close)
     val area = state.purchaseArea
 
-    val showBarTitle = scroll.value > 220
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val revealPx = with(LocalDensity.current) { PRO_TITLE_REVEAL_SCROLL_DP.dp.toPx() }
+    val showBarTitle by remember(revealPx) { derivedStateOf { scroll.value > revealPx } }
     val barTitleAlpha by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (showBarTitle) 1f else 0f,
         animationSpec = motion.defaultEffectsSpec(),
@@ -156,6 +163,7 @@ internal fun ProContent(
     )
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -163,7 +171,9 @@ internal fun ProContent(
                 title = {
                     Text(
                         text = stringResource(R.string.pro_title),
-                        modifier = Modifier.alpha(barTitleAlpha),
+                        modifier = Modifier
+                            .graphicsLayer { alpha = barTitleAlpha }
+                            .clearAndSetSemantics { },
                     )
                 },
                 navigationIcon = {
@@ -178,6 +188,7 @@ internal fun ProContent(
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { paddingValues ->

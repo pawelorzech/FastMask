@@ -7,9 +7,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
 
 val LocalSharedTransitionScope = staticCompositionLocalOf<SharedTransitionScope?> { null }
 val LocalNavAnimatedScope = staticCompositionLocalOf<AnimatedVisibilityScope?> { null }
@@ -26,7 +28,10 @@ fun Modifier.maskContainer(id: String, shape: Shape = RoundedCornerShape(Segment
             sharedContentState = rememberSharedContentState(key = maskContainerKey(id)),
             animatedVisibilityScope = animatedScope,
             boundsTransform = { _, _ -> spec },
-            resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds,
+            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                contentScale = ContentScale.FillWidth,
+                alignment = Alignment.TopCenter,
+            ),
             clipInOverlayDuringTransition = OverlayClip(shape),
         )
     }

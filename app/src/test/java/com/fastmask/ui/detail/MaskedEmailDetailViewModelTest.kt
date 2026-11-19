@@ -447,4 +447,113 @@ class MaskedEmailDetailViewModelTest {
         assertEquals(true, viewModel.uiState.value.isEditing)
         assertEquals(true, viewModel.uiState.value.hasChanges)
     }
+
+    @Test
+    fun `saving a bare domain syncs normalized server origin and leaves edit mode`() = runTest {
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", forDomain = null)))
+        repo.beforeUpdate = {
+            repo.emails = listOf(mask("m1", forDomain = "https://figma.com"))
+        }
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.startEditing()
+        viewModel.onForDomainChange("figma.com")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isEditing)
+        assertEquals("https://figma.com", viewModel.uiState.value.editedForDomain)
+        assertEquals(false, viewModel.uiState.value.hasChanges)
+    }
+
+    @Test
+    fun `typing into domain while normalized save is in flight keeps new keystrokes`() = runTest {
+        val releaseUpdate = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", forDomain = null))).apply {
+            beforeUpdate = {
+                releaseUpdate.await()
+                emails = listOf(mask("m1", forDomain = "https://figma.com"))
+            }
+        }
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        viewModel.startEditing()
+        viewModel.onForDomainChange("figma.com")
+        viewModel.saveChanges()
+        runCurrent()
+
+        viewModel.onForDomainChange("notion.so")
+        releaseUpdate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.value.isEditing)
+        assertEquals("notion.so", viewModel.uiState.value.editedForDomain)
+        assertEquals(true, viewModel.uiState.value.hasChanges)
+    }
+
+    @Test
+    fun `equivalent bare domain is not dirty while clearing remains dirty`() {
+        val equivalent = MaskedEmailDetailUiState(
+            email = mask("m1", forDomain = "https://figma.com"),
+            editedForDomain = "figma.com",
+        )
+        assertEquals(false, equivalent.hasChanges)
+        assertNull(equivalent.pendingChanges)
+
+        val cleared = equivalent.copy(editedForDomain = "   ")
+        assertEquals(true, cleared.hasChanges)
+        assertEquals("", cleared.pendingChanges?.forDomain)
+    }
+
+    @Test
+    fun `starting save toggle or delete clears a prior inline error`() = runTest {
+        val releaseUpdate = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(emails = listOf(mask("m1", description = "old")))
+        val viewModel = vm(repo)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline")
+        viewModel.onDescriptionChange("new")
+        viewModel.saveChanges()
+        advanceUntilIdle()
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+
+        repo.failure = null
+        repo.beforeUpdate = { releaseUpdate.await() }
+        viewModel.saveChanges()
+        runCurrent()
+        assertNull(viewModel.uiState.value.error)
+        releaseUpdate.complete(Unit)
+        advanceUntilIdle()
+
+        repo.failure = IOException("offline")
+        repo.beforeUpdate = null
+        viewModel.disable()
+        advanceUntilIdle()
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+
+        val releaseToggle = CompletableDeferred<Unit>()
+        repo.beforeUpdate = { releaseToggle.await() }
+        viewModel.disable()
+        runCurrent()
+        assertNull(viewModel.uiState.value.error)
+        releaseToggle.complete(Unit)
+        advanceUntilIdle()
+
+        // Also verified for delete: failure sets error, next delete clears it immediately.
+        repo.failure = IOException("offline")
+        repo.beforeUpdate = null
+        viewModel.delete()
+        advanceUntilIdle()
+        assertEquals(R.string.error_network, viewModel.uiState.value.error?.message)
+
+        repo.failure = null
+        viewModel.delete()
+        // Delete succeeds synchronously in FakeMaskedEmailRepository before checking,
+        // so verify error is cleared on the completed state too.
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.error)
+    }
 }

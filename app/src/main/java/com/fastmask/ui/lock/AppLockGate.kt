@@ -7,7 +7,21 @@ import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import java.util.UUID
 
-class AppLockGate {
+internal fun interface UnlockPromptLauncher {
+    fun show(
+        activity: FragmentActivity,
+        title: String,
+        onSuccess: () -> Unit,
+        onUnavailable: () -> Unit,
+        onFinished: () -> Unit,
+    ): Boolean
+}
+
+class AppLockGate internal constructor(
+    private val launcher: UnlockPromptLauncher,
+) {
+    constructor() : this(UnlockPromptLauncher(::showUnlockPrompt))
+
     var locked by mutableStateOf(false)
         private set
 
@@ -16,6 +30,9 @@ class AppLockGate {
         private set
 
     var unlocked by mutableStateOf(false)
+        private set
+
+    var autoPromptPending by mutableStateOf(false)
         private set
 
     /**
@@ -30,22 +47,38 @@ class AppLockGate {
         } else {
             lockAtLaunch
         }
+        autoPromptPending = locked
     }
 
     fun save(outState: Bundle) {
-        outState.putBoolean(KEY_LOCKED, locked)
+        // Rotating during the unlock success animation must not re-lock the user.
+        outState.putBoolean(KEY_LOCKED, locked && !unlocked)
         outState.putString(KEY_PROCESS_TOKEN, processToken)
     }
 
     fun relock() {
         unlocked = false
         locked = true
+        // System credential UI (e.g. device PIN) triggers ON_STOP; do not re-arm while
+        // a prompt is active or cancelling it would re-prompt in a loop.
+        if (!promptShowing) {
+            autoPromptPending = true
+        }
     }
 
     fun requestUnlock(activity: FragmentActivity, title: String) {
-        if (promptShowing) return
+        if (promptShowing || unlocked) return
+        launchPrompt(activity, title)
+    }
+
+    fun consumeAutoPrompt(activity: FragmentActivity, title: String) {
+        if (!autoPromptPending || !locked || unlocked || promptShowing) return
+        launchPrompt(activity, title)
+    }
+
+    private fun launchPrompt(activity: FragmentActivity, title: String) {
         promptShowing = true
-        showUnlockPrompt(
+        val launched = launcher.show(
             activity = activity,
             title = title,
             onSuccess = { unlocked = true },
@@ -54,6 +87,9 @@ class AppLockGate {
             onUnavailable = { locked = false },
             onFinished = { promptShowing = false },
         )
+        if (launched) {
+            autoPromptPending = false
+        }
     }
 
     fun onUnlockAnimationFinished() {

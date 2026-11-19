@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -230,7 +231,16 @@ class MainActivity : AppCompatActivity() {
                                 unlocked = lockGate.unlocked,
                                 onUnlockedAnimationFinished = lockGate::onUnlockAnimationFinished,
                             )
-                            LaunchedEffect(Unit) { requestUnlock() }
+                            val lifecycleOwner = LocalLifecycleOwner.current
+                            LaunchedEffect(lifecycleOwner, lockGate.autoPromptPending) {
+                                if (!lockGate.autoPromptPending) return@LaunchedEffect
+                                lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                                    lockGate.consumeAutoPrompt(
+                                        this@MainActivity,
+                                        getString(R.string.app_lock_prompt_title),
+                                    )
+                                }
+                            }
                         } else {
                             RoutePendingShare(
                                 pending = pendingShare,

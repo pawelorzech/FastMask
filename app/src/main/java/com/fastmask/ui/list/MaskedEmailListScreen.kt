@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -47,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Rect
@@ -324,90 +326,84 @@ internal fun MaskedEmailListContent(
     val fabScroll = remember { FabScrollState() }
     val atTop by remember { derivedStateOf { !listState.canScrollBackward } }
     val fabExtended = atTop || fabScroll.scrollingUp
+    val showingList = !(uiState.isLoading && uiState.emails.isEmpty()) &&
+        !(uiState.error != null && uiState.emails.isEmpty()) &&
+        uiState.filteredEmails.isNotEmpty()
+    LaunchedEffect(showingList, compactHeight) {
+        if (!showingList || !compactHeight) headerState.expand()
+    }
 
-    Scaffold(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .nestedScroll(fabScroll.connection)
-            .then(if (compactHeight) Modifier.nestedScroll(headerState.connection) else Modifier),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            val barTitle: @Composable () -> Unit = {
-                Text(
-                    text = stringResource(R.string.email_list_title),
-                    style = if (compactHeight) {
-                        MaterialTheme.typography.titleLargeEmphasized
-                    } else {
-                        MaterialTheme.typography.displaySmallEmphasized
-                    },
-                    modifier = Modifier.screenHeading(),
-                )
-            }
-            // Two pluralized fragments joined by a translatable format, not one string
-            // with two %d: Polish, Russian, Ukrainian and Arabic inflect the noun by
-            // count, and the separator in the resource lets RTL locales reorder them.
-            val barSubtitle: @Composable () -> Unit = {
-                Text(
-                    text = stringResource(
-                        R.string.list_stats,
-                        pluralStringResource(R.plurals.list_stats_active, activeCount, activeCount),
-                        pluralStringResource(R.plurals.list_stats_total, totalCount, totalCount),
-                    ),
-                )
-            }
-            val barActions: @Composable RowScope.() -> Unit = {
-                IconButton(onClick = onNavigateToSettings) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(R.string.email_list_settings),
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .nestedScroll(fabScroll.connection)
+                .then(if (compactHeight) Modifier.nestedScroll(headerState.connection) else Modifier),
+            containerColor = MaterialTheme.colorScheme.background,
+            topBar = {
+                val barTitle: @Composable () -> Unit = {
+                    Text(
+                        text = stringResource(R.string.email_list_title),
+                        style = if (compactHeight) {
+                            MaterialTheme.typography.titleLargeEmphasized
+                        } else {
+                            MaterialTheme.typography.displaySmallEmphasized
+                        },
+                        modifier = Modifier.screenHeading(),
                     )
                 }
-            }
-            val barColors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background,
-                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-            )
-            if (compactHeight) {
-                TopAppBar(
-                    title = barTitle,
-                    subtitle = barSubtitle,
-                    actions = barActions,
-                    colors = barColors,
-                    scrollBehavior = scrollBehavior,
+                // Two pluralized fragments joined by a translatable format, not one string
+                // with two %d: Polish, Russian, Ukrainian and Arabic inflect the noun by
+                // count, and the separator in the resource lets RTL locales reorder them.
+                val barSubtitle: @Composable () -> Unit = {
+                    Text(
+                        text = stringResource(
+                            R.string.list_stats,
+                            pluralStringResource(R.plurals.list_stats_active, activeCount, activeCount),
+                            pluralStringResource(R.plurals.list_stats_total, totalCount, totalCount),
+                        ),
+                    )
+                }
+                val barActions: @Composable RowScope.() -> Unit = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.email_list_settings),
+                        )
+                    }
+                }
+                val barColors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 )
-            } else {
-                LargeFlexibleTopAppBar(
-                    title = barTitle,
-                    subtitle = barSubtitle,
-                    actions = barActions,
-                    colors = barColors,
-                    scrollBehavior = scrollBehavior,
+                if (compactHeight) {
+                    TopAppBar(
+                        title = barTitle,
+                        subtitle = barSubtitle,
+                        actions = barActions,
+                        colors = barColors,
+                        scrollBehavior = scrollBehavior,
+                    )
+                } else {
+                    LargeFlexibleTopAppBar(
+                        title = barTitle,
+                        subtitle = barSubtitle,
+                        actions = barActions,
+                        colors = barColors,
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
+            },
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.padding(bottom = 72.dp),
                 )
-            }
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        floatingActionButton = {
-            CreateFabMenu(
-                expanded = menuExpanded,
-                onExpandedChange = { menuExpanded = it },
-                extended = fabExtended,
-                isCreating = uiState.isCreatingRandom,
-                onNewMask = {
-                    menuExpanded = false
-                    onNavigateToCreate()
-                },
-                onRandomMask = {
-                    menuExpanded = false
-                    onRandomMask()
-                },
-                modifier = Modifier.onGloballyPositioned { coords ->
-                    onTutorialBounds(TutorialTarget.CREATE_FAB, coords.boundsInRoot())
-                },
-            )
-        },
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            },
+        ) { paddingValues ->
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                Column(modifier = Modifier.fillMaxSize()) {
                 // The list is a cached snapshot — say so. Showing masks that
                 // may since have been deleted or renamed without marking them
                 // stale would quietly misinform.
@@ -438,22 +434,22 @@ internal fun MaskedEmailListContent(
                 // Once the app bar collapses, this block takes the bar's scrolled
                 // colour and real breathing room, so bar + search + filters read as
                 // one header. In landscape the whole block scrolls away with the list.
-                val headerColor = if (compactHeight) {
-                    MaterialTheme.colorScheme.background
-                } else {
-                    lerp(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        scrollBehavior.state.collapsedFraction,
-                    )
-                }
+                val background = MaterialTheme.colorScheme.background
+                val scrolledBackground = MaterialTheme.colorScheme.surfaceContainer
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .then(if (compactHeight) with(headerState) { Modifier.collapsing() }
                         else Modifier)
                         .then(if (compactHeight) Modifier.draggable(headerState.dragState, Orientation.Vertical) else Modifier)
-                        .drawBehind { drawRect(headerColor) }
+                        .drawBehind {
+                            val headerColor = if (compactHeight) {
+                                background
+                            } else {
+                                lerp(background, scrolledBackground, scrollBehavior.state.collapsedFraction)
+                            }
+                            drawRect(headerColor)
+                        }
                         .padding(top = 12.dp, bottom = 12.dp)
                         .readableWidth(ContentWidth.List),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -545,23 +541,46 @@ internal fun MaskedEmailListContent(
                     }
                 }
             }
-
-            // Tap-outside target behind the open FAB menu. M3 FAB menus draw no scrim, so it is
-            // invisible; it only closes the menu.
-            val closeMenuLabel = stringResource(R.string.list_fab_close_menu)
-            if (menuExpanded) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(
-                            interactionSource = null,
-                            indication = null,
-                            onClickLabel = closeMenuLabel,
-                            role = Role.Button,
-                        ) { menuExpanded = false },
-                )
-            }
         }
+        }
+
+        // Tap-outside target behind the open FAB menu. Placed above Scaffold so it covers
+        // the top app bar as well; M3 FAB menus draw no scrim, so it is invisible.
+        val closeMenuLabel = stringResource(R.string.list_fab_close_menu)
+        if (menuExpanded) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = null,
+                        indication = null,
+                        onClickLabel = closeMenuLabel,
+                        role = Role.Button,
+                    ) { menuExpanded = false },
+            )
+        }
+
+        // Placed outside Scaffold because FloatingActionButtonMenu already applies 16dp edge padding.
+        CreateFabMenu(
+            expanded = menuExpanded,
+            onExpandedChange = { menuExpanded = it },
+            extended = fabExtended,
+            isCreating = uiState.isCreatingRandom,
+            onNewMask = {
+                menuExpanded = false
+                onNavigateToCreate()
+            },
+            onRandomMask = {
+                menuExpanded = false
+                onRandomMask()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .navigationBarsPadding(),
+            buttonModifier = Modifier.onGloballyPositioned { coords ->
+                onTutorialBounds(TutorialTarget.CREATE_FAB, coords.boundsInRoot())
+            },
+        )
     }
 }
 

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -171,7 +172,10 @@ private fun MaskStateToggle(
         ) {
             Box(modifier = Modifier.padding(end = ToggleButtonDefaults.IconSpacing)) {
                 if (loading) {
-                    LoadingIndicator(modifier = Modifier.size(ToggleButtonDefaults.IconSize))
+                    LoadingIndicator(
+                        modifier = Modifier.size(ToggleButtonDefaults.IconSize),
+                        color = LocalContentColor.current,
+                    )
                 } else {
                     Icon(
                         imageVector = Icons.Filled.Check,

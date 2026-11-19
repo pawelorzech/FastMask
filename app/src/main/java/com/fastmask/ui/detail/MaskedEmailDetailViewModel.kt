@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.domain.model.MaskedEmailMetadata
 import com.fastmask.domain.model.UpdateMaskedEmailParams
 import com.fastmask.domain.repository.MaskedEmailRepository
 import com.fastmask.ui.common.UiError
@@ -52,10 +53,26 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private val _events = Channel<MaskedEmailDetailEvent>(Channel.BUFFERED)
     val events: Flow<MaskedEmailDetailEvent> = _events.receiveAsFlow()
 
-    private val loadFlight = SingleFlight<Boolean>(
+    private data class SavedDraft(
+        val description: String,
+        val forDomain: String,
+        val url: String,
+    )
+
+    private data class LoadRequest(
+        val resetEdits: Boolean,
+        val savedDraft: SavedDraft? = null,
+    )
+
+    private val loadFlight = SingleFlight<LoadRequest>(
         scope = viewModelScope,
-        merge = { queued, new -> queued && new },
-        start = { resetEdits ->
+        merge = { queued, new ->
+            LoadRequest(
+                resetEdits = queued.resetEdits && new.resetEdits,
+                savedDraft = new.savedDraft ?: queued.savedDraft,
+            )
+        },
+        start = { request ->
             // A failed refresh with a mask already on screen (cache seed or an earlier
             // success) degrades to the inline error above Save: the full-screen error
             // state would throw away what the user is looking at.
@@ -63,7 +80,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
             if (!hadEmail) {
                 _uiState.update { it.copy(isLoading = true, error = null) }
             }
-            suspend { loadOnce(resetEdits, hadEmail) }
+            suspend { loadOnce(request, hadEmail) }
         },
     )
 
@@ -73,17 +90,17 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     // resetEdits is false for the reload after a save or toggle: overwriting edited*
     // there would drop keystrokes typed while the call was in flight.
-    fun loadEmail(resetEdits: Boolean = true) = loadFlight.request(resetEdits)
+    fun loadEmail(resetEdits: Boolean = true) = loadFlight.request(LoadRequest(resetEdits))
 
-    private suspend fun loadOnce(resetEdits: Boolean, hadEmail: Boolean) {
+    private suspend fun loadOnce(request: LoadRequest, hadEmail: Boolean) {
         if (!hadEmail && _uiState.value.email == null) {
-            seedFromCache(resetEdits)
+            seedFromCache(request)
         }
 
         maskedEmailRepository.getMaskedEmail(emailId).fold(
             onSuccess = { email ->
                 if (email != null) {
-                    applyLoadedEmail(email, resetEdits)
+                    applyLoadedEmail(email, request)
                     _uiState.update { it.copy(error = null) }
                 } else {
                     // Server does not know this id: deleted elsewhere,
@@ -110,30 +127,42 @@ class MaskedEmailDetailViewModel @Inject constructor(
         )
     }
 
-    private suspend fun seedFromCache(resetEdits: Boolean) {
+    private suspend fun seedFromCache(request: LoadRequest) {
         val cached = maskedEmailRepository.cachedMaskedEmails()?.masks?.find { it.id == emailId } ?: return
         if (_uiState.value.email != null) return
-        applyLoadedEmail(cached, resetEdits)
+        applyLoadedEmail(cached, request)
     }
 
-    private fun applyLoadedEmail(email: MaskedEmail, resetEdits: Boolean) {
+    private fun applyLoadedEmail(email: MaskedEmail, request: LoadRequest) {
         _uiState.update {
-            fun refreshedField(draft: String, previous: String?, fresh: String?): String =
-                if (resetEdits && draft == previous.orEmpty()) fresh.orEmpty() else draft
+            // Sync back fields whose draft still matches what we just saved (so server-side
+            // normalization like figma.com -> https://figma.com settles the draft), while
+            // keeping any keystrokes typed while the save/reload was in flight.
+            fun refreshedField(
+                draft: String,
+                previous: String?,
+                fresh: String?,
+                savedValue: String?,
+            ): String = when {
+                savedValue != null && draft == savedValue -> fresh.orEmpty()
+                request.resetEdits && draft == previous.orEmpty() -> fresh.orEmpty()
+                else -> draft
+            }
 
+            val saved = request.savedDraft
             val loaded = it.copy(
                 isLoading = false,
                 updateOperation = null,
                 email = email,
-                editedDescription = refreshedField(it.editedDescription, it.email?.description, email.description),
-                editedForDomain = refreshedField(it.editedForDomain, it.email?.forDomain, email.forDomain),
-                editedUrl = refreshedField(it.editedUrl, it.email?.url, email.url)
+                editedDescription = refreshedField(it.editedDescription, it.email?.description, email.description, saved?.description),
+                editedForDomain = refreshedField(it.editedForDomain, it.email?.forDomain, email.forDomain, saved?.forDomain),
+                editedUrl = refreshedField(it.editedUrl, it.email?.url, email.url, saved?.url),
             )
             // A save lands when the reload after it does: only then does the
             // draft match the server again and edit mode can close. A failed
             // save, or keystrokes typed while it was in flight, keep the draft
             // and stay in edit mode.
-            if (it.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES && !loaded.hasChanges) {
+            if ((it.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES || saved != null) && !loaded.hasChanges) {
                 loaded.copy(isEditing = false)
             } else {
                 loaded
@@ -175,7 +204,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     private fun updateState(newState: EmailState) {
         if (_uiState.value.isUpdating || _uiState.value.isDeleting) return
-        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE) }
+        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE, error = null) }
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState)).fold(
                 onSuccess = {
@@ -198,12 +227,17 @@ class MaskedEmailDetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isUpdating || state.isDeleting) return
         val params = state.pendingChanges ?: return
+        val savedDraft = SavedDraft(
+            description = state.editedDescription,
+            forDomain = state.editedForDomain,
+            url = state.editedUrl,
+        )
 
-        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES) }
+        _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES, error = null) }
         viewModelScope.launch {
             maskedEmailRepository.updateMaskedEmail(emailId, params).fold(
                 onSuccess = {
-                    loadEmail(resetEdits = false)
+                    loadFlight.request(LoadRequest(resetEdits = false, savedDraft = savedDraft))
                     _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
@@ -220,7 +254,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
     fun delete() {
         if (_uiState.value.isDeleting || _uiState.value.isUpdating) return
-        _uiState.update { it.copy(isDeleting = true) }
+        _uiState.update { it.copy(isDeleting = true, error = null) }
         viewModelScope.launch {
             maskedEmailRepository.archiveMaskedEmail(emailId).fold(
                 onSuccess = {
@@ -266,10 +300,16 @@ data class MaskedEmailDetailUiState(
     val pendingChanges: UpdateMaskedEmailParams?
         get() {
             val current = email ?: return null
+            // Comparing against the normalized origin avoids treating "figma.com" as dirty
+            // when the server already holds "https://figma.com"; invalid input still stays dirty.
+            val forDomainChange = editedForDomain.trimmedIfChangedFrom(current.forDomain)?.takeIf { raw ->
+                val normalized = MaskedEmailMetadata.normalizeForDomain(raw)
+                normalized == null || normalized != current.forDomain.orEmpty()
+            }
             // Empty string clears a field; null leaves its server value unchanged.
             val params = UpdateMaskedEmailParams(
                 description = editedDescription.trimmedIfChangedFrom(current.description),
-                forDomain = editedForDomain.trimmedIfChangedFrom(current.forDomain),
+                forDomain = forDomainChange,
                 url = editedUrl.trimmedIfChangedFrom(current.url),
             )
             return params.takeIf { it.description != null || it.forDomain != null || it.url != null }

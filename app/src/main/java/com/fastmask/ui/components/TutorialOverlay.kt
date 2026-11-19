@@ -1,6 +1,7 @@
 package com.fastmask.ui.components
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
@@ -34,7 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,15 +86,18 @@ fun TutorialOverlay(
 ) {
     if (steps.isEmpty()) return
 
-    var currentStep by remember { mutableIntStateOf(0) }
+    var currentStep by rememberSaveable { mutableIntStateOf(0) }
+    var wasVisible by rememberSaveable { mutableStateOf(visible) }
 
-    // The composable stays in composition across show/hide cycles, so restart from
-    // step 1 every time it becomes visible again.
+    // Restart from step 1 on hide -> show cycles while preserving the active step across rotation.
     LaunchedEffect(visible) {
-        if (visible) {
+        if (visible && !wasVisible) {
             currentStep = 0
         }
+        wasVisible = visible
     }
+
+    BackHandler(enabled = visible) { onSkip() }
 
     AnimatedVisibility(
         visible = visible,

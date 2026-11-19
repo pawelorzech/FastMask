@@ -139,7 +139,7 @@ class FakeSessionRepository(
     private val _session = MutableStateFlow(initial)
     override val session: StateFlow<Session> = _session
     private val tutorial = MutableStateFlow(false)
-    override val tutorialCompleted: Flow<Boolean> = tutorial
+    override val tutorialCompleted: StateFlow<Boolean> = tutorial
 
     var signInCalls = 0
     var lastToken: String? = null
@@ -156,10 +156,12 @@ class FakeSessionRepository(
     override suspend fun enterDemo() {
         enterDemoCalls++
         enterDemoFailure?.let { throw it }
+        tutorial.value = false
         _session.value = Session.DEMO
     }
 
     override suspend fun signOut() {
+        tutorial.value = false
         _session.value = Session.SIGNED_OUT
     }
 

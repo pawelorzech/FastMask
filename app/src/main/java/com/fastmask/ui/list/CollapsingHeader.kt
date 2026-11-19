@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
  */
 @Stable
 internal class CollapsingHeaderState {
-    private var heightPx by mutableFloatStateOf(0f)
+    internal var heightPx by mutableFloatStateOf(0f)
 
     /** 0 = fully shown, -heightPx = fully collapsed. */
     var offsetPx by mutableFloatStateOf(0f)
@@ -37,6 +37,10 @@ internal class CollapsingHeaderState {
         val consumed = next - offsetPx
         offsetPx = next
         return consumed
+    }
+
+    fun expand() {
+        offsetPx = 0f
     }
 
     val connection = object : NestedScrollConnection {

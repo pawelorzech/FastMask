@@ -1,7 +1,6 @@
 package com.fastmask.domain.repository
 
 import com.fastmask.domain.model.Session
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface SessionRepository {
@@ -17,7 +16,7 @@ interface SessionRepository {
 
     suspend fun signOut()
 
-    val tutorialCompleted: Flow<Boolean>
+    val tutorialCompleted: StateFlow<Boolean>
 
     suspend fun completeTutorial()
 }

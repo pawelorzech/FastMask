@@ -171,4 +171,26 @@ class SessionRepositoryImplTest {
         assertEquals(seed, demoRepository.getMaskedEmails().getOrThrow().map { it.id })
         assertEquals(Session.DEMO, repository.session.value)
     }
+
+    @Test
+    fun `cold start in demo loads persisted tutorialCompleted before first composition`() = runTest {
+        storedDemo = true
+        every { store.tutorialCompleted } returns flowOf(true)
+        val repository = repository()
+
+        assertEquals(Session.DEMO, repository.current())
+        assertTrue(repository.tutorialCompleted.value)
+    }
+
+    @Test
+    fun `enterDemo resets tutorialCompleted and completeTutorial sets it`() = runTest {
+        val repository = repository()
+        assertTrue(repository.tutorialCompleted.value)
+
+        repository.enterDemo()
+        assertFalse(repository.tutorialCompleted.value)
+
+        repository.completeTutorial()
+        assertTrue(repository.tutorialCompleted.value)
+    }
 }

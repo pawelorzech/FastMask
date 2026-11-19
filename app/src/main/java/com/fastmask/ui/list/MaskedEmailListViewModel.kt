@@ -19,11 +19,9 @@ import com.fastmask.core.QuietWriteFailure
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -60,11 +58,7 @@ class MaskedEmailListViewModel @Inject constructor(
 
     val session: StateFlow<Session> = sessionRepository.session
 
-    val tutorialCompleted: StateFlow<Boolean> = sessionRepository.tutorialCompleted.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = false,
-    )
+    val tutorialCompleted: StateFlow<Boolean> = sessionRepository.tutorialCompleted
 
     fun markTutorialCompleted() {
         viewModelScope.launch(QuietWriteFailure) {

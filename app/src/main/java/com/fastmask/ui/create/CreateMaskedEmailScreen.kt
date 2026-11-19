@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -40,6 +41,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -135,13 +137,14 @@ internal fun CreateMaskedEmailContent(
     onReauthenticate: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val barRaised by remember { derivedStateOf { scrollState.value > 0 } }
     val closeDesc = stringResource(R.string.action_close)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             ScrollRaisedTopBar(
-                raised = scrollState.value > 0,
+                raised = barRaised,
                 title = {
                     Text(
                         text = stringResource(R.string.create_email_title),
@@ -161,6 +164,7 @@ internal fun CreateMaskedEmailContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
                 .imePadding()
                 .verticalScroll(scrollState)
                 .readableWidth(ContentWidth.Form)

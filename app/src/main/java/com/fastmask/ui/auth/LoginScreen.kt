@@ -16,9 +16,11 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -185,6 +187,8 @@ internal fun LoginContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .readableWidth(ContentWidth.Form)
                 .padding(horizontal = 24.dp)
@@ -390,7 +394,7 @@ private fun HowToCard(
     )
 
     Surface(
-        shape = RoundedCornerShape(corner),
+        shape = RoundedCornerShape(corner.coerceAtLeast(0.dp)),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = modifier.fillMaxWidth(),
     ) {

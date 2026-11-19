@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -42,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -172,7 +176,8 @@ internal fun MaskedEmailDetailContent(
 ) {
     val scrollState = rememberScrollState()
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
-    val titleVisible = scrollState.value > revealPx
+    val titleVisible by remember(revealPx) { derivedStateOf { scrollState.value > revealPx } }
+    val barRaised by remember { derivedStateOf { scrollState.value > 0 } }
 
     val titleAlpha by animateFloatAsState(
         targetValue = if (titleVisible) 1f else 0f,
@@ -182,7 +187,7 @@ internal fun MaskedEmailDetailContent(
 
     val email = uiState.email
     val backDesc = stringResource(R.string.navigate_back)
-    val containerModifier = if (containerId != null) Modifier.maskContainer(containerId) else Modifier
+    val containerModifier = if (containerId != null) Modifier.maskContainer(containerId, shape = RectangleShape) else Modifier
 
     Scaffold(
         modifier = containerModifier.fillMaxSize(),
@@ -190,7 +195,7 @@ internal fun MaskedEmailDetailContent(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             ScrollRaisedTopBar(
-                raised = scrollState.value > 0,
+                raised = barRaised,
                 title = {
                     Text(
                         text = email?.localPart.orEmpty(),
@@ -218,7 +223,8 @@ internal fun MaskedEmailDetailContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues),
         ) {
             when {
                 uiState.isLoading && email == null -> Box(
@@ -293,6 +299,7 @@ private fun DetailBody(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .verticalScroll(scrollState)
             .readableWidth(ContentWidth.Form)
             .padding(bottom = 32.dp),

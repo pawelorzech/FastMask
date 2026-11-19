@@ -7,6 +7,7 @@ import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 
 private const val ALLOWED_AUTHENTICATORS = BIOMETRIC_WEAK or DEVICE_CREDENTIAL
 
@@ -20,11 +21,19 @@ fun showUnlockPrompt(
     onSuccess: () -> Unit,
     onUnavailable: () -> Unit,
     onFinished: () -> Unit,
-) {
+): Boolean {
+    // BiometricPrompt.authenticate() returns silently without invoking any callback once
+    // FragmentManager has saved state or stopped, which would leave `promptShowing` stuck.
+    if (activity.supportFragmentManager.isStateSaved ||
+        !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+    ) {
+        onFinished()
+        return false
+    }
     if (!canUseAppLock(activity)) {
         onFinished()
         onUnavailable()
-        return
+        return true
     }
     val promptInfo = BiometricPrompt.PromptInfo.Builder()
         .setTitle(title)
@@ -55,4 +64,5 @@ fun showUnlockPrompt(
         },
     )
     prompt.authenticate(promptInfo)
+    return true
 }

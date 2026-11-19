@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Fingerprint
@@ -46,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.ui.accessibility.screenHeading
+import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.theme.FastMaskTheme
 import kotlinx.coroutines.delay
 
@@ -101,13 +104,19 @@ internal fun LockContent(
         label = "lockSwell",
     )
 
+    val compactHeight = isCompactHeight()
+    val heroSize = if (compactHeight) 104.dp else 168.dp
+    val iconSize = if (compactHeight) 44.dp else 64.dp
+    val sectionSpacing = if (compactHeight) 16.dp else 32.dp
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             // The only screen without a Scaffold, so nothing else applies the
             // system-bar insets (edge-to-edge is enforced from API 35).
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(32.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(if (compactHeight) 20.dp else 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -118,7 +127,7 @@ internal fun LockContent(
             rotationStepDegrees = 30f,
             fast = promptActive || unlocked,
             modifier = Modifier
-                .size(168.dp)
+                .size(heroSize)
                 .graphicsLayer {
                     scaleX = swell
                     scaleY = swell
@@ -137,11 +146,11 @@ internal fun LockContent(
                     imageVector = if (done) Icons.Filled.Check else Icons.Filled.Fingerprint,
                     contentDescription = null,
                     tint = content,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(iconSize),
                 )
             }
         }
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(sectionSpacing))
         Text(
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLargeEmphasized,
@@ -155,7 +164,7 @@ internal fun LockContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(sectionSpacing))
         val height = ButtonDefaults.MediumContainerHeight
         Button(
             onClick = { if (!unlocked) onUnlockClick() },

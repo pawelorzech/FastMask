@@ -1,6 +1,8 @@
 package com.fastmask.ui.list
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -18,17 +20,18 @@ import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -39,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
 
@@ -69,6 +73,7 @@ internal fun CreateFabMenu(
     onNewMask: () -> Unit,
     onRandomMask: () -> Unit,
     modifier: Modifier = Modifier,
+    buttonModifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
     val createDescription = stringResource(R.string.email_list_create_description)
@@ -81,6 +86,7 @@ internal fun CreateFabMenu(
     val enterScale = motion.defaultSpatialSpec<Float>()
     val exitFade = motion.fastEffectsSpec<Float>()
     val exitScale = motion.fastSpatialSpec<Float>()
+    val sizeSpec = motion.fastSpatialSpec<IntSize>()
 
     FloatingActionButtonMenu(
         expanded = expanded,
@@ -88,9 +94,12 @@ internal fun CreateFabMenu(
         button = {
             AnimatedContent(
                 targetState = extended && !expanded,
+                contentAlignment = Alignment.CenterEnd,
+                modifier = buttonModifier,
                 transitionSpec = {
                     (fadeIn(enterFade) + scaleIn(enterScale, initialScale = 0.85f))
                         .togetherWith(fadeOut(exitFade) + scaleOut(exitScale, targetScale = 0.85f))
+                        .using(SizeTransform(clip = false) { _, _ -> sizeSpec })
                 },
                 label = "fabVariant",
             ) { showExtended ->
@@ -107,7 +116,10 @@ internal fun CreateFabMenu(
                         modifier = Modifier.semantics { contentDescription = newLabel },
                         icon = {
                             if (isCreating) {
-                                LoadingIndicator(modifier = Modifier.size(24.dp))
+                                LoadingIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = LocalContentColor.current,
+                                )
                             } else {
                                 Icon(Icons.Filled.Add, contentDescription = null)
                             }
@@ -115,12 +127,14 @@ internal fun CreateFabMenu(
                         text = { Text(newLabel) },
                     )
                 } else {
-                    // The toggle starts unchecked and flips a frame later, so the
-                    // + -> x morph plays when the menu opens from the extended FAB.
-                    var checked by remember { mutableStateOf(false) }
-                    LaunchedEffect(expanded) { checked = expanded }
+                    // Freeze `checked` while exiting so a collapsed ToggleFloatingActionButton
+                    // does not morph its icon mid-fadeOut when switching back to Extended FAB.
+                    var lastChecked by remember { mutableStateOf(expanded) }
+                    if (transition.targetState == EnterExitState.Visible) {
+                        lastChecked = expanded
+                    }
                     ToggleFloatingActionButton(
-                        checked = checked,
+                        checked = lastChecked,
                         onCheckedChange = { open ->
                             haptic.performHapticFeedback(
                                 if (open) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
@@ -132,7 +146,10 @@ internal fun CreateFabMenu(
                         },
                     ) {
                         if (isCreating && !expanded) {
-                            LoadingIndicator(modifier = Modifier.size(24.dp))
+                            LoadingIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = LocalContentColor.current,
+                            )
                         } else {
                             val icon by remember {
                                 derivedStateOf { if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add }

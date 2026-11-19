@@ -1,6 +1,6 @@
 package com.fastmask.ui.pro
 
-import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -11,28 +11,32 @@ import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.fastmask.ui.theme.FastMaskTheme
 import com.fastmask.ui.components.expressive.MorphingShape
+import com.fastmask.ui.components.expressive.rememberMotionReduced
+import com.fastmask.ui.theme.FastMaskTheme
 
 /** Purely decorative: exposes no semantics. */
 @Composable
 internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
     val motion = MaterialTheme.motionScheme
-    var clusterScale by remember { mutableFloatStateOf(1f) }
-    LaunchedEffect(celebrate) {
-        if (celebrate) {
-            animate(1f, 1.18f, animationSpec = motion.fastSpatialSpec()) { v, _ -> clusterScale = v }
-            animate(1.18f, 1f, animationSpec = motion.defaultSpatialSpec()) { v, _ -> clusterScale = v }
+    val reduced = rememberMotionReduced()
+    val clusterScale = remember { Animatable(1f) }
+    LaunchedEffect(celebrate, reduced) {
+        if (celebrate && !reduced) {
+            clusterScale.animateTo(
+                targetValue = 1f,
+                animationSpec = motion.defaultSpatialSpec(),
+                initialVelocity = 6f,
+            )
+        } else {
+            clusterScale.snapTo(1f)
         }
     }
     val scheme = MaterialTheme.colorScheme
@@ -41,8 +45,9 @@ internal fun ProHero(celebrate: Boolean, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(width = 200.dp, height = 190.dp)
             .graphicsLayer {
-                scaleX = clusterScale
-                scaleY = clusterScale
+                val scale = clusterScale.value
+                scaleX = scale
+                scaleY = scale
             }
             .clearAndSetSemantics { },
     ) {

@@ -10,10 +10,10 @@ import com.fastmask.data.repository.DemoMaskedEmailRepositoryImpl
 import com.fastmask.domain.model.Session
 import com.fastmask.domain.repository.SessionRepository
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -36,7 +36,8 @@ class SessionRepositoryImpl @Inject constructor(
     private val _session = MutableStateFlow(Session.SIGNED_OUT)
     override val session: StateFlow<Session> = _session.asStateFlow()
 
-    override val tutorialCompleted: Flow<Boolean> = store.tutorialCompleted
+    private val _tutorialCompleted = MutableStateFlow(true)
+    override val tutorialCompleted: StateFlow<Boolean> = _tutorialCompleted.asStateFlow()
 
     override suspend fun current(): Session = mutex.withLock {
         if (!loaded) publish(withContext(ioDispatcher) { read() })
@@ -48,7 +49,11 @@ class SessionRepositoryImpl @Inject constructor(
         // EncryptedSharedPreferences (Tink + Keystore), the slowest read at
         // startup. An unreadable preferences file falls back to the real
         // account rather than silently into the demo.
-        runSuspendCatching { store.isDemo() }.getOrDefault(false) -> Session.DEMO
+        runSuspendCatching { store.isDemo() }.getOrDefault(false) -> {
+            _tutorialCompleted.value = runSuspendCatching { store.tutorialCompleted.first() }
+                .getOrDefault(true)
+            Session.DEMO
+        }
         tokenStorage.hasToken() -> Session.ACCOUNT
         else -> Session.SIGNED_OUT
     }
@@ -69,6 +74,7 @@ class SessionRepositoryImpl @Inject constructor(
     override suspend fun enterDemo() = mutex.withLock {
         demoRepository.reset()
         store.startDemo()
+        _tutorialCompleted.value = false
         publish(Session.DEMO)
     }
 
@@ -77,11 +83,15 @@ class SessionRepositoryImpl @Inject constructor(
             tokenStorage.clearToken()
             clearAccountData()
             store.endDemo()
+            _tutorialCompleted.value = false
             publish(Session.SIGNED_OUT)
         }
     }
 
-    override suspend fun completeTutorial() = store.completeTutorial()
+    override suspend fun completeTutorial() {
+        store.completeTutorial()
+        _tutorialCompleted.value = true
+    }
 
     // The offline snapshot and CSV exports hold every mask and must not outlive
     // the account they came from.
