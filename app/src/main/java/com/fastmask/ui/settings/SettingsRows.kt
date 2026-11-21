@@ -1,5 +1,11 @@
 package com.fastmask.ui.settings
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -8,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -63,6 +70,30 @@ internal fun SettingsRow(
     showProgress: Boolean = false,
     progressDescription: String? = null,
 ) {
+    val motion = MaterialTheme.motionScheme
+    val fastEffects = motion.fastEffectsSpec<Float>()
+    val fastSpatial = motion.fastSpatialSpec<Float>()
+    val trailingSlot: (@Composable () -> Unit)? = if (showProgress || trailing != null) {
+        {
+            AnimatedContent(
+                targetState = showProgress,
+                transitionSpec = {
+                    (fadeIn(fastEffects) + scaleIn(fastSpatial, initialScale = 0.6f)) togetherWith
+                        (fadeOut(fastEffects) + scaleOut(fastSpatial, targetScale = 0.6f))
+                },
+                label = "settingsTrailing",
+            ) { progress ->
+                if (progress) {
+                    LoadingIndicator(modifier = Modifier.size(32.dp))
+                } else {
+                    trailing?.invoke()
+                }
+            }
+        }
+    } else {
+        null
+    }
+
     SegmentedRow(
         index = index,
         count = count,
@@ -76,11 +107,7 @@ internal fun SettingsRow(
         onClick = onClick,
         leading = leading,
         supporting = supporting?.let { text -> { Text(text) } },
-        trailing = if (showProgress) {
-            { LoadingIndicator(modifier = Modifier.size(32.dp)) }
-        } else {
-            trailing
-        },
+        trailing = trailingSlot,
         headline = { Text(text = label, color = labelColor) },
     )
 }

@@ -39,8 +39,16 @@ class MaskedEmailDetailViewModel @Inject constructor(
         "emailId is required"
     }
 
+    private val initialEmail = maskedEmailRepository.peekMaskedEmail(emailId)
+
     private val _uiState = MutableStateFlow(
-        MaskedEmailDetailUiState(isEditing = savedStateHandle[KEY_EDITING] ?: false),
+        MaskedEmailDetailUiState(
+            email = initialEmail,
+            isEditing = savedStateHandle[KEY_EDITING] ?: false,
+            editedDescription = initialEmail?.description.orEmpty(),
+            editedForDomain = initialEmail?.forDomain.orEmpty(),
+            editedUrl = initialEmail?.url.orEmpty(),
+        ),
     )
     val uiState: StateFlow<MaskedEmailDetailUiState> = _uiState.asStateFlow()
 

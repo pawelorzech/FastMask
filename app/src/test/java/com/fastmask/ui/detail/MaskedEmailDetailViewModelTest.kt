@@ -556,4 +556,46 @@ class MaskedEmailDetailViewModelTest {
         advanceUntilIdle()
         assertNull(viewModel.uiState.value.error)
     }
+
+    @Test
+    fun `peeked mask populates frame zero before coroutines run and refreshes from network`() = runTest {
+        val releaseNetwork = CompletableDeferred<Unit>()
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(
+                mask(
+                    id = "m1",
+                    description = "fresh note",
+                    forDomain = "fresh.example",
+                    url = "https://fresh.example",
+                ),
+            ),
+        ).apply {
+            peeked = mask(
+                id = "m1",
+                description = "cached note",
+                forDomain = "cached.example",
+                url = "https://cached.example",
+            )
+            beforeGetSingle = { releaseNetwork.await() }
+        }
+
+        val viewModel = vm(repo)
+
+        // Frame 0: populated synchronously in init before any coroutine resumes.
+        val frame0 = viewModel.uiState.value
+        assertEquals(false, frame0.isLoading)
+        assertEquals("cached note", frame0.email?.description)
+        assertEquals("cached note", frame0.editedDescription)
+        assertEquals("cached.example", frame0.editedForDomain)
+        assertEquals("https://cached.example", frame0.editedUrl)
+
+        releaseNetwork.complete(Unit)
+        advanceUntilIdle()
+
+        val refreshed = viewModel.uiState.value
+        assertEquals("fresh note", refreshed.email?.description)
+        assertEquals("fresh note", refreshed.editedDescription)
+        assertEquals("fresh.example", refreshed.editedForDomain)
+        assertEquals("https://fresh.example", refreshed.editedUrl)
+    }
 }

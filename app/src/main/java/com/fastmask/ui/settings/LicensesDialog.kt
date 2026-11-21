@@ -1,5 +1,8 @@
 package com.fastmask.ui.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -70,13 +73,19 @@ internal fun LicensesDialog(onDismiss: () -> Unit) {
                             color = MaterialTheme.colorScheme.primary,
                         )
                         val body = texts?.getOrNull(index)
-                        if (body != null) {
-                            Text(
-                                body,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
+                        val motion = MaterialTheme.motionScheme
+                        AnimatedVisibility(
+                            visible = body != null,
+                            enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                        ) {
+                            body?.let { text ->
+                                Text(
+                                    text,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            }
                         }
                     }
                 }

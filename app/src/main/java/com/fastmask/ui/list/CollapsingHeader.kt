@@ -1,5 +1,7 @@
 package com.fastmask.ui.list
 
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.gestures.DraggableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -41,6 +43,17 @@ internal class CollapsingHeaderState {
 
     fun expand() {
         offsetPx = 0f
+    }
+
+    suspend fun animateExpand(spec: AnimationSpec<Float>) {
+        if (offsetPx == 0f) return
+        animate(
+            initialValue = offsetPx,
+            targetValue = 0f,
+            animationSpec = spec,
+        ) { value, _ ->
+            offsetPx = value.coerceAtMost(0f)
+        }
     }
 
     val connection = object : NestedScrollConnection {

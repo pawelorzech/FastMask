@@ -12,6 +12,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -224,46 +232,74 @@ class MainActivity : AppCompatActivity() {
                             )
                         }
 
-                        if (isLocked) {
-                            LockScreen(
-                                onUnlockClick = ::requestUnlock,
-                                promptActive = lockGate.promptShowing,
-                                unlocked = lockGate.unlocked,
-                                onUnlockedAnimationFinished = lockGate::onUnlockAnimationFinished,
-                            )
-                            val lifecycleOwner = LocalLifecycleOwner.current
-                            LaunchedEffect(lifecycleOwner, lockGate.autoPromptPending) {
-                                if (!lockGate.autoPromptPending) return@LaunchedEffect
-                                lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                                    lockGate.consumeAutoPrompt(
-                                        this@MainActivity,
-                                        getString(R.string.app_lock_prompt_title),
+                        val motion = MaterialTheme.motionScheme
+                        val unlockSpatial = motion.slowSpatialSpec<Float>()
+                        val unlockFadeIn = motion.defaultEffectsSpec<Float>()
+                        val unlockFadeOut = motion.fastEffectsSpec<Float>()
+
+                        AnimatedContent(
+                            targetState = isLocked,
+                            transitionSpec = {
+                                if (initialState && !targetState) {
+                                    ContentTransform(
+                                        targetContentEnter = scaleIn(unlockSpatial, initialScale = 0.94f) + fadeIn(unlockFadeIn),
+                                        initialContentExit = scaleOut(unlockSpatial, targetScale = 1.08f) + fadeOut(unlockFadeOut),
+                                        targetContentZIndex = -1f,
+                                        sizeTransform = null,
+                                    )
+                                } else {
+                                    // Relocking covers the screen immediately with zero animation leak.
+                                    ContentTransform(
+                                        targetContentEnter = EnterTransition.None,
+                                        initialContentExit = ExitTransition.None,
+                                        targetContentZIndex = 1f,
+                                        sizeTransform = null,
                                     )
                                 }
-                            }
-                        } else {
-                            RoutePendingShare(
-                                pending = pendingShare,
-                                signedIn = signedIn,
-                                locked = isLocked,
-                                navController = navController,
-                            )
-                            FastMaskNavHost(
-                                navController = navController,
-                                startDestination = startDestination
-                            )
-
-                            // Inside the unlocked branch on purpose: a restart
-                            // prompt must not be the first thing drawn over the
-                            // biometric gate. It reappears on the next check
-                            // anyway, and the download it offers to install is
-                            // not going anywhere.
-                            val updateState by appUpdateController.state.collectAsStateWithLifecycle()
-                            if (updateState == AppUpdateUiState.ReadyToInstall) {
-                                UpdateReadyDialog(
-                                    onInstall = appUpdateController::completeInstall,
-                                    onDismiss = appUpdateController::dismissInstallPrompt,
+                            },
+                            label = "lockGate",
+                        ) { locked ->
+                            if (locked) {
+                                LockScreen(
+                                    onUnlockClick = ::requestUnlock,
+                                    promptActive = lockGate.promptShowing,
+                                    unlocked = lockGate.unlocked || !isLocked,
+                                    onUnlockedAnimationFinished = lockGate::onUnlockAnimationFinished,
                                 )
+                                val lifecycleOwner = LocalLifecycleOwner.current
+                                LaunchedEffect(lifecycleOwner, lockGate.autoPromptPending) {
+                                    if (!lockGate.autoPromptPending) return@LaunchedEffect
+                                    lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                                        lockGate.consumeAutoPrompt(
+                                            this@MainActivity,
+                                            getString(R.string.app_lock_prompt_title),
+                                        )
+                                    }
+                                }
+                            } else {
+                                RoutePendingShare(
+                                    pending = pendingShare,
+                                    signedIn = signedIn,
+                                    locked = locked,
+                                    navController = navController,
+                                )
+                                FastMaskNavHost(
+                                    navController = navController,
+                                    startDestination = startDestination
+                                )
+
+                                // Inside the unlocked branch on purpose: a restart
+                                // prompt must not be the first thing drawn over the
+                                // biometric gate. It reappears on the next check
+                                // anyway, and the download it offers to install is
+                                // not going anywhere.
+                                val updateState by appUpdateController.state.collectAsStateWithLifecycle()
+                                if (updateState == AppUpdateUiState.ReadyToInstall) {
+                                    UpdateReadyDialog(
+                                        onInstall = appUpdateController::completeInstall,
+                                        onDismiss = appUpdateController::dismissInstallPrompt,
+                                    )
+                                }
                             }
                         }
                     }

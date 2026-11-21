@@ -1,6 +1,16 @@
 package com.fastmask.ui.list
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -70,6 +80,8 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -323,6 +335,16 @@ internal fun MaskedEmailListContent(
     var menuExpanded by rememberSaveable { mutableStateOf(initialMenuExpanded) }
     BackHandler(enabled = menuExpanded) { menuExpanded = false }
 
+    val motion = MaterialTheme.motionScheme
+    val collapseSpec = motion.defaultSpatialSpec<Float>()
+    val expandSpatial = motion.defaultSpatialSpec<IntSize>()
+    val shrinkSpatial = motion.fastSpatialSpec<IntSize>()
+    val enterEffects = motion.defaultEffectsSpec<Float>()
+    val exitEffects = motion.fastEffectsSpec<Float>()
+    val stateEnterOffset = motion.defaultSpatialSpec<IntOffset>()
+    val stateEnterScale = motion.defaultSpatialSpec<Float>()
+    val stateExitScale = motion.fastSpatialSpec<Float>()
+
     val fabScroll = remember { FabScrollState() }
     val atTop by remember { derivedStateOf { !listState.canScrollBackward } }
     val fabExtended = atTop || fabScroll.scrollingUp
@@ -330,7 +352,7 @@ internal fun MaskedEmailListContent(
         !(uiState.error != null && uiState.emails.isEmpty()) &&
         uiState.filteredEmails.isNotEmpty()
     LaunchedEffect(showingList, compactHeight) {
-        if (!showingList || !compactHeight) headerState.expand()
+        if (!showingList || !compactHeight) headerState.animateExpand(collapseSpec)
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -407,28 +429,44 @@ internal fun MaskedEmailListContent(
                 // The list is a cached snapshot — say so. Showing masks that
                 // may since have been deleted or renamed without marking them
                 // stale would quietly misinform.
-                uiState.cachedAt?.let { cachedAt ->
-                    OfflineBanner(
-                        text = stringResource(
-                            R.string.list_offline_cached,
-                            RelativeTime.format(context, cachedAt),
-                        ),
-                        modifier = Modifier.readableWidth(ContentWidth.List),
-                    )
+                var lastCachedAt by remember { mutableStateOf(uiState.cachedAt) }
+                if (uiState.cachedAt != null) lastCachedAt = uiState.cachedAt
+                AnimatedVisibility(
+                    visible = uiState.cachedAt != null,
+                    enter = expandVertically(expandSpatial) + fadeIn(enterEffects),
+                    exit = shrinkVertically(shrinkSpatial) + fadeOut(exitEffects),
+                ) {
+                    lastCachedAt?.let { cachedAt ->
+                        OfflineBanner(
+                            text = stringResource(
+                                R.string.list_offline_cached,
+                                RelativeTime.format(context, cachedAt),
+                            ),
+                            modifier = Modifier.readableWidth(ContentWidth.List),
+                        )
+                    }
                 }
 
                 // A manual refresh can fail while the previous good list is
                 // still usable. Keep the data on screen, but do not turn the
                 // failed request into a silent no-op.
-                uiState.inlineError?.let { error ->
-                    InlineErrorBanner(
-                        error = error,
-                        onRetry = onRefresh,
-                        onReauthenticate = onReauthenticate,
-                        modifier = Modifier
-                            .readableWidth(ContentWidth.List)
-                            .padding(horizontal = ListGutter, vertical = 4.dp),
-                    )
+                var lastInlineError by remember { mutableStateOf(uiState.inlineError) }
+                if (uiState.inlineError != null) lastInlineError = uiState.inlineError
+                AnimatedVisibility(
+                    visible = uiState.inlineError != null,
+                    enter = expandVertically(expandSpatial) + fadeIn(enterEffects),
+                    exit = shrinkVertically(shrinkSpatial) + fadeOut(exitEffects),
+                ) {
+                    lastInlineError?.let { error ->
+                        InlineErrorBanner(
+                            error = error,
+                            onRetry = onRefresh,
+                            onReauthenticate = onReauthenticate,
+                            modifier = Modifier
+                                .readableWidth(ContentWidth.List)
+                                .padding(horizontal = ListGutter, vertical = 4.dp),
+                        )
+                    }
                 }
 
                 // Once the app bar collapses, this block takes the bar's scrolled
@@ -475,69 +513,116 @@ internal fun MaskedEmailListContent(
 
                     // Live region for TalkBack: announces the hit count while searching. Without a
                     // query the filter buttons already carry the counts, so it stays out of the way.
-                    if (uiState.emails.isNotEmpty() && uiState.searchQuery.isNotBlank()) {
-                        Text(
-                            text = stringResource(
-                                R.string.email_list_result_count,
-                                uiState.filteredEmails.size,
-                                uiState.emails.size,
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = ListGutter).politeLiveRegion(),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.End,
+                    val showResultCount = uiState.emails.isNotEmpty() && uiState.searchQuery.isNotBlank()
+                    val resultCountText = if (showResultCount) {
+                        stringResource(
+                            R.string.email_list_result_count,
+                            uiState.filteredEmails.size,
+                            uiState.emails.size,
                         )
+                    } else {
+                        null
+                    }
+                    var lastResultCountText by remember { mutableStateOf(resultCountText) }
+                    if (resultCountText != null) lastResultCountText = resultCountText
+                    AnimatedVisibility(
+                        visible = showResultCount,
+                        enter = expandVertically(shrinkSpatial) + fadeIn(enterEffects),
+                        exit = shrinkVertically(shrinkSpatial) + fadeOut(exitEffects),
+                    ) {
+                        lastResultCountText?.let { countText ->
+                            Text(
+                                text = countText,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = ListGutter)
+                                    .then(if (showResultCount) Modifier.politeLiveRegion() else Modifier),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                            )
+                        }
                     }
                 }
 
-                when {
-                    uiState.isLoading && uiState.emails.isEmpty() -> {
-                        Column(Modifier.fillMaxSize()) {
-                            demoBanner()
-                            LoadingShimmer(
-                                loadingDescription = stringResource(R.string.state_working),
-                            )
+                val listMode = when {
+                    uiState.isLoading && uiState.emails.isEmpty() -> ListContentMode.LOADING
+                    uiState.error != null && uiState.emails.isEmpty() -> ListContentMode.ERROR
+                    uiState.filteredEmails.isEmpty() && uiState.emails.isEmpty() -> ListContentMode.EMPTY
+                    uiState.filteredEmails.isEmpty() -> ListContentMode.NO_MATCHES
+                    else -> ListContentMode.LIST
+                }
+                var lastFullError by remember { mutableStateOf(uiState.error) }
+                if (uiState.error != null) lastFullError = uiState.error
+
+                AnimatedContent(
+                    targetState = listMode,
+                    transitionSpec = {
+                        (fadeIn(enterEffects) +
+                            slideInVertically(stateEnterOffset) { it / 16 } +
+                            scaleIn(stateEnterScale, initialScale = 0.96f)) togetherWith
+                            (fadeOut(exitEffects) + scaleOut(stateExitScale, targetScale = 0.96f))
+                    },
+                    label = "listState",
+                    modifier = Modifier.fillMaxSize(),
+                ) { mode ->
+                    when (mode) {
+                        ListContentMode.LOADING -> {
+                            Column(Modifier.fillMaxSize()) {
+                                demoBanner()
+                                LoadingShimmer(
+                                    loadingDescription = stringResource(R.string.state_working),
+                                )
+                            }
                         }
-                    }
-                    uiState.error != null && uiState.emails.isEmpty() -> {
-                        val error = uiState.error
-                        Column(Modifier.fillMaxSize()) {
-                            demoBanner()
-                            ErrorState(
-                                title = R.string.error_load_emails,
-                                error = error,
-                                onRetry = onRefresh,
-                                onReauthenticate = onReauthenticate,
-                            )
+
+                        ListContentMode.ERROR -> {
+                            Column(Modifier.fillMaxSize()) {
+                                demoBanner()
+                                lastFullError?.let { error ->
+                                    ErrorState(
+                                        title = R.string.error_load_emails,
+                                        error = error,
+                                        onRetry = onRefresh,
+                                        onReauthenticate = onReauthenticate,
+                                    )
+                                }
+                            }
                         }
-                    }
-                    uiState.filteredEmails.isEmpty() -> {
-                        // Masks exist but none match the search/filter → don't
-                        // show the "create your first mask" empty state, which
-                        // wrongly implies the account is empty.
-                        Column(Modifier.fillMaxSize()) {
-                            demoBanner()
-                            if (uiState.emails.isEmpty()) {
+
+                        ListContentMode.EMPTY -> {
+                            // Masks exist check handled in listMode; here the account has 0 masks.
+                            Column(Modifier.fillMaxSize()) {
+                                demoBanner()
                                 EmptyBlock(onCreate = onNavigateToCreate)
-                            } else {
+                            }
+                        }
+
+                        ListContentMode.NO_MATCHES -> {
+                            // Masks exist but none match the search/filter → don't
+                            // show the "create your first mask" empty state, which
+                            // wrongly implies the account is empty.
+                            Column(Modifier.fillMaxSize()) {
+                                demoBanner()
                                 NoMatchesBlock(
                                     hasQuery = uiState.searchQuery.isNotEmpty(),
                                     onClearSearch = { onSearchQueryChange("") },
                                 )
                             }
                         }
-                    }
-                    else -> {
-                        MaskList(
-                            uiState = uiState,
-                            listState = listState,
-                            highlightEmail = highlightEmail,
-                            onRefresh = onRefresh,
-                            onRowOpen = onRowOpen,
-                            onRowCopy = onRowCopy,
-                            onTutorialBounds = onTutorialBounds,
-                            demoBanner = demoBanner,
-                        )
+
+                        ListContentMode.LIST -> {
+                            MaskList(
+                                uiState = uiState,
+                                listState = listState,
+                                highlightEmail = highlightEmail,
+                                onRefresh = onRefresh,
+                                onRowOpen = onRowOpen,
+                                onRowCopy = onRowCopy,
+                                onTutorialBounds = onTutorialBounds,
+                                demoBanner = demoBanner,
+                            )
+                        }
                     }
                 }
             }
@@ -583,6 +668,8 @@ internal fun MaskedEmailListContent(
         )
     }
 }
+
+private enum class ListContentMode { LOADING, ERROR, EMPTY, NO_MATCHES, LIST }
 
 /** Settle margin so the on-resume refetch does not start mid screen transition. */
 private const val RESUME_REFRESH_DELAY_MS = 250L

@@ -40,6 +40,8 @@ class DemoMaskedEmailRepositoryImpl @Inject constructor() : MaskedEmailRepositor
         return Result.success(state.value.find { it.id == id })
     }
 
+    override fun peekMaskedEmail(id: String): MaskedEmail? = state.value.find { it.id == id }
+
     override suspend fun cachedMaskedEmails(): CachedMasks? = null
 
     override suspend fun createMaskedEmail(params: CreateMaskedEmailParams): Result<MaskedEmail> {

@@ -3,11 +3,15 @@ package com.fastmask.ui.auth
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
@@ -31,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
@@ -42,6 +47,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -95,6 +101,8 @@ import com.fastmask.ui.theme.FastMaskTheme
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onEnterDemo: () -> Unit,
+    isModal: Boolean = false,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -117,6 +125,7 @@ fun LoginScreen(
         uiState = uiState,
         showToken = showToken,
         settingsOpenFailed = settingsOpenFailed,
+        isModal = isModal,
         onTokenChange = viewModel::onTokenChange,
         onToggleShowToken = { showToken = !showToken },
         // Reads the clipboard ONLY from this tap: Android 12+ shows a system
@@ -135,7 +144,7 @@ fun LoginScreen(
             )
         },
         onEnterDemo = viewModel::enterDemoMode,
-        onBack = { backDispatcher?.onBackPressed(); Unit },
+        onBack = onNavigateBack ?: { backDispatcher?.onBackPressed(); Unit },
     )
 }
 
@@ -152,6 +161,7 @@ internal fun LoginContent(
     onOpenTokenSettings: () -> Unit,
     onEnterDemo: () -> Unit,
     onBack: () -> Unit,
+    isModal: Boolean = false,
     initiallyExpanded: Boolean = false,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -168,10 +178,12 @@ internal fun LoginContent(
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.navigate_back),
+                            imageVector = if (isModal) Icons.Filled.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(
+                                if (isModal) R.string.action_close else R.string.navigate_back,
+                            ),
                         )
                     }
                 },
@@ -226,6 +238,9 @@ internal fun LoginContent(
                         ) {
                             Text(stringResource(R.string.login_paste_button))
                         }
+                        val motion = MaterialTheme.motionScheme
+                        val iconFade = motion.fastEffectsSpec<Float>()
+                        val iconScale = motion.fastSpatialSpec<Float>()
                         IconButton(
                             onClick = {
                                 haptic.performHapticFeedback(
@@ -234,12 +249,21 @@ internal fun LoginContent(
                                 onToggleShowToken()
                             },
                         ) {
-                            Icon(
-                                imageVector = if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = stringResource(
-                                    if (showToken) R.string.login_hide_token else R.string.login_show_token,
-                                ),
-                            )
+                            AnimatedContent(
+                                targetState = showToken,
+                                transitionSpec = {
+                                    (fadeIn(iconFade) + scaleIn(iconScale, initialScale = 0.6f)) togetherWith
+                                        (fadeOut(iconFade) + scaleOut(iconScale, targetScale = 0.6f))
+                                },
+                                label = "showTokenIcon",
+                            ) { visible ->
+                                Icon(
+                                    imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    contentDescription = stringResource(
+                                        if (visible) R.string.login_hide_token else R.string.login_show_token,
+                                    ),
+                                )
+                            }
                         }
                     }
                 },
@@ -463,7 +487,7 @@ private fun HowToCard(
                     ) {
                         Text(stringResource(R.string.login_open_token_settings))
                     }
-                    if (settingsOpenFailed) {
+                    SpringVisibility(visible = settingsOpenFailed) {
                         Text(
                             text = stringResource(R.string.login_open_browser_failed),
                             color = MaterialTheme.colorScheme.error,
@@ -479,12 +503,11 @@ private fun HowToCard(
 
 @Composable
 private fun SpringVisibility(visible: Boolean, content: @Composable () -> Unit) {
-    val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
-    val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+    val motion = MaterialTheme.motionScheme
     AnimatedVisibility(
         visible = visible,
-        enter = expandVertically(spatial) + fadeIn(effects),
-        exit = shrinkVertically(spatial) + fadeOut(effects),
+        enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+        exit = shrinkVertically(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
     ) {
         content()
     }

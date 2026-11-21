@@ -2,7 +2,12 @@ package com.fastmask.ui.welcome
 
 import com.fastmask.ui.components.expressive.MorphingShape
 import com.fastmask.ui.components.expressive.rememberMotionReduced
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,7 +36,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -147,13 +155,22 @@ internal fun WelcomeContent(
                     )
                 }
 
-                errorRes?.let { res ->
-                    Text(
-                        text = stringResource(res),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.politeLiveRegion(),
-                    )
+                val motion = MaterialTheme.motionScheme
+                var lastErrorRes by remember { mutableStateOf(errorRes) }
+                if (errorRes != null) lastErrorRes = errorRes
+                AnimatedVisibility(
+                    visible = errorRes != null,
+                    enter = expandVertically(motion.defaultSpatialSpec()) + fadeIn(motion.defaultEffectsSpec()),
+                    exit = shrinkVertically(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+                ) {
+                    lastErrorRes?.let { res ->
+                        Text(
+                            text = stringResource(res),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.politeLiveRegion(),
+                        )
+                    }
                 }
 
                 Text(
@@ -171,6 +188,10 @@ internal fun WelcomeContent(
 /** Purely decorative: exposes nothing to accessibility. */
 @Composable
 private fun WelcomeHero(modifier: Modifier = Modifier) {
+    var introPlayed by rememberSaveable { mutableStateOf(false) }
+    val playIntro = remember { !introPlayed }
+    LaunchedEffect(Unit) { introPlayed = true }
+
     val big = remember {
         listOf(
             MaterialShapes.Cookie9Sided,
@@ -209,7 +230,7 @@ private fun WelcomeHero(modifier: Modifier = Modifier) {
                 rotationStepDegrees = 45f,
                 modifier = Modifier
                     .fillMaxSize()
-                    .popIn(delayMillis = 0),
+                    .popIn(delayMillis = 0, playIntro = playIntro),
             ) {
                 Icon(
                     imageVector = Icons.Filled.AlternateEmail,
@@ -227,7 +248,7 @@ private fun WelcomeHero(modifier: Modifier = Modifier) {
                     .align(Alignment.TopEnd)
                     .offset(x = side * 0.04f, y = -side * 0.02f)
                     .size(side * 0.44f)
-                    .popIn(delayMillis = 160),
+                    .popIn(delayMillis = 160, playIntro = playIntro),
             )
             MorphingShape(
                 polygons = small,
@@ -238,15 +259,15 @@ private fun WelcomeHero(modifier: Modifier = Modifier) {
                     .align(Alignment.BottomStart)
                     .offset(x = side * 0.02f, y = -side * 0.04f)
                     .size(side * 0.30f)
-                    .popIn(delayMillis = 320),
+                    .popIn(delayMillis = 320, playIntro = playIntro),
             )
         }
     }
 }
 
 @Composable
-private fun Modifier.popIn(delayMillis: Int): Modifier {
-    val settled = LocalInspectionMode.current || rememberMotionReduced()
+private fun Modifier.popIn(delayMillis: Int, playIntro: Boolean): Modifier {
+    val settled = LocalInspectionMode.current || rememberMotionReduced() || !playIntro
     val progress = remember { Animatable(if (settled) 1f else 0f) }
     val spec = MaterialTheme.motionScheme.slowSpatialSpec<Float>()
     LaunchedEffect(settled) {

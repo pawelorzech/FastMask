@@ -24,6 +24,9 @@ interface MaskedEmailRepository {
      */
     suspend fun getMaskedEmail(id: String): Result<MaskedEmail?>
 
+    /** Non-blocking in-memory lookup used to populate the detail screen on frame 0. */
+    fun peekMaskedEmail(id: String): MaskedEmail? = null
+
     /**
      * Deliberately NOT folded into [getMaskedEmails]: that call means "tell me
      * what the server says", and quietly answering it with old data would let

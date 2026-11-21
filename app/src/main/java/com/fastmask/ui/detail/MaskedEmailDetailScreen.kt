@@ -10,6 +10,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -52,8 +54,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -78,7 +78,6 @@ import com.fastmask.ui.components.InlineErrorBanner
 import com.fastmask.ui.components.ScrollRaisedTopBar
 import com.fastmask.ui.components.expressive.SectionHeader
 import com.fastmask.ui.components.rememberDiscardChangesGuard
-import com.fastmask.ui.components.expressive.maskContainer
 import kotlinx.coroutines.delay
 
 private const val COPIED_FEEDBACK_MS = 1800L
@@ -131,11 +130,8 @@ fun MaskedEmailDetailScreen(
         )
     }
 
-    val containerId = viewModel.emailId
-
     MaskedEmailDetailContent(
         uiState = uiState,
-        containerId = containerId,
         snackbarHostState = snackbarHostState,
         banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
         onBack = onBack,
@@ -157,7 +153,6 @@ fun MaskedEmailDetailScreen(
 @Composable
 internal fun MaskedEmailDetailContent(
     uiState: MaskedEmailDetailUiState,
-    containerId: String?,
     snackbarHostState: SnackbarHostState,
     banner: @Composable () -> Unit,
     onBack: () -> Unit,
@@ -178,19 +173,25 @@ internal fun MaskedEmailDetailContent(
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
     val titleVisible by remember(revealPx) { derivedStateOf { scrollState.value > revealPx } }
     val barRaised by remember { derivedStateOf { scrollState.value > 0 } }
+    val motion = rememberMotion()
 
     val titleAlpha by animateFloatAsState(
         targetValue = if (titleVisible) 1f else 0f,
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+        animationSpec = motion.defaultEffects,
         label = "titleAlpha",
+    )
+    val titleLiftOffsetPx = with(LocalDensity.current) { 8.dp.toPx() }
+    val titleLiftPx by animateFloatAsState(
+        targetValue = if (titleVisible) 0f else titleLiftOffsetPx,
+        animationSpec = motion.defaultSpatial,
+        label = "titleLift",
     )
 
     val email = uiState.email
     val backDesc = stringResource(R.string.navigate_back)
-    val containerModifier = if (containerId != null) Modifier.maskContainer(containerId, shape = RectangleShape) else Modifier
 
     Scaffold(
-        modifier = containerModifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.surface,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
@@ -204,7 +205,10 @@ internal fun MaskedEmailDetailContent(
                         // The hero already carries the heading, so this faded
                         // duplicate stays out of the accessibility tree.
                         modifier = Modifier
-                            .graphicsLayer { alpha = titleAlpha }
+                            .graphicsLayer {
+                                alpha = titleAlpha
+                                translationY = titleLiftPx
+                            }
                             .clearAndSetSemantics { },
                     )
                 },
@@ -226,38 +230,66 @@ internal fun MaskedEmailDetailContent(
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues),
         ) {
-            when {
-                uiState.isLoading && email == null -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) { LoadingIndicator() }
+            val loadMode = when {
+                uiState.isLoading && email == null -> DetailLoadMode.LOADING
+                uiState.error != null && email == null -> DetailLoadMode.ERROR
+                email != null -> DetailLoadMode.READY
+                else -> DetailLoadMode.LOADING
+            }
+            var lastFullError by remember { mutableStateOf(uiState.error) }
+            if (uiState.error != null) lastFullError = uiState.error
+            var lastEmail by remember { mutableStateOf(email) }
+            if (email != null) lastEmail = email
 
-                uiState.error != null && email == null -> ErrorState(
-                    title = R.string.email_detail_error_load,
-                    error = uiState.error,
-                    onRetry = onRetry,
-                    onReauthenticate = onReauthenticate,
-                    heroShape = MaterialShapes.SoftBurst.toShape(),
-                    icon = Icons.Filled.ErrorOutline,
-                )
+            AnimatedContent(
+                targetState = loadMode,
+                transitionSpec = {
+                    (fadeIn(motion.defaultEffects) +
+                        slideInVertically(motion.defaultSpatialOffset) { it / 16 } +
+                        scaleIn(motion.defaultSpatial, initialScale = 0.96f)) togetherWith
+                        (fadeOut(motion.fastEffects) +
+                            scaleOut(motion.fastSpatial, targetScale = 0.96f))
+                },
+                label = "detailLoadState",
+                modifier = Modifier.fillMaxSize(),
+            ) { mode ->
+                when (mode) {
+                    DetailLoadMode.LOADING -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) { LoadingIndicator() }
 
-                email != null -> DetailBody(
-                    uiState = uiState,
-                    email = email,
-                    scrollState = scrollState,
-                    onDescriptionChange = onDescriptionChange,
-                    onForDomainChange = onForDomainChange,
-                    onUrlChange = onUrlChange,
-                    onEnable = onEnable,
-                    onDisable = onDisable,
-                    onSaveChanges = onSaveChanges,
-                    onRetry = onRetry,
-                    onReauthenticate = onReauthenticate,
-                    onStartEditing = onStartEditing,
-                    onDiscardEdits = onDiscardEdits,
-                    onCopyEmail = onCopyEmail,
-                    onArchiveClick = onArchiveClick,
-                )
+                    DetailLoadMode.ERROR -> lastFullError?.let { error ->
+                        ErrorState(
+                            title = R.string.email_detail_error_load,
+                            error = error,
+                            onRetry = onRetry,
+                            onReauthenticate = onReauthenticate,
+                            heroShape = MaterialShapes.SoftBurst.toShape(),
+                            icon = Icons.Filled.ErrorOutline,
+                        )
+                    }
+
+                    DetailLoadMode.READY -> lastEmail?.let { readyEmail ->
+                        DetailBody(
+                            uiState = uiState,
+                            email = readyEmail,
+                            scrollState = scrollState,
+                            onDescriptionChange = onDescriptionChange,
+                            onForDomainChange = onForDomainChange,
+                            onUrlChange = onUrlChange,
+                            onEnable = onEnable,
+                            onDisable = onDisable,
+                            onSaveChanges = onSaveChanges,
+                            onRetry = onRetry,
+                            onReauthenticate = onReauthenticate,
+                            onStartEditing = onStartEditing,
+                            onDiscardEdits = onDiscardEdits,
+                            onCopyEmail = onCopyEmail,
+                            onArchiveClick = onArchiveClick,
+                        )
+                    }
+                }
             }
         }
     }
@@ -340,6 +372,11 @@ private fun DetailBody(
                 text = stringResource(R.string.email_detail_edit_title),
                 modifier = Modifier.weight(1f),
             )
+            val editRotate by animateFloatAsState(
+                targetValue = if (editing) 90f else 0f,
+                animationSpec = motion.fastSpatial,
+                label = "editRotate",
+            )
             IconButton(
                 onClick = {
                     if (editing) onDiscardEdits() else onStartEditing()
@@ -355,6 +392,7 @@ private fun DetailBody(
                             (fadeOut(motion.fastEffects) +
                                 scaleOut(motion.fastSpatial, targetScale = 0.6f))
                     },
+                    modifier = Modifier.graphicsLayer { rotationZ = editRotate },
                     label = "editIcon",
                 ) { isEditing ->
                     Icon(
@@ -371,8 +409,19 @@ private fun DetailBody(
             AnimatedContent(
                 targetState = editing,
                 transitionSpec = {
-                    (fadeIn(motion.defaultEffects) togetherWith
-                        fadeOut(motion.fastEffects)) using
+                    val enteringEdit = targetState
+                    val enterSlide = slideInVertically(motion.defaultSpatialOffset) { full ->
+                        if (enteringEdit) full / 12 else -full / 12
+                    }
+                    val exitSlide = slideOutVertically(motion.fastSpatialOffset) { full ->
+                        if (enteringEdit) -full / 12 else full / 12
+                    }
+                    (enterSlide +
+                        fadeIn(motion.defaultEffects) +
+                        scaleIn(motion.defaultSpatial, initialScale = 0.98f)) togetherWith
+                        (exitSlide +
+                            fadeOut(motion.fastEffects) +
+                            scaleOut(motion.fastSpatial, targetScale = 0.98f)) using
                         SizeTransform(clip = false) { _, _ -> motion.defaultSpatialSize }
                 },
                 label = "detailsMode",
@@ -390,23 +439,29 @@ private fun DetailBody(
             }
         }
 
-        uiState.error?.let { error ->
-            InlineErrorBanner(
-                error = error,
-                onRetry = onRetry,
-                onReauthenticate = onReauthenticate,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp),
-            )
+        var lastInlineError by remember { mutableStateOf(uiState.error) }
+        if (uiState.error != null) lastInlineError = uiState.error
+        AnimatedVisibility(
+            visible = uiState.error != null,
+            enter = fadeIn(motion.defaultEffects) + expandVertically(motion.defaultSpatialSize),
+            exit = fadeOut(motion.fastEffects) + shrinkVertically(motion.fastSpatialSize),
+        ) {
+            lastInlineError?.let { error ->
+                InlineErrorBanner(
+                    error = error,
+                    onRetry = onRetry,
+                    onReauthenticate = onReauthenticate,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 12.dp),
+                )
+            }
         }
 
         AnimatedVisibility(
             visible = editing,
-            enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
-                expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
+            enter = fadeIn(motion.defaultEffects) + expandVertically(motion.defaultSpatialSize),
+            exit = fadeOut(motion.fastEffects) + shrinkVertically(motion.fastSpatialSize),
         ) {
             EditActions(
                 saving = saving,
@@ -420,10 +475,8 @@ private fun DetailBody(
 
         AnimatedVisibility(
             visible = email.state != EmailState.DELETED,
-            enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
-                expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
-                shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
+            enter = fadeIn(motion.defaultEffects) + expandVertically(motion.defaultSpatialSize),
+            exit = fadeOut(motion.fastEffects) + shrinkVertically(motion.fastSpatialSize),
         ) {
             ArchiveButton(
                 deleting = uiState.isDeleting,
@@ -434,6 +487,8 @@ private fun DetailBody(
         }
     }
 }
+
+private enum class DetailLoadMode { LOADING, ERROR, READY }
 
 
 

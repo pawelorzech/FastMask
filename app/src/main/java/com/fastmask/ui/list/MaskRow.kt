@@ -44,7 +44,6 @@ import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.StateChip
 import com.fastmask.ui.components.expressive.segmentedShape
 import com.fastmask.ui.components.expressive.labelRes
-import com.fastmask.ui.components.expressive.maskContainer
 import com.fastmask.ui.util.RelativeTime
 import com.fastmask.ui.util.RelativeTimeBuckets
 
@@ -106,7 +105,6 @@ internal fun MaskRow(
         count = count,
         onClick = { onOpen(email) },
         modifier = modifier
-            .maskContainer(email.id, shape = restingShape)
             .drawWithContent {
                 drawContent()
                 if (highlightAlpha > 0.001f) {

@@ -29,6 +29,15 @@ class MaskedEmailRepositoryDispatcher @Inject constructor(
     override suspend fun getMaskedEmail(id: String): Result<MaskedEmail?> =
         current().getMaskedEmail(id)
 
+    override fun peekMaskedEmail(id: String): MaskedEmail? {
+        val current = sessionRepository.session.value
+        return when {
+            current.isDemo -> demoRepo.peekMaskedEmail(id)
+            current.isSignedIn -> realRepo.peekMaskedEmail(id)
+            else -> null
+        }
+    }
+
     override suspend fun cachedMaskedEmails(): CachedMasks? =
         current().cachedMaskedEmails()
 

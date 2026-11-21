@@ -4,6 +4,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -54,9 +57,13 @@ internal fun CopyButton(copied: Boolean, onClick: () -> Unit) {
         AnimatedContent(
             targetState = copied,
             transitionSpec = {
-                (fadeIn(motion.fastEffects) +
-                    scaleIn(motion.fastSpatial, initialScale = 0.85f)) togetherWith
-                    fadeOut(motion.fastEffects)
+                val toCopied = targetState
+                (slideInVertically(motion.fastSpatialOffset) { h -> if (toCopied) h / 2 else -h / 2 } +
+                    fadeIn(motion.fastEffects) +
+                    scaleIn(motion.fastSpatial, initialScale = 0.88f)) togetherWith
+                    (slideOutVertically(motion.fastSpatialOffset) { h -> if (toCopied) -h / 2 else h / 2 } +
+                        fadeOut(motion.fastEffects) +
+                        scaleOut(motion.fastSpatial, targetScale = 0.88f))
             },
             label = "copyLabel",
         ) { isCopied ->

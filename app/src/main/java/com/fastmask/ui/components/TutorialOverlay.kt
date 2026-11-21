@@ -3,13 +3,14 @@ package com.fastmask.ui.components
 import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -99,10 +100,11 @@ fun TutorialOverlay(
 
     BackHandler(enabled = visible) { onSkip() }
 
+    val motion = MaterialTheme.motionScheme
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()),
-        exit = fadeOut(MaterialTheme.motionScheme.defaultEffectsSpec()),
+        enter = fadeIn(motion.defaultEffectsSpec()),
+        exit = fadeOut(motion.fastEffectsSpec()),
     ) {
         val safeIndex = currentStep.coerceIn(0, steps.lastIndex)
         val step = steps[safeIndex]
@@ -125,7 +127,6 @@ fun TutorialOverlay(
             ScrimWithCutout(targetBounds = step.targetBounds)
 
             // Specs are read here: the transitionSpec lambda is not composable.
-            val motion = MaterialTheme.motionScheme
             val slideInSpec = motion.defaultSpatialSpec<IntOffset>()
             val slideOutSpec = motion.fastSpatialSpec<IntOffset>()
             val fadeInSpec = motion.defaultEffectsSpec<Float>()
@@ -134,16 +135,23 @@ fun TutorialOverlay(
                 targetState = safeIndex,
                 transitionSpec = {
                     val forward = targetState > initialState
-                    val slideIn = slideInHorizontally(animationSpec = slideInSpec) { full ->
-                        if (forward) full else -full
-                    } + fadeIn(fadeInSpec)
-                    val slideOut = slideOutHorizontally(animationSpec = slideOutSpec) { full ->
-                        if (forward) -full else full
-                    } + fadeOut(fadeOutSpec)
+                    val slideIn = slideIntoContainer(
+                        towards = if (forward) SlideDirection.Start else SlideDirection.End,
+                        animationSpec = slideInSpec,
+                    ) { it / 3 } + fadeIn(fadeInSpec)
+                    val slideOut = slideOutOfContainer(
+                        towards = if (forward) SlideDirection.Start else SlideDirection.End,
+                        animationSpec = slideOutSpec,
+                    ) { it / 3 } + fadeOut(fadeOutSpec)
                     slideIn togetherWith slideOut
                 },
                 label = "tutorial-step",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateEnterExit(
+                        enter = scaleIn(motion.defaultSpatialSpec(), initialScale = 0.92f),
+                        exit = scaleOut(motion.fastSpatialSpec(), targetScale = 0.92f),
+                    ),
             ) { idx ->
                 val active = steps[idx]
                 // AnimatedContent keeps the outgoing and incoming TooltipBubble mounted for

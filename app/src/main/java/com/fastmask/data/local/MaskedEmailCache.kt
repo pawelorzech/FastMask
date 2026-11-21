@@ -151,6 +151,10 @@ class MaskedEmailCache @Inject constructor(
         }.getOrNull()
     }
 
+    fun peekMemory(id: String): MaskedEmail? = synchronized(lock) {
+        memoryCache?.masks?.masks?.find { it.id == id }
+    }
+
     fun clear() {
         synchronized(lock) {
             guard.advance()

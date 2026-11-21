@@ -37,7 +37,6 @@ private fun PreviewHost(uiState: MaskedEmailDetailUiState) {
     FastMaskTheme {
         MaskedEmailDetailContent(
             uiState = uiState,
-            containerId = null,
             snackbarHostState = remember { SnackbarHostState() },
             banner = {},
             onBack = {},

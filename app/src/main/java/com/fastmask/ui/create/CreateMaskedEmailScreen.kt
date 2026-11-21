@@ -75,6 +75,7 @@ import com.fastmask.ui.components.MaskDescriptionField
 import com.fastmask.ui.components.MaskDomainField
 import com.fastmask.ui.components.MaskField
 import com.fastmask.ui.components.expressive.MorphingShape
+import com.fastmask.ui.components.expressive.rememberMotionReduced
 import com.fastmask.domain.model.EmailState
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
@@ -297,13 +298,14 @@ private fun PreviewCard(prefix: String) {
     val randomText = stringResource(R.string.create_email_preview_random)
     val suffix = stringResource(R.string.create_email_preview_suffix)
 
+    val reduced = rememberMotionReduced()
     val pop = remember { Animatable(1f) }
     val popSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
     var firstComposition by remember { mutableStateOf(true) }
-    LaunchedEffect(prefix) {
+    LaunchedEffect(prefix, reduced) {
         if (firstComposition) {
             firstComposition = false
-        } else {
+        } else if (!reduced) {
             pop.snapTo(1.025f)
             pop.animateTo(1f, popSpec)
         }

@@ -55,19 +55,23 @@ fun ButtonLoadingLabel(
     val effects: FiniteAnimationSpec<Float> =
         if (crossfade) motion.defaultEffectsSpec() else motion.fastEffectsSpec()
 
-    val labelModifier = if (crossfade) {
-        val labelAlpha by animateFloatAsState(if (loading) 0f else 1f, effects, label = "labelAlpha")
-        val labelScale by animateFloatAsState(if (loading) 0.6f else 1f, spatial, label = "labelScale")
-        Modifier
-            .graphicsLayer {
-                alpha = labelAlpha
-                scaleX = labelScale
-                scaleY = labelScale
-            }
-            .then(if (loading) Modifier.clearAndSetSemantics { } else Modifier)
-    } else {
-        Modifier.graphicsLayer { alpha = if (loading) 0f else 1f }
-    }
+    val labelAlpha by animateFloatAsState(
+        targetValue = if (loading) 0f else 1f,
+        animationSpec = effects,
+        label = "labelAlpha",
+    )
+    val labelScale by animateFloatAsState(
+        targetValue = if (loading) (if (crossfade) 0.6f else 0.72f) else 1f,
+        animationSpec = spatial,
+        label = "labelScale",
+    )
+    val labelModifier = Modifier
+        .graphicsLayer {
+            alpha = labelAlpha
+            scaleX = labelScale
+            scaleY = labelScale
+        }
+        .then(if (crossfade && loading) Modifier.clearAndSetSemantics { } else Modifier)
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Box(modifier = labelModifier) { label() }

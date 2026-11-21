@@ -55,6 +55,11 @@ class FakeMaskedEmailRepository(
 
     override suspend fun cachedMaskedEmails(): CachedMasks? = cached
 
+    /** Synchronous memory-cache snapshot returned by [peekMaskedEmail]; null skips frame-0 seeding. */
+    var peeked: MaskedEmail? = null
+
+    override fun peekMaskedEmail(id: String): MaskedEmail? = peeked?.takeIf { it.id == id }
+
     var getCalls = 0
     var createCalls = 0
     var updateCalls = 0

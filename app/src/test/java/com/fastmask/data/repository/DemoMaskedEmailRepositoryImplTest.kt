@@ -114,4 +114,12 @@ class DemoMaskedEmailRepositoryImplTest {
         assertTrue(stamps.all { it <= now })
         assertTrue(Duration.between(stamps.max(), now) < Duration.ofDays(1))
     }
+
+    @Test
+    fun `peekMaskedEmail returns existing demo mask synchronously and null for unknown id`() = runTest {
+        val created = create(CreateMaskedEmailParams(description = "peek test"))
+
+        assertEquals(created, repository.peekMaskedEmail(created.id))
+        assertNull(repository.peekMaskedEmail("does-not-exist"))
+    }
 }

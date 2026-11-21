@@ -1,19 +1,15 @@
 package com.fastmask.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,7 +17,6 @@ import androidx.navigation.navArgument
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
-import com.fastmask.ui.components.expressive.LocalSharedTransitionScope
 import com.fastmask.ui.list.ListResult
 import com.fastmask.ui.list.MaskedEmailListScreen
 import com.fastmask.ui.list.consumeListResult
@@ -46,44 +41,63 @@ private fun NavController.postToList(result: ListResult) {
     list.savedStateHandle.postListResult(result)
 }
 
+private fun NavGraphBuilder.appScreen(
+    route: String,
+    layerRoles: MutableMap<String, TransitionLayerRole>,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit,
+) = screen(
+    route = route,
+    arguments = arguments,
+    layerRole = { id -> layerRoles[id] ?: TransitionLayerRole.NONE },
+    onDisposeEntry = { id -> layerRoles.remove(id) },
+    content = content,
+)
+
 @Composable
 fun FastMaskNavHost(
     navController: NavHostController,
     startDestination: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    // M3 Expressive motion: a shared X axis driven by the theme's spatial spring for
-    // movement and its effects spring for fades. Navigation 2.8+ runs the pop pair
-    // against the predictive back gesture, so the same curves follow the finger.
-    val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
-    val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
-    val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
-    val isDetail: (androidx.navigation.NavBackStackEntry) -> Boolean = { it.destination.route == NavRoutes.EMAIL_DETAIL }
+    val specs = rememberNavMotionSpecs()
+    val layerRoles = remember { mutableMapOf<String, TransitionLayerRole>() }
 
     // Keep the current entry under Login so cancelling returns to the user's filters,
     // scroll position or draft; login success still replaces the stack with a fresh list.
     val onReauthenticate: () -> Unit = {
-        navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
+        navController.navigate(NavRoutes.login(modal = true)) { launchSingleTop = true }
     }
 
-    SharedTransitionLayout(modifier = modifier) {
-    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        enterTransition = { slideInHorizontally(spatial) { it / 5 } + fadeIn(fadeInSpec) },
-        exitTransition = { slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
-        popEnterTransition = { slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
-        popExitTransition = { slideOutHorizontally(spatial) { it / 5 } + fadeOut(fadeOutSpec) },
+        modifier = modifier,
+        enterTransition = {
+            val style = resolveStyle(isPop = false)
+            layerRoles[targetState.id] = style.enterLayerRole()
+            enterTransitionFor(style, specs)
+        },
+        exitTransition = {
+            val style = resolveStyle(isPop = false)
+            layerRoles[initialState.id] = style.exitLayerRole()
+            exitTransitionFor(style, specs)
+        },
+        popEnterTransition = {
+            val style = resolveStyle(isPop = true)
+            layerRoles[targetState.id] = style.enterLayerRole()
+            enterTransitionFor(style, specs)
+        },
+        popExitTransition = {
+            val style = resolveStyle(isPop = true)
+            layerRoles[initialState.id] = style.exitLayerRole()
+            exitTransitionFor(style, specs)
+        },
     ) {
-        screen(
-            route = NavRoutes.WELCOME,
-            enterTransition = { fadeIn(fadeInSpec) },
-            exitTransition = { fadeOut(fadeOutSpec) },
-        ) {
+        appScreen(route = NavRoutes.WELCOME, layerRoles = layerRoles) {
             WelcomeScreen(
                 onSignIn = {
-                    navController.navigate(NavRoutes.LOGIN) { launchSingleTop = true }
+                    navController.navigate(NavRoutes.login(modal = false)) { launchSingleTop = true }
                 },
                 onEnterDemo = {
                     navController.resetTo(NavRoutes.EMAIL_LIST)
@@ -91,28 +105,36 @@ fun FastMaskNavHost(
             )
         }
 
-        screen(
+        appScreen(
             route = NavRoutes.LOGIN,
-            enterTransition = { fadeIn(fadeInSpec) },
-            exitTransition = { fadeOut(fadeOutSpec) }
-        ) {
+            layerRoles = layerRoles,
+            arguments = listOf(
+                navArgument(NavRoutes.ARG_LOGIN_MODAL) {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            ),
+        ) { entry ->
+            val isModal = entry.arguments?.getBoolean(NavRoutes.ARG_LOGIN_MODAL) == true
             LoginScreen(
                 onLoginSuccess = {
                     navController.resetTo(NavRoutes.EMAIL_LIST)
                 },
                 onEnterDemo = {
                     navController.resetTo(NavRoutes.EMAIL_LIST)
-                }
+                },
+                isModal = isModal,
+                onNavigateBack = {
+                    if (navController.previousBackStackEntry != null) {
+                        navController.popBackStack()
+                    } else {
+                        navController.resetTo(NavRoutes.WELCOME)
+                    }
+                },
             )
         }
 
-        screen(
-            NavRoutes.EMAIL_LIST,
-            // Into and back from a mask the row itself carries the motion (container
-            // transform), so the list only fades instead of sliding away under it.
-            exitTransition = { if (isDetail(targetState)) fadeOut(fadeOutSpec) else slideOutHorizontally(spatial) { -it / 10 } + fadeOut(fadeOutSpec) },
-            popEnterTransition = { if (isDetail(initialState)) fadeIn(fadeInSpec) else slideInHorizontally(spatial) { -it / 10 } + fadeIn(fadeInSpec) },
-        ) { entry ->
+        appScreen(route = NavRoutes.EMAIL_LIST, layerRoles = layerRoles) { entry ->
             val pendingResult by entry.savedStateHandle.pendingListResult().collectAsState()
             MaskedEmailListScreen(
                 onNavigateToCreate = {
@@ -125,7 +147,7 @@ fun FastMaskNavHost(
                     navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
                 },
                 onSignInFromBanner = {
-                    navController.resetTo(NavRoutes.LOGIN)
+                    navController.resetTo(NavRoutes.login(modal = false))
                 },
                 onReauthenticate = onReauthenticate,
                 pendingResult = pendingResult,
@@ -133,7 +155,7 @@ fun FastMaskNavHost(
             )
         }
 
-        screen(NavRoutes.SETTINGS) {
+        appScreen(route = NavRoutes.SETTINGS, layerRoles = layerRoles) {
             SettingsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
@@ -142,7 +164,7 @@ fun FastMaskNavHost(
                     navController.resetTo(NavRoutes.WELCOME)
                 },
                 onSignInFromDemo = {
-                    navController.resetTo(NavRoutes.LOGIN)
+                    navController.resetTo(NavRoutes.login(modal = false))
                 },
                 onNavigateToPro = { source ->
                     navController.navigate(NavRoutes.pro(source)) { launchSingleTop = true }
@@ -150,13 +172,14 @@ fun FastMaskNavHost(
             )
         }
 
-        screen(
+        appScreen(
             route = NavRoutes.PRO,
+            layerRoles = layerRoles,
             arguments = listOf(
                 navArgument(NavRoutes.ARG_SOURCE) {
                     type = NavType.StringType
                     defaultValue = PRO_SOURCE_SETTINGS
-                }
+                },
             ),
         ) {
             ProScreen(
@@ -166,8 +189,9 @@ fun FastMaskNavHost(
             )
         }
 
-        screen(
+        appScreen(
             route = NavRoutes.CREATE_EMAIL,
+            layerRoles = layerRoles,
             arguments = listOf(
                 navArgument(NavRoutes.ARG_FOR_DOMAIN) {
                     type = NavType.StringType
@@ -184,19 +208,18 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
-                    navController.resetTo(NavRoutes.LOGIN)
+                    navController.resetTo(NavRoutes.login(modal = false))
                 },
                 onReauthenticate = onReauthenticate,
             )
         }
 
-        screen(
+        appScreen(
             route = NavRoutes.EMAIL_DETAIL,
-            enterTransition = { fadeIn(fadeInSpec) },
-            popExitTransition = { fadeOut(fadeOutSpec) },
+            layerRoles = layerRoles,
             arguments = listOf(
-                navArgument(NavRoutes.ARG_EMAIL_ID) { type = NavType.StringType }
-            )
+                navArgument(NavRoutes.ARG_EMAIL_ID) { type = NavType.StringType },
+            ),
         ) {
             MaskedEmailDetailScreen(
                 onNavigateBack = {
@@ -207,12 +230,10 @@ fun FastMaskNavHost(
                     navController.popBackStack()
                 },
                 onSignInFromBanner = {
-                    navController.resetTo(NavRoutes.LOGIN)
+                    navController.resetTo(NavRoutes.login(modal = false))
                 },
                 onReauthenticate = onReauthenticate,
             )
         }
-    }
-    }
     }
 }

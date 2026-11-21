@@ -8,14 +8,17 @@ object NavRoutes {
     const val ARG_EMAIL_ID = "emailId"
     const val ARG_FOR_DOMAIN = "forDomain"
     const val ARG_SOURCE = "source"
+    const val ARG_LOGIN_MODAL = "modal"
 
     const val WELCOME = "welcome"
-    const val LOGIN = "login"
+    const val LOGIN = "login?$ARG_LOGIN_MODAL={$ARG_LOGIN_MODAL}"
     const val EMAIL_LIST = "email_list"
     const val CREATE_EMAIL = "create_email?$ARG_FOR_DOMAIN={$ARG_FOR_DOMAIN}"
     const val EMAIL_DETAIL = "email_detail/{$ARG_EMAIL_ID}"
     const val SETTINGS = "settings"
     const val PRO = "pro?$ARG_SOURCE={$ARG_SOURCE}"
+
+    fun login(modal: Boolean = false): String = "login?$ARG_LOGIN_MODAL=$modal"
 
     /** Percent-encoded so `/`, `?` and `&` inside a shared origin do not break the route. */
     fun createEmail(prefill: SharePrefill? = null): String =

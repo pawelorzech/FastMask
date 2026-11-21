@@ -1,6 +1,7 @@
 package com.fastmask.ui.lock
 
 import com.fastmask.ui.components.expressive.MorphingShape
+import com.fastmask.ui.components.expressive.rememberMotionReduced
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -9,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -62,11 +64,12 @@ fun LockScreen(
     onUnlockedAnimationFinished: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
+    val reduced = rememberMotionReduced()
 
-    LaunchedEffect(unlocked) {
+    LaunchedEffect(unlocked, reduced) {
         if (unlocked) {
             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-            delay(UnlockSuccessMillis)
+            if (!reduced) delay(UnlockSuccessMillis)
             onUnlockedAnimationFinished()
         }
     }
@@ -112,6 +115,7 @@ internal fun LockContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             // The only screen without a Scaffold, so nothing else applies the
             // system-bar insets (edge-to-edge is enforced from API 35).
             .windowInsetsPadding(WindowInsets.safeDrawing)

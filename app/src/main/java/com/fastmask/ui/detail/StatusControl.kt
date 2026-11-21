@@ -5,6 +5,7 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -45,7 +46,8 @@ internal fun StatusControl(
         transitionSpec = {
             (fadeIn(motion.defaultEffects) +
                 scaleIn(motion.defaultSpatial, initialScale = 0.92f)) togetherWith
-                fadeOut(motion.fastEffects) using
+                (fadeOut(motion.fastEffects) +
+                    scaleOut(motion.fastSpatial, targetScale = 0.92f)) using
                 SizeTransform(clip = false) { _, _ -> motion.defaultSpatialSize }
         },
         label = "statusControl",

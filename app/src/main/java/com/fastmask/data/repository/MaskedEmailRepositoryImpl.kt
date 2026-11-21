@@ -74,6 +74,8 @@ class MaskedEmailRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun peekMaskedEmail(id: String): MaskedEmail? = cache.peekMemory(id)
+
     override suspend fun cachedMaskedEmails(): CachedMasks? = withContext(ioDispatcher) {
         val token = tokenStorage.getToken() ?: return@withContext null
         cache.read(owner = cacheOwner(token))

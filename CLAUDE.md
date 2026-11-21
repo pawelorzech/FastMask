@@ -34,7 +34,7 @@ MVVM over a small domain layer, under `app/src/main/java/com/fastmask/`:
 - **Type:** Google Sans Flex, bundled variable font (`res/font/google_sans_flex.ttf`, OFL; GMS downloadable fonts do NOT serve it). `*Emphasized` display/headline styles turn the ROND axis up.
 - **Shapes:** M3 Expressive shape scale; identity comes from `MaterialShapes` (cookie, clover, sunny, burst) via `MaskAvatar`/`StateMorphAvatar`; grouped rows use `SegmentedRow` (20dp outer / 4dp inner, press morphs).
 - **Density:** 16dp gutters, segmented lists with 2dp gaps, 56dp primary buttons, 48dp touch targets.
-- **Motion:** `MaterialExpressiveTheme(motionScheme = MotionScheme.expressive())`; springs from `MaterialTheme.motionScheme` only, never `tween`. Nav = spring shared axis + predictive back; list row to detail is a container transform (`Modifier.maskContainer(id)`). Infinite shape morphs must go through Compose infinite-animation APIs so tests/accessibility can idle. Brand mark: Cookie @ icon (`tools/brand/icon.ts`).
+- **Motion:** `MaterialExpressiveTheme(motionScheme = MotionScheme.expressive())`; springs from `MaterialTheme.motionScheme` only, never `tween`. Screen navigation is governed by `NavMotion`: horizontal X push/pop (with depth scrim, edge separation, RTL `SlideDirection` and predictive back), vertical Y modals for Create/Pro/re-auth, and depth Z session boundary + lock reveal; detail reads from RAM cache synchronously on frame 0 (`peekMaskedEmail`). Infinite shape morphs must go through Compose infinite-animation APIs so tests/accessibility can idle. Brand mark: Cookie @ icon (`tools/brand/icon.ts`).
 
 ## Gotchas
 

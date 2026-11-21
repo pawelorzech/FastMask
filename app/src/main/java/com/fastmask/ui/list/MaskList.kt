@@ -81,7 +81,13 @@ internal fun MaskList(
                 },
         ) {
             item(key = "demo-banner") {
-                Box(Modifier.animateItem()) { demoBanner() }
+                Box(
+                    Modifier.animateItem(
+                        fadeInSpec = effects,
+                        placementSpec = spatial,
+                        fadeOutSpec = effects,
+                    ),
+                ) { demoBanner() }
             }
             sections.forEachIndexed { sectionIndex, section ->
                 item(key = "section-${section.section.name}") {

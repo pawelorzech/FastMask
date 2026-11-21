@@ -4,11 +4,18 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -71,6 +78,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
@@ -156,11 +165,20 @@ internal fun ProContent(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val revealPx = with(LocalDensity.current) { PRO_TITLE_REVEAL_SCROLL_DP.dp.toPx() }
     val showBarTitle by remember(revealPx) { derivedStateOf { scroll.value > revealPx } }
-    val barTitleAlpha by androidx.compose.animation.core.animateFloatAsState(
+    val barTitleAlpha by animateFloatAsState(
         targetValue = if (showBarTitle) 1f else 0f,
         animationSpec = motion.defaultEffectsSpec(),
         label = "proBarTitle",
     )
+    val liftOffsetPx = with(LocalDensity.current) { 8.dp.toPx() }
+    val barTitleLiftPx by animateFloatAsState(
+        targetValue = if (showBarTitle) 0f else liftOffsetPx,
+        animationSpec = motion.defaultSpatialSpec(),
+        label = "proBarTitleLift",
+    )
+    val headlineSlideIn = motion.defaultSpatialSpec<IntOffset>()
+    val headlineSlideOut = motion.fastSpatialSpec<IntOffset>()
+    val sizeSpec = motion.defaultSpatialSpec<IntSize>()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -172,7 +190,10 @@ internal fun ProContent(
                     Text(
                         text = stringResource(R.string.pro_title),
                         modifier = Modifier
-                            .graphicsLayer { alpha = barTitleAlpha }
+                            .graphicsLayer {
+                                alpha = barTitleAlpha
+                                translationY = barTitleLiftPx
+                            }
                             .clearAndSetSemantics { },
                     )
                 },
@@ -208,7 +229,11 @@ internal fun ProContent(
             AnimatedContent(
                 targetState = owned,
                 transitionSpec = {
-                    fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
+                    (slideInVertically(headlineSlideIn) { it / 8 } +
+                        fadeIn(motion.defaultEffectsSpec())) togetherWith
+                        (slideOutVertically(headlineSlideOut) { -it / 8 } +
+                            fadeOut(motion.fastEffectsSpec())) using
+                        SizeTransform(clip = false) { _, _ -> sizeSpec }
                 },
                 label = "proHeadline",
             ) { isOwned ->
@@ -257,7 +282,8 @@ internal fun ProContent(
                 targetState = area,
                 transitionSpec = {
                     (fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec(), initialScale = 0.92f)) togetherWith
-                        (fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec(), targetScale = 0.92f))
+                        (fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec(), targetScale = 0.92f)) using
+                        SizeTransform(clip = false) { _, _ -> sizeSpec }
                 },
                 label = "proPurchaseArea",
             ) { current ->
@@ -332,9 +358,15 @@ internal fun ProContent(
                 }
             }
 
-            if (!owned) {
-                Spacer(Modifier.height(8.dp))
-                RestoreButton(inFlight = state.restoreInFlight, onClick = onRestore)
+            AnimatedVisibility(
+                visible = !owned,
+                enter = expandVertically(sizeSpec) + fadeIn(motion.defaultEffectsSpec()),
+                exit = shrinkVertically(motion.fastSpatialSpec()) + fadeOut(motion.fastEffectsSpec()),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Spacer(Modifier.height(8.dp))
+                    RestoreButton(inFlight = state.restoreInFlight, onClick = onRestore)
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -371,6 +403,8 @@ private fun InFlightButton(
 ) {
     val working = stringResource(R.string.state_working)
     val motion = MaterialTheme.motionScheme
+    val fastEffects = motion.fastEffectsSpec<Float>()
+    val fastSpatial = motion.fastSpatialSpec<Float>()
     button(
         { if (!inFlight) onClick() },
         modifier.then(
@@ -384,7 +418,8 @@ private fun InFlightButton(
         AnimatedContent(
             targetState = inFlight,
             transitionSpec = {
-                fadeIn(motion.defaultEffectsSpec()) togetherWith fadeOut(motion.fastEffectsSpec())
+                (fadeIn(fastEffects) + scaleIn(fastSpatial, initialScale = 0.75f)) togetherWith
+                    (fadeOut(fastEffects) + scaleOut(fastSpatial, targetScale = 0.75f))
             },
             label = label,
         ) { isBusy ->
