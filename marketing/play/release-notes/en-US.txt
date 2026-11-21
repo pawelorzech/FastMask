@@ -1,6 +1,5 @@
-What's new in 1.14.6
+What's new in 1.15.0
 
-• App lock no longer asks for your fingerprint or PIN over and over, and rotating the phone right after unlocking keeps it unlocked
-• Saving a mask with a short website like figma.com closes edit mode, and stale error messages disappear
-• The + menu closes when you tap the top bar and no longer flickers on the way out
-• Smaller layout fixes on the lock, sign-in and Pro screens
+• Reworked screen transitions with Material 3 Expressive motion: hierarchical screens slide smoothly with full predictive back, and Create, Pro and re-sign-in rise as vertical sheets
+• Mask details open straight away from memory without a loading flash, and unlocking the app reveals your list smoothly
+• The + button now morphs cleanly between extended, compact and open states, and status chips, edit mode and theme accent changes animate smoothly

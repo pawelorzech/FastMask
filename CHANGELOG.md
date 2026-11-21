@@ -6,6 +6,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.15.0] — 2026-11-21
+
+### Changed
+- Screen navigation reworked around Material 3 Expressive spatial logic: hierarchical screens (`Welcome ↔ Login`, `List ↔ Detail`, `List ↔ Settings`) slide along the X axis with parallax, depth scrim, edge separation, RTL support and full 1:1 predictive back; modal tasks (`Create`, `Pro`, re-authentication `Login`) rise and dismiss vertically along the Y axis; session entry/exit (`resetTo`) and unlocking the app (`LockScreen`) animate along the Z depth axis (while relocking remains instant for privacy).
+- Mask detail screen opens synchronously from RAM cache on frame 0 without a loading spinner flash.
+- Unified morphing `+` FAB menu replaces crossfading between two FAB variants; animated state transitions across list states, offline/error banners, search result counts, detail read/edit modes, `StateChip`, button loading states, `WelcomeHero` return, `LoginScreen` token visibility/warnings, `ProScreen` layout changes, `TutorialOverlay` steps, and theme accent palette transitions.
+
+### Build
+- `versionCode` 36 → 37, `versionName` "1.14.6" → "1.15.0".
+
 ## [1.14.6] — 2026-11-19
 
 ### Fixed
