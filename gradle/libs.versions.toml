@@ -36,7 +36,7 @@ firebaseBom = "34.18.0"
 coroutines = "1.11.0"
 
 junit = "4.13.2"
-mockk = "1.13.9"
+mockk = "1.14.12"
 # AndroidX Test 1.6.x / Espresso 3.6.x: the 3.5.1 line calls
 # InputManager.getInstance(), removed in Android 16 (API 36), so every
 # instrumented test died in Espresso.onIdle before reaching an assertion.
