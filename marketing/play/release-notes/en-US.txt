@@ -1,5 +1,6 @@
-What's new in 1.15.0
+What's new in 1.16.0
 
-• Reworked screen transitions with Material 3 Expressive motion: hierarchical screens slide smoothly with full predictive back, and Create, Pro and re-sign-in rise as vertical sheets
-• Mask details open straight away from memory without a loading flash, and unlocking the app reveals your list smoothly
-• The + button now morphs cleanly between extended, compact and open states, and status chips, edit mode and theme accent changes animate smoothly
+• Two-pane layout on foldables and tablets: browse your mask list side by side with mask details or the create form, with a draggable divider
+• Smooth fold, unfold and rotation: search, filters, unsaved edits and open dialogs stay in place without asking to unlock again
+• Dialogs stay clear of the hinge on folding screens
+• Keyboard shortcuts (Ctrl+N, Ctrl+F, Ctrl+C, Del, arrows), mouse hover, right-click menu on masks, tooltips and drag-out for addresses

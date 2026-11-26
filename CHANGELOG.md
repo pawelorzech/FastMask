@@ -6,6 +6,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.16.0] — 2026-11-26
+
+### Added
+- Adaptive two-pane list-detail workspace on foldables and tablets (width ≥ 600dp and height ≥ 480dp) with drag-handle resizing (hidden across vertical separating hinges), in-pane Detail and Create flows, selection highlight, and empty brand placeholder; phones in portrait and landscape keep the stacked single-pane flow.
+- Hinge-aware dialogs (`HingeAwareDialog` / `HingeAwareAlertDialog`) that keep confirmation, language picker, licenses, and lock-unavailable dialogs clear of tabletop and book folds.
+- Large-screen productivity support: keyboard shortcuts (`Ctrl+N`, `Ctrl+F`, `Ctrl+C`, `Del`, `Esc`, `↑`/`↓`) with Android's system shortcut helper, pointer focus and hover states, right-click context menu on mask rows, `ActionTooltip` on icon buttons, and cross-window drag-out for masked email addresses.
+- Translations for all new adaptive strings across all 20 locales and EN/PL foldable Play Store screenshots.
+
+### Fixed
+- State continuity across folding, unfolding, rotation, and process death: search query, filter selection, unsaved edit/create drafts, pending banners, and open dialogs survive configuration changes, and app lock no longer re-prompts during configuration changes.
+
+### Build
+- `versionCode` 37 → 38, `versionName` "1.15.0" → "1.16.0".
+
 ## [1.15.0] — 2026-11-21
 
 ### Changed

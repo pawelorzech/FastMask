@@ -1,5 +1,6 @@
-Nowości w 1.15.0
+Nowości w 1.16.0
 
-• Przebudowane przejścia między ekranami w stylu Material 3 Expressive: podstrony płynnie przesuwają się z pełnym gestem cofania, a tworzenie maski, Pro i ponowne logowanie wysuwają się z dołu
-• Szczegóły maski otwierają się od razu z pamięci bez mignięcia ładowania, a odblokowanie płynnie odsłania listę
-• Przycisk + płynnie zmienia kształt bez migania, a statusy, edycja i zmiana koloru motywu animują się gładko
+• Dwupanelowy układ na składanych ekranach i tabletach: lista masek obok szczegółów lub tworzenia, z przesuwanym podziałem
+• Płynne składanie, rozkładanie i obrót: wyszukiwanie, filtry, szkice i okna zostają na miejscu bez ponownego odblokowania
+• Okna dialogowe omijają zawias na składanych ekranach
+• Skróty klawiszowe (Ctrl+N, Ctrl+F, Ctrl+C, Del, strzałki), menu pod prawym przyciskiem, podpowiedzi i przeciąganie adresów
