@@ -221,4 +221,28 @@ class CreateMaskedEmailViewModelTest {
         // Picking Disabled alone is not typed input worth a discard dialog.
         assertFalse(clean.copy(initialState = EmailState.DISABLED).isDirty)
     }
+
+    @Test
+    fun `draft form fields survive recreation via SavedStateHandle`() = runTest {
+        val handle = SavedStateHandle(mapOf(NavRoutes.ARG_FOR_DOMAIN to "https://initial.example"))
+        val repo = FakeMaskedEmailRepository()
+        val trigger = object : com.fastmask.domain.review.ReviewTrigger {
+            override suspend fun onMaskCreated() = Unit
+        }
+        val first = CreateMaskedEmailViewModel(handle, repo, trigger)
+        first.onPrefixChange("shop")
+        first.onDomainChange("https://edited.example")
+        first.onDescriptionChange("Orders")
+        first.onUrlChange("https://edited.example/login")
+        first.onStateChange(EmailState.DISABLED)
+
+        val restored = CreateMaskedEmailViewModel(handle, repo, trigger)
+        val state = restored.uiState.value
+
+        assertEquals("shop", state.emailPrefix)
+        assertEquals("https://edited.example", state.forDomain)
+        assertEquals("Orders", state.description)
+        assertEquals("https://edited.example/login", state.url)
+        assertEquals(EmailState.DISABLED, state.initialState)
+    }
 }

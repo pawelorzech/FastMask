@@ -158,8 +158,8 @@ fun MaskedEmailListScreen(
     }
 
     val copyAction = stringResource(R.string.create_email_copy_action)
-    var pendingCreated by remember { mutableStateOf<String?>(null) }
-    var highlightEmail by remember { mutableStateOf<String?>(null) }
+    var pendingCreated by rememberSaveable { mutableStateOf<String?>(null) }
+    var highlightEmail by rememberSaveable { mutableStateOf<String?>(null) }
     fun announceCreated(email: String) {
         pendingCreated = email
         highlightEmail = email
@@ -248,7 +248,7 @@ fun MaskedEmailListScreen(
     }
 
     val tutorialBounds = remember { mutableStateMapOf<TutorialTarget, Rect>() }
-    var showTutorial by remember { mutableStateOf(false) }
+    var showTutorial by rememberSaveable { mutableStateOf(false) }
 
     val shouldShow = session.isDemo && !tutorialCompleted &&
         TutorialTarget.entries.all { it in tutorialBounds }

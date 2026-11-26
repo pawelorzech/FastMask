@@ -1,6 +1,6 @@
 package com.fastmask.ui.common
 
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
@@ -17,7 +17,7 @@ object ContentWidth {
 
 @Composable
 fun isCompactHeight(): Boolean =
-    !currentWindowAdaptiveInfo().windowSizeClass
+    !currentWindowAdaptiveInfoV2().windowSizeClass
         .isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
 
 /** Apply AFTER `verticalScroll` so the scrollable area (and its touch target) still spans the full window width. */

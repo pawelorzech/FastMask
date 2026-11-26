@@ -1,6 +1,7 @@
 package com.fastmask.ui.list
 
 import androidx.annotation.StringRes
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fastmask.R
@@ -30,6 +31,7 @@ import javax.inject.Inject
 class MaskedEmailListViewModel @Inject constructor(
     private val maskedEmailRepository: MaskedEmailRepository,
     private val sessionRepository: SessionRepository,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val _events = Channel<MaskedEmailListEvent>(Channel.BUFFERED)
@@ -79,7 +81,16 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
-    private val _uiState = MutableStateFlow(MaskedEmailListUiState())
+    private val _uiState = MutableStateFlow(
+        MaskedEmailListUiState(
+            searchQuery = savedStateHandle.get<String>(KEY_SEARCH_QUERY)
+                ?.take(MAX_SEARCH_QUERY_LENGTH)
+                .orEmpty(),
+            selectedFilter = savedStateHandle.get<String>(KEY_SELECTED_FILTER)
+                ?.let { name -> runCatching { EmailFilter.valueOf(name) }.getOrNull() }
+                ?: EmailFilter.ALL,
+        ),
+    )
     val uiState: StateFlow<MaskedEmailListUiState> = _uiState.asStateFlow()
 
     internal var clockMillis: () -> Long = System::currentTimeMillis
@@ -161,16 +172,20 @@ class MaskedEmailListViewModel @Inject constructor(
         // A hardware keyboard / IME paste bypasses any custom paste action, and
         // comparing an unbounded document on every keystroke makes typing lag.
         val boundedQuery = query.take(MAX_SEARCH_QUERY_LENGTH)
+        savedStateHandle[KEY_SEARCH_QUERY] = boundedQuery
         _uiState.update { it.copy(searchQuery = boundedQuery) }
     }
 
     fun onFilterChange(filter: EmailFilter) {
+        savedStateHandle[KEY_SELECTED_FILTER] = filter.name
         _uiState.update { it.copy(selectedFilter = filter) }
     }
 
     companion object {
         internal const val MAX_SEARCH_QUERY_LENGTH = 256
         internal const val STALE_AFTER_MS = 30_000L
+        private const val KEY_SEARCH_QUERY = "search_query"
+        private const val KEY_SELECTED_FILTER = "selected_filter"
     }
 }
 

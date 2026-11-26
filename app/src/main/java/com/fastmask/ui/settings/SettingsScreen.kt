@@ -184,9 +184,9 @@ internal fun SettingsContent(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var showLanguageDialog by remember { mutableStateOf(false) }
-    var showLockUnavailableDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showLockUnavailableDialog by rememberSaveable { mutableStateOf(false) }
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
 
     val colorsLockedMessage = stringResource(R.string.pro_feature_locked)

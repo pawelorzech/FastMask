@@ -201,7 +201,9 @@ class MainActivity : AppCompatActivity() {
 
                 DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
-                        if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
+                        // Fold, unfold and rotation trigger ON_STOP on the outgoing Activity instance
+                        // while the user is still mid-session; only a real backgrounding should re-lock.
+                        if (event == Lifecycle.Event.ON_STOP && appLockEnabled && !isChangingConfigurations) {
                             lockGate.relock()
                         }
                     }

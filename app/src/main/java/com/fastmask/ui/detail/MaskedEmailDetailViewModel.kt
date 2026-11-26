@@ -45,9 +45,12 @@ class MaskedEmailDetailViewModel @Inject constructor(
         MaskedEmailDetailUiState(
             email = initialEmail,
             isEditing = savedStateHandle[KEY_EDITING] ?: false,
-            editedDescription = initialEmail?.description.orEmpty(),
-            editedForDomain = initialEmail?.forDomain.orEmpty(),
-            editedUrl = initialEmail?.url.orEmpty(),
+            editedDescription = savedStateHandle.get<String>(KEY_EDITED_DESCRIPTION)
+                ?: initialEmail?.description.orEmpty(),
+            editedForDomain = savedStateHandle.get<String>(KEY_EDITED_FOR_DOMAIN)
+                ?: initialEmail?.forDomain.orEmpty(),
+            editedUrl = savedStateHandle.get<String>(KEY_EDITED_URL)
+                ?: initialEmail?.url.orEmpty(),
         ),
     )
     val uiState: StateFlow<MaskedEmailDetailUiState> = _uiState.asStateFlow()
@@ -151,8 +154,10 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 previous: String?,
                 fresh: String?,
                 savedValue: String?,
+                draftKey: String,
             ): String = when {
                 savedValue != null && draft == savedValue -> fresh.orEmpty()
+                savedStateHandle.contains(draftKey) -> draft
                 request.resetEdits && draft == previous.orEmpty() -> fresh.orEmpty()
                 else -> draft
             }
@@ -162,15 +167,34 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 isLoading = false,
                 updateOperation = null,
                 email = email,
-                editedDescription = refreshedField(it.editedDescription, it.email?.description, email.description, saved?.description),
-                editedForDomain = refreshedField(it.editedForDomain, it.email?.forDomain, email.forDomain, saved?.forDomain),
-                editedUrl = refreshedField(it.editedUrl, it.email?.url, email.url, saved?.url),
+                editedDescription = refreshedField(
+                    it.editedDescription,
+                    it.email?.description,
+                    email.description,
+                    saved?.description,
+                    KEY_EDITED_DESCRIPTION,
+                ),
+                editedForDomain = refreshedField(
+                    it.editedForDomain,
+                    it.email?.forDomain,
+                    email.forDomain,
+                    saved?.forDomain,
+                    KEY_EDITED_FOR_DOMAIN,
+                ),
+                editedUrl = refreshedField(
+                    it.editedUrl,
+                    it.email?.url,
+                    email.url,
+                    saved?.url,
+                    KEY_EDITED_URL,
+                ),
             )
             // A save lands when the reload after it does: only then does the
             // draft match the server again and edit mode can close. A failed
             // save, or keystrokes typed while it was in flight, keep the draft
             // and stay in edit mode.
             if ((it.updateOperation == MaskedEmailDetailUpdate.SAVE_CHANGES || saved != null) && !loaded.hasChanges) {
+                clearSavedDrafts()
                 loaded.copy(isEditing = false)
             } else {
                 loaded
@@ -179,14 +203,17 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     fun onDescriptionChange(description: String) {
+        savedStateHandle[KEY_EDITED_DESCRIPTION] = description
         _uiState.update { it.copy(editedDescription = description) }
     }
 
     fun onForDomainChange(domain: String) {
+        savedStateHandle[KEY_EDITED_FOR_DOMAIN] = domain
         _uiState.update { it.copy(editedForDomain = domain) }
     }
 
     fun onUrlChange(url: String) {
+        savedStateHandle[KEY_EDITED_URL] = url
         _uiState.update { it.copy(editedUrl = url) }
     }
 
@@ -195,6 +222,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     fun discardEdits() {
+        clearSavedDrafts()
         _uiState.update {
             val email = it.email
             it.copy(
@@ -204,6 +232,12 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 editedUrl = email?.url.orEmpty(),
             )
         }
+    }
+
+    private fun clearSavedDrafts() {
+        savedStateHandle.remove<String>(KEY_EDITED_DESCRIPTION)
+        savedStateHandle.remove<String>(KEY_EDITED_FOR_DOMAIN)
+        savedStateHandle.remove<String>(KEY_EDITED_URL)
     }
 
     fun enable() = updateState(EmailState.ENABLED)
@@ -335,3 +369,6 @@ sealed class MaskedEmailDetailEvent {
 }
 
 private const val KEY_EDITING = "isEditing"
+private const val KEY_EDITED_DESCRIPTION = "editedDescription"
+private const val KEY_EDITED_FOR_DOMAIN = "editedForDomain"
+private const val KEY_EDITED_URL = "editedUrl"
