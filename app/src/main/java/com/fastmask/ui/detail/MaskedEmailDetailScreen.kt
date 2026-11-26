@@ -51,6 +51,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -91,6 +92,8 @@ fun MaskedEmailDetailScreen(
     onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
+    showBackButton: Boolean = true,
+    showDemoBanner: Boolean = true,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -102,15 +105,16 @@ fun MaskedEmailDetailScreen(
     val onBack = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
 
     val updatedMessage = stringResource(R.string.email_detail_updated)
+    val currentOnArchived by rememberUpdatedState(onArchived)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
                 is MaskedEmailDetailEvent.Deleted -> {
                     // The list hosts the archived/undo snackbar, where the mask reappears.
-                    onArchived(event.id, event.previousState)
+                    currentOnArchived(event.id, event.previousState)
                 }
             }
         }
@@ -134,7 +138,12 @@ fun MaskedEmailDetailScreen(
     MaskedEmailDetailContent(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
+        banner = {
+            if (showDemoBanner) {
+                DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp))
+            }
+        },
+        showBackButton = showBackButton,
         onBack = onBack,
         onRetry = { viewModel.loadEmail() },
         onReauthenticate = onReauthenticate,
@@ -169,6 +178,7 @@ internal fun MaskedEmailDetailContent(
     onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
     onArchiveClick: () -> Unit,
+    showBackButton: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
@@ -214,11 +224,13 @@ internal fun MaskedEmailDetailContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = backDesc,
-                        )
+                    if (showBackButton) {
+                        IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = backDesc,
+                            )
+                        }
                     }
                 },
                 banner = banner,

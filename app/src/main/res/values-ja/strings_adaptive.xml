@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">マスクを選択</string>
+    <string name="workspace_empty_body">リストからマスクメールを選んで確認や編集を行うか、新しく作成してください。</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N 新規 · Ctrl+F 検索 · Ctrl+C コピー · Esc 閉じる</string>
+    <string name="shortcuts_group_masks">マスクメール</string>
+    <string name="shortcut_new_mask">新しいマスク</string>
+    <string name="shortcut_search">マスクを検索</string>
+    <string name="shortcut_copy_selected">選択したアドレスをコピー</string>
+    <string name="shortcut_archive_selected">選択したマスクをアーカイブ</string>
+    <string name="shortcut_close_pane">パネルまたは検索を閉じる</string>
+    <string name="shortcut_next_mask">次のマスク</string>
+    <string name="shortcut_previous_mask">前のマスク</string>
+    <string name="context_enable_mask">マスクを有効にする</string>
+    <string name="context_disable_mask">マスクを無効にする</string>
+</resources>

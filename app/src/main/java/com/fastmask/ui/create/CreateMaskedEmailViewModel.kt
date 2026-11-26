@@ -87,6 +87,15 @@ class CreateMaskedEmailViewModel @Inject constructor(
         _uiState.update { it.copy(initialState = state) }
     }
 
+    fun resetForm(forDomain: String = "") {
+        savedStateHandle.remove<String>(KEY_DRAFT_PREFIX)
+        savedStateHandle.remove<String>(KEY_DRAFT_DOMAIN)
+        savedStateHandle.remove<String>(KEY_DRAFT_DESCRIPTION)
+        savedStateHandle.remove<String>(KEY_DRAFT_URL)
+        savedStateHandle.remove<String>(KEY_DRAFT_STATE)
+        _uiState.value = CreateMaskedEmailUiState(forDomain = forDomain)
+    }
+
     fun create() {
         val state = _uiState.value
         if (state.prefixErrorRes != null) return
@@ -109,7 +118,7 @@ class CreateMaskedEmailViewModel @Inject constructor(
                 onSuccess = { email ->
                     _uiState.update { it.copy(isLoading = false) }
                     reviewTrigger.onMaskCreated()
-                    _events.send(CreateMaskedEmailEvent.Created(email.email))
+                    _events.send(CreateMaskedEmailEvent.Created(id = email.id, email = email.email))
                 },
                 onFailure = { error ->
                     _uiState.update {
@@ -140,7 +149,7 @@ data class CreateMaskedEmailUiState(
 }
 
 sealed class CreateMaskedEmailEvent {
-    data class Created(val email: String) : CreateMaskedEmailEvent()
+    data class Created(val id: String, val email: String) : CreateMaskedEmailEvent()
 }
 
 private const val KEY_DRAFT_PREFIX = "create_prefix"

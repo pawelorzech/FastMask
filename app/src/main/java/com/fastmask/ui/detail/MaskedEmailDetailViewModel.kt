@@ -35,11 +35,13 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private val maskedEmailRepository: MaskedEmailRepository,
 ) : ViewModel() {
 
-    val emailId: String = requireNotNull(savedStateHandle.get<String>(NavRoutes.ARG_EMAIL_ID)) {
-        "emailId is required"
-    }
+    private var currentEmailId: String = savedStateHandle.get<String>(NavRoutes.ARG_EMAIL_ID).orEmpty()
 
-    private val initialEmail = maskedEmailRepository.peekMaskedEmail(emailId)
+    val emailId: String
+        get() = currentEmailId
+
+    private val initialEmail = currentEmailId.takeIf { it.isNotEmpty() }
+        ?.let(maskedEmailRepository::peekMaskedEmail)
 
     private val _uiState = MutableStateFlow(
         MaskedEmailDetailUiState(
@@ -71,6 +73,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
     )
 
     private data class LoadRequest(
+        val emailId: String,
         val resetEdits: Boolean,
         val savedDraft: SavedDraft? = null,
     )
@@ -78,16 +81,21 @@ class MaskedEmailDetailViewModel @Inject constructor(
     private val loadFlight = SingleFlight<LoadRequest>(
         scope = viewModelScope,
         merge = { queued, new ->
-            LoadRequest(
-                resetEdits = queued.resetEdits && new.resetEdits,
-                savedDraft = new.savedDraft ?: queued.savedDraft,
-            )
+            if (queued.emailId != new.emailId) {
+                new
+            } else {
+                LoadRequest(
+                    emailId = new.emailId,
+                    resetEdits = queued.resetEdits && new.resetEdits,
+                    savedDraft = new.savedDraft ?: queued.savedDraft,
+                )
+            }
         },
         start = { request ->
             // A failed refresh with a mask already on screen (cache seed or an earlier
             // success) degrades to the inline error above Save: the full-screen error
             // state would throw away what the user is looking at.
-            val hadEmail = _uiState.value.email != null
+            val hadEmail = _uiState.value.email?.id == request.emailId
             if (!hadEmail) {
                 _uiState.update { it.copy(isLoading = true, error = null) }
             }
@@ -96,20 +104,69 @@ class MaskedEmailDetailViewModel @Inject constructor(
     )
 
     init {
-        loadEmail()
+        if (currentEmailId.isNotEmpty()) {
+            loadEmail()
+        }
+    }
+
+    /**
+     * Switches the workspace detail pane to [newEmailId], seeding synchronously from the RAM cache
+     * on frame 0 so switching masks never flashes a loading indicator.
+     */
+    fun openEmail(newEmailId: String) {
+        if (newEmailId.isBlank()) return
+        if (newEmailId == currentEmailId && (_uiState.value.email?.id == newEmailId || _uiState.value.isLoading)) {
+            return
+        }
+        val sameSavedId = savedStateHandle.get<String>(NavRoutes.ARG_EMAIL_ID) == newEmailId
+        currentEmailId = newEmailId
+        savedStateHandle[NavRoutes.ARG_EMAIL_ID] = newEmailId
+        if (!sameSavedId) {
+            clearSavedDrafts()
+            savedStateHandle[KEY_EDITING] = false
+        }
+        val peeked = maskedEmailRepository.peekMaskedEmail(newEmailId)
+        _uiState.value = MaskedEmailDetailUiState(
+            email = peeked,
+            isLoading = peeked == null,
+            isEditing = if (sameSavedId) (savedStateHandle[KEY_EDITING] ?: false) else false,
+            editedDescription = if (sameSavedId) {
+                savedStateHandle.get<String>(KEY_EDITED_DESCRIPTION) ?: peeked?.description.orEmpty()
+            } else {
+                peeked?.description.orEmpty()
+            },
+            editedForDomain = if (sameSavedId) {
+                savedStateHandle.get<String>(KEY_EDITED_FOR_DOMAIN) ?: peeked?.forDomain.orEmpty()
+            } else {
+                peeked?.forDomain.orEmpty()
+            },
+            editedUrl = if (sameSavedId) {
+                savedStateHandle.get<String>(KEY_EDITED_URL) ?: peeked?.url.orEmpty()
+            } else {
+                peeked?.url.orEmpty()
+            },
+        )
+        loadEmail(resetEdits = true)
     }
 
     // resetEdits is false for the reload after a save or toggle: overwriting edited*
     // there would drop keystrokes typed while the call was in flight.
-    fun loadEmail(resetEdits: Boolean = true) = loadFlight.request(LoadRequest(resetEdits))
+    fun loadEmail(resetEdits: Boolean = true) {
+        val targetId = currentEmailId
+        if (targetId.isEmpty()) return
+        loadFlight.request(LoadRequest(emailId = targetId, resetEdits = resetEdits))
+    }
 
     private suspend fun loadOnce(request: LoadRequest, hadEmail: Boolean) {
-        if (!hadEmail && _uiState.value.email == null) {
+        val targetId = request.emailId
+        if (targetId != currentEmailId) return
+        if (!hadEmail && _uiState.value.email?.id != targetId) {
             seedFromCache(request)
         }
 
-        maskedEmailRepository.getMaskedEmail(emailId).fold(
+        maskedEmailRepository.getMaskedEmail(targetId).fold(
             onSuccess = { email ->
+                if (targetId != currentEmailId) return@fold
                 if (email != null) {
                     applyLoadedEmail(email, request)
                     _uiState.update { it.copy(error = null) }
@@ -127,6 +184,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                 }
             },
             onFailure = { error ->
+                if (targetId != currentEmailId) return@fold
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -139,8 +197,9 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     private suspend fun seedFromCache(request: LoadRequest) {
-        val cached = maskedEmailRepository.cachedMaskedEmails()?.masks?.find { it.id == emailId } ?: return
-        if (_uiState.value.email != null) return
+        val targetId = request.emailId
+        val cached = maskedEmailRepository.cachedMaskedEmails()?.masks?.find { it.id == targetId } ?: return
+        if (targetId != currentEmailId || _uiState.value.email?.id == targetId) return
         applyLoadedEmail(cached, request)
     }
 
@@ -245,15 +304,18 @@ class MaskedEmailDetailViewModel @Inject constructor(
     fun disable() = updateState(EmailState.DISABLED)
 
     private fun updateState(newState: EmailState) {
-        if (_uiState.value.isUpdating || _uiState.value.isDeleting) return
+        val targetId = currentEmailId
+        if (targetId.isEmpty() || _uiState.value.isUpdating || _uiState.value.isDeleting) return
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.TOGGLE_STATE, error = null) }
         viewModelScope.launch {
-            maskedEmailRepository.updateMaskedEmail(emailId, UpdateMaskedEmailParams(state = newState)).fold(
+            maskedEmailRepository.updateMaskedEmail(targetId, UpdateMaskedEmailParams(state = newState)).fold(
                 onSuccess = {
+                    if (targetId != currentEmailId) return@fold
                     loadEmail(resetEdits = false)
                     _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
+                    if (targetId != currentEmailId) return@fold
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
@@ -266,8 +328,9 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     fun saveChanges() {
+        val targetId = currentEmailId
         val state = _uiState.value
-        if (state.isUpdating || state.isDeleting) return
+        if (targetId.isEmpty() || state.isUpdating || state.isDeleting) return
         val params = state.pendingChanges ?: return
         val savedDraft = SavedDraft(
             description = state.editedDescription,
@@ -277,12 +340,14 @@ class MaskedEmailDetailViewModel @Inject constructor(
 
         _uiState.update { it.copy(updateOperation = MaskedEmailDetailUpdate.SAVE_CHANGES, error = null) }
         viewModelScope.launch {
-            maskedEmailRepository.updateMaskedEmail(emailId, params).fold(
+            maskedEmailRepository.updateMaskedEmail(targetId, params).fold(
                 onSuccess = {
-                    loadFlight.request(LoadRequest(resetEdits = false, savedDraft = savedDraft))
+                    if (targetId != currentEmailId) return@fold
+                    loadFlight.request(LoadRequest(emailId = targetId, resetEdits = false, savedDraft = savedDraft))
                     _events.send(MaskedEmailDetailEvent.Updated)
                 },
                 onFailure = { error ->
+                    if (targetId != currentEmailId) return@fold
                     _uiState.update {
                         it.copy(
                             updateOperation = null,
@@ -295,16 +360,18 @@ class MaskedEmailDetailViewModel @Inject constructor(
     }
 
     fun delete() {
-        if (_uiState.value.isDeleting || _uiState.value.isUpdating) return
+        val targetId = currentEmailId
+        if (targetId.isEmpty() || _uiState.value.isDeleting || _uiState.value.isUpdating) return
         _uiState.update { it.copy(isDeleting = true, error = null) }
         viewModelScope.launch {
-            maskedEmailRepository.archiveMaskedEmail(emailId).fold(
+            maskedEmailRepository.archiveMaskedEmail(targetId).fold(
                 onSuccess = {
+                    if (targetId != currentEmailId) return@fold
                     // Carry the pre-archive state so Undo restores it exactly: a DISABLED
                     // mask must not come back accepting mail.
                     _events.send(
                         MaskedEmailDetailEvent.Deleted(
-                            id = emailId,
+                            id = targetId,
                             previousState = _uiState.value.email?.state ?: EmailState.ENABLED,
                         )
                     )
@@ -312,6 +379,7 @@ class MaskedEmailDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(isDeleting = false) }
                 },
                 onFailure = { error ->
+                    if (targetId != currentEmailId) return@fold
                     _uiState.update {
                         it.copy(
                             isDeleting = false,

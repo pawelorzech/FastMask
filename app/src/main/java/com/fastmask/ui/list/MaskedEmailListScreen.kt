@@ -61,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -113,6 +114,9 @@ fun MaskedEmailListScreen(
     onReauthenticate: () -> Unit,
     pendingResult: ListResult? = null,
     onResultConsumed: (ListResult) -> Unit = {},
+    selectedEmailId: String? = null,
+    inPane: Boolean = false,
+    onRandomCreated: ((id: String, email: String) -> Unit)? = null,
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -170,10 +174,16 @@ fun MaskedEmailListScreen(
             onResultConsumed(pendingResult)
         }
     }
+    val currentOnRandomCreated by rememberUpdatedState(onRandomCreated)
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is MaskedEmailListEvent.RandomCreated -> announceCreated(event.email)
+                is MaskedEmailListEvent.RandomCreated -> {
+                    announceCreated(event.email)
+                    if (event.id.isNotBlank()) {
+                        currentOnRandomCreated?.invoke(event.id, event.email)
+                    }
+                }
                 is MaskedEmailListEvent.RandomFailed -> {
                     snackbarHostState.showSnackbar(
                         message = resources.getString(event.messageRes),
@@ -248,6 +258,7 @@ fun MaskedEmailListScreen(
     }
 
     val tutorialBounds = remember { mutableStateMapOf<TutorialTarget, Rect>() }
+    var containerOrigin by remember { mutableStateOf(Offset.Zero) }
     var showTutorial by rememberSaveable { mutableStateOf(false) }
 
     val shouldShow = session.isDemo && !tutorialCompleted &&
@@ -260,12 +271,18 @@ fun MaskedEmailListScreen(
         showTutorial = shouldShow
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coords -> containerOrigin = coords.boundsInRoot().topLeft },
+    ) {
         MaskedEmailListContent(
             uiState = uiState,
             snackbarHostState = snackbarHostState,
             listState = listState,
             highlightEmail = highlightEmail,
+            selectedEmailId = selectedEmailId,
+            inPane = inPane,
             onSearchQueryChange = viewModel::onSearchQueryChange,
             onFilterSelect = {
                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -278,7 +295,9 @@ fun MaskedEmailListScreen(
             onNavigateToCreate = onNavigateToCreate,
             onRandomMask = viewModel::createRandomMask,
             onNavigateToSettings = onNavigateToSettings,
-            onTutorialBounds = { target, bounds -> tutorialBounds[target] = bounds },
+            onTutorialBounds = { target, bounds ->
+                tutorialBounds[target] = bounds.translate(-containerOrigin)
+            },
             demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = ListGutter)) },
             // The scrim blocks touch but not screen readers: hide the subtree from
             // TalkBack while the tutorial is up.
@@ -314,6 +333,8 @@ internal fun MaskedEmailListContent(
     demoBanner: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     initialMenuExpanded: Boolean = false,
+    selectedEmailId: String? = null,
+    inPane: Boolean = false,
 ) {
     val context = LocalContext.current
     // Phones in landscape: a large collapsing bar plus pinned search and filters
@@ -442,7 +463,7 @@ internal fun MaskedEmailListContent(
                                 R.string.list_offline_cached,
                                 RelativeTime.format(context, cachedAt),
                             ),
-                            modifier = Modifier.readableWidth(ContentWidth.List),
+                            modifier = if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List),
                         )
                     }
                 }
@@ -462,8 +483,7 @@ internal fun MaskedEmailListContent(
                             error = error,
                             onRetry = onRefresh,
                             onReauthenticate = onReauthenticate,
-                            modifier = Modifier
-                                .readableWidth(ContentWidth.List)
+                            modifier = (if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List))
                                 .padding(horizontal = ListGutter, vertical = 4.dp),
                         )
                     }
@@ -489,7 +509,7 @@ internal fun MaskedEmailListContent(
                             drawRect(headerColor)
                         }
                         .padding(top = 12.dp, bottom = 12.dp)
-                        .readableWidth(ContentWidth.List),
+                        .then(if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List)),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     val gutterPx = with(LocalDensity.current) { ListGutter.toPx() }
@@ -621,6 +641,8 @@ internal fun MaskedEmailListContent(
                                 onRowCopy = onRowCopy,
                                 onTutorialBounds = onTutorialBounds,
                                 demoBanner = demoBanner,
+                                selectedEmailId = selectedEmailId,
+                                inPane = inPane,
                             )
                         }
                     }

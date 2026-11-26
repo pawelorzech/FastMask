@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">마스크 선택</string>
+    <string name="workspace_empty_body">목록에서 마스크 이메일을 선택해 확인하거나 편집하고, 새 마스크를 만들 수도 있습니다.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N 새로 만들기 · Ctrl+F 검색 · Ctrl+C 복사 · Esc 닫기</string>
+    <string name="shortcuts_group_masks">마스크 이메일</string>
+    <string name="shortcut_new_mask">새 마스크</string>
+    <string name="shortcut_search">마스크 검색</string>
+    <string name="shortcut_copy_selected">선택한 주소 복사</string>
+    <string name="shortcut_archive_selected">선택한 마스크 보관</string>
+    <string name="shortcut_close_pane">패널 또는 검색 닫기</string>
+    <string name="shortcut_next_mask">다음 마스크</string>
+    <string name="shortcut_previous_mask">이전 마스크</string>
+    <string name="context_enable_mask">마스크 사용</string>
+    <string name="context_disable_mask">마스크 중지</string>
+</resources>

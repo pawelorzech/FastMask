@@ -44,7 +44,7 @@ class MaskedEmailListViewModel @Inject constructor(
             maskedEmailRepository.createMaskedEmail(CreateMaskedEmailParams()).fold(
                 onSuccess = { created ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
-                    _events.send(MaskedEmailListEvent.RandomCreated(created.email))
+                    _events.send(MaskedEmailListEvent.RandomCreated(id = created.id, email = created.email))
                 },
                 onFailure = { error ->
                     _uiState.update { it.copy(isCreatingRandom = false) }
@@ -210,7 +210,7 @@ private fun List<MaskedEmail>.mostRecentFirst(): List<MaskedEmail> =
     sortedByDescending { mask -> mask.lastActivityAt }
 
 sealed interface MaskedEmailListEvent {
-    data class RandomCreated(val email: String) : MaskedEmailListEvent
+    data class RandomCreated(val email: String, val id: String = "") : MaskedEmailListEvent
     data class RandomFailed(@StringRes val messageRes: Int) : MaskedEmailListEvent
 }
 

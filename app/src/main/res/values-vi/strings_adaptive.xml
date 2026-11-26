@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Chọn một địa chỉ ẩn</string>
+    <string name="workspace_empty_body">Chọn một email ẩn từ danh sách để xem hoặc chỉnh sửa, hoặc tạo địa chỉ mới.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N mới · Ctrl+F tìm kiếm · Ctrl+C sao chép · Esc đóng</string>
+    <string name="shortcuts_group_masks">Email ẩn</string>
+    <string name="shortcut_new_mask">Tạo địa chỉ ẩn mới</string>
+    <string name="shortcut_search">Tìm địa chỉ ẩn</string>
+    <string name="shortcut_copy_selected">Sao chép địa chỉ đã chọn</string>
+    <string name="shortcut_archive_selected">Lưu trữ địa chỉ ẩn đã chọn</string>
+    <string name="shortcut_close_pane">Đóng bảng hoặc tìm kiếm</string>
+    <string name="shortcut_next_mask">Địa chỉ ẩn tiếp theo</string>
+    <string name="shortcut_previous_mask">Địa chỉ ẩn trước đó</string>
+    <string name="context_enable_mask">Bật địa chỉ ẩn</string>
+    <string name="context_disable_mask">Tắt địa chỉ ẩn</string>
+</resources>

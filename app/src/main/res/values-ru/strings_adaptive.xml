@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Выберите маску</string>
+    <string name="workspace_empty_body">Выберите скрытый адрес из списка для просмотра или изменения либо создайте новый.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N новая · Ctrl+F поиск · Ctrl+C копировать · Esc закрыть</string>
+    <string name="shortcuts_group_masks">Скрытые адреса</string>
+    <string name="shortcut_new_mask">Новая маска</string>
+    <string name="shortcut_search">Поиск масок</string>
+    <string name="shortcut_copy_selected">Копировать выбранный адрес</string>
+    <string name="shortcut_archive_selected">Архивировать выбранную маску</string>
+    <string name="shortcut_close_pane">Закрыть панель или поиск</string>
+    <string name="shortcut_next_mask">Следующая маска</string>
+    <string name="shortcut_previous_mask">Предыдущая маска</string>
+    <string name="context_enable_mask">Включить маску</string>
+    <string name="context_disable_mask">Отключить маску</string>
+</resources>

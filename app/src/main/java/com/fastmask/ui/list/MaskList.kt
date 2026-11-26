@@ -43,6 +43,8 @@ internal fun MaskList(
     onRowCopy: (MaskedEmail) -> Unit,
     onTutorialBounds: (TutorialTarget, Rect) -> Unit,
     demoBanner: @Composable () -> Unit,
+    selectedEmailId: String? = null,
+    inPane: Boolean = false,
 ) {
     val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
     val sections = remember(uiState.filteredEmails, nowSec) {
@@ -52,11 +54,10 @@ internal fun MaskList(
     val spatial = MaterialTheme.motionScheme.defaultSpatialSpec<IntOffset>()
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
 
-    // Wide windows: the list keeps a readable column. The extra inset lives in the
-    // LazyColumn's contentPadding (not a width cap) so the scrollable area, the
-    // scrollbar and the pull-to-refresh gesture still span the whole window.
+    // Wide windows: the list keeps a readable column. Inside the two-pane workspace the
+    // pane itself bounds the width, so no extra horizontal inset is added.
     BoxWithConstraints(Modifier.fillMaxSize()) {
-    val wideInset = ((maxWidth - ContentWidth.List) / 2).coerceAtLeast(0.dp)
+    val wideInset = if (inPane) 0.dp else ((maxWidth - ContentWidth.List) / 2).coerceAtLeast(0.dp)
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
         onRefresh = onRefresh,
@@ -122,6 +123,7 @@ internal fun MaskList(
                         count = section.items.size,
                         nowSec = nowSec,
                         highlighted = highlightEmail != null && email.email == highlightEmail,
+                        selected = selectedEmailId != null && email.id == selectedEmailId,
                         onOpen = onRowOpen,
                         onCopy = onRowCopy,
                         modifier = rowModifier,

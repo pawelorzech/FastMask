@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.getTextLayoutResult
+import androidx.compose.ui.semantics.selected as semanticsSelected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.text
@@ -61,6 +62,7 @@ internal fun MaskRow(
     onOpen: (MaskedEmail) -> Unit,
     onCopy: (MaskedEmail) -> Unit,
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
 ) {
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
@@ -100,10 +102,17 @@ internal fun MaskRow(
     val highlightColor = MaterialTheme.colorScheme.primaryContainer
     val restingShape = segmentedShape(index, count)
 
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
+
     SegmentedRow(
         index = index,
         count = count,
         onClick = { onOpen(email) },
+        containerColor = containerColor,
         modifier = modifier
             .drawWithContent {
                 drawContent()
@@ -116,7 +125,10 @@ internal fun MaskRow(
                 }
             }
             // The avatar's color is the only visual cue for the state; say it.
-            .semantics { stateDescription = stateLabel },
+            .semantics {
+                stateDescription = stateLabel
+                if (selected) semanticsSelected = true
+            },
         leading = {
             MaskAvatar(
                 seedText = email.avatarSeed,

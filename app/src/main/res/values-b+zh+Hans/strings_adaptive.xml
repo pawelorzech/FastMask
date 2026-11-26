@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">选择一个掩码地址</string>
+    <string name="workspace_empty_body">从列表中选择一个掩码邮箱进行查看或编辑，或者创建一个新的。</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N 新建 · Ctrl+F 搜索 · Ctrl+C 复制 · Esc 关闭</string>
+    <string name="shortcuts_group_masks">掩码邮箱</string>
+    <string name="shortcut_new_mask">新建掩码</string>
+    <string name="shortcut_search">搜索掩码</string>
+    <string name="shortcut_copy_selected">复制所选地址</string>
+    <string name="shortcut_archive_selected">归档所选掩码</string>
+    <string name="shortcut_close_pane">关闭面板或搜索</string>
+    <string name="shortcut_next_mask">下一个掩码</string>
+    <string name="shortcut_previous_mask">上一个掩码</string>
+    <string name="context_enable_mask">启用掩码</string>
+    <string name="context_disable_mask">停用掩码</string>
+</resources>

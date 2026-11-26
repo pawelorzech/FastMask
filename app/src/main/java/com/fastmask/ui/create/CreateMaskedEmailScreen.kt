@@ -45,6 +45,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,25 +95,40 @@ fun CreateMaskedEmailScreen(
     onCreated: (String) -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
+    showDemoBanner: Boolean = true,
+    onCreatedWithId: ((id: String, email: String) -> Unit)? = null,
     viewModel: CreateMaskedEmailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     val onClose = rememberDiscardChangesGuard(uiState.isDirty, onLeave = onNavigateBack)
+    val currentOnCreated by rememberUpdatedState(onCreated)
+    val currentOnCreatedWithId by rememberUpdatedState(onCreatedWithId)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 // Leave immediately: awaiting showSnackbar here would block navigation
                 // for its full Long duration (~10 s).
-                is CreateMaskedEmailEvent.Created -> onCreated(event.email)
+                is CreateMaskedEmailEvent.Created -> {
+                    val withId = currentOnCreatedWithId
+                    if (withId != null) {
+                        withId(event.id, event.email)
+                    } else {
+                        currentOnCreated(event.email)
+                    }
+                }
             }
         }
     }
 
     CreateMaskedEmailContent(
         uiState = uiState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
+        banner = {
+            if (showDemoBanner) {
+                DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp))
+            }
+        },
         onClose = onClose,
         onPrefixChange = viewModel::onPrefixChange,
         onDomainChange = viewModel::onDomainChange,

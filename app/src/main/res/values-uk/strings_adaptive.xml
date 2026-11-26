@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Виберіть маску</string>
+    <string name="workspace_empty_body">Виберіть масковану адресу зі списку для перегляду чи редагування або створіть нову.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N нова · Ctrl+F пошук · Ctrl+C копіювати · Esc закрити</string>
+    <string name="shortcuts_group_masks">Масковані адреси</string>
+    <string name="shortcut_new_mask">Нова маска</string>
+    <string name="shortcut_search">Пошук масок</string>
+    <string name="shortcut_copy_selected">Копіювати вибрану адресу</string>
+    <string name="shortcut_archive_selected">Архівувати вибрану маску</string>
+    <string name="shortcut_close_pane">Закрити панель або пошук</string>
+    <string name="shortcut_next_mask">Наступна маска</string>
+    <string name="shortcut_previous_mask">Попередня маска</string>
+    <string name="context_enable_mask">Увімкнути маску</string>
+    <string name="context_disable_mask">Вимкнути маску</string>
+</resources>

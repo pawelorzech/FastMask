@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">একটি মাস্ক নির্বাচন করুন</string>
+    <string name="workspace_empty_body">দেখতে বা সম্পাদনা করতে তালিকা থেকে একটি মাস্কড ইমেল বেছে নিন, অথবা নতুন একটি তৈরি করুন।</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N নতুন · Ctrl+F অনুসন্ধান · Ctrl+C কপি · Esc বন্ধ</string>
+    <string name="shortcuts_group_masks">মাস্কড ইমেল</string>
+    <string name="shortcut_new_mask">নতুন মাস্ক</string>
+    <string name="shortcut_search">মাস্ক খুঁজুন</string>
+    <string name="shortcut_copy_selected">নির্বাচিত ঠিকানা কপি করুন</string>
+    <string name="shortcut_archive_selected">নির্বাচিত মাস্ক আর্কাইভ করুন</string>
+    <string name="shortcut_close_pane">প্যানেল বা অনুসন্ধান বন্ধ করুন</string>
+    <string name="shortcut_next_mask">পরবর্তী মাস্ক</string>
+    <string name="shortcut_previous_mask">পূর্ববর্তী মাস্ক</string>
+    <string name="context_enable_mask">মাস্ক চালু করুন</string>
+    <string name="context_disable_mask">মাস্ক বন্ধ করুন</string>
+</resources>
