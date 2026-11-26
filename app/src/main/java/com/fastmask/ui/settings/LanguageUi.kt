@@ -13,7 +13,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.domain.model.Language
 import androidx.compose.foundation.selection.selectableGroup
+import com.fastmask.ui.adaptive.HingeAwareAlertDialog
 import com.fastmask.ui.components.DialogTextButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -87,7 +87,7 @@ internal fun LanguagePickerDialog(
             }
         }
     }
-    AlertDialog(
+    HingeAwareAlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.Language, contentDescription = null) },
         title = { Text(stringResource(R.string.settings_select_language)) },

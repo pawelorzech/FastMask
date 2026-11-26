@@ -1,6 +1,5 @@
 package com.fastmask.ui.components
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -9,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.fastmask.ui.adaptive.HingeAwareAlertDialog
 
 @Composable
 fun ConfirmDialog(
@@ -23,7 +23,7 @@ fun ConfirmDialog(
     icon: ImageVector? = null,
 ) {
     val haptic = LocalHapticFeedback.current
-    AlertDialog(
+    HingeAwareAlertDialog(
         onDismissRequest = onDismiss,
         icon = icon?.let { vector -> { Icon(imageVector = vector, contentDescription = null) } },
         title = { Text(text = title) },
