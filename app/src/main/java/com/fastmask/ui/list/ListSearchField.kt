@@ -34,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
@@ -46,12 +48,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
+import com.fastmask.ui.adaptive.ActionTooltip
 
 @Composable
 internal fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
 ) {
     val haptic = LocalHapticFeedback.current
     val focusManager = LocalFocusManager.current
@@ -95,6 +99,7 @@ internal fun SearchField(
                 // this field — label it explicitly.
                 modifier = Modifier
                     .fillMaxWidth()
+                    .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
                     .semantics { contentDescription = searchLabel },
             )
             if (query.isEmpty()) {
@@ -114,16 +119,19 @@ internal fun SearchField(
             exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) +
                 scaleOut(MaterialTheme.motionScheme.fastSpatialSpec(), targetScale = 0.6f),
         ) {
-            IconButton(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onQueryChange("")
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = stringResource(R.string.email_list_clear_search),
-                )
+            val clearLabel = stringResource(R.string.email_list_clear_search)
+            ActionTooltip(label = clearLabel) {
+                IconButton(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                        onQueryChange("")
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = clearLabel,
+                    )
+                }
             }
         }
     }

@@ -81,6 +81,35 @@ class MaskedEmailListViewModel @Inject constructor(
         }
     }
 
+    fun toggleMaskState(email: MaskedEmail) {
+        if (email.state == EmailState.DELETED) return
+        val next = if (email.state.isActive) EmailState.DISABLED else EmailState.ENABLED
+        viewModelScope.launch {
+            maskedEmailRepository.updateMaskedEmail(email.id, UpdateMaskedEmailParams(state = next))
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(error = UiErrors.of(error, R.string.error_update_mask, retryable = false))
+                    }
+                }
+        }
+    }
+
+    fun archiveMask(email: MaskedEmail) {
+        if (email.state == EmailState.DELETED) return
+        viewModelScope.launch {
+            maskedEmailRepository.archiveMaskedEmail(email.id).fold(
+                onSuccess = {
+                    _events.send(MaskedEmailListEvent.MaskArchived(id = email.id, previousState = email.state))
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(error = UiErrors.of(error, R.string.email_detail_error_delete, retryable = false))
+                    }
+                },
+            )
+        }
+    }
+
     private val _uiState = MutableStateFlow(
         MaskedEmailListUiState(
             searchQuery = savedStateHandle.get<String>(KEY_SEARCH_QUERY)
@@ -212,5 +241,6 @@ private fun List<MaskedEmail>.mostRecentFirst(): List<MaskedEmail> =
 sealed interface MaskedEmailListEvent {
     data class RandomCreated(val email: String, val id: String = "") : MaskedEmailListEvent
     data class RandomFailed(@StringRes val messageRes: Int) : MaskedEmailListEvent
+    data class MaskArchived(val id: String, val previousState: EmailState) : MaskedEmailListEvent
 }
 

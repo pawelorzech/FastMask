@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.fastmask.ui.adaptive.fastMaskFocusAndHover
 import com.fastmask.ui.theme.FastMaskTheme
 
 val SegmentedGap: Dp = 2.dp
@@ -97,6 +98,7 @@ fun SegmentedRow(
         interaction = interaction,
         minHeight = if (supporting != null) 72.dp else 56.dp,
         containerColor = containerColor,
+        interactive = onClick != null || onCheckedChange != null,
         modifier = modifier,
         interactionModifier = interactionModifier,
     ) {
@@ -130,6 +132,7 @@ internal fun SegmentedSurface(
     minHeight: Dp,
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    interactive: Boolean = false,
     interaction: MutableInteractionSource = remember { MutableInteractionSource() },
     interactionModifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
@@ -156,6 +159,10 @@ internal fun SegmentedSurface(
             .fillMaxWidth()
             .clip(shape)
             .background(containerColor)
+            .then(
+                if (interactive) Modifier.fastMaskFocusAndHover(interaction, shape)
+                else Modifier,
+            )
             .then(interactionModifier)
             .defaultMinSize(minHeight = minHeight)
             .padding(horizontal = 16.dp, vertical = 12.dp),

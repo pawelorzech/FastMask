@@ -68,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
+import com.fastmask.ui.adaptive.ActionTooltip
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.rememberDiscardChangesGuard
@@ -169,8 +170,10 @@ internal fun CreateMaskedEmailContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
-                        Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
+                    ActionTooltip(label = closeDesc) {
+                        IconButton(onClick = onClose, shapes = IconButtonDefaults.shapes()) {
+                            Icon(imageVector = Icons.Filled.Close, contentDescription = closeDesc)
+                        }
                     }
                 },
                 banner = banner,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -40,12 +41,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -53,6 +62,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
+import com.fastmask.core.platform.copyToClipboard
+import com.fastmask.domain.model.EmailState
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.expressive.MorphingShape
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.create.CreateMaskedEmailViewModel
@@ -77,7 +89,13 @@ fun MasksWorkspace(
     val adaptiveInfo = currentFastMaskAdaptiveInfo()
     val detailPane by workspaceViewModel.detailPane.collectAsState()
     val workspacePendingResult by workspaceViewModel.pendingListResult.collectAsState()
+    val listUiState by listViewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
+    val searchFocusRequester = remember { FocusRequester() }
+    var keyboardArchiveConfirmId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(externalPendingResult) {
         if (externalPendingResult != null) {
@@ -100,6 +118,26 @@ fun MasksWorkspace(
     val isSinglePane = directive.maxHorizontalPartitions == 1
     val detailStandsAlone = detailIsOnlyVisiblePane(navigator.scaffoldValue, ListDetailPaneScaffoldRole.Detail)
     val selectedEmailId = (detailPane as? WorkspaceDetailPane.Detail)?.emailId
+    val selectedEmail = remember(selectedEmailId, listUiState.emails) {
+        selectedEmailId?.let { id -> listUiState.emails.find { it.id == id } }
+    }
+    val archiveTarget = remember(keyboardArchiveConfirmId, listUiState.emails) {
+        keyboardArchiveConfirmId?.let { id -> listUiState.emails.find { it.id == id } }
+    }
+    if (archiveTarget != null) {
+        ConfirmDialog(
+            icon = Icons.Filled.Archive,
+            title = stringResource(R.string.email_detail_delete_dialog_title),
+            message = stringResource(R.string.email_detail_delete_dialog_message),
+            confirmText = stringResource(R.string.email_detail_delete_confirm),
+            dismissText = stringResource(R.string.action_cancel),
+            onConfirm = {
+                keyboardArchiveConfirmId = null
+                listViewModel.archiveMask(archiveTarget)
+            },
+            onDismiss = { keyboardArchiveConfirmId = null },
+        )
+    }
 
     LaunchedEffect(detailPane) {
         when (val pane = detailPane) {
@@ -135,7 +173,54 @@ fun MasksWorkspace(
         navigator = navigator,
         paneExpansionState = expansionState,
         paneExpansionDragHandle = paneDragHandleIfFlat(adaptiveInfo),
-        modifier = modifier.fillMaxSize().testTag("masks_workspace"),
+        modifier = modifier
+            .fillMaxSize()
+            .fastMaskKeyShortcuts(
+                onNewMask = { workspaceViewModel.openCreate() },
+                onSearch = { runCatching { searchFocusRequester.requestFocus() } },
+                onCopySelected = {
+                    val target = selectedEmail ?: return@fastMaskKeyShortcuts false
+                    copyToClipboard(context, target.email)
+                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                    true
+                },
+                onArchiveSelected = {
+                    val target = selectedEmail?.takeIf { it.state != EmailState.DELETED }
+                        ?: return@fastMaskKeyShortcuts false
+                    keyboardArchiveConfirmId = target.id
+                    true
+                },
+                onEscape = {
+                    when {
+                        listUiState.searchQuery.isNotEmpty() -> {
+                            listViewModel.onSearchQueryChange("")
+                            focusManager.clearFocus()
+                            true
+                        }
+                        detailPane != WorkspaceDetailPane.None -> {
+                            workspaceViewModel.clearDetail()
+                            scope.launch {
+                                if (navigator.canNavigateBack()) navigator.navigateBack()
+                            }
+                            true
+                        }
+                        else -> false
+                    }
+                },
+                onMoveSelection = { delta ->
+                    val items = listUiState.filteredEmails
+                    if (items.isEmpty()) return@fastMaskKeyShortcuts false
+                    val currentIndex = selectedEmailId?.let { id -> items.indexOfFirst { it.id == id } } ?: -1
+                    val nextIndex = if (currentIndex == -1) {
+                        if (delta > 0) 0 else items.lastIndex
+                    } else {
+                        (currentIndex + delta).coerceIn(0, items.lastIndex)
+                    }
+                    workspaceViewModel.selectEmail(items[nextIndex].id)
+                    true
+                },
+            )
+            .testTag("masks_workspace"),
         listPane = {
             AnimatedPane(Modifier.preferredWidth(380.dp).focusGroup().testTag("pane_masks_list")) {
                 MaskedEmailListScreen(
@@ -157,6 +242,12 @@ fun MasksWorkspace(
                             workspaceViewModel.selectEmail(id)
                         }
                     },
+                    onMaskArchived = { archivedId ->
+                        if (selectedEmailId == archivedId) {
+                            workspaceViewModel.clearDetail()
+                        }
+                    },
+                    searchFocusRequester = searchFocusRequester,
                     viewModel = listViewModel,
                 )
             }

@@ -45,6 +45,8 @@ internal fun MaskList(
     demoBanner: @Composable () -> Unit,
     selectedEmailId: String? = null,
     inPane: Boolean = false,
+    onRowToggleState: ((MaskedEmail) -> Unit)? = null,
+    onRowRequestArchive: ((MaskedEmail) -> Unit)? = null,
 ) {
     val nowSec = remember(uiState.emails) { Instant.now().epochSecond }
     val sections = remember(uiState.filteredEmails, nowSec) {
@@ -126,6 +128,8 @@ internal fun MaskList(
                         selected = selectedEmailId != null && email.id == selectedEmailId,
                         onOpen = onRowOpen,
                         onCopy = onRowCopy,
+                        onToggleState = onRowToggleState,
+                        onRequestArchive = onRowRequestArchive,
                         modifier = rowModifier,
                     )
                 }

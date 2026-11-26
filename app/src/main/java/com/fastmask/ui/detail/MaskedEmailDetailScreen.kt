@@ -72,6 +72,7 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.core.platform.copyToClipboard
+import com.fastmask.ui.adaptive.ActionTooltip
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
@@ -225,11 +226,13 @@ internal fun MaskedEmailDetailContent(
                 },
                 navigationIcon = {
                     if (showBackButton) {
-                        IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = backDesc,
-                            )
+                        ActionTooltip(label = backDesc) {
+                            IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = backDesc,
+                                )
+                            }
                         }
                     }
                 },
@@ -390,30 +393,35 @@ private fun DetailBody(
                 animationSpec = motion.fastSpatial,
                 label = "editRotate",
             )
-            IconButton(
-                onClick = {
-                    if (editing) onDiscardEdits() else onStartEditing()
-                },
-                enabled = !uiState.isUpdating,
-                shapes = IconButtonDefaults.shapes(),
-            ) {
-                AnimatedContent(
-                    targetState = editing,
-                    transitionSpec = {
-                        (fadeIn(motion.fastEffects) +
-                            scaleIn(motion.fastSpatial, initialScale = 0.6f)) togetherWith
-                            (fadeOut(motion.fastEffects) +
-                                scaleOut(motion.fastSpatial, targetScale = 0.6f))
+            val editLabel = stringResource(
+                if (editing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
+            )
+            ActionTooltip(label = editLabel) {
+                IconButton(
+                    onClick = {
+                        if (editing) onDiscardEdits() else onStartEditing()
                     },
-                    modifier = Modifier.graphicsLayer { rotationZ = editRotate },
-                    label = "editIcon",
-                ) { isEditing ->
-                    Icon(
-                        imageVector = if (isEditing) Icons.Filled.Close else Icons.Filled.Edit,
-                        contentDescription = stringResource(
-                            if (isEditing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
-                        ),
-                    )
+                    enabled = !uiState.isUpdating,
+                    shapes = IconButtonDefaults.shapes(),
+                ) {
+                    AnimatedContent(
+                        targetState = editing,
+                        transitionSpec = {
+                            (fadeIn(motion.fastEffects) +
+                                scaleIn(motion.fastSpatial, initialScale = 0.6f)) togetherWith
+                                (fadeOut(motion.fastEffects) +
+                                    scaleOut(motion.fastSpatial, targetScale = 0.6f))
+                        },
+                        modifier = Modifier.graphicsLayer { rotationZ = editRotate },
+                        label = "editIcon",
+                    ) { isEditing ->
+                        Icon(
+                            imageVector = if (isEditing) Icons.Filled.Close else Icons.Filled.Edit,
+                            contentDescription = stringResource(
+                                if (isEditing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
+                            ),
+                        )
+                    }
                 }
             }
         }
