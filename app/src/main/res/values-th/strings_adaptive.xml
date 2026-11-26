@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">เลือกอีเมลพราง</string>
+    <string name="workspace_empty_body">เลือกอีเมลพรางจากรายการเพื่อดูหรือแก้ไข หรือสร้างอีเมลพรางใหม่</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N ใหม่ · Ctrl+F ค้นหา · Ctrl+C คัดลอก · Esc ปิด</string>
+    <string name="shortcuts_group_masks">อีเมลพราง</string>
+    <string name="shortcut_new_mask">สร้างอีเมลพรางใหม่</string>
+    <string name="shortcut_search">ค้นหาอีเมลพราง</string>
+    <string name="shortcut_copy_selected">คัดลอกที่อยู่ที่เลือก</string>
+    <string name="shortcut_archive_selected">เก็บถาวรอีเมลพรางที่เลือก</string>
+    <string name="shortcut_close_pane">ปิดแผงหรือการค้นหา</string>
+    <string name="shortcut_next_mask">อีเมลพรางถัดไป</string>
+    <string name="shortcut_previous_mask">อีเมลพรางก่อนหน้า</string>
+    <string name="context_enable_mask">เปิดใช้อีเมลพราง</string>
+    <string name="context_disable_mask">ปิดใช้อีเมลพราง</string>
+</resources>

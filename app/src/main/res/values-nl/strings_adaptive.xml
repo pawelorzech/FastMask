@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Kies een masker</string>
+    <string name="workspace_empty_body">Kies een gemaskeerd e-mailadres uit de lijst om het te bekijken of te bewerken, of maak een nieuwe aan.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N nieuw · Ctrl+F zoeken · Ctrl+C kopiëren · Esc sluiten</string>
+    <string name="shortcuts_group_masks">Gemaskeerde adressen</string>
+    <string name="shortcut_new_mask">Nieuw masker</string>
+    <string name="shortcut_search">Maskers zoeken</string>
+    <string name="shortcut_copy_selected">Geselecteerd adres kopiëren</string>
+    <string name="shortcut_archive_selected">Geselecteerd masker archiveren</string>
+    <string name="shortcut_close_pane">Paneel of zoekopdracht sluiten</string>
+    <string name="shortcut_next_mask">Volgend masker</string>
+    <string name="shortcut_previous_mask">Vorig masker</string>
+    <string name="context_enable_mask">Masker inschakelen</string>
+    <string name="context_disable_mask">Masker uitschakelen</string>
+</resources>

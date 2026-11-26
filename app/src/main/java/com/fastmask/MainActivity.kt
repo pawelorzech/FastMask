@@ -5,6 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.KeyboardShortcutGroup
+import android.view.KeyboardShortcutInfo
+import android.view.Menu
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -44,6 +48,7 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.quickmask.NotificationPrompt
+import com.fastmask.ui.adaptive.ProvideFastMaskAdaptiveInfo
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.AppLockGate
 import com.fastmask.ui.navigation.FastMaskNavHost
@@ -201,7 +206,9 @@ class MainActivity : AppCompatActivity() {
 
                 DisposableEffect(appLockEnabled) {
                     val observer = LifecycleEventObserver { _, event ->
-                        if (event == Lifecycle.Event.ON_STOP && appLockEnabled) {
+                        // Fold, unfold and rotation trigger ON_STOP on the outgoing Activity instance
+                        // while the user is still mid-session; only a real backgrounding should re-lock.
+                        if (event == Lifecycle.Event.ON_STOP && appLockEnabled && !isChangingConfigurations) {
                             lockGate.relock()
                         }
                     }
@@ -209,6 +216,7 @@ class MainActivity : AppCompatActivity() {
                     onDispose { lifecycle.removeObserver(observer) }
                 }
 
+                ProvideFastMaskAdaptiveInfo {
                 FastMaskTheme(accent = accent) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -304,6 +312,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+                }
             }
         }
     }
@@ -318,6 +327,28 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         lockGate.save(outState)
         pendingShare.save(outState)
+    }
+
+    override fun onProvideKeyboardShortcuts(
+        data: MutableList<KeyboardShortcutGroup>?,
+        menu: Menu?,
+        deviceId: Int,
+    ) {
+        super.onProvideKeyboardShortcuts(data, menu, deviceId)
+        data?.add(
+            KeyboardShortcutGroup(
+                getString(R.string.shortcuts_group_masks),
+                listOf(
+                    KeyboardShortcutInfo(getString(R.string.shortcut_new_mask), KeyEvent.KEYCODE_N, KeyEvent.META_CTRL_ON),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_search), KeyEvent.KEYCODE_F, KeyEvent.META_CTRL_ON),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_copy_selected), KeyEvent.KEYCODE_C, KeyEvent.META_CTRL_ON),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_archive_selected), KeyEvent.KEYCODE_FORWARD_DEL, 0),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_close_pane), KeyEvent.KEYCODE_ESCAPE, 0),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_next_mask), KeyEvent.KEYCODE_DPAD_DOWN, 0),
+                    KeyboardShortcutInfo(getString(R.string.shortcut_previous_mask), KeyEvent.KEYCODE_DPAD_UP, 0),
+                ),
+            ),
+        )
     }
 
     private fun requestUnlock() = lockGate.requestUnlock(this, getString(R.string.app_lock_prompt_title))

@@ -598,4 +598,34 @@ class MaskedEmailDetailViewModelTest {
         assertEquals("fresh.example", refreshed.editedForDomain)
         assertEquals("https://fresh.example", refreshed.editedUrl)
     }
+
+    @Test
+    fun `unsaved edit drafts including cleared fields survive recreation via SavedStateHandle`() = runTest {
+        val handle = SavedStateHandle(mapOf("emailId" to "m1"))
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(
+                mask(
+                    id = "m1",
+                    description = "server note",
+                    forDomain = "https://example.com",
+                    url = "https://example.com/account",
+                ),
+            ),
+        )
+        val first = MaskedEmailDetailViewModel(handle, repo)
+        advanceUntilIdle()
+        first.startEditing()
+        first.onDescriptionChange("unsaved note")
+        first.onForDomainChange("draft.example")
+        first.onUrlChange("")
+
+        val restored = MaskedEmailDetailViewModel(handle, repo)
+        advanceUntilIdle()
+
+        assertEquals(true, restored.uiState.value.isEditing)
+        assertEquals("unsaved note", restored.uiState.value.editedDescription)
+        assertEquals("draft.example", restored.uiState.value.editedForDomain)
+        assertEquals("", restored.uiState.value.editedUrl)
+        assertEquals(true, restored.uiState.value.hasChanges)
+    }
 }

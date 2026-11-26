@@ -25,11 +25,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.fastmask.ui.adaptive.fastMaskFocusAndHover
 import com.fastmask.ui.theme.FastMaskTheme
 
 val SegmentedGap: Dp = 2.dp
@@ -66,6 +68,7 @@ fun SegmentedRow(
     onClick: (() -> Unit)? = null,
     checked: Boolean = false,
     onCheckedChange: ((Boolean) -> Unit)? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     leading: (@Composable () -> Unit)? = null,
     supporting: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -94,6 +97,8 @@ fun SegmentedRow(
         count = count,
         interaction = interaction,
         minHeight = if (supporting != null) 72.dp else 56.dp,
+        containerColor = containerColor,
+        interactive = onClick != null || onCheckedChange != null,
         modifier = modifier,
         interactionModifier = interactionModifier,
     ) {
@@ -126,6 +131,8 @@ internal fun SegmentedSurface(
     count: Int,
     minHeight: Dp,
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    interactive: Boolean = false,
     interaction: MutableInteractionSource = remember { MutableInteractionSource() },
     interactionModifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
@@ -151,7 +158,11 @@ internal fun SegmentedSurface(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .background(containerColor)
+            .then(
+                if (interactive) Modifier.fastMaskFocusAndHover(interaction, shape)
+                else Modifier,
+            )
             .then(interactionModifier)
             .defaultMinSize(minHeight = minHeight)
             .padding(horizontal = 16.dp, vertical = 12.dp),

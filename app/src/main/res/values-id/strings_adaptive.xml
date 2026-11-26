@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Pilih topeng</string>
+    <string name="workspace_empty_body">Pilih alamat tersamar dari daftar untuk melihat atau mengeditnya, atau buat yang baru.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N baru · Ctrl+F cari · Ctrl+C salin · Esc tutup</string>
+    <string name="shortcuts_group_masks">Email tersamar</string>
+    <string name="shortcut_new_mask">Topeng baru</string>
+    <string name="shortcut_search">Cari topeng</string>
+    <string name="shortcut_copy_selected">Salin alamat terpilih</string>
+    <string name="shortcut_archive_selected">Arsipkan topeng terpilih</string>
+    <string name="shortcut_close_pane">Tutup panel atau pencarian</string>
+    <string name="shortcut_next_mask">Topeng berikutnya</string>
+    <string name="shortcut_previous_mask">Topeng sebelumnya</string>
+    <string name="context_enable_mask">Aktifkan topeng</string>
+    <string name="context_disable_mask">Nonaktifkan topeng</string>
+</resources>

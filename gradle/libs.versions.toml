@@ -18,7 +18,7 @@ appcompat = "1.7.1"
 composeBom = "2026.09.00"
 material3 = "1.5.0-beta02"
 graphicsShapes = "1.0.1"
-adaptive = "1.0.0"
+window = "1.5.1"
 navigationCompose = "2.9.8"
 hiltNavigationCompose = "1.4.0"
 retrofit = "3.0.0"
@@ -37,6 +37,7 @@ coroutines = "1.11.0"
 
 junit = "4.13.2"
 mockk = "1.13.9"
+robolectric = "4.17"
 # AndroidX Test 1.6.x / Espresso 3.6.x: the 3.5.1 line calls
 # InputManager.getInstance(), removed in Android 16 (API 36), so every
 # instrumented test died in Espresso.onIdle before reaching an assertion.
@@ -63,7 +64,12 @@ androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-mani
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-animation = { module = "androidx.compose.animation:animation" }
-androidx-compose-material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
+androidx-compose-material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive" }
+androidx-compose-material3-adaptive-layout = { module = "androidx.compose.material3.adaptive:adaptive-layout" }
+androidx-compose-material3-adaptive-navigation = { module = "androidx.compose.material3.adaptive:adaptive-navigation" }
+androidx-window = { module = "androidx.window:window", version.ref = "window" }
+androidx-window-core = { module = "androidx.window:window-core", version.ref = "window" }
+androidx-window-testing = { module = "androidx.window:window-testing", version.ref = "window" }
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
@@ -101,6 +107,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 
 junit = { module = "junit:junit", version.ref = "junit" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTest" }
 androidx-test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidxTest" }

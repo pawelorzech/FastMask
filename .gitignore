@@ -78,3 +78,7 @@ tools/*/node_modules/
 
 # Journey run results (screenshots + markdown)
 journeys/results/
+
+# Local-only agent notes (private plans)
+CLAUDE.local.md
+docs/FOLDABLE.md

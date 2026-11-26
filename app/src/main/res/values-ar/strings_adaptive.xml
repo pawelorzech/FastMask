@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">اختر قناعاً</string>
+    <string name="workspace_empty_body">اختر عنواناً مقنعاً من القائمة لمعاينته أو تعديله، أو أنشئ عنواناً جديداً.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N جديد · Ctrl+F بحث · Ctrl+C نسخ · Esc إغلاق</string>
+    <string name="shortcuts_group_masks">العناوين المقنعة</string>
+    <string name="shortcut_new_mask">قناع جديد</string>
+    <string name="shortcut_search">البحث في الأقنعة</string>
+    <string name="shortcut_copy_selected">نسخ العنوان المحدد</string>
+    <string name="shortcut_archive_selected">أرشفة القناع المحدد</string>
+    <string name="shortcut_close_pane">إغلاق اللوحة أو البحث</string>
+    <string name="shortcut_next_mask">القناع التالي</string>
+    <string name="shortcut_previous_mask">القناع السابق</string>
+    <string name="context_enable_mask">تفعيل القناع</string>
+    <string name="context_disable_mask">تعطيل القناع</string>
+</resources>

@@ -14,6 +14,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navArgument
+import com.fastmask.ui.adaptive.FastMaskAdaptiveRules
+import com.fastmask.ui.adaptive.MasksWorkspace
+import com.fastmask.ui.adaptive.currentFastMaskAdaptiveInfo
 import com.fastmask.ui.auth.LoginScreen
 import com.fastmask.ui.create.CreateMaskedEmailScreen
 import com.fastmask.ui.detail.MaskedEmailDetailScreen
@@ -136,23 +139,38 @@ fun FastMaskNavHost(
 
         appScreen(route = NavRoutes.EMAIL_LIST, layerRoles = layerRoles) { entry ->
             val pendingResult by entry.savedStateHandle.pendingListResult().collectAsState()
-            MaskedEmailListScreen(
-                onNavigateToCreate = {
-                    navController.navigate(NavRoutes.createEmail()) { launchSingleTop = true }
-                },
-                onNavigateToDetail = { emailId ->
-                    navController.navigate(NavRoutes.emailDetail(emailId)) { launchSingleTop = true }
-                },
-                onNavigateToSettings = {
-                    navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
-                },
-                onSignInFromBanner = {
-                    navController.resetTo(NavRoutes.login(modal = false))
-                },
-                onReauthenticate = onReauthenticate,
-                pendingResult = pendingResult,
-                onResultConsumed = { entry.savedStateHandle.consumeListResult(it) },
-            )
+            val adaptiveInfo = currentFastMaskAdaptiveInfo()
+            if (FastMaskAdaptiveRules.usesWorkspace(adaptiveInfo)) {
+                MasksWorkspace(
+                    onNavigateToSettings = {
+                        navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
+                    },
+                    onSignInFromBanner = {
+                        navController.resetTo(NavRoutes.login(modal = false))
+                    },
+                    onReauthenticate = onReauthenticate,
+                    externalPendingResult = pendingResult,
+                    onExternalResultConsumed = { entry.savedStateHandle.consumeListResult(it) },
+                )
+            } else {
+                MaskedEmailListScreen(
+                    onNavigateToCreate = {
+                        navController.navigate(NavRoutes.createEmail()) { launchSingleTop = true }
+                    },
+                    onNavigateToDetail = { emailId ->
+                        navController.navigate(NavRoutes.emailDetail(emailId)) { launchSingleTop = true }
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(NavRoutes.SETTINGS) { launchSingleTop = true }
+                    },
+                    onSignInFromBanner = {
+                        navController.resetTo(NavRoutes.login(modal = false))
+                    },
+                    onReauthenticate = onReauthenticate,
+                    pendingResult = pendingResult,
+                    onResultConsumed = { entry.savedStateHandle.consumeListResult(it) },
+                )
+            }
         }
 
         appScreen(route = NavRoutes.SETTINGS, layerRoles = layerRoles) {

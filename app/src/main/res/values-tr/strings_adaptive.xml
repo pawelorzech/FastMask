@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Bir maske seçin</string>
+    <string name="workspace_empty_body">İncelemek veya düzenlemek için listeden bir maskeli e-posta seçin ya da yeni bir tane oluşturun.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N yeni · Ctrl+F ara · Ctrl+C kopyala · Esc kapat</string>
+    <string name="shortcuts_group_masks">Maskeli e-postalar</string>
+    <string name="shortcut_new_mask">Yeni maske</string>
+    <string name="shortcut_search">Maskelerde ara</string>
+    <string name="shortcut_copy_selected">Seçili adresi kopyala</string>
+    <string name="shortcut_archive_selected">Seçili maskeyi arşivle</string>
+    <string name="shortcut_close_pane">Paneli veya aramayı kapat</string>
+    <string name="shortcut_next_mask">Sonraki maske</string>
+    <string name="shortcut_previous_mask">Önceki maske</string>
+    <string name="context_enable_mask">Maskeyi etkinleştir</string>
+    <string name="context_disable_mask">Maskeyi devre dışı bırak</string>
+</resources>

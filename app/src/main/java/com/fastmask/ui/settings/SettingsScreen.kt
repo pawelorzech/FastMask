@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Language
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -68,6 +67,7 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.model.Language
 import com.fastmask.domain.model.ProFeature
 import com.fastmask.core.platform.openExternalIntent
+import com.fastmask.ui.adaptive.HingeAwareAlertDialog
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DialogTextButton
 import com.fastmask.ui.components.expressive.ShapeBadge
@@ -184,9 +184,9 @@ internal fun SettingsContent(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var showLanguageDialog by remember { mutableStateOf(false) }
-    var showLockUnavailableDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showLockUnavailableDialog by rememberSaveable { mutableStateOf(false) }
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
 
     val colorsLockedMessage = stringResource(R.string.pro_feature_locked)
@@ -241,7 +241,7 @@ internal fun SettingsContent(
     }
 
     if (showLockUnavailableDialog) {
-        AlertDialog(
+        HingeAwareAlertDialog(
             onDismissRequest = { showLockUnavailableDialog = false },
             icon = { Icon(ProFeature.APP_LOCK.style.icon, contentDescription = null) },
             title = { Text(stringResource(R.string.settings_app_lock)) },

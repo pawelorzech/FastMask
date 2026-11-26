@@ -2,6 +2,7 @@
 
 package com.fastmask.ui.list
 
+import androidx.lifecycle.SavedStateHandle
 import com.fastmask.R
 import com.fastmask.domain.model.Session
 import com.fastmask.testutil.FakeSessionRepository
@@ -28,8 +29,8 @@ class MaskedEmailListViewModelTest {
 
     private val session = FakeSessionRepository(initial = Session.ACCOUNT)
 
-    private fun vm(repo: FakeMaskedEmailRepository) =
-        MaskedEmailListViewModel(repo, session)
+    private fun vm(repo: FakeMaskedEmailRepository, savedStateHandle: SavedStateHandle = SavedStateHandle()) =
+        MaskedEmailListViewModel(repo, session, savedStateHandle)
 
     private val t1: Instant = Instant.parse("2026-01-01T10:00:00Z")
     private val t2: Instant = Instant.parse("2026-02-01T10:00:00Z")
@@ -481,5 +482,29 @@ class MaskedEmailListViewModelTest {
 
         assertEquals(listOf("live1"), viewModel.uiState.value.emails.map { it.id })
         assertEquals(null, viewModel.uiState.value.cachedAt)
+    }
+
+    // --- state continuity (fold / unfold / process death) -----------------
+
+    @Test
+    fun `search query and filter survive recreation via SavedStateHandle`() = runTest {
+        val handle = SavedStateHandle()
+        val repo = FakeMaskedEmailRepository(
+            emails = listOf(
+                mask("m1", state = EmailState.ENABLED, description = "GitHub"),
+                mask("m2", state = EmailState.DISABLED, description = "GitHub old"),
+            ),
+        )
+        val first = vm(repo, handle)
+        advanceUntilIdle()
+        first.onSearchQueryChange("github")
+        first.onFilterChange(EmailFilter.DISABLED)
+
+        val restored = vm(repo, handle)
+        advanceUntilIdle()
+
+        assertEquals("github", restored.uiState.value.searchQuery)
+        assertEquals(EmailFilter.DISABLED, restored.uiState.value.selectedFilter)
+        assertEquals(listOf("m2"), restored.uiState.value.filteredEmails.map { it.id })
     }
 }

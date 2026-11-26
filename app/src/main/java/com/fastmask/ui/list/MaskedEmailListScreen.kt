@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -61,6 +62,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -69,6 +72,7 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
@@ -92,10 +96,13 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
+import com.fastmask.ui.adaptive.ActionTooltip
+import com.fastmask.ui.adaptive.fastMaskKeyShortcuts
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.core.platform.copyToClipboard
 import com.fastmask.ui.common.isCompactHeight
 import com.fastmask.ui.common.readableWidth
+import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
 import com.fastmask.ui.components.ErrorState
 import com.fastmask.ui.components.InlineErrorBanner
@@ -113,6 +120,11 @@ fun MaskedEmailListScreen(
     onReauthenticate: () -> Unit,
     pendingResult: ListResult? = null,
     onResultConsumed: (ListResult) -> Unit = {},
+    selectedEmailId: String? = null,
+    inPane: Boolean = false,
+    onRandomCreated: ((id: String, email: String) -> Unit)? = null,
+    onMaskArchived: ((id: String) -> Unit)? = null,
+    searchFocusRequester: FocusRequester? = null,
     viewModel: MaskedEmailListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -158,8 +170,8 @@ fun MaskedEmailListScreen(
     }
 
     val copyAction = stringResource(R.string.create_email_copy_action)
-    var pendingCreated by remember { mutableStateOf<String?>(null) }
-    var highlightEmail by remember { mutableStateOf<String?>(null) }
+    var pendingCreated by rememberSaveable { mutableStateOf<String?>(null) }
+    var highlightEmail by rememberSaveable { mutableStateOf<String?>(null) }
     fun announceCreated(email: String) {
         pendingCreated = email
         highlightEmail = email
@@ -170,15 +182,26 @@ fun MaskedEmailListScreen(
             onResultConsumed(pendingResult)
         }
     }
+    val currentOnRandomCreated by rememberUpdatedState(onRandomCreated)
+    val currentOnMaskArchived by rememberUpdatedState(onMaskArchived)
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                is MaskedEmailListEvent.RandomCreated -> announceCreated(event.email)
+                is MaskedEmailListEvent.RandomCreated -> {
+                    announceCreated(event.email)
+                    if (event.id.isNotBlank()) {
+                        currentOnRandomCreated?.invoke(event.id, event.email)
+                    }
+                }
                 is MaskedEmailListEvent.RandomFailed -> {
                     snackbarHostState.showSnackbar(
                         message = resources.getString(event.messageRes),
                         duration = SnackbarDuration.Short,
                     )
+                }
+                is MaskedEmailListEvent.MaskArchived -> {
+                    pendingUndo = ListResult.Archived(event.id, event.previousState)
+                    currentOnMaskArchived?.invoke(event.id)
                 }
             }
         }
@@ -248,7 +271,30 @@ fun MaskedEmailListScreen(
     }
 
     val tutorialBounds = remember { mutableStateMapOf<TutorialTarget, Rect>() }
-    var showTutorial by remember { mutableStateOf(false) }
+    var containerOrigin by remember { mutableStateOf(Offset.Zero) }
+    var showTutorial by rememberSaveable { mutableStateOf(false) }
+    var archiveConfirmId by rememberSaveable { mutableStateOf<String?>(null) }
+    val archiveConfirmEmail = remember(archiveConfirmId, uiState.emails) {
+        archiveConfirmId?.let { id -> uiState.emails.find { it.id == id } }
+    }
+    val localSearchFocus = remember { FocusRequester() }
+    val effectiveSearchFocus = searchFocusRequester ?: localSearchFocus
+    val focusManager = LocalFocusManager.current
+
+    if (archiveConfirmEmail != null) {
+        ConfirmDialog(
+            icon = Icons.Filled.Archive,
+            title = stringResource(R.string.email_detail_delete_dialog_title),
+            message = stringResource(R.string.email_detail_delete_dialog_message),
+            confirmText = stringResource(R.string.email_detail_delete_confirm),
+            dismissText = stringResource(R.string.action_cancel),
+            onConfirm = {
+                archiveConfirmId = null
+                viewModel.archiveMask(archiveConfirmEmail)
+            },
+            onDismiss = { archiveConfirmId = null },
+        )
+    }
 
     val shouldShow = session.isDemo && !tutorialCompleted &&
         TutorialTarget.entries.all { it in tutorialBounds }
@@ -260,12 +306,38 @@ fun MaskedEmailListScreen(
         showTutorial = shouldShow
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (!inPane) {
+                    Modifier.fastMaskKeyShortcuts(
+                        onNewMask = onNavigateToCreate,
+                        onSearch = { runCatching { effectiveSearchFocus.requestFocus() } },
+                        onEscape = {
+                            if (uiState.searchQuery.isNotEmpty()) {
+                                viewModel.onSearchQueryChange("")
+                                focusManager.clearFocus()
+                                true
+                            } else {
+                                false
+                            }
+                        },
+                    )
+                } else {
+                    Modifier
+                },
+            )
+            .onGloballyPositioned { coords -> containerOrigin = coords.boundsInRoot().topLeft },
+    ) {
         MaskedEmailListContent(
             uiState = uiState,
             snackbarHostState = snackbarHostState,
             listState = listState,
             highlightEmail = highlightEmail,
+            selectedEmailId = selectedEmailId,
+            inPane = inPane,
+            searchFocusRequester = effectiveSearchFocus,
             onSearchQueryChange = viewModel::onSearchQueryChange,
             onFilterSelect = {
                 haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
@@ -273,12 +345,16 @@ fun MaskedEmailListScreen(
             },
             onRowOpen = onRowOpen,
             onRowCopy = onRowCopy,
+            onRowToggleState = viewModel::toggleMaskState,
+            onRowRequestArchive = { email -> archiveConfirmId = email.id },
             onReauthenticate = onReauthenticate,
             onRefresh = viewModel::loadMaskedEmails,
             onNavigateToCreate = onNavigateToCreate,
             onRandomMask = viewModel::createRandomMask,
             onNavigateToSettings = onNavigateToSettings,
-            onTutorialBounds = { target, bounds -> tutorialBounds[target] = bounds },
+            onTutorialBounds = { target, bounds ->
+                tutorialBounds[target] = bounds.translate(-containerOrigin)
+            },
             demoBanner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = ListGutter)) },
             // The scrim blocks touch but not screen readers: hide the subtree from
             // TalkBack while the tutorial is up.
@@ -314,6 +390,11 @@ internal fun MaskedEmailListContent(
     demoBanner: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     initialMenuExpanded: Boolean = false,
+    selectedEmailId: String? = null,
+    inPane: Boolean = false,
+    searchFocusRequester: FocusRequester? = null,
+    onRowToggleState: ((MaskedEmail) -> Unit)? = null,
+    onRowRequestArchive: ((MaskedEmail) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     // Phones in landscape: a large collapsing bar plus pinned search and filters
@@ -388,11 +469,14 @@ internal fun MaskedEmailListContent(
                     )
                 }
                 val barActions: @Composable RowScope.() -> Unit = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.email_list_settings),
-                        )
+                    val settingsLabel = stringResource(R.string.email_list_settings)
+                    ActionTooltip(label = settingsLabel) {
+                        IconButton(onClick = onNavigateToSettings) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = settingsLabel,
+                            )
+                        }
                     }
                 }
                 val barColors = TopAppBarDefaults.topAppBarColors(
@@ -442,7 +526,7 @@ internal fun MaskedEmailListContent(
                                 R.string.list_offline_cached,
                                 RelativeTime.format(context, cachedAt),
                             ),
-                            modifier = Modifier.readableWidth(ContentWidth.List),
+                            modifier = if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List),
                         )
                     }
                 }
@@ -462,8 +546,7 @@ internal fun MaskedEmailListContent(
                             error = error,
                             onRetry = onRefresh,
                             onReauthenticate = onReauthenticate,
-                            modifier = Modifier
-                                .readableWidth(ContentWidth.List)
+                            modifier = (if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List))
                                 .padding(horizontal = ListGutter, vertical = 4.dp),
                         )
                     }
@@ -489,13 +572,14 @@ internal fun MaskedEmailListContent(
                             drawRect(headerColor)
                         }
                         .padding(top = 12.dp, bottom = 12.dp)
-                        .readableWidth(ContentWidth.List),
+                        .then(if (inPane) Modifier else Modifier.readableWidth(ContentWidth.List)),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     val gutterPx = with(LocalDensity.current) { ListGutter.toPx() }
                     SearchField(
                         query = uiState.searchQuery,
                         onQueryChange = onSearchQueryChange,
+                        focusRequester = searchFocusRequester,
                         modifier = Modifier.padding(horizontal = ListGutter).onGloballyPositioned { coords ->
                             onTutorialBounds(TutorialTarget.SEARCH, coords.boundsInRoot())
                         },
@@ -621,6 +705,10 @@ internal fun MaskedEmailListContent(
                                 onRowCopy = onRowCopy,
                                 onTutorialBounds = onTutorialBounds,
                                 demoBanner = demoBanner,
+                                selectedEmailId = selectedEmailId,
+                                inPane = inPane,
+                                onRowToggleState = onRowToggleState,
+                                onRowRequestArchive = onRowRequestArchive,
                             )
                         }
                     }

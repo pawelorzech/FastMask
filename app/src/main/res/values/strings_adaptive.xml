@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Select a mask</string>
+    <string name="workspace_empty_body">Pick a masked email from the list to inspect or edit it, or create a new one.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N new · Ctrl+F search · Ctrl+C copy · Esc close</string>
+    <string name="shortcuts_group_masks">Masked emails</string>
+    <string name="shortcut_new_mask">New mask</string>
+    <string name="shortcut_search">Search masks</string>
+    <string name="shortcut_copy_selected">Copy selected address</string>
+    <string name="shortcut_archive_selected">Archive selected mask</string>
+    <string name="shortcut_close_pane">Close panel or search</string>
+    <string name="shortcut_next_mask">Next mask</string>
+    <string name="shortcut_previous_mask">Previous mask</string>
+    <string name="context_enable_mask">Enable mask</string>
+    <string name="context_disable_mask">Disable mask</string>
+</resources>

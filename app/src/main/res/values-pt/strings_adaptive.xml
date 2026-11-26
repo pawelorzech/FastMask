@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Selecione uma máscara</string>
+    <string name="workspace_empty_body">Escolha um e-mail mascarado da lista para ver ou editar, ou crie uma nova máscara.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N nova · Ctrl+F buscar · Ctrl+C copiar · Esc fechar</string>
+    <string name="shortcuts_group_masks">E-mails mascarados</string>
+    <string name="shortcut_new_mask">Nova máscara</string>
+    <string name="shortcut_search">Buscar máscaras</string>
+    <string name="shortcut_copy_selected">Copiar endereço selecionado</string>
+    <string name="shortcut_archive_selected">Arquivar máscara selecionada</string>
+    <string name="shortcut_close_pane">Fechar painel ou busca</string>
+    <string name="shortcut_next_mask">Próxima máscara</string>
+    <string name="shortcut_previous_mask">Máscara anterior</string>
+    <string name="context_enable_mask">Ativar máscara</string>
+    <string name="context_disable_mask">Desativar máscara</string>
+</resources>

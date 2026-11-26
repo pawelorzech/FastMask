@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fastmask.R
+import com.fastmask.ui.adaptive.HingeAwareAlertDialog
 import com.fastmask.ui.components.DialogTextButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -56,7 +56,7 @@ internal fun LicensesDialog(onDismiss: () -> Unit) {
             }
         }
     }
-    AlertDialog(
+    HingeAwareAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_licenses_title)) },
         text = {

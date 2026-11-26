@@ -51,6 +51,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
 import com.fastmask.ui.common.ContentWidth
 import com.fastmask.core.platform.copyToClipboard
+import com.fastmask.ui.adaptive.ActionTooltip
 import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ConfirmDialog
 import com.fastmask.ui.components.DemoBanner
@@ -90,26 +93,29 @@ fun MaskedEmailDetailScreen(
     onArchived: (String, EmailState) -> Unit,
     onSignInFromBanner: () -> Unit,
     onReauthenticate: () -> Unit,
+    showBackButton: Boolean = true,
+    showDemoBanner: Boolean = true,
     viewModel: MaskedEmailDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    var showArchiveDialog by remember { mutableStateOf(false) }
+    var showArchiveDialog by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val isDirty = uiState.hasChanges
     val onBack = rememberDiscardChangesGuard(isDirty, onLeave = onNavigateBack)
 
     val updatedMessage = stringResource(R.string.email_detail_updated)
+    val currentOnArchived by rememberUpdatedState(onArchived)
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
                 is MaskedEmailDetailEvent.Updated ->
                     snackbarHostState.showSnackbar(updatedMessage, duration = SnackbarDuration.Short)
                 is MaskedEmailDetailEvent.Deleted -> {
                     // The list hosts the archived/undo snackbar, where the mask reappears.
-                    onArchived(event.id, event.previousState)
+                    currentOnArchived(event.id, event.previousState)
                 }
             }
         }
@@ -133,7 +139,12 @@ fun MaskedEmailDetailScreen(
     MaskedEmailDetailContent(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
-        banner = { DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp)) },
+        banner = {
+            if (showDemoBanner) {
+                DemoBanner(onSignInClick = onSignInFromBanner, modifier = Modifier.padding(horizontal = 16.dp))
+            }
+        },
+        showBackButton = showBackButton,
         onBack = onBack,
         onRetry = { viewModel.loadEmail() },
         onReauthenticate = onReauthenticate,
@@ -168,6 +179,7 @@ internal fun MaskedEmailDetailContent(
     onDiscardEdits: () -> Unit,
     onCopyEmail: (String) -> Unit,
     onArchiveClick: () -> Unit,
+    showBackButton: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
     val revealPx = with(LocalDensity.current) { TITLE_REVEAL_SCROLL_DP.dp.toPx() }
@@ -213,11 +225,15 @@ internal fun MaskedEmailDetailContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = backDesc,
-                        )
+                    if (showBackButton) {
+                        ActionTooltip(label = backDesc) {
+                            IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = backDesc,
+                                )
+                            }
+                        }
                     }
                 },
                 banner = banner,
@@ -377,30 +393,35 @@ private fun DetailBody(
                 animationSpec = motion.fastSpatial,
                 label = "editRotate",
             )
-            IconButton(
-                onClick = {
-                    if (editing) onDiscardEdits() else onStartEditing()
-                },
-                enabled = !uiState.isUpdating,
-                shapes = IconButtonDefaults.shapes(),
-            ) {
-                AnimatedContent(
-                    targetState = editing,
-                    transitionSpec = {
-                        (fadeIn(motion.fastEffects) +
-                            scaleIn(motion.fastSpatial, initialScale = 0.6f)) togetherWith
-                            (fadeOut(motion.fastEffects) +
-                                scaleOut(motion.fastSpatial, targetScale = 0.6f))
+            val editLabel = stringResource(
+                if (editing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
+            )
+            ActionTooltip(label = editLabel) {
+                IconButton(
+                    onClick = {
+                        if (editing) onDiscardEdits() else onStartEditing()
                     },
-                    modifier = Modifier.graphicsLayer { rotationZ = editRotate },
-                    label = "editIcon",
-                ) { isEditing ->
-                    Icon(
-                        imageVector = if (isEditing) Icons.Filled.Close else Icons.Filled.Edit,
-                        contentDescription = stringResource(
-                            if (isEditing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
-                        ),
-                    )
+                    enabled = !uiState.isUpdating,
+                    shapes = IconButtonDefaults.shapes(),
+                ) {
+                    AnimatedContent(
+                        targetState = editing,
+                        transitionSpec = {
+                            (fadeIn(motion.fastEffects) +
+                                scaleIn(motion.fastSpatial, initialScale = 0.6f)) togetherWith
+                                (fadeOut(motion.fastEffects) +
+                                    scaleOut(motion.fastSpatial, targetScale = 0.6f))
+                        },
+                        modifier = Modifier.graphicsLayer { rotationZ = editRotate },
+                        label = "editIcon",
+                    ) { isEditing ->
+                        Icon(
+                            imageVector = if (isEditing) Icons.Filled.Close else Icons.Filled.Edit,
+                            contentDescription = stringResource(
+                                if (isEditing) R.string.email_detail_edit_stop else R.string.email_detail_edit_action,
+                            ),
+                        )
+                    }
                 }
             }
         }

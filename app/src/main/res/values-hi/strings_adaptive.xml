@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">एक मास्क चुनें</string>
+    <string name="workspace_empty_body">देखने या संपादित करने के लिए सूची से एक मास्क्ड ईमेल चुनें, या एक नया बनाएं।</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N नया · Ctrl+F खोजें · Ctrl+C कॉपी · Esc बंद</string>
+    <string name="shortcuts_group_masks">मास्क्ड ईमेल</string>
+    <string name="shortcut_new_mask">नया मास्क</string>
+    <string name="shortcut_search">मास्क खोजें</string>
+    <string name="shortcut_copy_selected">चयनित पता कॉपी करें</string>
+    <string name="shortcut_archive_selected">चयनित मास्क आर्काइव करें</string>
+    <string name="shortcut_close_pane">पैनल या खोज बंद करें</string>
+    <string name="shortcut_next_mask">अगला मास्क</string>
+    <string name="shortcut_previous_mask">पिछला मास्क</string>
+    <string name="context_enable_mask">मास्क चालू करें</string>
+    <string name="context_disable_mask">मास्क बंद करें</string>
+</resources>

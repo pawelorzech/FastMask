@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="workspace_empty_title">Sélectionner un masque</string>
+    <string name="workspace_empty_body">Choisissez une adresse masquée dans la liste pour la consulter ou la modifier, ou créez-en une nouvelle.</string>
+    <string name="workspace_shortcuts_hint">Ctrl+N nouveau · Ctrl+F rechercher · Ctrl+C copier · Échap fermer</string>
+    <string name="shortcuts_group_masks">Adresses masquées</string>
+    <string name="shortcut_new_mask">Nouveau masque</string>
+    <string name="shortcut_search">Rechercher des masques</string>
+    <string name="shortcut_copy_selected">Copier l\'adresse sélectionnée</string>
+    <string name="shortcut_archive_selected">Archiver le masque sélectionné</string>
+    <string name="shortcut_close_pane">Fermer le panneau ou la recherche</string>
+    <string name="shortcut_next_mask">Masque suivant</string>
+    <string name="shortcut_previous_mask">Masque précédent</string>
+    <string name="context_enable_mask">Activer le masque</string>
+    <string name="context_disable_mask">Désactiver le masque</string>
+</resources>

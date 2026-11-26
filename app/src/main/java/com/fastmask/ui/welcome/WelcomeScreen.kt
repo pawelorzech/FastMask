@@ -53,6 +53,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.fastmask.R
 import com.fastmask.ui.accessibility.politeLiveRegion
 import com.fastmask.ui.accessibility.screenHeading
+import com.fastmask.ui.common.ContentWidth
+import com.fastmask.ui.common.readableWidth
 import com.fastmask.ui.components.ButtonLoadingLabel
 import com.fastmask.ui.components.ButtonLoadingStyle
 import com.fastmask.ui.theme.FastMaskTheme
@@ -100,6 +102,7 @@ internal fun WelcomeContent(
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
+                    .readableWidth(ContentWidth.Form)
                     .padding(horizontal = 24.dp)
                     .padding(top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),

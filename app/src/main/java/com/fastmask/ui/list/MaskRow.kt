@@ -6,7 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.getTextLayoutResult
+import androidx.compose.ui.semantics.selected as semanticsSelected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.text
@@ -39,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import com.fastmask.R
 import com.fastmask.domain.model.EmailState
 import com.fastmask.domain.model.MaskedEmail
+import com.fastmask.ui.adaptive.ActionTooltip
+import com.fastmask.ui.adaptive.maskAddressDragSource
+import com.fastmask.ui.adaptive.onSecondaryClick
 import com.fastmask.ui.components.expressive.MaskAvatar
 import com.fastmask.ui.components.expressive.SegmentedRow
 import com.fastmask.ui.components.expressive.StateChip
@@ -61,6 +70,9 @@ internal fun MaskRow(
     onOpen: (MaskedEmail) -> Unit,
     onCopy: (MaskedEmail) -> Unit,
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    onToggleState: ((MaskedEmail) -> Unit)? = null,
+    onRequestArchive: ((MaskedEmail) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val copyLabel = stringResource(R.string.list_copy_action)
@@ -100,11 +112,22 @@ internal fun MaskRow(
     val highlightColor = MaterialTheme.colorScheme.primaryContainer
     val restingShape = segmentedShape(index, count)
 
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
+    var contextMenuExpanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
     SegmentedRow(
         index = index,
         count = count,
         onClick = { onOpen(email) },
-        modifier = modifier
+        containerColor = containerColor,
+        modifier = Modifier
+            .onSecondaryClick { contextMenuExpanded = true }
+            .maskAddressDragSource(email.email)
             .drawWithContent {
                 drawContent()
                 if (highlightAlpha > 0.001f) {
@@ -116,7 +139,10 @@ internal fun MaskRow(
                 }
             }
             // The avatar's color is the only visual cue for the state; say it.
-            .semantics { stateDescription = stateLabel },
+            .semantics {
+                stateDescription = stateLabel
+                if (selected) semanticsSelected = true
+            },
         leading = {
             MaskAvatar(
                 seedText = email.avatarSeed,
@@ -151,11 +177,13 @@ internal fun MaskRow(
                     // sighted user's non-colour cue only.
                     Box(Modifier.clearAndSetSemantics { }) { StateChip(email.state) }
                 }
-                IconButton(onClick = { onCopy(email) }) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = copyLabel,
-                    )
+                ActionTooltip(label = copyLabel) {
+                    IconButton(onClick = { onCopy(email) }) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = copyLabel,
+                        )
+                    }
                 }
             }
         },
@@ -178,4 +206,51 @@ internal fun MaskRow(
             )
         },
     )
+
+    DropdownMenu(
+        expanded = contextMenuExpanded,
+        onDismissRequest = { contextMenuExpanded = false },
+    ) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.email_detail_copy_email)) },
+            leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) },
+            onClick = {
+                contextMenuExpanded = false
+                onCopy(email)
+            },
+        )
+        if (email.state != EmailState.DELETED && onToggleState != null) {
+            val isActive = email.state.isActive
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        stringResource(
+                            if (isActive) R.string.context_disable_mask else R.string.context_enable_mask,
+                        ),
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (isActive) Icons.Filled.Block else Icons.Filled.CheckCircle,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {
+                    contextMenuExpanded = false
+                    onToggleState(email)
+                },
+            )
+        }
+        if (email.state != EmailState.DELETED && onRequestArchive != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.email_detail_delete)) },
+                leadingIcon = { Icon(Icons.Filled.Archive, contentDescription = null) },
+                onClick = {
+                    contextMenuExpanded = false
+                    onRequestArchive(email)
+                },
+            )
+        }
+    }
+    }
 }
