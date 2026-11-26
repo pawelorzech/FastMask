@@ -44,6 +44,7 @@ import com.fastmask.domain.model.Accent
 import com.fastmask.domain.repository.SessionRepository
 import com.fastmask.domain.repository.ProRepository
 import com.fastmask.quickmask.NotificationPrompt
+import com.fastmask.ui.adaptive.ProvideFastMaskAdaptiveInfo
 import com.fastmask.ui.lock.LockScreen
 import com.fastmask.ui.lock.AppLockGate
 import com.fastmask.ui.navigation.FastMaskNavHost
@@ -211,6 +212,7 @@ class MainActivity : AppCompatActivity() {
                     onDispose { lifecycle.removeObserver(observer) }
                 }
 
+                ProvideFastMaskAdaptiveInfo {
                 FastMaskTheme(accent = accent) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -305,6 +307,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
+                }
                 }
             }
         }
