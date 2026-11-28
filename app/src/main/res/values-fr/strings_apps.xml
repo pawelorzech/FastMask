@@ -13,4 +13,5 @@
     <string name="more_apps_tagline_packmelist">Listes de bagages qui comptent pour vous</string>
     <string name="more_apps_tagline_tessera">Minuteur pomodoro : chaque session, une tuile</string>
     <string name="more_apps_tagline_gooseneck">Minuteur de café, étape par étape</string>
+    <string name="more_apps_tagline_bitenote">Compteur de calories IA : une photo suffit</string>
 </resources>

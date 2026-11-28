@@ -1,6 +1,3 @@
-What's new in 1.16.0
+What's new in 1.16.1
 
-• Two-pane layout on foldables and tablets: browse your mask list side by side with mask details or the create form, with a draggable divider
-• Smooth fold, unfold and rotation: search, filters, unsaved edits and open dialogs stay in place without asking to unlock again
-• Dialogs stay clear of the hinge on folding screens
-• Keyboard shortcuts (Ctrl+N, Ctrl+F, Ctrl+C, Del, arrows), mouse hover, right-click menu on masks, tooltips and drag-out for addresses
+• BiteNote, our AI calorie counter, now appears in More from the maker

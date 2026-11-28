@@ -42,6 +42,7 @@ object MoreApps {
             "Gooseneck", "com.pawelorzech.gooseneck",
             R.string.more_apps_tagline_gooseneck, R.drawable.maker_gooseneck,
         ),
+        MoreApp("BiteNote", "eu.bitenote.app", R.string.more_apps_tagline_bitenote, R.drawable.maker_bitenote),
     )
 
     fun otherThan(ownPackageId: String): List<MoreApp> =

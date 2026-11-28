@@ -1,6 +1,3 @@
-Nowości w 1.16.0
+Nowości w 1.16.1
 
-• Dwupanelowy układ na składanych ekranach i tabletach: lista masek obok szczegółów lub tworzenia, z przesuwanym podziałem
-• Płynne składanie, rozkładanie i obrót: wyszukiwanie, filtry, szkice i okna zostają na miejscu bez ponownego odblokowania
-• Okna dialogowe omijają zawias na składanych ekranach
-• Skróty klawiszowe (Ctrl+N, Ctrl+F, Ctrl+C, Del, strzałki), menu pod prawym przyciskiem, podpowiedzi i przeciąganie adresów
+• W sekcji z naszymi aplikacjami pojawił się BiteNote, licznik kalorii z AI

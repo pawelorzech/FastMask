@@ -6,6 +6,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.16.1] — 2026-11-28
+
+### Added
+- BiteNote, our AI calorie counter, in Settings → More from the maker, with its tagline translated for all 20 locales.
+
+### Build
+- `versionCode` 38 → 39, `versionName` "1.16.0" → "1.16.1".
+
 ## [1.16.0] — 2026-11-26
 
 ### Added
